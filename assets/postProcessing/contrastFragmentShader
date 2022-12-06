@@ -1,0 +1,15 @@
+#version 140
+
+in vec2 texCoords;
+
+out vec4 color;
+
+uniform sampler2D colorTexture;
+
+uniform float contrast = 0.3;
+
+void main(void)
+{
+    color = texture(colorTexture, texCoords);
+    color.rgb = (color.rgb - 0.5) *(1.0 + contrast) + 0.5;
+}

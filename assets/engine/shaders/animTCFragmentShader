@@ -1,0 +1,29 @@
+#version 130
+
+in vec2 fragmentTexCoords;
+in float distToCamera;
+in vec4 passColor1;
+in vec4 passColor2;
+
+out vec4 color;
+
+uniform sampler2D NSTexture;
+
+uniform vec4 fogColor;
+uniform float fogMax;
+uniform float fogMin;
+
+float getFogFactor(float d)
+{
+    if (d>=fogMax) return 1.f;
+    if (d<=fogMin) return 0.f;
+    return 1.f-(fogMax-d)/(fogMax-fogMin);
+}
+
+void main() {
+    vec4 texCol = texture(NSTexture, fragmentTexCoords);
+    float alpha = getFogFactor(d);
+    vec4 col = mix(passColor1, passColor2, texCol.r);
+    color = mix(col, fogColor, alpha);
+    color.a = min(color.a,min(col.a,texCol.a));
+}

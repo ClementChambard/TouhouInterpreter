@@ -1,0 +1,2 @@
+#define ecl_VERSION_MAJOR @ecl_VERSION_MAJOR@
+#define ecl_VERSION_MINOR @ecl_VERSION_MINOR@

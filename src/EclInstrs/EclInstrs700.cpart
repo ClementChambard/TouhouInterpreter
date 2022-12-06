@@ -1,0 +1,54 @@
+#ifndef __INCLUDE_PARTS__
+#include "../EclInstrMacros.h"
+#include "../EclContext.h"
+#include "../Enemy.h"
+#include "../EnemyManager.h"
+#include "../Spellcard.h"
+#include <AnmOpener/AnmManagerN.h>
+#include <math/Random.h>
+#define PRINT false
+void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
+{
+    _insNop
+#endif
+
+
+
+
+    _ins(700,        laserNew) _S(etid) _f(i_l)     _f(f_l)   _f(arg3) _f(w)                _args
+        enemy.BSs[etid].__vec3_8 = {i_l, f_l, arg3};
+        enemy.BSs[etid].__laser_new_arg_4 = w;
+
+    _ins(701,     laserTiming) _S(etid) _S(start_t) _S(tr1_t) _S(dur)  _S(tr2_t) _S(end_t)  _args
+        enemy.BSs[etid].__laser_timing_start    = start_t;
+        enemy.BSs[etid].__laser_timing_trans1   = tr1_t;
+        enemy.BSs[etid].__laser_timing_duration = dur;
+        enemy.BSs[etid].__laser_timing_trans2   = tr2_t;
+        enemy.BSs[etid].__laser_timing_end      = end_t;
+
+    _ins(702,         laserOn) _S(etid)                                                     _args              _notImpl;
+    _ins(703,       laserStOn) _S(etid) _rS(id)                                             _args              _notImpl;
+    _ins(704,     laserOffset) _S(id)   _f(x)       _f(y)                                   _args              _notImpl;
+        // get_laser(id)
+        // set_offset(l, {x, y})
+
+    _ins(705, laserTrajectory) _S(id)   _f(xs)      _f(ys)                                  _args              _notImpl;
+        // get_laser(id)
+        // set_traj(l, {xs, ys})
+
+    _ins(706,   laserStLength) _S(id)   _f(s)                                               _args              _notImpl;
+    _ins(707,    laserStWidth) _S(id)   _f(w)                                               _args              _notImpl;
+    _ins(708,    laserStAngle) _S(id)   _f(a)                                               _args              _notImpl;
+    _ins(709, laserStRotation) _S(id)   _f(avel)                                            _args              _notImpl;
+    _ins(710,      laserStEnd) _S(id)                                                       _args              _notImpl;
+    _ins(711,       laserCuOn) _S(id)                                                       _args              _notImpl;
+    _ins(712,    etCancelRect) _f(w)    _f(h)                                               _args              _notImpl;
+    _ins(713,      unknown713) _S(a)    _S(b)                                               _args              _notImpl;
+    _ins(714,      unknown714) _S(a)    _S(b)                                               _args              _notImpl;
+
+
+
+#ifndef __INCLUDE_PARTS__
+    _insDefault
+}
+#endif

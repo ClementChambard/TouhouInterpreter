@@ -1,0 +1,23 @@
+#version 130
+precision mediump float; //Medium precision for float. highp and smallp can also be used
+
+in vec3 vertexPosition;
+in vec4 vertexColor;
+in vec2 vertexTexCoords;
+
+out vec4 fragmentColor;
+out vec2 fragmentTexCoords;
+out float distToCamera;
+
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform vec3 cameraPosition;
+
+void main()
+{
+    gl_Position = projectionMatrix * viewMatrix * vec4(vertexPosition, 1.0);
+
+    fragmentColor = vertexColor;
+    distToCamera = length(vertexPosition.xyz - cameraPosition);
+    fragmentTexCoords = vertexTexCoords;
+}
