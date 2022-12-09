@@ -1,14 +1,18 @@
 #include "EnemyManager.h"
 #include <NSlist.h>
 
+bool dospawn = true;
+
 void EnemyManager::Start(std::string eclFile, std::string sub)
 {
     fileManager->LoadEcl(eclFile);
     SpawnEnemy(sub, 0, 0, 40, 1000, 0);
+    //dospawn = false;
 }
 
 Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life, int score, int item)
 {
+    if (!dospawn) sub = "";
     if (enemyCount >= data.enemy_limit)
     {
         std::cout << "Can't spawn " << sub << ": Too much enemies.\n";

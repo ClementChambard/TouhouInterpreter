@@ -5,9 +5,10 @@
 #include <thread>
 #include <NSEngine.h>
 #include <AnmOpener/AnmManagerN.h>
-#include <StdOpener/StdFile.h>
+#include "StdOpener/StdFile.h"
 #include "GlobalData.h"
 #include "Spellcard.h"
+#include "Laser/LaserManager.h"
 
 #include "profiler.h"
 
@@ -34,11 +35,10 @@ int main (int argc, char** argv)
     NSEngine::EndInit();
     NSEngine::AnmManagerN::Init();
     NSEngine::AnmManagerN::LoadFile(1, "effect.anm");
-
+    auto lasermgr = LaserManager();
     auto cam = NSEngine::activeCamera3D();
     cam->setUp(0, 0, -1);
     BulletManager::GetInstance();
-    //cam->setMatStatic(glm::ortho(-windowWidth/2.f, windowWidth/2.f, -448.f-windowHeight/2+224, 0.f+windowHeight/2-224));
     float dist_coeff = 1.207106781186548;
     glm::mat4 perspS = glm::perspective(PI1_4, (float)windowWidth / (float)windowHeight, 0.01f, 10000.f);
     glm::mat4 viewMatrixS = glm::lookAt(glm::vec3(0.f, -224.f, dist_coeff*(float)windowHeight/2.f), glm::vec3(0.f, -224.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
@@ -65,8 +65,6 @@ int main (int argc, char** argv)
 
          window.InitDrawing();
 
-         //NSEngine::draw_set_layer(4);
-         //NSEngine::draw_rectangle_color(-192.f, -448.f, 192.f, 0.f, {25,25,25,255}, {25,25,25,255}, {25,25,25,255}, {25,25,25,255}, true);
          NSEngine::draw_set_layer(28);
          NSEngine::draw_circle_color(Globals::get()->playerX, -Globals::get()->playerY, 5, {255,255,255,255}, {255,255,255,255});
          NSEngine::draw_set_layer(NSEngine::engineData::debugLayer);

@@ -7,6 +7,9 @@ void eclStackPush(EclStack_t* stack, int32_t val)
     stack->data[stack->stackOffset].asInt = val;
     stack->data[stack->stackOffset].asFloat = (float)val;
     stack->stackOffset++;
+//    std::cout << "\npush :::    ";
+//    drawStackFrame(stack);
+//    std::cout << "\n";
 }
 
 void eclStackPush(EclStack_t* stack, float val)
@@ -15,6 +18,9 @@ void eclStackPush(EclStack_t* stack, float val)
     stack->data[stack->stackOffset].asFloat = val;
     stack->data[stack->stackOffset].asInt = (int)val;
     stack->stackOffset++;
+//    std::cout << "\npush :::    ";
+//    drawStackFrame(stack);
+//    std::cout << "\n";
 }
 
 void eclStackPop(EclStack_t* stack, int32_t& val, bool f)
@@ -26,6 +32,9 @@ void eclStackPop(EclStack_t* stack, int32_t& val, bool f)
     }
     stack->stackOffset--;
     val = stack->data[stack->stackOffset].asInt;
+//    std::cout << "\npop :::    ";
+//    drawStackFrame(stack);
+//    std::cout << "\n";
 }
 void eclStackPop(EclStack_t* stack, float& val, bool f)
 {
@@ -36,6 +45,9 @@ void eclStackPop(EclStack_t* stack, float& val, bool f)
     }
     stack->stackOffset--;
     val = stack->data[stack->stackOffset].asFloat;
+//    std::cout << "\npop :::    ";
+//    drawStackFrame(stack);
+//    std::cout << "\n";
 }
 
 void eclAllocVariables(EclRunContext_t *cont, int32_t nb)
@@ -92,4 +104,18 @@ void eclContextInit(EclRunContext_t *ctx, int32_t sub)
     ctx->currentLocation.offset = 0;
     ctx->currentLocation.sub_id = sub;
     ctx->time = 0;
+}
+
+void drawStackFrame(EclStack_t* stack)
+{
+    int start = 0;
+    if (stack->baseOffset > 4) start = stack->baseOffset-4;
+    int end = start + 15;
+    for (int i = start; i < end; i++)
+    {
+        if (i == stack->baseOffset) std::cout << "base ";
+        if (i == stack->stackOffset) std::cout << "top ";
+        std::cout << stack->data[i].asInt << " | ";
+    }
+    std::cout << "\n";
 }

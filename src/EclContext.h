@@ -63,4 +63,6 @@ void eclPushContext(EclRunContext_t* ctx);
 void eclPopContext(EclRunContext_t* ctx);
 void eclContextInit(EclRunContext_t* ctx, int32_t sub);
 
+void drawStackFrame(EclStack_t* stack);
+
 #endif // ECLCONTEXT_H_

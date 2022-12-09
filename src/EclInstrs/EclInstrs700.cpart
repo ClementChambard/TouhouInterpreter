@@ -4,6 +4,7 @@
 #include "../Enemy.h"
 #include "../EnemyManager.h"
 #include "../Spellcard.h"
+#include "../Laser/LaserManager.h"
 #include <AnmOpener/AnmManagerN.h>
 #include <math/Random.h>
 #define PRINT false
@@ -26,7 +27,29 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
         enemy.BSs[etid].__laser_timing_trans2   = tr2_t;
         enemy.BSs[etid].__laser_timing_end      = end_t;
 
-    _ins(702,         laserOn) _S(etid)                                                     _args              _notImpl;
+    _ins(702,         laserOn) _S(etid)                                                     _args
+        LaserLineInner_t inner;
+
+        for (int i = 0; i < 20; i++) inner.et_ex[i] = enemy.BSs[etid].ex[i];
+
+        if (enemy.bulletOrigins[etid].z <= 0.9f) inner.start_pos = enemy.final_pos.pos + enemy.bulletOffsets[etid];
+        else inner.start_pos = {enemy.bulletOrigins[etid].x + enemy.bulletOffsets[etid].x, enemy.bulletOrigins[etid].y + enemy.bulletOffsets[etid].y, 0.f};
+
+        inner.ang_aim            = enemy.BSs[etid].ang_aim;
+        inner.laser_new_arg_2    = enemy.BSs[etid].__vec3_8.y;
+        inner.laser_new_arg_1    = enemy.BSs[etid].__vec3_8.x;
+        inner.laser_new_arg_3    = enemy.BSs[etid].__vec3_8.z;
+        inner.laser_new_arg_4    = enemy.BSs[etid].__laser_new_arg_4;
+        inner.spd_1              = enemy.BSs[etid].spd1;
+        inner.bullet_type        = enemy.BSs[etid].type;
+        inner.bullet_color       = enemy.BSs[etid].__color;
+        inner.distance           = enemy.BSs[etid].distance;
+        inner.flags              = enemy.BSs[etid].__laser_timing_end | 1;
+        inner.shot_sfx           = enemy.BSs[etid].shot_sfx;
+        inner.shot_transform_sfx = enemy.BSs[etid].__shot_transform_sfx;
+
+        allocate_new_laser(0, &inner);
+
     _ins(703,       laserStOn) _S(etid) _rS(id)                                             _args              _notImpl;
     _ins(704,     laserOffset) _S(id)   _f(x)       _f(y)                                   _args              _notImpl;
         // get_laser(id)

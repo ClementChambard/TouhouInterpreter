@@ -36,7 +36,16 @@ class EnemyManager {
         Enemy* SpawnEnemy(std::string sub, float x, float y, int life, int score, int item);
         EnemyManagerData* getData() { return &data; }
         void EnmKillAll(Enemy* caller = nullptr, bool byDialog = false);
-        Enemy* EnmFind(int id) { for (auto n = active_enemy_list_head->next; n != active_enemy_list_tail; n=n->next) if (n->value && n->value->enemyId == id) return n->value; return nullptr; }
+        Enemy* EnmFind(int id) {
+            //std::cout << "\n finding " << id << "...\n";
+            for (auto n = active_enemy_list_head->next; n != active_enemy_list_tail; n=n->next)
+                if (n->value && n->value->enemyId == id) {
+                    //std::cout << "found!\n";
+                    return n->value;
+                }
+            //std::cout << "not found!\n";
+            return nullptr;
+        }
 
         int killableEnemyCount() { return enemyCount; } //XXX wrong
         int32_t enemyCount = 0;
