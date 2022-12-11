@@ -12,8 +12,6 @@ LaserLine::LaserLine()
     vm3.current_instr = -1;
 }
 
-LaserLine::~LaserLine() { }
-
 int LaserLine::initialize(void* arg)
 {
 
@@ -25,8 +23,8 @@ int LaserLine::initialize(void* arg)
     __field_10__set_to_3_by_ex_delete = 2;
 
     vm1.destroy();
-    vm1(NSEngine::AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_DEFINITIONS[bullet_type].script));
-    vm1.on_set_sprite = [](NSEngine::AnmVM* vm, int spr) {
+    vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_DEFINITIONS[bullet_type].script));
+    vm1.on_set_sprite = [](AnmVM* vm, int spr) {
         auto b = (LaserLine*)vm->getEntity();
         if (BULLET_TYPE_DEFINITIONS[b->bullet_type].colors[0].main_sprite_id < 0)
             return spr;
@@ -49,7 +47,7 @@ int LaserLine::initialize(void* arg)
     vm1.layer = 14;
 
     vm2.destroy();
-    vm2(NSEngine::AnmManagerN::getLoaded(7)->getPreloaded(bullet_color + 0x38));
+    vm2(AnmManagerN::getLoaded(7)->getPreloaded(bullet_color + 0x38));
     vm2.parent = nullptr;
     // vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();
@@ -58,21 +56,23 @@ int LaserLine::initialize(void* arg)
     vm2.bitflags.originMode = 1;
     vm2.bitflags.blendmode = 1;
     vm2.bitflags.rendermode = 1;
+    vm2.layer = 14;
 
     vm3.destroy();
     if ((bullet_type < 18) || (bullet_type == 38)) {
-        vm3(NSEngine::AnmManagerN::getLoaded(7)->getPreloaded(bullet_color + 0x5b));
+        vm3(AnmManagerN::getLoaded(7)->getPreloaded(bullet_color + 0x5b));
         vm3.parent = nullptr;
         // vm3.__root_vm__or_maybe_not = nullptr;
         vm3.update();
         vm3.bitflags.blendmode = 1;
     } else {
-        vm3(NSEngine::AnmManagerN::getLoaded(7)->getPreloaded(bullet_color + 0x53));
+        vm3(AnmManagerN::getLoaded(7)->getPreloaded(bullet_color + 0x53));
         vm3.parent = nullptr;
         // vm3.__root_vm__or_maybe_not = nullptr;
         vm3.update();
     }
     vm3.bitflags.originMode = 1;
+    vm3.layer = 14;
 
     // if (-1 < inner.shot_sfx) SoundManager::play_sound_at_position(inner.shot_sfx);
 
@@ -96,7 +96,7 @@ int LaserLine::initialize(void* arg)
 
     laser_speed = { math::lengthdir_vec(speed, angle), 0.f };
 
-    et_ex_index = 0; // inner.field10_0x30;
+    et_ex_index = inner.et_ex_index;
 
     return 0;
 }
@@ -147,7 +147,7 @@ int LaserLine::on_tick()
             }
         }
         if (flags & 0x40)
-            finished_ex += method_50_line(); // TODO: implement this method
+            finished_ex += method_50_line();
         if (flags < 0) {
             if (ex_wait.timer > 0)
                 ex_wait.timer--;
@@ -196,8 +196,10 @@ int LaserLine::on_tick()
 
     auto spr = vm1.getSprite();
     vm1.bitflags.scaled = true;
-    vm1.scale.current.x = vm1.scale.goal.x = laser_st_width / spr.w;
-    vm1.scale.current.y = vm1.scale.goal.y = laser_inf_current_length / spr.h;
+    //vm1.scale.current.x = vm1.scale.goal.x = laser_st_width / spr.w;
+    vm1.scale.x = laser_st_width / spr.w;
+    //vm1.scale.current.y = vm1.scale.goal.y = laser_inf_current_length / spr.h;
+    vm1.scale.y = laser_inf_current_length / spr.h;
     vm1.update();
     if (__field_7c__sometimes_0p01_or_0f == 0.f)
         vm2.update();
@@ -212,11 +214,10 @@ int LaserLine::on_draw()
     math::angle_normalize(vmAngle);
     vm1.pos = laser_offset;
     vm1.bitflags.rotated = true;
-    vm1.rotation.current.z = vm1.rotation.goal.z = vmAngle;
+    //vm1.rotation.current.z = vm1.rotation.goal.z = vmAngle;
+    vm1.rotation.z = vmAngle;
     vm1.draw();
-
-    glm::vec3 pos2 = laser_offset + glm::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
-    vm3.pos = pos2;
+    vm3.pos = laser_offset + glm::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
     vm3.draw();
     if (__field_7c__sometimes_0p01_or_0f == 0.0) {
         vm2.pos = laser_offset;
@@ -301,7 +302,7 @@ void LaserLine::run_ex()
         }
 
         if (inner.et_ex[et_ex_index].type == 0x200) {
-            vm1(NSEngine::AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_DEFINITIONS[inner.et_ex[et_ex_index].a].script + inner.et_ex[et_ex_index].b));
+            vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_DEFINITIONS[inner.et_ex[et_ex_index].a].script + inner.et_ex[et_ex_index].b));
             vm1.parent = nullptr;
             // vm1.__root_vm__or_maybe_not = nullptr;
             vm1.update();
@@ -345,8 +346,7 @@ void LaserLine::run_ex()
             for (int i = 0; i < 20; i++)
                 bs.ex[i] = inner.et_ex[i];
             BulletManager::GetInstance()->Shoot(&bs);
-            if (inner.et_ex[et_ex_index].c != 0) { /* cancel(0, 0);  TODO */
-            }
+            if (inner.et_ex[et_ex_index].c != 0) cancel(0, 0);
         }
 
         if (inner.et_ex[et_ex_index].type == 0x8000) {
@@ -434,8 +434,6 @@ int FUN_004038d0(float* xout, float* yout, float lx1, float ly1, float lx2,
 
 int LaserLine::method_50_line()
 {
-    LaserLine* pzVar6;
-
     glm::vec3 laser_pos2 = { glm::vec2(laser_offset) + math::lengthdir_vec(laser_inf_current_length, angle), 0.f };
     if (-192.0 < laser_pos2.x + 0.0 && laser_pos2.x - 0.0 < 192.0 && 0.0 < laser_pos2.y + 0.0 && laser_pos2.y - 0.0 < 448.0)
         return 0;
@@ -470,7 +468,7 @@ int LaserLine::method_50_line()
             FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
                    laser_offset.y, laser_pos2.x, laser_pos2.y, -192.0, 640.0, -192.0, -192.0);
             inner.start_pos.z = 0.0;
-            inner.ang_aim = angle - PI;
+            inner.ang_aim = PI - angle;
             inner.spd_1 = ex_bounce.bounce_speed;
             inner.distance = 0.0;
             math::angle_normalize(inner.ang_aim);
@@ -486,7 +484,7 @@ int LaserLine::method_50_line()
         FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
                 laser_offset.y, laser_pos2.x, laser_pos2.y, 192.0, 640.0, 192.0, -192.0);
         inner.start_pos.z = 0.0;
-        inner.ang_aim = angle - PI;
+        inner.ang_aim = PI - angle;
         inner.spd_1 = ex_bounce.bounce_speed;
         inner.distance = 0.0;
         allocate_new_laser(0, &inner);
@@ -494,4 +492,58 @@ int LaserLine::method_50_line()
     flags &= 0xffffffbf;
     if (-1 < inner.shot_transform_sfx) {/*SoundManager::play_sound_centered(inner.shot_transform_sfx);*/}
     return 1;
+}
+
+int LaserLine::cancel_as_bomb_rectangle(glm::vec3 c,glm::vec3 s,float rot,int,int as_bomb) { return 0; }
+int LaserLine::cancel_as_bomb_circle(int,int,int,int) { return 0; }
+int LaserLine::cancel(int param_2, int as_bomb) {
+  //undefined4 extraout_ECX;
+  //undefined4 in_stack_ffffffa0;
+
+  if (as_bomb && (ex_invuln__remaining_frames != 0)) return 0;
+  float len = 8.0;
+  int n = 0;
+  glm::vec3 inc = {math::lengthdir_vec(8.f, angle), 0.f};
+  glm::vec3 p = laser_offset + inc;
+  inc *= 2.f;
+  if (laser_inf_current_length > 16.f) {
+    do {
+      if (bullet_type < 18 || bullet_type == 34 || bullet_type == 38) {
+        //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
+        //vm = AnmManager::allocate_vm();
+        //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.bullet_color * 2 + 0xd1);
+        AnmVM* vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.bullet_color * 2 + 0xd1));
+        vm->bitflags.randomMode = true;
+        vm->entity_pos = p;
+        vm->update();
+      }
+      else {
+        if (bullet_type < 32) {
+          // Same
+          AnmVM* vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.bullet_color * 2 + 0x101));
+          vm->bitflags.randomMode = true;
+          vm->entity_pos = p;
+          vm->update();
+        }
+        if (bullet_type < 0x22) {
+          // Same
+          AnmVM* vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.bullet_color * 2 + 0x119));
+          vm->bitflags.randomMode = true;
+          vm->entity_pos = p;
+          vm->update();
+        }
+      }
+      //if ((((param_2 != 0) && (-192.0 < p.x + 32.0)) &&
+          //((p.x - 32.0 < 192.0 && ((0.0 < p.y + 32.0 && (p.y - 32.0 < 448.0)))))) &&
+          //(BULLET_MANAGER_PTR->__related_to_cancels = BULLET_MANAGER_PTR->__related_to_cancels + 1, param_2 == 1)) {
+        //ItemManager::spawn_item (ITEM_MANAGER_PTR,9,p,in_stack_ffffffa0,Rng::randf_neg_1_to_1(&REPLAY_SAFE_RNG) * 0.1745329 - 1.570796, 2.2,0,extraout_ECX,0xffffffff);
+      //}
+      n++;
+      p += inc;
+      len += 16.0;
+    } while (len + 8.0 < laser_inf_current_length);
+  }
+  __field_10__set_to_3_by_ex_delete = 1;
+  return n;
+
 }

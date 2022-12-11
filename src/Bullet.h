@@ -1,7 +1,7 @@
 #ifndef BULLET_H_
 #define BULLET_H_
 
-#include <AnmOpener/AnmManagerN.h>
+#include "AnmOpener/AnmManagerN.h"
 #include "BulletHandler.h"
 #include "BulletTable.h"
 #include <Interpolator.h>
@@ -38,7 +38,7 @@ class Bullet {
         BulletList_t tick_list_node = {};
         int32_t flags = 0;
         int32_t ex_invuln__remaining_frames = 0;
-        NSEngine::AnmVM *vm = nullptr; // REDO LATER
+        AnmVM *vm = nullptr; // REDO LATER
         int32_t anm_extra_id = 0;
         glm::vec3 pos = {};
         glm::vec3 velocity = {};

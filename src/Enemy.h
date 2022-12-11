@@ -6,7 +6,7 @@
 #include "PosVel.h"
 #include "Interp.h"
 
-#include <AnmOpener/AnmVM.h>
+#include "AnmOpener/AnmManagerN.h"
 #include <iostream>
 
 class Enemy;
@@ -64,7 +64,7 @@ struct EnemyData {
     float rotation = 0.f;
     glm::vec2 hurtbox_size = {};
     glm::vec2 hitbox_size = {};
-    NSEngine::AnmID anmIds[16] = {};
+    AnmID anmIds[16] = {};
     glm::vec3 anmPos[16] = {};
     int32_t anmRelated[16] = {};
     int32_t selectedAnmID = -1;

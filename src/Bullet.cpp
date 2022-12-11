@@ -17,7 +17,7 @@ void Bullet::Update()
 
 void Bullet::Reset()
 {
-    if (vm) NSEngine::AnmManagerN::deleteVM(vm->id.val);
+    if (vm) AnmManagerN::deleteVM(vm->id.val);
     vm = nullptr;
     flags = 0;
     ex_invuln__remaining_frames = 0;
@@ -83,7 +83,7 @@ void Bullet::_delete()
     tick_list_node.previous = nullptr;
   }
   // not in the re
-  if (vm) NSEngine::AnmManagerN::deleteVM(vm->getID());
+  if (vm) AnmManagerN::deleteVM(vm->getID());
   vm = nullptr;
 
 }
@@ -97,7 +97,7 @@ int Bullet::cancel(bool item)
   //AnmManager::interrupt_tree(anmExtraId,1);
   if ((flags & 0x200) == 0) {
     if (-1 < cancel_sprite_id) {
-      auto VM = NSEngine::AnmManagerN::getVM(NSEngine::AnmManagerN::SpawnVM(7, cancel_sprite_id));
+      auto VM = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, cancel_sprite_id));
       VM->setEntityPos(pos.x, pos.y, pos.z);
       VM->setScale2(scale, scale);
       VM->setLayer(10);

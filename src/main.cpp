@@ -4,7 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <NSEngine.h>
-#include <AnmOpener/AnmManagerN.h>
+#include "AnmOpener/AnmManagerN.h"
 #include "StdOpener/StdFile.h"
 #include "GlobalData.h"
 #include "Spellcard.h"
@@ -33,8 +33,8 @@ int main (int argc, char** argv)
     NSEngine::addGameLayer(NSEngine::GLT_SPRITES, false, false);
     for (int i = 0; i< 40; i++) NSEngine::addGameLayer(NSEngine::GLT_SPRITES, false, true);
     NSEngine::EndInit();
-    NSEngine::AnmManagerN::Init();
-    NSEngine::AnmManagerN::LoadFile(1, "effect.anm");
+    AnmManagerN::Init();
+    AnmManagerN::LoadFile(1, "effect.anm");
     auto lasermgr = LaserManager();
     auto cam = NSEngine::activeCamera3D();
     cam->setUp(0, 0, -1);
@@ -58,7 +58,7 @@ int main (int argc, char** argv)
 
           if (EclFileManager::GetInstance()->stdf) EclFileManager::GetInstance()->stdf->Update();
           UPDATE_FUNC_REGISTRY->run_all_on_tick();
-          NSEngine::AnmManagerN::update();
+          AnmManagerN::update();
 
 
          NSEngine::EndUpdate();
@@ -71,12 +71,12 @@ int main (int argc, char** argv)
          //__DRAW
          //NSEngine::Color c;
          //c = {255,   0, 255, 255}; __MONITOR(BulletManager::GetInstance()->get_nb_bul()/2000.f, c);
-         //c = {  0, 255,   0, 255}; __MONITOR(NSEngine::AnmManagerN::getFreeAnm()/8191.f, c);
+         //c = {  0, 255,   0, 255}; __MONITOR(AnmManagerN::getFreeAnm()/8191.f, c);
          //c = {  0,   0, 255, 255}; __MONITOR(EnemyManager::GetInstance()->enemyCount/300.f, c);
 
          if (EclFileManager::GetInstance()->stdf) EclFileManager::GetInstance()->stdf->Draw();
          UPDATE_FUNC_REGISTRY->run_all_on_draw();
-         NSEngine::AnmManagerN::draw();
+         AnmManagerN::draw();
          window.EndDrawing();
 
         NSEngine::EndFrame();
@@ -86,7 +86,7 @@ int main (int argc, char** argv)
     delete Spellcard::GetInstance();
 
     window.destroy();
-    NSEngine::AnmManagerN::Cleanup();
+    AnmManagerN::Cleanup();
     NSEngine::Quit();
     return 0;
 }

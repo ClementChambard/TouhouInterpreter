@@ -1,0 +1,135 @@
+#+title: Touhou 17 AnmVM reverse engineering
+
+
+* render modes:
+- 0 : draw a simple sprite
+- 1 :
+- 2 :
+- 3 :
+- 4 :
+- 5 :
+- 6 :
+- 7 :
+- 8 : draw a 3d rotatable plane
+- 9 : draw a textured circle
+- 10:
+- 11:
+- 12:
+- 13: draw a textured arc rven
+- 14: draw a textured arc
+- 15:
+- 16: draw a rectangle
+- 17: draw a polygon
+- 18: draw a polygon outline
+- 19: draw a ring
+- 20: draw a rectangle gradient
+- 21: draw a rotatable rectangle
+- 22: draw a rotatable rectangle gradient
+- 23:
+- 24: draw a 3d cylinder
+- 25: draw a 3d textured ring
+- 26: draw a horizontal line
+- 27: draw a rectangle outline
+- 28:
+- 29:
+- 30:
+- 31:
+
+* instructions:
+** instructions 0XX
+
+- ins_000 : nop()
+    do nothing
+
+- ins_001 : delete()
+    set visible (flag 0) off
+    set instr_offset to -1
+    exit function
+
+- ins_002 : static()
+    set instr_offset to -1
+    exit function
+
+- ins_003 : stop()
+    if (PENDING_INTERRUPT) -> handle interrupt
+    set flag 14 on
+    goto 0x46a16c (TODO)
+
+- ins_004 : stopHide()
+    set visible (flag 0) off
+    if (PENDING_INTERRUPT) -> handle interrupt
+    set flag 14 on
+    goto 0x46a16c (TODO)
+
+- ins_005 : label(int x)
+    do nothing  // this acts as a nop() at execution but is a label for an interrupt
+
+- ins_006 : wait(int t)
+    time_in_script.add(-t)
+
+- ins_007 : caseReturn()
+    set instr_offset to interrupt_return_offset
+    ???? set time_in_script to interrupt_return_time
+
+** instructions 1XX
+
+** instructions 6XX
+
+- ins_600 : texCircle(int nmax)
+    set render mode to 9
+    allocate special buffer of {$nmax * 56}
+
+- ins_601 : texArcEven(int nmax)
+    set render mode to 13
+    allocate special buffer of {$nmax * 56}
+
+- ins_602 : texArc(int nmax)
+    set render mode to 14
+    allocate special buffer of {$nmax * 56}
+
+- ins_603 : drawRect(float w, float h)
+    set render mode to 16
+    set %%sprite_size to [%w, %h]
+
+- ins_604 : drawPoly(float radius, int ninit)
+    set render mode to 17
+    set %sprite_size.x to %radius
+    set $I0 to $ninit
+
+- ins_605 : drawPolyBorder(float radius, int ninit)
+    set render mode to 18
+    set %sprite_size.x to %radius
+    set $I0 to $ninit
+
+- ins_606 : drawRectGrad(float w, float h)
+    set render mode to 20
+    set %%sprite_size to [%w, %h]
+
+- ins_607 : drawRectRot(float w, float h)
+    set render mode to 21
+    set %%sprite_size to [%w, %h]
+
+- ins_608 : drawRectGradRot(float w, float h)
+    set render mode to 22
+    set %%sprite_size to [%w, %h]
+
+- ins_609 : texCylinder3D(int nmax)
+    set render mode to 24
+    allocate special buffer of {$nmax * 48}
+
+- ins_610 : texRing3D(int nmax)
+    set render mode to 25
+    allocate special buffer of {$nmax * 48}
+
+- ins_611 : drawRing(float radius, float thickness, int nInit)
+    set render mode to 19
+    set %%sprite_size to [%radius, %thickness]
+    set $I0 to $nInit
+
+- ins_612 : drawRectBorder(float w, float h)
+    set render mode to 27
+    set %%sprite_size to [%w, %h]
+
+- ins_613 : drawLine(float len, float unused)
+    set render mode to 26
+    set %%sprite_size to [%len, %unused]

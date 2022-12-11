@@ -8,14 +8,14 @@
 template<typename T>
 struct Interp {
 
-    T initial;
-    T goal;
-    T bezier_1;
-    T bezier_2;
-    T current;
-    int32_t time; //should be zTimer
-    int32_t end_time;
-    int32_t method;
+    T initial = T{};
+    T goal = T{};
+    T bezier_1 = T{};
+    T bezier_2 = T{};
+    T current = T{};
+    int32_t time = 0; //should be zTimer
+    int32_t end_time = 0;
+    int32_t method = 0;
 
     void start(T begin, T end, int32_t time, int32_t mode)
     {
@@ -43,7 +43,7 @@ struct Interp {
     {
         if (end_time != 0) {
             time++;
-            if (time < end_time) {
+            if (time < end_time || end_time < 0) {
                 if (method == 7) {
                     initial += goal;
                     current = initial;

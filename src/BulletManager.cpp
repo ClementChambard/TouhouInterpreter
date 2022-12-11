@@ -12,7 +12,7 @@ BulletManager::BulletManager() {
         pred = current;
         bullets[i].tick_list_node.value = &bullets[i];
     }
-    bullet_anm = NSEngine::AnmManagerN::LoadFile(7, "bullet.anm");
+    bullet_anm = AnmManagerN::LoadFile(7, "bullet.anm");
     f_on_tick = new UpdateFunc([this](){ return this->on_tick(); });
     f_on_draw = new UpdateFunc([this](){ return this->on_draw(); });
     UPDATE_FUNC_REGISTRY->register_on_tick(f_on_tick, 29);
@@ -135,7 +135,8 @@ int BulletManager::on_draw()
         if (bullet->vm->bitflags.autoRotate) {
           float a = bullet->angle + 1.570796;
           math::angle_normalize(a);
-          bullet->vm->rotation.current.z = bullet->vm->rotation.goal.z = a;
+          //bullet->vm->rotation.current.z = bullet->vm->rotation.goal.z = a;
+          bullet->vm->rotation.z = a;
           bullet->vm->bitflags.rotated = true;
         }
         if (bullet->flags & 0x40) {
@@ -230,7 +231,6 @@ void BulletManager::Shoot(EnemyBulletShooter_t *bh)
 }
 
 #include "BulletTable.h"
-#include <AnmOpener/AnmManagerN.h>
 
 void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s, glm::vec2 pos)
 {
@@ -280,10 +280,10 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s, glm:
 
     // TODO: do that but without reallocating vm each time, maybe save the function somewhere
     // init vm
-    auto vm = b->vm = NSEngine::AnmManagerN::getVM(NSEngine::AnmManagerN::SpawnVM(7, BULLET_TYPE_DEFINITIONS[bh->type].script,false,true));
+    auto vm = b->vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, BULLET_TYPE_DEFINITIONS[bh->type].script,false,true));
     vm->setEntity((void*)b);
     vm->setLayer(15);
-    vm->on_set_sprite = [](NSEngine::AnmVM* vm, int spr) {
+    vm->on_set_sprite = [](AnmVM* vm, int spr) {
         auto b = (Bullet*) vm->getEntity();
         if (BULLET_TYPE_DEFINITIONS[b->type].colors[0].main_sprite_id < 0) return spr;
         if (spr == 0) return BULLET_TYPE_DEFINITIONS[b->type].colors[b->color].main_sprite_id;
@@ -343,11 +343,9 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s, glm:
     else b->vm->interrupt(2);
 
     // run once
-    //b->run_et_ex();
-    //b->vm.run();
+    b->run_et_ex();
+    b->vm->update();
 }
-
-#include "NSlist.h"
 
 void BulletManager::AddBullet(Bullet *b)
 {

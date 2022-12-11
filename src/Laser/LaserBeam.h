@@ -2,7 +2,7 @@
 #define LASERBEAM_H_
 
 #include "Laser.h"
-#include <AnmOpener/AnmVM.h>
+#include "../AnmOpener/AnmVM.h"
 
 struct LaserBeamInner_t {
     glm::vec3 startPos;
@@ -23,13 +23,16 @@ class LaserBeam : public Laser {
 
     public:
         LaserBeam();
-        ~LaserBeam() override;
+        ~LaserBeam() {}
+
+        void method_8(int) {}
+        int on_tick() override { return 1; }
 
         LaserBeamInner_t& getInner() { return inner; }
 
     private:
         LaserBeamInner_t inner;
-        NSEngine::AnmVM vm;
+        AnmVM vm;
         // undefined4 x 0x400
 };
 

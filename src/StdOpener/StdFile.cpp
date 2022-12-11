@@ -3,7 +3,7 @@
 
 #include "stdOpener.h"
 #include <NSEngine.h>
-#include <AnmOpener/AnmManagerN.h>
+#include "../AnmOpener/AnmManagerN.h"
 
 namespace StdOpener {
 
@@ -74,9 +74,9 @@ namespace StdOpener {
 
     void StdFile::Init()
     {
-        NSEngine::AnmManagerN::LoadFile(30, anm_file_name);
+        AnmManagerN::LoadFile(30, anm_file_name);
         for (auto f : faces) spawnFace(f);
-        std::sort(bgVms.begin(), bgVms.end(), [](NSEngine::AnmVM* const& a, NSEngine::AnmVM* const& b) { return a->getLayer() < b->getLayer();});
+        std::sort(bgVms.begin(), bgVms.end(), [](AnmVM* const& a, AnmVM* const& b) { return a->getLayer() < b->getLayer();});
         theCam = NSEngine::activeCamera3D();
     }
 
@@ -196,7 +196,7 @@ namespace StdOpener {
             float x = f.x + q.x;
             float y = f.y + q.y;
             float z = f.z + q.z;
-            bgVms.push_back(NSEngine::AnmManagerN::SpawnVMExt(30, q.script_index));
+            bgVms.push_back(AnmManagerN::SpawnVMExt(30, q.script_index));
             bgVms.back()->update();
             bgVms.back()->setEntityPos(x, y, z);
             bgVms.back()->setLayer(e.layer);
@@ -300,11 +300,11 @@ namespace StdOpener {
                     bgVms[anmSlots[S(0)]] = nullptr;
                     anmSlots[S(0)] = -1;
                 }
-                NSEngine::AnmVM* vm = NSEngine::AnmManagerN::SpawnVMExt(30, S(1));
+                AnmVM* vm = AnmManagerN::SpawnVMExt(30, S(1));
                 vm->update();
                 vm->setLayer(S(2));
                 std::cout << bgVms.size() << " ";
-                auto predicate = [](NSEngine::AnmVM* const & a, NSEngine::AnmVM* const & b){ return a->getLayer() <= b->getLayer(); };
+                auto predicate = [](AnmVM* const & a, AnmVM* const & b){ return a->getLayer() <= b->getLayer(); };
                 anmSlots[S(0)] = insertRemoveNullptr(vm, bgVms, predicate);
                 std::cout << anmSlots[S(0)] << "\n";
                 return; }

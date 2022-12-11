@@ -2,6 +2,7 @@
 #include "GlobalData.h"
 #include "math/Random.h"
 #include "BulletManager.h"
+#include "Laser/LaserManager.h"
 
 float get_angle_to_player(glm::vec3 from)
 {
@@ -36,7 +37,6 @@ int Bullet::on_tick()
               /* seems like state 2 is spawn anim */
   if (state == 2) {
     pos += velocity * game_speed * 0.5f;
-
     if((__timer_e54 < 8 || true/*(check_player_collision(this, 0) != 1)*/) && (vm->int_vars[0] != 0))
       state = 1;
   }
@@ -496,11 +496,11 @@ float ang = et_ex->r;
       hitbox_diameter = BULLET_TYPE_DEFINITIONS[et_ex->a].default_radius;
       layer = BULLET_TYPE_DEFINITIONS[et_ex->a].default_layer;
       flags = flags | 0x10;
-      NSEngine::AnmManagerN::deleteVM(vm->getID());
-      vm = NSEngine::AnmManagerN::getVM(NSEngine::AnmManagerN::SpawnVM(7, BULLET_TYPE_DEFINITIONS[et_ex->a].script,false,true));
+      AnmManagerN::deleteVM(vm->getID());
+      vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, BULLET_TYPE_DEFINITIONS[et_ex->a].script,false,true));
       vm->setEntity((void*)this);
       vm->setLayer(15);
-      vm->on_set_sprite = [](NSEngine::AnmVM* vm, int spr) {
+      vm->on_set_sprite = [](AnmVM* vm, int spr) {
           auto b = (Bullet*) vm->getEntity();
           if (BULLET_TYPE_DEFINITIONS[b->type].colors[0].main_sprite_id < 0) return spr;
           if (spr == 0) return BULLET_TYPE_DEFINITIONS[b->type].colors[b->color].main_sprite_id;
@@ -736,13 +736,67 @@ float ang = et_ex->r;
 
         /* Shoot laser TODO */
     if (ex_type == 0x8000000) {
-      if (et_ex->d != 0) {
-        cancel(0);
-      }
+        if (et_ex->a == 1) {
+            LaserInfiniteInner_t inner;
+            for (int i = 0; i < 20; i++) inner.ex[i] = this->et_ex[i];
+            inner.spd_1 = 8.0;
+            inner.start_pos = pos;
+            inner.flags = et_ex->d & 0xfd | 2;
+            inner.type = et_ex->b;
+            inner.color = et_ex->c;
+            inner.et_ex_index = et_ex->d >> 8 & 0xff;
+            inner.ang_aim = et_ex->r;
+            inner.spd_1 = et_ex->s;
+            if (et_ex->r <= -999990.0) inner.ang_aim = angle;
+            if (et_ex->r > 999990.0) inner.ang_aim = math::point_direction(pos.x, pos.y, Globals::get()->playerX, Globals::get()->playerY);
+            if (inner.spd_1 <= -999990.0) inner.spd_1 = speed;
+            inner.laser_new_arg1 = et_ex->m;
+            inner.laser_new_arg2 = et_ex->n;
+            ex_index++;
+            inner.laser_new_arg4 = et_ex[1].r;
+            inner.laser_time_start = et_ex[1].a;
+            inner.laser_trans_1 = et_ex[1].b;
+            inner.laser_duration = et_ex[1].c;
+            inner.laser_trans_2 = et_ex[1].d;
+            inner.distance = et_ex[1].s;
+            inner.shot_sfx = 18;
+            inner.shot_transform_sfx = -1;
+            allocate_new_laser(1,&inner);
+            if ((et_ex->d & 0x10000) != 0) {
+              cancel(0);
+            }
+        }
+        if (et_ex->a == 0) {
+            LaserLineInner_t inner;
+            for (int i = 0; i < 20; i++) inner.et_ex[i] = this->et_ex[i];
+            inner.start_pos = pos;
+            inner.bullet_type = et_ex->b;
+            inner.bullet_color = et_ex->c;
+            inner.ang_aim = et_ex->r;
+            inner.spd_1 = et_ex->s;
+            inner.laser_new_arg_1 = et_ex->m;
+            inner.laser_new_arg_2 = et_ex->n;
+            inner.flags |= 1;
+            if (et_ex->r <= -999990.0) inner.ang_aim = angle;
+            if (et_ex->r > 999990.0) inner.ang_aim = math::point_direction(pos.x, pos.y, Globals::get()->playerX, Globals::get()->playerY);
+            if (et_ex->s <= -999990.0) {
+                inner.spd_1 = speed;
+            }
+            ex_index++;
+            inner.laser_new_arg_3 = et_ex[1].r;
+            inner.laser_new_arg_4 = et_ex[1].s;
+            inner.distance = et_ex[1].m;
+            inner.shot_sfx = et_ex[1].a;
+            inner.shot_transform_sfx = et_ex[1].b;
+            inner.et_ex_index = et_ex[1].c;
+            allocate_new_laser(0, &inner);
+            if (et_ex->d != 0) {
+                cancel(0);
+            }
+        }
     }
 
             /* Set hitbox size */
-
     if (ex_type == 0x20000000) {
       __hitbox_diameter_copy = et_ex->r < 0.f ? BULLET_TYPE_DEFINITIONS[type].default_radius : et_ex->r;
       hitbox_diameter = __hitbox_diameter_copy;

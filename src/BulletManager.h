@@ -2,7 +2,6 @@
 #define BULLETMANAGER_H_
 
 #include <glm/glm.hpp>
-#include <AnmOpener/AnmManagerN.h>
 #include "Bullet.h"
 #include "BulletHandler.h"
 #include "UpdateFuncRegistry.h"
@@ -56,17 +55,19 @@ class BulletManager {
         //undefined4 __unknown;
         Bullet list_0_tail_dummy_bullet = {};
         Bullet bullets[max_bullet] = {};
-        //NSEngine::AnmID anm_ids[max_bullet+1] = {};
+        //AnmID anm_ids[max_bullet+1] = {};
         int32_t bullet_count_canceled_by_bombs = 0;
         int32_t __unknown_cancel_counter = 0;
         //undefined4 __unknown;
         BulletList_t* iter_current = nullptr;
         BulletList_t* iter_next = nullptr;
-        NSEngine::AnmFile* bullet_anm = nullptr;
+        AnmFile* bullet_anm = nullptr;
+
         // no lolk ?
         //struct zBullet __lolk_snapshot_bullets[max_bullet];
         //struct zAnmId __lolk_snapshot_anm_ids[max_bullet];
         //int32_t __lolk_snapshot__unknown_cancel_counter;
+
         friend class Bullet;
 };
 

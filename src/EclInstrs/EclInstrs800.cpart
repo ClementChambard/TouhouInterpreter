@@ -4,7 +4,7 @@
 #include "../Enemy.h"
 #include "../EnemyManager.h"
 #include "../Spellcard.h"
-#include <AnmOpener/AnmManagerN.h>
+#include "../AnmOpener/AnmManagerN.h"
 #include <math/Random.h>
 #define PRINT false
 void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)

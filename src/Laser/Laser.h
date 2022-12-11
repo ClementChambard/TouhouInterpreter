@@ -7,16 +7,25 @@
 class Laser {
     public:
         Laser() {}
-        virtual ~Laser() {}
+        virtual ~Laser();
 
         virtual void method_0(int, int) {}
         virtual void run_ex() {}
-        virtual void method_8_beam(int) {}
         virtual int initialize(void*) { return 0; }
         virtual int on_tick() { return 0; }
         virtual int on_draw() { return 0; }
-        virtual int method_18();
+        virtual int cancel_as_bomb_rectangle(glm::vec3,glm::vec3,float,int,int) { return 0; }
+        virtual int cancel_as_bomb_circle(int,int,int,int) { return 0; }
+        virtual int cancel(int,int) { return 0; }
+        virtual int method_30(int,int) { return 0; }
         virtual int check_graze_or_kill(int) { return 0; }
+
+        void set_offset(float x, float y, float z) { laser_offset = glm::vec3{x, y, z}; }
+        void set_speed(float x, float y, float z) { laser_speed = glm::vec3{x, y, z}; }
+        void set_speed(float s) { speed = s; }
+        void set_width(float w) { laser_st_width = w; }
+        void set_angle(float a) { angle = a; }
+        void set_id(int i) { laser_id = i; }
 
     protected:
         Laser* next = nullptr;

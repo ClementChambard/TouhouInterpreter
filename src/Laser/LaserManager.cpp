@@ -53,16 +53,22 @@ void LaserManager::destroy_all()
     Laser* laser = dummy_laser_for_list_tail.prev;
     while (laser != NULL) {
         Laser* prev = laser->prev;
-        // run 'method_18'
-        laser->next->prev = laser->prev;
-        if (laser->prev)
-            laser->prev->next = laser->next;
         delete laser;
         laser = prev;
     }
     this->list_length = 0;
     this->list_head = &this->dummy_laser_for_list_tail;
     return;
+}
+
+int LaserManager::cancel_all(bool as_bomb)
+{
+    Laser* prev = (LASER_MANAGER_PTR->dummy_laser_for_list_tail).prev;
+    for (Laser* laser = prev; laser != nullptr; laser = prev) {
+        prev = laser->prev;
+        if (laser->__field_10__set_to_3_by_ex_delete != 1) laser->cancel(as_bomb,0);
+    }
+    return 1;
 }
 
 int LaserManager::f_on_tick()
@@ -92,10 +98,6 @@ int LaserManager::f_on_tick()
                 this->list_head = laser->next;
             }
 
-            laser->method_18();
-            laser->next->prev = laser->prev;
-            if (laser->prev)
-                laser->prev->next = laser->next;
             delete laser;
             laser = prev;
         }

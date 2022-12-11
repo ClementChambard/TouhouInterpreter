@@ -14,7 +14,8 @@ class LaserManager {
         ~LaserManager();
 
         void destroy_all();
-
+        int cancel_all(bool as_bomb);
+        int cancel_in_radius(glm::vec3 pos, bool item, int a, float r) {return 0;}
 
     private:
         int f_on_tick();

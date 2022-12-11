@@ -4,7 +4,7 @@
 #include "EclFileManager.h"
 #include "GlobalData.h"
 
-#include <AnmOpener/AnmManagerN.h>
+#include "AnmOpener/AnmManagerN.h"
 
 
 Enemy::Enemy()
@@ -25,7 +25,7 @@ Enemy::~Enemy()
         if (n->entry) delete n->entry;
         delete n;
     }
-    for (int i = 0; i < 16; i++) NSEngine::AnmManagerN::deleteVM(enemy.anmIds[i].val);
+    for (int i = 0; i < 16; i++) AnmManagerN::deleteVM(enemy.anmIds[i].val);
 }
 
 void Enemy::Init(std::string sub)
@@ -122,7 +122,7 @@ int EnemyData::step_interpolators()
 
   calc_final_pos();
   // update anm main
-  NSEngine::AnmVM* vm0 = nullptr;
+  AnmVM* vm0 = nullptr;
   if ((flags & 0x100000U) != 0) {
     int dir = final_pos.velocity.x > 0.03;
     if (final_pos.velocity.x < -0.03) dir = -1;
@@ -141,24 +141,24 @@ int EnemyData::step_interpolators()
         }
       }
 
-      vm0 = NSEngine::AnmManagerN::getVM(anmIds[0].val);
+      vm0 = AnmManagerN::getVM(anmIds[0].val);
       if (vm0 == nullptr) {
         anmIds[0].val = 0;
       }
       glm::vec3 pos = {0, 0, 0};
       if (vm0) {
         pos = vm0->pos;
-        NSEngine::AnmManagerN::deleteVM(anmIds[0].val);
+        AnmManagerN::deleteVM(anmIds[0].val);
         anmIds[0].val = 0;
       }
-      vm0 = NSEngine::AnmManagerN::getVM(NSEngine::AnmManagerN::SpawnVM(anm0anmID, anm0scr + scr));
+      vm0 = AnmManagerN::getVM(AnmManagerN::SpawnVM(anm0anmID, anm0scr + scr));
       vm0->bitflags.randomMode = 1;
       if (anmLayers > -8) {
         vm0->layer = anmLayers + 7;
         if (anmLayers < 17) vm0->bitflags.originMode = 0b01;
       }
       vm0->entity_pos = pos;
-      vm0->rotation.current.z = vm0->rotation.goal.z = 0.0;
+      vm0->rotation.z = 0.0;
       vm0->update();
       //vm0->mode_of_create_child = 8;
       anmIds[0].val = vm0->id.val;
@@ -167,11 +167,11 @@ int EnemyData::step_interpolators()
   }
 
   // update sprite size
-  vm0 = NSEngine::AnmManagerN::getVM(anmIds[0].val);
+  vm0 = AnmManagerN::getVM(anmIds[0].val);
   if (vm0) {
     auto s = vm0->getSprite();
-    finalSpriteSize.x = fabs(s.w * vm0->scale.current.x);
-    finalSpriteSize.y = fabs(s.h * vm0->scale.current.y);
+    finalSpriteSize.x = fabs(s.w * vm0->scale.x);
+    finalSpriteSize.y = fabs(s.h * vm0->scale.y);
   } else anmIds[0].val = 0;
 
   //check offscreen
@@ -224,7 +224,7 @@ void Enemy::Tick()
     /* Update position of attached anims  */
     for (int i = 0; i < 16; i++)
     {
-        auto anm = NSEngine::AnmManagerN::getVM(enemy.anmIds[i].val);
+        auto anm = AnmManagerN::getVM(enemy.anmIds[i].val);
         if (!anm) { enemy.anmIds[i].val = 0; continue; }
         glm::vec3 pos = enemy.final_pos.pos + enemy.anmPos[i];
         anm->setEntityPos(pos.x, pos.y, enemy.final_pos.pos.z);
@@ -298,5 +298,5 @@ void Enemy::updateContext(EclRunContext_t* cont)
 void Enemy::Die()
 {
     context.primaryContext.currentLocation.sub_id = -1;
-    for (int i = 0; i < 16; i++) { NSEngine::AnmManagerN::deleteVM(enemy.anmIds[i].val); enemy.anmIds[i].val = -1; }
+    for (int i = 0; i < 16; i++) { AnmManagerN::deleteVM(enemy.anmIds[i].val); enemy.anmIds[i].val = -1; }
 }

@@ -1,6 +1,6 @@
 #include "EclFileManager.h"
 #include "EclRaw.h"
-#include <AnmOpener/AnmManagerN.h>
+#include "AnmOpener/AnmManagerN.h"
 #include <sys/stat.h>
 
 EclFileManager* EclFileManager::GetInstance()
@@ -26,7 +26,7 @@ void EclFileManager::LoadEcl(std::string file)
     stdFile += ".std";
     logoFile += "logo.anm";
     if (file_exists(logoFile))
-        NSEngine::AnmManagerN::LoadFile(8, logoFile);
+        AnmManagerN::LoadFile(8, logoFile);
     if (file_exists(stdFile)) {
         stdf = new StdOpener::StdFile(stdFile);
         stdf->Init();
@@ -44,7 +44,7 @@ void EclFileManager::LoadEcli(std::string file)
     for (auto ecli : ecl->ecli_list)
         LoadEcli(ecli);
     for (int i = 0; i < ecl->anim_list.size(); i++)
-        NSEngine::AnmManagerN::LoadFile(i+2, ecl->anim_list[i]);
+        AnmManagerN::LoadFile(i+2, ecl->anim_list[i]);
 }
 
 void EclFileManager::CloseEcl()
