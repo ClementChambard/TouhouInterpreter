@@ -196,9 +196,7 @@ int LaserLine::on_tick()
 
     auto spr = vm1.getSprite();
     vm1.bitflags.scaled = true;
-    //vm1.scale.current.x = vm1.scale.goal.x = laser_st_width / spr.w;
     vm1.scale.x = laser_st_width / spr.w;
-    //vm1.scale.current.y = vm1.scale.goal.y = laser_inf_current_length / spr.h;
     vm1.scale.y = laser_inf_current_length / spr.h;
     vm1.update();
     if (__field_7c__sometimes_0p01_or_0f == 0.f)
@@ -214,7 +212,6 @@ int LaserLine::on_draw()
     math::angle_normalize(vmAngle);
     vm1.pos = laser_offset;
     vm1.bitflags.rotated = true;
-    //vm1.rotation.current.z = vm1.rotation.goal.z = vmAngle;
     vm1.rotation.z = vmAngle;
     vm1.draw();
     vm3.pos = laser_offset + glm::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);

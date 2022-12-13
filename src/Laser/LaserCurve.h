@@ -3,6 +3,7 @@
 
 #include "Laser.h"
 #include "../AnmOpener/AnmVM.h"
+#include <vertex.h>
 
 struct LaserCurveListThing_t {
     LaserCurveListThing_t* next = nullptr;
@@ -49,6 +50,7 @@ class LaserCurve : public Laser {
         LaserCurve();
         ~LaserCurve() override;
 
+        void run_ex() override;
         int initialize(void*) override;
         int on_tick() override;
         int on_draw() override;
@@ -60,7 +62,7 @@ class LaserCurve : public Laser {
         AnmVM vm1;
         AnmVM vm2;
         LaserCurveNode_t* nodes = nullptr;
-        LaserCurveListThing_t* listNodes = nullptr;
+        NSEngine::Vertex* vertices = nullptr;
         LaserCurveListThing_t listThing = {};
 };
 
