@@ -11,6 +11,7 @@ Enemy::Enemy()
 {
     fileManager = EclFileManager::GetInstance();
     enemy.enemy = this;
+    if (Globals::get()->stage_id == 7) Globals::get()->difficulty = 5;
     context.primaryContext.difficultyMask = 1 << Globals::get()->difficulty;
     for (int i = 0; i < 16; i++) enemy.anmIds[i] = 0;
 }

@@ -1,6 +1,7 @@
 #include "EclFileManager.h"
 #include "EclRaw.h"
 #include "AnmOpener/AnmManagerN.h"
+#include "Hardcoded.h"
 #include <sys/stat.h>
 
 EclFileManager* EclFileManager::GetInstance()
@@ -16,17 +17,17 @@ inline bool file_exists (const std::string& name) {
 
 void EclFileManager::LoadEcl(std::string file)
 {
+    if (!file_exists(file)) file = STAGE_DATA_TABLE[Globals::get()->stage_id]["ecl_filename"].asString();
+
     std::cout << "LOADING " << file << "\n";
     CloseEcl();
     LoadEcli(file);
     std::cout << "DONE     loaded " << loaded_subs.size() << " subs in " << loaded_files.size() << " file\n";
-    std::string logoFile = file;
-    logoFile.resize(file.size()-4);
-    std::string stdFile = logoFile;
-    stdFile += ".std";
-    logoFile += "logo.anm";
-    if (file_exists(logoFile))
-        AnmManagerN::LoadFile(8, logoFile);
+
+    std::string logoFile = STAGE_DATA_TABLE[Globals::get()->stage_id]["stage_logo_anm_filename"].asString();
+    if (file_exists(logoFile)) AnmManagerN::LoadFile(8, logoFile);
+
+    std::string stdFile = STAGE_DATA_TABLE[Globals::get()->stage_id]["std_filename"].asString();
     if (file_exists(stdFile)) {
         stdf = new StdOpener::StdFile(stdFile);
         stdf->Init();

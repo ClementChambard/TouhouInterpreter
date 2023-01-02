@@ -30,7 +30,8 @@ target_include_directories(ecl PUBLIC
                           )
 
 # link the NSEngine library. All the dependencies are added directly to the engine
-target_link_libraries(ecl PUBLIC NSEngine)
+target_link_libraries(ecl PUBLIC NSEngine
+                                 -ljsoncpp)
 
 # TODO do this better (copy assets in build directory)
 file(COPY assets DESTINATION ${PROJECT_BINARY_DIR})

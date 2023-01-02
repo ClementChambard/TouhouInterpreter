@@ -64,7 +64,6 @@ void AnmManagerN::Cleanup()
     /* CLEAN PREINIT VM */
     for (auto f : loadedFiles)
         f.Cleanup();
-
 }
 
 AnmVM* AnmManagerN::SpawnVMExt(size_t slot, size_t script)
@@ -110,6 +109,36 @@ uint32_t AnmManagerN::SpawnVM(size_t slot, size_t script, bool ui, bool front)
     }
     activeVM->script_id = script; // FIXME: this is supposed to be correct from the beginning
     return activeVM->id.val;
+}
+
+void AnmManagerN::killAll()
+{
+    /* DESTROY HEAP VMS IN WORLD LIST */
+    auto n = first;
+    while(n->next != last)
+    {
+        if ((n->next->value->id.val & AnmID::fastIdMask) == AnmID::fastIdMask) delete n->next->value;
+        else n = n->next;
+    }
+
+    /* DESTROY HEAP VMS IN UI LIST */
+    n = uiFirst;
+    while(n->next != uiLast)
+    {
+        if ((n->next->value->id.val & AnmID::fastIdMask) == AnmID::fastIdMask) delete n->next->value;
+        else n = n->next;
+    }
+
+    /* CLEAN FAST VMS */
+    for (size_t i = 0; i < 8191; i++)
+    {
+        //delete fastArray[i].freelistNode;
+        fastArray[i].vm.destroy();
+    }
+
+    /* CLEAN PREINIT VM */
+    //for (auto f : loadedFiles)
+        //f.Cleanup();
 }
 
 void AnmManagerN::deleteVM(uint32_t id)

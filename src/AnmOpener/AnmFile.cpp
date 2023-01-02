@@ -39,7 +39,7 @@ AnmFile::AnmFile(std::string const& filename, uint32_t slot)
 
 void AnmFile::Open(std::string const& filename, uint32_t slot)
 {
-    Cleanup();
+    if (name != "notLoaded") Cleanup();
     name = filename;
     AnmOpener::anm_archive_t* archive = AnmOpener::anm_read_file(filename);
     uint32_t scrID = 0;
@@ -90,6 +90,7 @@ void AnmFile::Cleanup()
     preloaded.clear();
     scripts.clear();
     sprites.clear();
+    name = "notLoaded";
 }
 
 AnmFile::~AnmFile()

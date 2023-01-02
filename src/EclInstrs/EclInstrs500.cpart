@@ -43,7 +43,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
     _ins(519,   dialogueWait)                                          _args _notImpl;
     _ins(520,       bossWait)                                          _args if (isBoss_) { cont->time--; _ret; }
     _ins(521,     setTimeout) _S(slot) _z(sub)                         _args enemy.interrupts[slot].subTimeout = sub;
-    _ins(522,        spellEx) _S(i) _S(t) _S(ty) _z(name)              _args Spellcard::GetInstance()->Init(i, t, ty, name);
+    _ins(522,        spellEx) _S(i) _S(t) _S(ty) _z(name)              _args Spellcard::GetInstance()->Init(i, t, ty, name, EnemyManager::GetInstance()->getBoss(enemyId));
     _ins(523,       spellEnd)                                          _args Spellcard::GetInstance()->Stop();
     _ins(524,     setChapter) _S(i)                                    _args _notImpl;
     _ins(525,     enmKillAll)                                          _args EnemyManager::GetInstance()->EnmKillAll(this);
@@ -58,9 +58,9 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
     _ins(534,         rankI2) _rS(var) _S(a) _S(b)                     _args var = a; //TODO: real
     _ins(535,          diffI) _rS(v) _S(E) _S(N) _S(H) _S(L)           _args v = Diff(E,N,H,L);
     _ins(536,          diffF) _rf(v) _f(E) _f(N) _f(H) _f(L)           _args v = Diff(E,N,H,L);
-    _ins(537,          spell) _S(i) _S(t) _S(ty) _z(name)              _args Spellcard::GetInstance()->Init(i + Globals::get()->difficulty, t, ty, name);
-    _ins(538,         spell2) _S(i) _S(t) _S(ty) _z(name)              _args i -= 1; Spellcard::GetInstance()->Init(i + Globals::get()->difficulty, t, ty, name);
-    _ins(539,         spell3) _S(i) _S(t) _S(ty) _z(name)              _args i -= 2; Spellcard::GetInstance()->Init(i + Globals::get()->difficulty, t, ty, name);
+    _ins(537,          spell) _S(i) _S(t) _S(ty) _z(name)              _args Spellcard::GetInstance()->Init(i + Globals::get()->difficulty, t, ty, name, EnemyManager::GetInstance()->getBoss(enemyId));
+    _ins(538,         spell2) _S(i) _S(t) _S(ty) _z(name)              _args i -= 1; Spellcard::GetInstance()->Init(i + Globals::get()->difficulty, t, ty, name, EnemyManager::GetInstance()->getBoss(enemyId));
+    _ins(539,         spell3) _S(i) _S(t) _S(ty) _z(name)              _args i -= 2; Spellcard::GetInstance()->Init(i + Globals::get()->difficulty, t, ty, name, EnemyManager::GetInstance()->getBoss(enemyId));
     _ins(540,          stars) _S(n)                                    _args _notImpl;
     _ins(541,        noHbDur) _S(t)                                    _args enemy.noHbFrame = t;
     _ins(542,   spellTimeout)                                          _args Spellcard::GetInstance()->SetTimeout();

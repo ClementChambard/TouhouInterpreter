@@ -50,7 +50,7 @@ class AnmVM {
 
         ~AnmVM();
 
-        void update(bool printInstr = false);
+        int update(bool printInstr = false);
         void draw(NSEngine::SpriteBatch* sb = nullptr);
         void destroy();
         void interrupt(int i);

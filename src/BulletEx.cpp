@@ -3,6 +3,7 @@
 #include "math/Random.h"
 #include "BulletManager.h"
 #include "Laser/LaserManager.h"
+#include "Hardcoded.h"
 
 float get_angle_to_player(glm::vec3 from)
 {
@@ -37,7 +38,7 @@ int Bullet::on_tick()
               /* seems like state 2 is spawn anim */
   if (state == 2) {
     pos += velocity * game_speed * 0.5f;
-    if((__timer_e54 < 8 || true/*(check_player_collision(this, 0) != 1)*/) && (vm->int_vars[0] != 0))
+    if((__timer_e54 < 8 || true/*(check_player_collision(this, 0) != 1)*/) && (vm.int_vars[0] != 0))
       state = 1;
   }
 
@@ -279,36 +280,33 @@ int Bullet::on_tick()
   }
 
   // get sprite
-  if (!vm) {BulletManager::GetInstance()->RemoveBullet(this); return -1; }
-  if (vm) {
-  auto spr = vm->getSprite();
+  auto spr = vm.getSprite();
 
-    if ((active_ex_flags & 0x1000) != 0 &&
-        !((-192.0 < pos.x + spr.w * 0.5) && (pos.x - spr.w * 0.5 < 192.0) &&
-             (0.0 < pos.y + spr.h * 0.5) && (pos.y - spr.h * 0.5 < 448.0))) {
+  if ((active_ex_flags & 0x1000) != 0 &&
+      !((-192.0 < pos.x + spr.w * 0.5) && (pos.x - spr.w * 0.5 < 192.0) &&
+            (0.0 < pos.y + spr.h * 0.5) && (pos.y - spr.h * 0.5 < 448.0))) {
 
-      bool wraped = true;
-      if      (((ex_wrap.wall_flags & 1) != 0) && (pos.y <    0.0)) pos.y += spr.h + 448.0;
-      else if (((ex_wrap.wall_flags & 2) != 0) && (pos.y >  448.0)) pos.y -= spr.h + 448.0;
-      else if (((ex_wrap.wall_flags & 4) != 0) && (pos.x < -192.0)) pos.x += spr.w + 384.0;
-      else if (((ex_wrap.wall_flags & 8) != 0) && (pos.x >  192.0)) pos.x -= spr.w + 384.0;
-      else wraped = false;
+    bool wraped = true;
+    if      (((ex_wrap.wall_flags & 1) != 0) && (pos.y <    0.0)) pos.y += spr.h + 448.0;
+    else if (((ex_wrap.wall_flags & 2) != 0) && (pos.y >  448.0)) pos.y -= spr.h + 448.0;
+    else if (((ex_wrap.wall_flags & 4) != 0) && (pos.x < -192.0)) pos.x += spr.w + 384.0;
+    else if (((ex_wrap.wall_flags & 8) != 0) && (pos.x >  192.0)) pos.x -= spr.w + 384.0;
+    else wraped = false;
 
-      if (wraped) {
-        ex_wrap.wraps_count++;
-        //if (transform_sound >= 0) SoundManager::play_sound_centered(transform_sound);
-        if (ex_wrap.wraps_count >= ex_wrap.num_wraps) active_ex_flags = active_ex_flags ^ 0x1000;
-      }
+    if (wraped) {
+      ex_wrap.wraps_count++;
+      //if (transform_sound >= 0) SoundManager::play_sound_centered(transform_sound);
+      if (ex_wrap.wraps_count >= ex_wrap.num_wraps) active_ex_flags = active_ex_flags ^ 0x1000;
+    }
+  }
+
+  if (((active_ex_flags & 0x100) == 0) && (__field_664_had_5 < 1))
+    if ((pos.x + spr.w * scale * 0.5 <= -192.0) || (pos.x - spr.w * scale * 0.5 >= 192.0) ||
+        (pos.y + spr.h * scale * 0.5 <=  -64.0) || (pos.y - spr.h * scale * 0.5 >= 448.0)) {
+      _delete();
+      return -1;
     }
 
-    if (((active_ex_flags & 0x100) == 0) && (__field_664_had_5 < 1))
-      if ((pos.x + spr.w * scale * 0.5 <= -192.0) || (pos.x - spr.w * scale * 0.5 >= 192.0) ||
-          (pos.y + spr.h * scale * 0.5 <=  -64.0) || (pos.y - spr.h * scale * 0.5 >= 448.0)) {
-        _delete();
-        return -1;
-      }
-
-  }
 
   if (ex_invuln__remaining_frames != 0) {
     ex_invuln__remaining_frames--;
@@ -319,11 +317,11 @@ int Bullet::on_tick()
   }
 
   if ((flags & 0x200) != 0) return 0;
-  //zAnmVM__run(&vm); // if it returns 1, delete
+  if (vm.update() == 1) {
+    _delete();
+    return -1;
+  }
   return 0;
-  _delete();
-
-  return -1;
 }
 
 
@@ -382,7 +380,7 @@ int Bullet::run_et_ex()
     }
 
     if (ex_type == 2) {
-      vm->interrupt(et_ex->a + 7);
+      vm.interrupt(et_ex->a + 7);
       state = 2;
       pos -= velocity * 4.f;
     }
@@ -492,36 +490,36 @@ float ang = et_ex->r;
     if (ex_type == 0x200) {
       type = et_ex->a;
       color = et_ex->b & 0x7fff;
-      __hitbox_diameter_copy = BULLET_TYPE_DEFINITIONS[et_ex->a].default_radius;
-      hitbox_diameter = BULLET_TYPE_DEFINITIONS[et_ex->a].default_radius;
-      layer = BULLET_TYPE_DEFINITIONS[et_ex->a].default_layer;
+      sprite_data = BULLET_TYPE_TABLE[et_ex->a];
+      __hitbox_diameter_copy = sprite_data["default_radius"].asFloat();
+      hitbox_diameter = __hitbox_diameter_copy;
+      layer = sprite_data["default_layer"].asInt();
       flags = flags | 0x10;
-      AnmManagerN::deleteVM(vm->getID());
-      vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, BULLET_TYPE_DEFINITIONS[et_ex->a].script,false,true));
-      vm->setEntity((void*)this);
-      vm->setLayer(15);
-      vm->on_set_sprite = [](AnmVM* vm, int spr) {
+      vm(AnmManagerN::getLoaded(7)->getPreloaded(sprite_data["script"].asInt()));
+      vm.setEntity((void*)this);
+      vm.setLayer(15);
+      vm.on_set_sprite = [](AnmVM* vm, int spr) {
           auto b = (Bullet*) vm->getEntity();
-          if (BULLET_TYPE_DEFINITIONS[b->type].colors[0].main_sprite_id < 0) return spr;
-          if (spr == 0) return BULLET_TYPE_DEFINITIONS[b->type].colors[b->color].main_sprite_id;
-          if (spr == 1) return BULLET_TYPE_DEFINITIONS[b->type].colors[b->color].spawn_sprite_id;
-          if (spr == 2) return BULLET_TYPE_DEFINITIONS[b->type].colors[b->color].cancel_sprite_id;
+          if (b->sprite_data["colors"][0]["main_sprite_id"].asInt() < 0) return spr;
+          if (spr == 0) return b->sprite_data["colors"][b->color]["main_sprite_id"].asInt();
+          if (spr == 1) return b->sprite_data["colors"][b->color]["spawn_sprite_id"].asInt();
+          if (spr == 2) return b->sprite_data["colors"][b->color]["cancel_sprite_id"].asInt();
           return spr;
       };
-      vm->refreshSprite();
-      vm->bitflags.originMode = 0b01;
+      vm.refreshSprite();
+      vm.bitflags.originMode = 0b01;
 
       //zAnmVM__delete_by_id(anmExtraId);
       // Spawn anim wierd and cancel id
       //anmExtraId = 0;
-      //if (BULLET_TYPE_DEFINITIONS[et_ex->a].__field_114__used_at_0x416f91 != 0) {
+      //if (sprite_data["__field_114"].asInt() != 0) {
         //zAnmId* id = zAnmLoaded__create_4112b0
                             //(BULLET_MANAGER_PTR->bullet_anm,nullptr,
-                             //BULLET_TYPE_DEFINITIONS[et_ex->a].__field_114__used_at_0x416f91,
+                             //sprite_data["__field_114"].asInt(),
                              //&pos,0,-1,nullptr);
         //anmExtraId = id->value;
       //}
-      switch(BULLET_TYPE_DEFINITIONS[type].__field_10c) {
+      switch(sprite_data["__field_10c"].asInt()) {
       case 0:
         cancel_sprite_id = color * 2 + 4;
         break;
@@ -541,7 +539,7 @@ float ang = et_ex->r;
         cancel_sprite_id = 0xc;
         break;
       case 6:
-        cancel_sprite_id = BULLET_TYPE_DEFINITIONS[type].colors[color].cancel_script;
+        cancel_sprite_id = sprite_data["colors"][color]["cancel_script"].asInt();
         break;
       case 7:
         cancel_sprite_id = 0x104;
@@ -555,7 +553,7 @@ float ang = et_ex->r;
       case 10:
         cancel_sprite_id = 0x113;
       }
-      if ((et_ex->b & 0x8000U) != 0) vm->interrupt(2);
+      if ((et_ex->b & 0x8000U) != 0) vm.interrupt(2);
     }
 
     if (ex_type == 0x400) {
@@ -671,9 +669,9 @@ float ang = et_ex->r;
               /* brightness effect
                   Changes the blendmode of the anm */
     if (ex_type == 0x100000) {
-      if (et_ex->a == 2) vm->bitflags.blendmode = 2;
-      else if (et_ex->a == 1) vm->bitflags.blendmode = 1;
-      else vm->bitflags.blendmode = 0;
+      if (et_ex->a == 2) vm.bitflags.blendmode = 2;
+      else if (et_ex->a == 1) vm.bitflags.blendmode = 1;
+      else vm.bitflags.blendmode = 0;
     }
 
     if (ex_type == 0x200000) {
@@ -798,7 +796,7 @@ float ang = et_ex->r;
 
             /* Set hitbox size */
     if (ex_type == 0x20000000) {
-      __hitbox_diameter_copy = et_ex->r < 0.f ? BULLET_TYPE_DEFINITIONS[type].default_radius : et_ex->r;
+      __hitbox_diameter_copy = et_ex->r < 0.f ? sprite_data["default_radius"].asFloat() : et_ex->r;
       hitbox_diameter = __hitbox_diameter_copy;
     }
 

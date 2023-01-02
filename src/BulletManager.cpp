@@ -130,21 +130,19 @@ int BulletManager::on_draw()
     auto layer_head = layer_list_heads;
     for (int i = 0; i < 6; i++) {
       for (Bullet* bullet = *layer_head; bullet != NULL; bullet = bullet->next_in_layer) {
-        if (!bullet->vm) continue;
-        bullet->vm->entity_pos = bullet->pos;
-        if (bullet->vm->bitflags.autoRotate) {
+        bullet->vm.entity_pos = bullet->pos;
+        if (bullet->vm.bitflags.autoRotate) {
           float a = bullet->angle + 1.570796;
           math::angle_normalize(a);
-          //bullet->vm->rotation.current.z = bullet->vm->rotation.goal.z = a;
-          bullet->vm->rotation.z = a;
-          bullet->vm->bitflags.rotated = true;
+          bullet->vm.rotation.z = a;
+          bullet->vm.bitflags.rotated = true;
         }
         if (bullet->flags & 0x40) {
-          bullet->vm->bitflags.scaled = true;
-          bullet->vm->scale_2 = {bullet->scale, bullet->scale};
+          bullet->vm.bitflags.scaled = true;
+          bullet->vm.scale_2 = {bullet->scale, bullet->scale};
         }
-        //bullet->vm->draw();            /* draw the vm TODO: unique vm per bullet */
-        bullet->vm->setLayer(13+i); // TODO: do not
+        bullet->vm.setLayer(13); // TODO: do not
+        bullet->vm.draw();            /* draw the vm TODO: unique vm per bullet */
       }
       layer_head++;
     }
@@ -230,8 +228,6 @@ void BulletManager::Shoot(EnemyBulletShooter_t *bh)
     //std::cout << "Shooting " << bh->cnt_count * bh->cnt_layers << " : {\n";
 }
 
-#include "BulletTable.h"
-
 void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s, glm::vec2 pos)
 {
     if (!freelist_head.next) return;
@@ -269,10 +265,10 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s, glm:
     b->__field_678_had_35 = bh->sfx_flag;
     b->active_ex_flags = 0;
     b->__ex_goto_b_loop_count = 0;
-    b->sprite_data = &BULLET_TYPE_DEFINITIONS[bh->type];
-    b->__hitbox_diameter_copy = BULLET_TYPE_DEFINITIONS[bh->type].default_radius;
-    b->layer = BULLET_TYPE_DEFINITIONS[bh->type].default_layer;
-    b->hitbox_diameter = BULLET_TYPE_DEFINITIONS[bh->type].default_radius;
+    b->sprite_data = BULLET_TYPE_TABLE[bh->type];
+    b->__hitbox_diameter_copy = b->sprite_data["default_radius"].asFloat();
+    b->layer = b->sprite_data["default_layer"].asInt();
+    b->hitbox_diameter = b->__hitbox_diameter_copy;
     b->ex_index = bh->__start_transform;
 
     // copy ex
@@ -280,27 +276,27 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s, glm:
 
     // TODO: do that but without reallocating vm each time, maybe save the function somewhere
     // init vm
-    auto vm = b->vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, BULLET_TYPE_DEFINITIONS[bh->type].script,false,true));
-    vm->setEntity((void*)b);
-    vm->setLayer(15);
-    vm->on_set_sprite = [](AnmVM* vm, int spr) {
+    b->vm(AnmManagerN::getLoaded(7)->getPreloaded(b->sprite_data["script"].asInt()));
+    b->vm.setEntity((void*)b);
+    b->vm.setLayer(15);
+    b->vm.on_set_sprite = [](AnmVM* vm, int spr) {
         auto b = (Bullet*) vm->getEntity();
-        if (BULLET_TYPE_DEFINITIONS[b->type].colors[0].main_sprite_id < 0) return spr;
-        if (spr == 0) return BULLET_TYPE_DEFINITIONS[b->type].colors[b->color].main_sprite_id;
-        if (spr == 1) return BULLET_TYPE_DEFINITIONS[b->type].colors[b->color].spawn_sprite_id;
-        if (spr == 2) return BULLET_TYPE_DEFINITIONS[b->type].colors[b->color].cancel_sprite_id;
+        if (b->sprite_data["colors"][0]["main_sprite_id"].asInt() < 0) return spr;
+        if (spr == 0) return b->sprite_data["colors"][b->color]["main_sprite_id"].asInt();
+        if (spr == 1) return b->sprite_data["colors"][b->color]["spawn_sprite_id"].asInt();
+        if (spr == 2) return b->sprite_data["colors"][b->color]["cancel_sprite_id"].asInt();
         return spr;
     };
-    vm->refreshSprite();
-    vm->bitflags.originMode = 0b01;
+    b->vm.refreshSprite();
+    b->vm.bitflags.originMode = 0b01;
 
     // Spawn anim wierd and cancel id
-    /*if (BULLET_TYPE_DEFINITIONS[bs->type].__field_114 != 0) {
-      b->anmExtraId = BULLET_MANAGER_PTR->bullet_anm->create(&bul_mgr2, BULLET_TYPE_DEFINITIONS[bs->type].__field_114, &bullet->pos,0,-1,nullptr);
+    /*if (b->sprite_data["__field_114"].asInt() != 0) {
+      b->anmExtraId = BULLET_MANAGER_PTR->bullet_anm->create(&bul_mgr2, b->sprite_data["__field_114"].asInt(), &bullet->pos,0,-1,nullptr);
     }*/
 
     // Set cancel_sprite_id ... TODO investigate
-    switch(BULLET_TYPE_DEFINITIONS[bh->type].__field_10c) {
+    switch(b->sprite_data["__field_10c"].asInt()) {
     case 0:
       b->cancel_sprite_id = bh->__color * 2 + 4;
       break;
@@ -318,7 +314,7 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s, glm:
     default:
       break;
     case 6:
-      b->cancel_sprite_id = BULLET_TYPE_DEFINITIONS[bh->type].colors[bh->__color].cancel_script;
+      b->cancel_sprite_id = b->sprite_data["colors"][bh->__color]["cancel_script"].asInt();
       break;
     case 7:
       b->cancel_sprite_id = 0x104;
@@ -335,16 +331,16 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s, glm:
 
     // select the right interrupt of the anm depending on spawn anim ETEX
     if (bh->ex[bh->__start_transform].type == 2) {
-        if (bh->ex[bh->__start_transform].a != 1) b->vm->interrupt(bh->ex[bh->__start_transform].a + 7);
+        if (bh->ex[bh->__start_transform].a != 1) b->vm.interrupt(bh->ex[bh->__start_transform].a + 7);
         b->state = 2;
         b->pos -= glm::vec3(b->speed * cos(b->angle), b->speed * sin(b->angle), 0.f) * 4.f;
         b->ex_index = bh->__start_transform + 1;
     }
-    else b->vm->interrupt(2);
+    else b->vm.interrupt(2);
 
     // run once
     b->run_et_ex();
-    b->vm->update();
+    b->vm.update();
 }
 
 void BulletManager::AddBullet(Bullet *b)

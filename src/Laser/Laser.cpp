@@ -2,6 +2,6 @@
 
 Laser::~Laser()
 {
-    next->prev = this->prev;
-    if (this->prev) prev->next = next;
+    if (next) next->prev = prev;
+    if (prev) prev->next = next;
 }

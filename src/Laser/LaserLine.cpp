@@ -23,17 +23,18 @@ int LaserLine::initialize(void* arg)
     __field_10__set_to_3_by_ex_delete = 2;
 
     vm1.destroy();
-    vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_DEFINITIONS[bullet_type].script));
+    // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, BULLET_TYPE_Table()[bullet_type]["script"].asInt());
+    vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[bullet_type]["script"].asInt()));
     vm1.on_set_sprite = [](AnmVM* vm, int spr) {
-        auto b = (LaserLine*)vm->getEntity();
-        if (BULLET_TYPE_DEFINITIONS[b->bullet_type].colors[0].main_sprite_id < 0)
+        auto b = (Laser*)vm->getEntity();
+        if (BULLET_TYPE_TABLE[b->bullet_type]["colors"][0]["main_sprite_id"].asInt() < 0)
             return spr;
         if (spr == 0)
-            return BULLET_TYPE_DEFINITIONS[b->bullet_type].colors[b->bullet_color].main_sprite_id;
+            return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]["main_sprite_id"].asInt();
         if (spr == 1)
-            return BULLET_TYPE_DEFINITIONS[b->bullet_type].colors[b->bullet_color].spawn_sprite_id;
+            return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]["spawn_sprite_id"].asInt();
         if (spr == 2)
-            return BULLET_TYPE_DEFINITIONS[b->bullet_type].colors[b->bullet_color].cancel_sprite_id;
+            return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]["cancel_sprite_id"].asInt();
         return spr;
     };
     vm1.entity = this;
@@ -47,7 +48,7 @@ int LaserLine::initialize(void* arg)
     vm1.layer = 14;
 
     vm2.destroy();
-    vm2(AnmManagerN::getLoaded(7)->getPreloaded(bullet_color + 0x38));
+    vm2(AnmManagerN::getLoaded(7)->getPreloaded(bullet_color + LASER_DATA["spawn_anm_first"].asInt()));
     vm2.parent = nullptr;
     // vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();
@@ -77,8 +78,8 @@ int LaserLine::initialize(void* arg)
     // if (-1 < inner.shot_sfx) SoundManager::play_sound_at_position(inner.shot_sfx);
 
     __timer_2c = 0;
-    __timer_40 = 0;
-    __timer_5a0 = 30;
+    time_alive = 0;
+    inv_timer = 30;
     ex_offscreen__timer = 3;
 
     laser_offset = inner.start_pos;
@@ -177,7 +178,7 @@ int LaserLine::on_tick()
         }
     }
 
-    if (__timer_5a0 < 1) {
+    if (inv_timer <= 0) {
         if (ex_offscreen__timer > 0)
             ex_offscreen__timer--;
         else {
@@ -187,7 +188,7 @@ int LaserLine::on_tick()
             }
         }
     } else {
-        __timer_5a0--;
+        inv_timer--;
         if (ex_offscreen__timer > 0)
             ex_offscreen__timer--;
     }
@@ -202,7 +203,7 @@ int LaserLine::on_tick()
     if (__field_7c__sometimes_0p01_or_0f == 0.f)
         vm2.update();
     vm3.update();
-    __timer_40++;
+    time_alive++;
     return 0;
 }
 
@@ -299,7 +300,7 @@ void LaserLine::run_ex()
         }
 
         if (inner.et_ex[et_ex_index].type == 0x200) {
-            vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_DEFINITIONS[inner.et_ex[et_ex_index].a].script + inner.et_ex[et_ex_index].b));
+            vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[inner.et_ex[et_ex_index].a]["script"].asInt() + inner.et_ex[et_ex_index].b));
             vm1.parent = nullptr;
             // vm1.__root_vm__or_maybe_not = nullptr;
             vm1.update();

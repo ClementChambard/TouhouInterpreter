@@ -8,17 +8,15 @@ Bullet::~Bullet() {}
 void Bullet::Update()
 {
     on_tick();
-    if (!vm) return;
-    vm->setEntityPos(pos.x, pos.y, pos.z);
-    if (vm->getFlags().autoRotate)
-        vm->setRotz(angle+PI1_2);
-    vm->setScale2(scale, scale);
+    vm.setEntityPos(pos.x, pos.y, pos.z);
+    if (vm.bitflags.autoRotate)
+        vm.rotation.z = angle+PI1_2;
+    vm.setScale2(scale, scale);
 }
 
 void Bullet::Reset()
 {
-    if (vm) AnmManagerN::deleteVM(vm->id.val);
-    vm = nullptr;
+    vm.destroy();
     flags = 0;
     ex_invuln__remaining_frames = 0;
     pos = {0,0,0};
@@ -82,18 +80,14 @@ void Bullet::_delete()
     tick_list_node.next = nullptr;
     tick_list_node.previous = nullptr;
   }
-  // not in the re
-  if (vm) AnmManagerN::deleteVM(vm->getID());
-  vm = nullptr;
 
 }
 
 
 int Bullet::cancel(bool item)
 {
-  vm->interrupt(1);
-  vm->update();
-  vm = nullptr;
+  vm.interrupt(1);
+  vm.update();
   //AnmManager::interrupt_tree(anmExtraId,1);
   if ((flags & 0x200) == 0) {
     if (-1 < cancel_sprite_id) {

@@ -46,6 +46,12 @@ class EnemyManager {
             //std::cout << "not found!\n";
             return nullptr;
         }
+        int getBoss(int id) {
+            for (int i = 0; i < 4; i++) {
+                if (data.boss_ids[i] == id) return i;
+            }
+            return 3;
+        }
 
         int killableEnemyCount() { return enemyCount; } //XXX wrong
         int32_t enemyCount = 0;

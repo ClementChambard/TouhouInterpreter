@@ -1,11 +1,18 @@
 #include "EnemyManager.h"
 #include <NSlist.h>
 
+#include "GlobalData.h"
+
+#include <sstream>
+
 bool dospawn = true;
 
 void EnemyManager::Start(std::string eclFile, std::string sub)
 {
+    if (eclFile.size() > 3 && eclFile[3] >= '0' && eclFile[3] < '8') Globals::get()->stage_id = eclFile[3] - '0';
+
     fileManager->LoadEcl(eclFile);
+
     SpawnEnemy(sub, 0, 0, 40, 1000, 0);
     //dospawn = false;
 }

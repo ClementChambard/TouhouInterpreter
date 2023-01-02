@@ -5,18 +5,21 @@
 #include "../AnmOpener/AnmVM.h"
 #include <vertex.h>
 
-struct LaserCurveListThing_t {
-    LaserCurveListThing_t* next = nullptr;
-    float b = 0.f;
-    float c = 0.f;
-    float d = 0.f;
-    int32_t e = 0.f;
-    glm::vec3 fgh = {};
-    glm::vec3 ijk = {};
-    float l = 0.f;
-    float m = 0.f;
-    float n = 0.f;
-    float o = 0.f;
+struct LaserCurveTransform_t {
+    LaserCurveTransform_t* next = nullptr;
+    LaserCurveTransform_t* prev = nullptr;
+    int32_t start_time = 0;
+    int32_t end_time = 0;
+    int32_t move_type = 0.f;
+    glm::vec3 dir_vec = {};
+    glm::vec3 pos = {};
+    float angle = 0.f;
+    float speed = 0.f;
+    float accel = 0.f;
+    float angle_accel = 0.f;
+
+    void posvel(glm::vec3* pos, float* speed, float* angle, float node_time_alive);
+    void posvel_from_prev(glm::vec3* pos, float* speed, float* angle, glm::vec3 const& pos_prev, float speed_prev, float angle_prev, float node_time_alive);
 };
 
 struct LaserCurveInner_t {
@@ -33,7 +36,7 @@ struct LaserCurveInner_t {
     int32_t shot_sfx = 0;
     int32_t shot_transform_sfx = 0;
     int32_t ex_index = 0;
-    LaserCurveListThing_t* listThing = nullptr;
+    LaserCurveTransform_t* transforms = nullptr;
     int  timer40_start = 0;
 };
 
@@ -55,6 +58,8 @@ class LaserCurve : public Laser {
         int on_tick() override;
         int on_draw() override;
 
+        int cancel(int param_2, int as_bomb) override;
+
         LaserCurveInner_t& getInner() { return inner; }
 
     private:
@@ -63,7 +68,8 @@ class LaserCurve : public Laser {
         AnmVM vm2;
         LaserCurveNode_t* nodes = nullptr;
         NSEngine::Vertex* vertices = nullptr;
-        LaserCurveListThing_t listThing = {};
+        LaserCurveTransform_t transforms = {};
+        int offscreen_timer = 0;
 };
 
 #endif // LASERCURVE_H_

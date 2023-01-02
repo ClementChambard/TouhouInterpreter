@@ -3,10 +3,10 @@
 
 #include "AnmOpener/AnmManagerN.h"
 #include "BulletHandler.h"
-#include "BulletTable.h"
 #include <Interpolator.h>
 #include "BulletEx.h"
 #include "Interp.h"
+#include "Hardcoded.h"
 
 class Bullet;
 struct BulletList_t {
@@ -14,8 +14,6 @@ struct BulletList_t {
     BulletList_t* next = nullptr;
     BulletList_t* previous = nullptr;
 };
-
-
 
 
 class Bullet {
@@ -38,7 +36,7 @@ class Bullet {
         BulletList_t tick_list_node = {};
         int32_t flags = 0;
         int32_t ex_invuln__remaining_frames = 0;
-        AnmVM *vm = nullptr; // REDO LATER
+        AnmVM vm = {};
         int32_t anm_extra_id = 0;
         glm::vec3 pos = {};
         glm::vec3 velocity = {};
@@ -87,7 +85,7 @@ class Bullet {
         //undefined2 __unknown;
         int32_t __timer_e54 = 0;
         int32_t __timer_e68 = 0;
-        TableBulletSprite_t* sprite_data;
+        Json::Value sprite_data;
         int16_t type = 0;
         int16_t color = 0;
         //undefined4 __unknown;

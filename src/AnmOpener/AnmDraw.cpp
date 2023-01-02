@@ -45,7 +45,6 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
         p += glm::vec3(-NSEngine::engineData::gameWidth/2,-NSEngine::engineData::gameHeight/2,0);
     }
     //if (!(bitflags_hi & ANMVM_BIT_534_8)) { psx *=2; psy *=2; }
-
     /* MODE 3 : RECTANGLE      MODE 6 : RECTANGLE GRADIENT      MODE 12 : RECTANGLE BORDER*/
     if (mode_of_special_draw == 6 || mode_of_special_draw == 3 || mode_of_special_draw == 12)
     {
@@ -178,6 +177,7 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
 
     glm::mat4 rotate;
     pos4 = glm::vec4(pos4.x+px+entity_pos.x,pos4.y+py-entity_pos.y,pos4.z+pz+entity_pos.z,0);
+
     if (bitflags.rendermode < 4) { pos4.z = 0; rotate = glm::rotate(glm::mat4(1.0f), -rotation.z + prz, glm::vec3(0,0,1)); }
     else rotate = glm::eulerAngleZYX(-rotation.z + prz, rotation.y + pry, -rotation.x - prx);
 /*       if (layer == 3) {
@@ -201,5 +201,4 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
     NSEngine::Vertex bl = {{pos4 + rotate * glm::vec4(l * s.w * XS + anchor_offset.x, b * s.h * YS + anchor_offset.y, 0, 0)}, cbl, {u1, v2}};
 
     sb->draw(s.texID, tl, tr, br, bl, bitflags.blendmode);
-
 }

@@ -18,6 +18,7 @@ class AnmManagerN {
         static AnmVM* getVM(uint32_t id);
 
         static void deleteVM(uint32_t id);
+        static void killAll();
         static bool isAlive(uint32_t id);
         static AnmFile* LoadFile(size_t slot, std::string filename);
 

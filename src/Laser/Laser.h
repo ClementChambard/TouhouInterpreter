@@ -35,7 +35,7 @@ class Laser {
         int32_t kind = 0;
         int32_t __timer_18 = 0; // zTimer
         int32_t __timer_2c = 0; // zTimer
-        int32_t __timer_40 = 0; // zTimer
+        int32_t time_alive = 0; // zTimer
         glm::vec3 laser_offset = {};
         glm::vec3 laser_speed = {};
         float angle = 0.f;
@@ -51,11 +51,12 @@ class Laser {
         BulletExState_Bounce_t ex_bounce = {};
         BulletExState_Wait_t ex_wait = {};
         BulletExState_Wrap_t ex_wrap = {};
+        BulletExState_Offscreen_t ex_offscreen = {};
         // BulletExState_UNASSIGNED x11
         int32_t et_ex_index = 0;
         int32_t flags = 0;
         // undefined4
-        int32_t __timer_5a0 = 0;         // zTimer
+        int32_t inv_timer = 0;         // zTimer
         int32_t ex_offscreen__timer = 0; // zTimer
         int32_t ex_invuln__remaining_frames = 0;
         int32_t bullet_type = 0;

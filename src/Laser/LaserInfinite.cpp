@@ -20,18 +20,18 @@ int LaserInfinite::initialize(void* arg)
     __field_10__set_to_3_by_ex_delete = 3;
 
     vm1.destroy();
-    // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, BULLET_TYPE_DEFINITIONS[bullet_type].script);
-    vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_DEFINITIONS[bullet_type].script));
+    // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, BULLET_TYPE_TABLE[bullet_type]["script"].asInt());
+    vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[bullet_type]["script"].asInt()));
     vm1.on_set_sprite = [](AnmVM* vm, int spr) {
         auto b = (Laser*)vm->getEntity();
-        if (BULLET_TYPE_DEFINITIONS[b->bullet_type].colors[0].main_sprite_id < 0)
+        if (BULLET_TYPE_TABLE[b->bullet_type]["colors"][0]["main_sprite_id"].asInt() < 0)
             return spr;
         if (spr == 0)
-            return BULLET_TYPE_DEFINITIONS[b->bullet_type].colors[b->bullet_color].main_sprite_id;
+            return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]["main_sprite_id"].asInt();
         if (spr == 1)
-            return BULLET_TYPE_DEFINITIONS[b->bullet_type].colors[b->bullet_color].spawn_sprite_id;
+            return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]["spawn_sprite_id"].asInt();
         if (spr == 2)
-            return BULLET_TYPE_DEFINITIONS[b->bullet_type].colors[b->bullet_color].cancel_sprite_id;
+            return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]["cancel_sprite_id"].asInt();
         return spr;
     };
     vm1.entity = this;
@@ -43,8 +43,8 @@ int LaserInfinite::initialize(void* arg)
     vm1.bitflags.blendmode = 1;
     vm1.layer = 14;
 
-    // anm_init_copy_vm_from_loaded(LASER_MANAGER_PTR->bullet_anm, vm2, inner.__bmgr_004__color + 0x38);
-    vm2(AnmManagerN::getLoaded(7)->getPreloaded(inner.color + 0x38));
+    // anm_init_copy_vm_from_loaded(LASER_MANAGER_PTR->bullet_anm, vm2, inner.__bmgr_004__color + LASER_DATA["spawn_anm_first"].asInt());
+    vm2(AnmManagerN::getLoaded(7)->getPreloaded(inner.color + LASER_DATA["spawn_anm_first"].asInt()));
     vm2.parent = nullptr;
     // vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();

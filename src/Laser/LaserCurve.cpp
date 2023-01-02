@@ -1,6 +1,6 @@
 #include "LaserCurve.h"
 #include "../BulletManager.h"
-#include "../GlobalData.h"
+#include "../Hardcoded.h"
 
 LaserCurve::LaserCurve()
 {
@@ -12,7 +12,7 @@ LaserCurve::LaserCurve()
 
 LaserCurve::~LaserCurve()
 {
-    LaserCurveListThing_t* node = listThing.next;
+    LaserCurveTransform_t* node = transforms.next;
     while (node) {
         auto c = node->next;
         delete node;
@@ -24,72 +24,71 @@ LaserCurve::~LaserCurve()
         delete[] vertices;
 }
 
-void FUN_0043d830(LaserCurveListThing_t* node, glm::vec3* pos1, float* s1, float* a1, glm::vec3* pos2,
-    float s2, float a2, float param_8)
+void LaserCurveTransform_t::posvel_from_prev(glm::vec3* out_pos, float* out_speed, float* out_angle, glm::vec3 const& pos_next, float speed_next, float angle_next, float time)
 {
-    if (node->e == 0) {
-        *pos1 = *pos2 - node->fgh * node->m;
-        *s1 = node->m;
-        *a1 = node->l;
+    if (move_type == 0) {
+        *out_pos = pos_next - dir_vec * speed;
+        *out_speed = speed;
+        *out_angle = angle;
     }
-    if (node->e == 1) {
-        if (node->o <= -990.0 && node->o != -990.0) {
-            *pos1 = *pos2 - node->fgh * (s2 - node->n);
-            *s1 = node->m - node->n;
-            *a1 = a2;
+    if (move_type == 1) {
+        if (angle_accel < -990.0) {
+            *out_pos = pos_next - dir_vec * (speed_next - accel);
+            *out_speed = speed_next - accel;
+            *out_angle = angle_next;
             return;
         }
-        glm::vec3 v = { math::lengthdir_vec(-s2, a2) + math::lengthdir_vec(-node->n, node->o), 0.f };
-        *pos1 = *pos2 + v;
-        *s1 = math::point_distance(0, 0, v.x, v.y);
-        *a1 = math::point_direction(0, 0, v.x, v.y);
+        glm::vec3 v = { math::lengthdir_vec(-speed_next, angle_next) + math::lengthdir_vec(-accel, angle_accel), 0.f };
+        *out_pos = pos_next + v;
+        *out_speed = math::point_distance(0, 0, v.x, v.y);
+        *out_angle = math::point_direction(0, 0, v.x, v.y);
     }
-    if (node->e == 2) {
-        float f = 0.f; // FUN_00497db0(param_8);
-        *pos1 = *pos2 - glm::vec3(math::lengthdir_vec(s2, a2), 0.f) * (param_8 - f);
-        *s1 = s2 - node->n;
-        *a1 = a2 - node->o;
-        math::angle_normalize(*a1);
-        *pos1 -= glm::vec3(math::lengthdir_vec(*s1, *a1), 0.f) * ((1.f - param_8) + f);
+    if (move_type == 2) {
+        float f = 1.f; // time - 0.f; // FUN_00497db0(time);
+        *out_pos = pos_next - glm::vec3(math::lengthdir_vec(speed_next, angle_next), 0.f) * f;
+        *out_speed = speed_next - accel;
+        *out_angle = angle_next - angle_accel;
+        // math::angle_normalize(*out_angle);
+        //*out_pos -= glm::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f) * (1.f - f);
     }
 }
 
-void FUN_0043d3c0(LaserCurveListThing_t* node, glm::vec3* pos, float* speed, float* angle, float param_5)
+void LaserCurveTransform_t::posvel(glm::vec3* out_pos, float* out_speed, float* out_angle, float time)
 {
-    if (node->e == 0) {
-        *pos = node->fgh * (param_5 - node->c) * node->m + node->ijk;
-        *speed = node->m;
-        *angle = node->l;
+    float time_in_trans = time - start_time;
+    if (move_type == 0) {
+        *out_pos = dir_vec * time_in_trans * speed + pos;
+        *out_speed = speed;
+        *out_angle = angle;
     }
-    if (node->e == 1) {
-        if (node->o <= -990.0 && node->o != -990.0) {
-            *pos = node->fgh * (2 * node->m + node->n * (param_5 - node->c)) * (param_5 - node->c + 1.f) * 0.5f + node->ijk;
-            *speed = node->n * (param_5 - node->c) + node->m;
-            *angle = node->l;
+    if (move_type == 1) {
+        if (angle_accel < -990.0) {
+            *out_pos = pos + dir_vec * speed * time_in_trans + 0.5f * accel * time_in_trans * time_in_trans;
+            *out_speed = accel * time_in_trans + speed;
+            *out_angle = angle;
             return;
         }
-        glm::vec3 v = { math::lengthdir_vec(node->m, node->l) + math::lengthdir_vec(node->n, node->o), 0.f };
-        *pos = v * (param_5 - node->c) + node->ijk;
-        *speed = math::point_distance(0, 0, v.x, v.y);
-        *angle = math::point_direction(0, 0, v.x, v.y);
+        glm::vec3 v = { math::lengthdir_vec(speed, angle) + math::lengthdir_vec(accel, angle_accel), 0.f };
+        *out_pos = v * time_in_trans + pos; // this might be wrong : TODO: check
+        *out_speed = math::point_distance(0, 0, v.x, v.y);
+        *out_angle = math::point_direction(0, 0, v.x, v.y);
     }
-    if (node->e == 2) {
-        *angle = node->l;
-        *speed = node->m;
-        *pos = node->ijk;
-        for (int i = param_5 - node->c; i > 0; i--) {
-            *angle += node->o;
-            *speed += node->n;
-            math::angle_normalize(*angle);
-            *pos += glm::vec3(math::lengthdir_vec(*speed, *angle), 0.f);
+    if (move_type == 2) {
+        *out_angle = angle;
+        *out_speed = speed;
+        *out_pos = pos;
+        for (int i = time_in_trans; i > 0; i--) {
+            *out_angle += angle_accel;
+            *out_speed += accel;
+            // math::angle_normalize(*out_angle);
+            *out_pos += glm::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f);
         }
-        *pos += (param_5 - node->c - (param_5 - node->c)) /*FUN_00497db0(param_5 - node->c))*/ * glm::vec3(math::lengthdir_vec(*speed, *angle), 0.f);
+        //*out_pos += (time_in_trans /* - FUN_00497db0(time_in_trans) */) * glm::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f);
     }
 }
 
 int LaserCurve::initialize(void* arg)
 {
-    // return 0;
     inner = *reinterpret_cast<LaserCurveInner_t*>(arg);
 
     bullet_type = inner.type;
@@ -99,12 +98,12 @@ int LaserCurve::initialize(void* arg)
 
     vm1.destroy();
     if (bullet_type == 1) {
-        // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, 0x142);
-        vm1(AnmManagerN::getLoaded(7)->getPreloaded(0x142));
+        // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, LASER_DATA["laser_curve"]["anm_type_0"].asInt());
+        vm1(AnmManagerN::getLoaded(7)->getPreloaded(LASER_DATA["laser_curve"]["anm_type_0"].asInt()));
     } else {
-        // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, bullet_type + 0x8e);
-        vm1(AnmManagerN::getLoaded(7)->getPreloaded(bullet_type + 0x8e));
-        vm1.on_set_sprite = [](AnmVM* vm, int spr) { return ((Laser*)vm->getEntity())->bullet_color + 0x20c; };
+        // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt());
+        vm1(AnmManagerN::getLoaded(7)->getPreloaded(bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt()));
+        vm1.on_set_sprite = [](AnmVM* vm, int spr) { return ((Laser*)vm->getEntity())->bullet_color + LASER_DATA["laser_curve"]["sprite_first"].asInt(); };
         vm1.entity = this;
     }
     vm1.interrupt(2);
@@ -116,7 +115,7 @@ int LaserCurve::initialize(void* arg)
     vm1.bitflags.originMode = 1;
 
     // anm_init_copy_vm_from_loaded(LASER_MANAGER_PTR->bullet_anm, vm2, inner.color + 0x38);
-    vm2(AnmManagerN::getLoaded(7)->getPreloaded(inner.color + 0x38));
+    vm2(AnmManagerN::getLoaded(7)->getPreloaded(inner.color + LASER_DATA["spawn_anm_first"].asInt()));
     vm2.parent = nullptr;
     // vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();
@@ -125,7 +124,7 @@ int LaserCurve::initialize(void* arg)
     vm2.bitflags.blendmode = 1;
     vm2.bitflags.rendermode = 1;
     vm2.bitflags.originMode = 1;
-    vm2.layer = 14;
+    vm2.layer = 14; // TODO : not needed after
 
     laser_offset = inner.start_pos;
     if (inner.distance != 0.0) {
@@ -140,8 +139,8 @@ int LaserCurve::initialize(void* arg)
     laser_speed = { math::lengthdir_vec(inner.spd_1, inner.ang_aim), 0.f };
 
     __timer_2c = 0;
-    __timer_40 = inner.timer40_start;
-    __timer_5a0 = 30;
+    time_alive = inner.timer40_start;
+    inv_timer = 30;
 
     nodes = new LaserCurveNode_t[inner.laser_time_start];
     for (int i = 0; i < inner.laser_time_start; i++) {
@@ -154,58 +153,37 @@ int LaserCurve::initialize(void* arg)
 
     vertices = new NSEngine::Vertex[inner.laser_time_start * 2];
 
-    LaserCurveListThing_t* ppiVar8 = &listThing;
-    if (!inner.listThing) {
-        listThing.next = nullptr;
-        listThing.c = 0;
-        listThing.d = 999999;
-        listThing.e = 0;
-        listThing.fgh = { cos(angle), sin(angle), 0.f };
-        listThing.ijk = laser_offset;
-        listThing.l = angle;
-        listThing.m = speed;
+    if (!inner.transforms) {
+        transforms.next = nullptr;
+        transforms.start_time = 0;
+        transforms.end_time = 999999;
+        transforms.move_type = 0;
+        transforms.dir_vec = { cos(angle), sin(angle), 0.f };
+        transforms.pos = laser_offset;
+        transforms.angle = angle;
+        transforms.speed = speed;
 
-        math::angle_normalize(listThing.l);
+        math::angle_normalize(transforms.angle);
         et_ex_index = inner.ex_index;
     } else {
-        listThing.next = inner.listThing->next;
-        listThing.b = inner.listThing->b;
-        listThing.c = inner.listThing->c;
-        listThing.d = inner.listThing->d;
-        listThing.e = inner.listThing->e;
-        listThing.fgh = inner.listThing->fgh;
-        listThing.ijk = inner.listThing->ijk;
-        listThing.l = inner.listThing->l;
-        listThing.m = inner.listThing->m;
-        listThing.n = inner.listThing->n;
-        listThing.o = inner.listThing->o;
-
-        for (LaserCurveListThing_t *n = inner.listThing->next, *n2 = &listThing; n != NULL; n = n->next, n2 = n2->next) {
-            n2->next = new LaserCurveListThing_t();
-            n2->next->next = n->next;
-            n2->next->b = n->b;
-            n2->next->c = n->c;
-            n2->next->d = n->d;
-            n2->next->e = n->e;
-            n2->next->fgh = n->fgh;
-            n2->next->ijk = n->ijk;
-            n2->next->l = n->l;
-            n2->next->m = n->m;
-            n2->next->n = n->n;
-            n2->next->o = n->o;
+        transforms = *inner.transforms;
+        for (LaserCurveTransform_t *n = inner.transforms->next, *n2 = &transforms; n != NULL; n = n->next, n2 = n2->next) {
+            n2->next = new LaserCurveTransform_t();
+            *n2->next = *n->next;
+            n2->next->prev = n2;
         }
-
-        inner.listThing = nullptr;
+        inner.transforms = nullptr;
         et_ex_index = 99;
     }
 
     for (int i = 0; i < inner.laser_time_start; i++) {
-        for (LaserCurveListThing_t* node = &listThing; node != nullptr; node = node->next) {
-            if ((node->c <= __timer_40 - i) && (__timer_40 - i < node->d)) {
+        int node_time_alive = time_alive - i;
+        for (LaserCurveTransform_t* trans = &transforms; trans; trans = trans->next) {
+            if (node_time_alive >= trans->start_time && node_time_alive < trans->end_time) {
                 if (i == 0) {
-                    FUN_0043d3c0(node, &nodes[i].pos, &nodes[i].speed, &nodes[i].angle, __timer_40 - i);
+                    trans->posvel(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, time_alive - i);
                 } else {
-                    FUN_0043d830(node, &nodes[i].pos, &nodes[i].speed, &nodes[i].angle, &nodes[i - 1].pos, nodes[i - 1].speed, nodes[i - 1].angle, __timer_40 - i);
+                    trans->posvel_from_prev(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, nodes[i - 1].pos, nodes[i - 1].speed, nodes[i - 1].angle, time_alive - i);
                 }
                 break;
             }
@@ -276,11 +254,11 @@ int LaserCurve::on_tick()
             }
         }
         if (flags & 0x100) {
-            // ex_unassigned[4].timer --;
-            // if (ex_unassigned[4].timer < 1) {
-            // flags &= 0xfffffeff;
-            // et_ex_done++
-            //}
+            ex_offscreen.timer--;
+            if (ex_offscreen.timer < 1) {
+                flags &= 0xfffffeff;
+                et_ex_done++;
+            }
             flags &= 0xfffffeff;
         }
         if (flags < 0) {
@@ -297,53 +275,45 @@ int LaserCurve::on_tick()
 
     if (!(some_flags & 0x10)) {
         for (int i = 0; i < inner.laser_time_start; i++) {
-            if (__timer_40 - i < 0) {
+            if (time_alive - i < 0) {
                 nodes[i].pos = inner.start_pos;
                 nodes[i].v_speed = { 0, 0, 0 };
                 nodes[i].angle = inner.ang_aim;
                 nodes[i].speed = inner.spd_1;
             } else {
-                LaserCurveListThing_t* thi = &listThing;
-                if (thi == NULL) {
-                } else {
-                    do {
-                        if ((thi->c <= __timer_40 - i) && (__timer_40 - i < thi->d)) {
-                            if (i == 0.0)
-                                FUN_0043d3c0(thi, &nodes[i].pos, &nodes[i].speed, &nodes[i].angle, __timer_40 - i);
-                            else
-                                FUN_0043d830(thi, &nodes[i].pos, &nodes[i].speed, &nodes[i].angle, &nodes[i - 1].pos, nodes[i - 1].speed, nodes[i - 1].angle, __timer_40 - i);
-                        }
-                        thi = thi->next;
-                    } while (thi != NULL);
+                LaserCurveTransform_t* thi = &transforms;
+                for (auto thi = &transforms; thi; thi = thi->next) {
+                    if ((time_alive - i >= thi->start_time) && (time_alive - i < thi->end_time)) {
+                        if (i == 0.0)
+                            thi->posvel(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, time_alive - i);
+                        else
+                            thi->posvel_from_prev(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, nodes[i - 1].pos, nodes[i - 1].speed, nodes[i - 1].angle, time_alive - i);
+                    }
                 }
             }
         }
     }
 
-    if (__timer_5a0 > 0 || (flags & 0x100)) {
-        __timer_5a0--;
+    if (inv_timer > 0 || offscreen_timer > 0 || (flags & 0x100)) {
+        inv_timer--;
+        offscreen_timer--;
         check_graze_or_kill(0);
         vm1.update();
         vm2.update();
-        __timer_40++;
+        time_alive++;
         return 0;
     }
 
-    // pfVar8 = (float*)nodes;
     for (int i = 0; i < inner.laser_time_start; i++) {
 
-        // polar_from_carthesian(, angle, laser_inf_current_length);
-        // uStack_18 = (double)CONCAT44((float)((ulonglong)uStack_18 >> 0x20) + laser_offset.y,
-        // laser_offset.x + (float)uStack_18);
-        // fStack_10 = fStack_10 + laser_offset.z;
-        { // if ((((-192.0 < laser_st_width + *extraout_EDX) && (*extraout_EDX - laser_st_width < 192.0)) && (0.0 < laser_st_width + extraout_EDX[1])) && (extraout_EDX[1] - laser_st_width < 448.0)) {
+        // uStack_18 = laser_offset + glm::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
+        if ((((-192.0 < laser_st_width + nodes[i].pos.x) && (nodes[i].pos.x - laser_st_width < 192.0)) && (0.0 < laser_st_width + nodes[i].pos.y)) && (nodes[i].pos.y - laser_st_width < 448.0)) {
             check_graze_or_kill(0);
             vm1.update();
             vm2.update();
-            __timer_40++;
+            time_alive++;
             return 0;
         }
-        // pfVar8 = extraout_EDX + 8;
     }
 
     return 1;
@@ -384,7 +354,7 @@ int LaserCurve::on_draw()
     }
     // AnmManager::draw_vm__mode_textureCircle(ANM_MANAGER_PTR, &vm1, vertices, inner.laser_time_start * 2);
     _dzaww(&vm1, vertices, inner.laser_time_start * 2);
-    if (__timer_40 <= inner.laser_time_start) {
+    if (time_alive <= inner.laser_time_start) {
         vm2.pos = nodes[inner.laser_time_start - 1].pos;
         vm2.draw();
     }
@@ -393,32 +363,6 @@ int LaserCurve::on_draw()
 
 void LaserCurve::run_ex()
 {
-    uint32_t* puVar1;
-    int32_t* piVar2;
-    uint8_t* puVar3;
-    LaserCurveListThing_t* pzVar5;
-    LaserCurveListThing_t* pzVar10;
-    LaserCurveNode_t* pzVar11;
-    LaserCurveNode_t* pzVar12;
-    LaserCurveListThing_t* pzVar13;
-    LaserCurveNode_t* pzVar14;
-    void* pvVar15;
-    AnmVM* vm;
-    int iVar16;
-    int extraout_EDX;
-    int iVar17;
-    int extraout_EDX_00;
-    int iVar18;
-    EtEx_t* pzVar19;
-    float* pfVar20;
-    float fVar21;
-    uint8_t auStack_3c4[4];
-    LaserCurveListThing_t* local_3c0;
-    LaserCurveNode_t* local_3bc;
-    double local_3b8;
-    AnmID zStack_39c;
-    uint64_t local_398;
-
     while (et_ex_index < 18 && inner.ex[et_ex_index].type && (inner.ex[et_ex_index].slot || flags == 0) && !(inner.ex[et_ex_index].type & flags)) {
 
         if (inner.ex[et_ex_index].type == 0x400) {
@@ -433,116 +377,68 @@ void LaserCurve::run_ex()
                 break;
             default:
                 break;
-            case 4:
-                pzVar5 = &listThing;
-                for (pzVar10 = listThing.next; pzVar10 != nullptr; pzVar10 = pzVar10->next) {
-                    pzVar5 = pzVar10;
+            case 4: {
+                auto last_transform = &transforms;
+                for (auto t = last_transform->next; t; t = t->next)
+                    last_transform = t;
+                last_transform->next = new LaserCurveTransform_t();
+                last_transform->end_time = inner.ex[et_ex_index].b;
+                last_transform->next->start_time = inner.ex[et_ex_index].b;
+                last_transform->next->next = nullptr;
+                last_transform->next->prev = last_transform;
+                last_transform->next->move_type = 1;
+                last_transform->posvel(&last_transform->next->pos, &last_transform->next->speed, &last_transform->next->angle, last_transform->end_time);
+                last_transform->next->dir_vec = { cos(last_transform->next->angle), sin(last_transform->next->angle), 0.f };
+                last_transform->next->accel = inner.ex[et_ex_index].r;
+                last_transform->next->angle_accel = inner.ex[et_ex_index].s;
+                if (inner.ex[et_ex_index].a < 0)
+                    last_transform->next->end_time = 999999;
+                else {
+                    last_transform->next->end_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
+                    last_transform = last_transform->next;
+                    last_transform->next = new LaserCurveTransform_t();
+                    last_transform->end_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
+                    last_transform->next->start_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
+                    last_transform->next->next = nullptr;
+                    last_transform->next->prev = last_transform;
+                    last_transform->next->move_type = 0;
+                    last_transform->posvel(&last_transform->next->pos, &last_transform->next->speed, &last_transform->next->angle, last_transform->end_time);
+                    last_transform->next->dir_vec = { cos(last_transform->next->angle), sin(last_transform->next->angle), 0.f };
+                    last_transform->next->end_time = 0x497423f0;
                 }
-                // pvVar15 = new LaserCurveListThing_t();
-                // pzVar5->next = pvVar15;
-                // pzVar5->field3_0xc = inner.ex[et_ex_index].b;
-                //*(zLaserCurveNode **)((int)pvVar15 + 8) = inner.ex[et_ex_index].b;
-                //*(undefined4 *)pzVar5->field0_0x0 = 0;
-                //*(zLaserCurveListThing **)((int)pzVar5->field0_0x0 + 4) = pzVar5;
-                // local_3bc = (zLaserCurveNode *)pzVar5->field0_0x0;
-                // pzVar5 = (zLaserCurveListThing *)(local_3bc->pos).y;
-                // pzVar12 = local_3bc + 1;
-                //(local_3bc->v_speed).y = 1.401298e-45;
-                // FUN_0043d3c0(pzVar5,&local_3bc[1].pos,&local_3bc[1].v_speed.y,&(pzVar12->v_speed).x,
-                // pzVar5->field3_0xc);
-                // fVar21 = (pzVar12->v_speed).x;
-                // local_3bc[1].pos.z = 0.0;
-                // zFloat2::from_polar((zFloat2 *)&(local_3bc->v_speed).z,fVar21,1.0);
-                //*(undefined4 *)(extraout_EDX + 0x1c) = 0;
-                //*(float *)(extraout_EDX + 0x34) = inner.ex[et_ex_index].r;
-                //*(float *)(extraout_EDX + 0x38) = inner.ex[et_ex_index].s;
-                // iVar16 = inner.ex[et_ex_index].a;
-                // iVar17 = extraout_EDX;
-                // if (iVar16 < 0) {
-                //*(undefined4 *)(iVar17 + 0xc) = 999999;
-                //}
-                // else {
-                // local_3bc = (zLaserCurveNode *)((float)iVar16 + (float)inner.ex[et_ex_index].b);
-                //*(zLaserCurveNode **)(extraout_EDX + 0xc) = local_3bc;
-                // pzVar10 = listThing.next;
-                // pzVar5 = &listThing;
-                // while (pzVar13 = pzVar10, pzVar13 != NULL) {
-                // pzVar5 = pzVar13;
-                // pzVar10 = pzVar13->next;
-                //}
-                // pvVar15 = operator_new(0x3c);
-                // pzVar5->next = pvVar15;
-                // pzVar5->field3_0xc = (float)local_3bc;
-                //*(zLaserCurveNode **)((int)pvVar15 + 8) = local_3bc;
-                //*(undefined4 *)pzVar5->field0_0x0 = 0;
-                //*(zLaserCurveListThing **)((int)pzVar5->field0_0x0 + 4) = pzVar5;
-                // pvVar15 = pzVar5->field0_0x0;
-                //*(undefined4 *)((int)pvVar15 + 0x10) = 0;
-                // FUN_0043d3c0(*(zLaserCurveListThing **)((int)pvVar15 + 4),
-                //(zFloat3 *)((int)pvVar15 + 0x20),(float *)((int)pvVar15 + 0x30),
-                //(float *)((int)pvVar15 + 0x2c),
-                //(*(zLaserCurveListThing **)((int)pvVar15 + 4))->field3_0xc);
-                //*(undefined4 *)((int)pvVar15 + 0x28) = 0;
-                // zFloat2::from_polar((zFloat2 *)((int)pvVar15 + 0x14),*(float *)((int)pvVar15 + 0x2c),
-                // 1.0);
-                //*(undefined4 *)((int)pvVar15 + 0x1c) = 0;
-                //*(undefined4 *)((int)pvVar15 + 0xc) = 0x497423f0;
-            //}
-            break;
-            case 8:
-                // local_3c0 = (zLaserCurveListThing *)
-                // pzVar5 = (zLaserCurveListThing *)&listThing;
-                // for (pzVar10 = listThing->next; pzVar10 != nullptr; pzVar10 = pzVar10->next) {
-                // pzVar5 = pzVar10;
-                //}
-                // pvVar15 = operator_new(0x3c);
-                // local_3b8 = (double)((ulonglong)local_3b8 & 0xffffffff00000000 | ZEXT48(pvVar15));
-                // pzVar5->field0_0x0 = pvVar15;
-                // pzVar5->field3_0xc = inner.ex[et_ex_index].b;
-                //*(zLaserCurveListThing **)((int)pvVar15 + 8) = inner.ex[et_ex_index].b;
-                //*(undefined4 *)pzVar5->field0_0x0 = 0;
-                //*(zLaserCurveListThing **)((int)pzVar5->field0_0x0 + 4) = pzVar5;
-                // local_3c0 = (zLaserCurveListThing *)pzVar5->field0_0x0;
-                // pfVar20 = &local_3c0->field7_0x2c;
-                //(&local_3c0->field3_0xc)[1] = 2.802597e-45;
-                // FUN_0043d3c0((zLaserCurveListThing *)(&local_3c0->field0_0x0)[1],&local_3c0->field6_0x20
-                //,&local_3c0->field8_0x30,pfVar20,
-                //((zLaserCurveListThing *)(&local_3c0->field0_0x0)[1])->field3_0xc);
-                // fVar21 = *pfVar20;
-                //(&(local_3c0->field6_0x20).x)[2] = 0.0;
-                // zFloat2::from_polar((zFloat2 *)(&local_3c0->field3_0xc + 2),fVar21,1.0);
-                //*(undefined4 *)(extraout_EDX_00 + 0x1c) = 0;
-                //*(float *)(extraout_EDX_00 + 0x34) = inner.ex[et_ex_index].r;
-                //*(float *)(extraout_EDX_00 + 0x38) = inner.ex[et_ex_index].s;
-                // if (inner.ex[et_ex_index].a < 0) {
-                //*(undefined4 *)(extraout_EDX_00 + 0xc) = 999999;
-                // break;
-                //}
-                // local_3c0 = (zLaserCurveListThing *)(inner.ex[et_ex_index].a; + (float)inner.ex[et_ex_index].b);
-                //*(zLaserCurveListThing **)(extraout_EDX_00 + 0xc) = local_3c0;
-                // pzVar14 = (zLaserCurveNode *)(listThing.pos).x;
-                // pzVar12 = &listThing;
-                // while (pzVar11 = pzVar14, pzVar11 != NULL) {
-                // pzVar12 = pzVar11;
-                // pzVar14 = (zLaserCurveNode *)(pzVar11->pos).x;
-                //}
-                // pvVar15 = operator_new(0x3c);
-                // local_3b8 = (double)((ulonglong)local_3b8 & 0xffffffff00000000 | ZEXT48(pvVar15));
-                //(pzVar12->pos).x = (float)pvVar15;
-                //(pzVar12->v_speed).x = (float)local_3c0;
-                //*(zLaserCurveListThing **)((int)pvVar15 + 8) = local_3c0;
-                //*(undefined4 *)(pzVar12->pos).x = 0;
-                //*(zLaserCurveNode **)((int)(pzVar12->pos).x + 4) = pzVar12;
-                // fVar21 = (pzVar12->pos).x;
-                //*(undefined4 *)((int)fVar21 + 0x10) = 0;
-                // FUN_0043d3c0(*(zLaserCurveListThing **)((int)fVar21 + 4),(zFloat3 *)((int)fVar21 + 0x20)
-                //,(float *)((int)fVar21 + 0x30),(float *)((int)fVar21 + 0x2c),
-                //(*(zLaserCurveListThing **)((int)fVar21 + 4))->field3_0xc);
-                //*(undefined4 *)((int)fVar21 + 0x28) = 0;
-                // zFloat2::from_polar((zFloat2 *)((int)fVar21 + 0x14),*(float *)((int)fVar21 + 0x2c),1.0);
-                //*(undefined4 *)((int)fVar21 + 0x1c) = 0;
-                //*(undefined4 *)((int)fVar21 + 0xc) = 0x497423f0;
                 break;
+            }
+            case 8: {
+                auto last_transform = &transforms;
+                for (auto t = last_transform->next; t; t = t->next)
+                    last_transform = t;
+                last_transform->next = new LaserCurveTransform_t();
+                last_transform->end_time = inner.ex[et_ex_index].b;
+                last_transform->next->start_time = inner.ex[et_ex_index].b;
+                last_transform->next->next = nullptr;
+                last_transform->next->prev = last_transform;
+                last_transform->next->move_type = 2;
+                last_transform->posvel(&last_transform->next->pos, &last_transform->next->speed, &last_transform->next->angle, last_transform->end_time);
+                last_transform->next->dir_vec = { cos(last_transform->next->angle), sin(last_transform->next->angle), 0.f };
+                last_transform->next->accel = inner.ex[et_ex_index].r;
+                last_transform->next->angle_accel = inner.ex[et_ex_index].s;
+                if (inner.ex[et_ex_index].a < 0)
+                    last_transform->next->end_time = 999999;
+                else {
+                    last_transform->next->end_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
+                    last_transform = last_transform->next;
+                    last_transform->next = new LaserCurveTransform_t();
+                    last_transform->end_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
+                    last_transform->next->start_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
+                    last_transform->next->next = nullptr;
+                    last_transform->next->prev = last_transform;
+                    last_transform->next->move_type = 0;
+                    last_transform->posvel(&last_transform->next->pos, &last_transform->next->speed, &last_transform->next->angle, last_transform->end_time);
+                    last_transform->next->dir_vec = { cos(last_transform->next->angle), sin(last_transform->next->angle), 0.f };
+                    last_transform->next->end_time = 0x497423f0;
+                }
+                break;
+            }
             case 0x10:
                 flags |= 0x10;
                 ex_angle.angle = inner.ex[et_ex_index].r;
@@ -574,21 +470,24 @@ void LaserCurve::run_ex()
         }
 
         if (inner.ex[et_ex_index].type == 0x100) {
-            // flags |= 0x100;
-            // ex_unassigned[4].timer = inner.ex[et_ex_index].a;
-            // ex_unassigned[4].field13_0x34 = inner.ex[et_ex_index].b;
+            flags |= 0x100;
+            offscreen_timer = inner.ex[et_ex_index].a;
+            ex_offscreen.timer = inner.ex[et_ex_index].a;
+            ex_offscreen.__b__unknown = inner.ex[et_ex_index].b;
         }
 
         if (inner.ex[et_ex_index].type == 0x200) {
-            vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_DEFINITIONS[inner.ex[et_ex_index].a].script + inner.ex[et_ex_index].b));
+            vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[inner.ex[et_ex_index].a]["script"].asInt() + inner.ex[et_ex_index].b));
             vm1.parent = nullptr;
             // vm1.__root_vm__or_maybe_not = nullptr;
             vm1.update();
         }
 
         if (inner.ex[et_ex_index].type == 0x100000) {
-            if (inner.ex[et_ex_index].a == 0) vm1.bitflags.blendmode = 0;
-            else vm1.bitflags.blendmode = 1;
+            if (inner.ex[et_ex_index].a == 0)
+                vm1.bitflags.blendmode = 0;
+            else
+                vm1.bitflags.blendmode = 1;
         }
 
         if (inner.ex[et_ex_index].type == 0x10000000) {
@@ -608,7 +507,7 @@ void LaserCurve::run_ex()
         }
 
         if (inner.ex[et_ex_index].type == 0x800) { /*SoundManager::play_sound_at_position(inner.ex[et_ex_index].a); */
-        et_ex_index++;
+            et_ex_index++;
         } else if (inner.ex[et_ex_index].type == 0x1000) {
             flags |= 0x1000;
             ex_wrap.__timer__used_by_lasers = inner.ex[et_ex_index].a;
@@ -650,4 +549,26 @@ void LaserCurve::run_ex()
         et_ex_index++;
     }
     return;
+}
+
+int LaserCurve::cancel(int param_2, int as_bomb)
+{
+    if (!as_bomb || ex_invuln__remaining_frames == 0) {
+        for (int i = 0; i < inner.laser_time_start; i++) {
+            if (i % 3 == 0) {
+                //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
+                //vm = AnmManager::allocate_vm();
+                //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.color * 2 + 0xd1);
+                AnmVM* vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.color * 2 + 0xd1));
+                vm->bitflags.randomMode = true;
+                vm->entity_pos = nodes[i].pos;
+                vm->rotation.z = 0.0;
+                vm->update();
+                //(vm->prefix).mode_of_create_child = 0;
+                //AnmManager::insert_in_world_list_back(&local_14, vm);
+            }
+        }
+        __field_10__set_to_3_by_ex_delete = 1;
+    }
+    return 0;
 }

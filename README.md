@@ -14,6 +14,8 @@ To obtain these files from the games, I recommend <a href="https://github.com/th
 
 <img src="./screenshot.png">
 
+I created a json file of hardcoded value for TH17. These values can change depending on the game. You can create your own version for another game and contribute it to the repo if you want.
+
 ## Compile
 
 This project depends on <a href="https://github.com/ClementChambard/NSEngine">NSEngine</a>, which is my own game engine.
@@ -48,8 +50,12 @@ I use simlinks with relative paths to link to the engine's folder with this fold
 
 *I need to learn more about cmake and find a way to remove these parts*
 
+* The 'hardcoded.json' file should be in the execution path
+ `cp ../hardcoded.json .`
+
 * Run the executable
  `./ecl <name of ecl file> [name of entry point]`
+
 
 ## Contact
 

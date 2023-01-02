@@ -12,7 +12,7 @@ class Spellcard {
 
         void update();
 
-        void Init(int id, int time, int mode, std::string name);
+        void Init(int id, int time, int mode, std::string name, int bossId = 0);
         void Stop();
         void SetTimeout() {}
 
@@ -22,6 +22,9 @@ class Spellcard {
 
         int on_tick() { update(); return 1; } // TODO
         int on_draw() { return 1; } //TODO
+
+        int spell_bg_anm_id = 0;
+        int bossId = 0;
 
         UpdateFunc* f_on_tick;
         UpdateFunc* f_on_draw;

@@ -172,10 +172,10 @@ AnmVM::~AnmVM()
 
 AnmSprite AnmVM::getSprite() const { return AnmManagerN::loadedFiles[anim_slot].getSprite(sprite_id); }
 
-void AnmVM::update(bool printInstr)
+int AnmVM::update(bool printInstr)
 {
     /* VM IS NOT RUNNING */
-    if (bitflags.activeFlags != ANMVM_ACTIVE && time != -1) return;
+    if (bitflags.activeFlags != ANMVM_ACTIVE && time != -1) return 1;
     cnt++;
 
     /* UPDATE VARIABLES */
@@ -204,7 +204,7 @@ void AnmVM::update(bool printInstr)
     if (v_vel_i.end_time != 0) uv_scroll_vel.y = v_vel_i.step();
 
     int8_t* instructions = AnmManagerN::loadedFiles[anim_slot].getScript(script_id);
-    if (instructions == nullptr) return;
+    if (instructions == nullptr) return 1;
 
     /* CHECK FOR INTERRUPTIONS */
     if (pending_switch_label != 0)
@@ -230,13 +230,13 @@ void AnmVM::update(bool printInstr)
     }
 
     /* VM IS STOPPED */
-    if (time < -9999) return;
+    if (time < -9999) return 0;
 
     /* RUN INSTRUCTIONS */
     uint32_t oldinstr = current_instr;
     uint16_t instype, inslength;
     int16_t instime;
-    #define getIns if (instructions[current_instr] == -1) return; \
+    #define getIns if (instructions[current_instr] == -1) return 1; \
         instype = *reinterpret_cast<uint16_t*>(&(instructions[current_instr])); \
         inslength = *reinterpret_cast<uint16_t*>(&(instructions[current_instr+2])); \
         instime = *reinterpret_cast<int16_t*>(&(instructions[current_instr+4]));
@@ -255,6 +255,8 @@ void AnmVM::update(bool printInstr)
         getIns;
     }
     time++;
+
+    return 0;
 }
 int AnmVM::getMode() const { return bitflags.rendermode; }
 int AnmVM::getZdis() const { return bitflags.zwritedis || bitflags.blendmode != 0; }

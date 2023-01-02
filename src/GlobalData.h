@@ -24,6 +24,7 @@ class Globals {
         int goasts = 0;
         int hyperdying = 0;
         int achievement_mode = 0;
+        int stage_id = 0;
 };
 
 #endif // GLOBALDATA_H_
