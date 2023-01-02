@@ -14,7 +14,8 @@ To obtain these files from the games, I recommend <a href="https://github.com/th
 
 <img src="./screenshot.png">
 
-I created a json file of hardcoded value for TH17. These values can change depending on the game. You can create your own version for another game and contribute it to the repo if you want.
+I created a json file of hardcoded value for TH17. These values can change depending on the game. You can create your own version if you want to add bullet types for example.
+You can find more of these in <a href='https://github.com/ClementChambard/TouhouHardcodedData'>this repo</a>.
 
 ## Compile
 
@@ -37,11 +38,11 @@ I use simlinks with relative paths to link to the engine's folder with this fold
  `git clone https://github.com/ClementChambard/TouhouInterpreter.git`
 
 * Create a build directory
- `mkdir build && cd build` 
- 
+ `mkdir build && cd build`
+
 * Run cmake to configure the project
  `cmake ..`
- 
+
 * Run make to compile
  `make`
 
