@@ -331,6 +331,7 @@ void AnmVM::exec_instruction(int8_t* ins)
             return;
         case 423: // colorMode
             bitflags.colmode = S(0);
+            return;
         case 424: // rotateAuto
             bitflags.autoRotate = S(0);
             return;

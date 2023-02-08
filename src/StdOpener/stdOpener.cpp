@@ -149,7 +149,7 @@ namespace StdOpener {
                   << instance->x << ' ' << instance->y << ' ' << instance->z << '\n';
     }
 
-    void instr_dump(const std_instr_t* instr, uint32_t& time)
+    void instr_dump(const std_instr_t* , uint32_t& )
     {
         // TODO
     }

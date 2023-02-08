@@ -24,7 +24,7 @@ LaserCurve::~LaserCurve()
         delete[] vertices;
 }
 
-void LaserCurveTransform_t::posvel_from_prev(glm::vec3* out_pos, float* out_speed, float* out_angle, glm::vec3 const& pos_next, float speed_next, float angle_next, float time)
+void LaserCurveTransform_t::posvel_from_prev(glm::vec3* out_pos, float* out_speed, float* out_angle, glm::vec3 const& pos_next, float speed_next, float angle_next, float /*time*/)
 {
     if (move_type == 0) {
         *out_pos = pos_next - dir_vec * speed;
@@ -103,7 +103,7 @@ int LaserCurve::initialize(void* arg)
     } else {
         // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt());
         vm1(AnmManagerN::getLoaded(7)->getPreloaded(bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt()));
-        vm1.on_set_sprite = [](AnmVM* vm, int spr) { return ((Laser*)vm->getEntity())->bullet_color + LASER_DATA["laser_curve"]["sprite_first"].asInt(); };
+        vm1.on_set_sprite = [](AnmVM* vm, int) { return ((Laser*)vm->getEntity())->bullet_color + LASER_DATA["laser_curve"]["sprite_first"].asInt(); };
         vm1.entity = this;
     }
     vm1.interrupt(2);
@@ -281,7 +281,6 @@ int LaserCurve::on_tick()
                 nodes[i].angle = inner.ang_aim;
                 nodes[i].speed = inner.spd_1;
             } else {
-                LaserCurveTransform_t* thi = &transforms;
                 for (auto thi = &transforms; thi; thi = thi->next) {
                     if ((time_alive - i >= thi->start_time) && (time_alive - i < thi->end_time)) {
                         if (i == 0.0)
@@ -323,7 +322,7 @@ int LaserCurve::on_tick()
 void _dzaww(AnmVM* vm, NSEngine::Vertex* vertices, int count)
 {
     for (int i = 0; i < (count - 1) / 2; i++)
-        NSEngine::engineData::layers[14]->getBatch()->draw(vm->getSprite().texID, vertices[i * 2], vertices[i * 2 + 1], vertices[i * 2 + 3], vertices[i * 2 + 2], vm->bitflags.blendmode);
+        NSEngine::engineData::layers[14].draw(vm->getSprite().texID, vertices[i * 2], vertices[i * 2 + 1], vertices[i * 2 + 3], vertices[i * 2 + 2], vm->bitflags.blendmode);
 }
 
 int LaserCurve::on_draw()
@@ -337,8 +336,8 @@ int LaserCurve::on_draw()
         vertices[2 * i].position.x = nodes[i].pos.x + offset.x;
         vertices[2 * i].position.y = -(nodes[i].pos.y + offset.y);
         vertices[2 * i].position.z = 0.0;
-        vertices[2 * i].uv.u = (float)i / (float)(inner.laser_time_start - 1);
-        vertices[2 * i].uv.v = vm1.getSprite().v1; // vm1.uv_quad_of_sprite[0].y;
+        vertices[2 * i].uv.x = (float)i / (float)(inner.laser_time_start - 1);
+        vertices[2 * i].uv.y = vm1.getSprite().v1; // vm1.uv_quad_of_sprite[0].y;
         vertices[2 * i].color = { 255, 255, 255, 255 };
         // vertices[2*i].position.x += SURF_ORIGIN_ECL_X;
         // vertices[2*i].position.y += DAT_00524720;
@@ -347,8 +346,8 @@ int LaserCurve::on_draw()
         vertices[2 * i + 1].position.y = -(nodes[i].pos.y - offset.y);
         vertices[2 * i + 1].position.z = 0.0;
         vertices[2 * i + 1].color = { 255, 255, 255, 255 };
-        vertices[2 * i + 1].uv.u = (float)i / (float)(inner.laser_time_start - 1);
-        vertices[2 * i + 1].uv.v = vm1.getSprite().v2; // vm1.uv_quad_of_sprite[2].y;
+        vertices[2 * i + 1].uv.x = (float)i / (float)(inner.laser_time_start - 1);
+        vertices[2 * i + 1].uv.y = vm1.getSprite().v2; // vm1.uv_quad_of_sprite[2].y;
         // vertices[2*i+1].position.x += SURF_ORIGIN_ECL_X;
         // vertices[2*i+1].position.y += DAT_00524720;
     }
@@ -491,10 +490,10 @@ void LaserCurve::run_ex()
         }
 
         if (inner.ex[et_ex_index].type == 0x10000000) {
-            some_flags = some_flags ^ (inner.ex[et_ex_index].a << 4 ^ some_flags) & 0x10;
+            some_flags = (some_flags ^ (inner.ex[et_ex_index].a << 4 ^ some_flags)) & 0x10;
         }
 
-        if (inner.ex[et_ex_index].type == 0x80000000) {
+        if (inner.ex[et_ex_index].type == (int32_t)0x80000000) {
             if (inner.ex[et_ex_index].a > 0) {
                 flags |= 0x80000000;
                 ex_wait.timer = inner.ex[et_ex_index].a;
@@ -551,7 +550,7 @@ void LaserCurve::run_ex()
     return;
 }
 
-int LaserCurve::cancel(int param_2, int as_bomb)
+int LaserCurve::cancel(int , int as_bomb)
 {
     if (!as_bomb || ex_invuln__remaining_frames == 0) {
         for (int i = 0; i < inner.laser_time_start; i++) {

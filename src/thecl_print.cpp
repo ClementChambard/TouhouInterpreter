@@ -21,7 +21,7 @@ std::string ins_get_name(int i)
 std::string int_print_n(int i, int n, char c = ' ')
 {
     auto s = std::to_string(i);
-    while (s.length() < n) s = c + s;
+    while (s.length() < (size_t)n) s = c + s;
     return s;
 }
 
@@ -48,7 +48,7 @@ void print_ecl(EclRaw_t* ecl)
             std::cout << ins_get_name(instr->id) << "(";
             if (instr->param_count > 0)
             {
-                size_t param_size_total = instr->size - sizeof(EclRawInstr_t);
+                //size_t param_size_total = instr->size - sizeof(EclRawInstr_t);
                 std::string format = thecl_find_format(18, instr->id, false);
                 thecl_value_t* values = thecl_value_list_from_data(instr->data, instr->size - sizeof(EclRawInstr_t), format.c_str());
                 for (int i = 0; i < instr->param_count; i++)

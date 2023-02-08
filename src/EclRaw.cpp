@@ -85,7 +85,7 @@ EclRaw_t* ecl_open(std::string filename)
 
         const EclRawSub_t* raw_sub = (EclRawSub_t*)(map + sub_offsets[i]);
 
-        ecl->subs.push_back(EclSubPtr_t{name, raw_sub});
+        ecl->subs.push_back(EclSubPtr_t{name, raw_sub, {}});
 
         magic = std::string(raw_sub->magic);
         if (magic[0] != 'E' || magic[1] != 'C' || magic[2] != 'L' || magic[3] != 'H') {

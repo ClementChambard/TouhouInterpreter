@@ -72,8 +72,8 @@ namespace StdOpener {
         void spawnFace(face const& f);
         void execInstr(instruction const& i);
 
-        NSEngine::SpriteBatch* sprBatch;
-        NSEngine::AnimShader* baseShader;
+        NSEngine::SpriteBatch sprBatch;
+        NSEngine::AnimShader baseShader;
 
     };
 

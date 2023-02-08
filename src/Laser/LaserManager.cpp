@@ -88,7 +88,7 @@ int LaserManager::f_on_tick()
             prev = laser->prev;
             if ((uVar4 & 6) == 0)
                 break;
-            uVar4 = (uVar4 + 2 ^ uVar4) & 6 ^ uVar4;
+            uVar4 = (((uVar4 + 2) ^ uVar4) & 6) ^ uVar4;
             laser->some_flags = uVar4;
             if (((uint8_t)uVar4 & 6) < 4)
                 break;

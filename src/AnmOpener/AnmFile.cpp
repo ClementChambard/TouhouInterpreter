@@ -2,7 +2,6 @@
 #include "anmOpener.h"
 #include <TextureManager.h>
 #include <ImageLoader.h>
-#include <GameSprites.h>
 
 uint32_t textureFromImage(AnmOpener::image_t const& img)
 {
@@ -78,7 +77,6 @@ void AnmFile::Open(std::string const& filename, uint32_t slot)
     }
 
     AnmOpener::anm_free(archive);
-    int i = 0;
     std::cout << "Opened Anm : " << filename << "\n";
 }
 

@@ -9,7 +9,6 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
     if (bitflags.activeFlags != ANMVM_ACTIVE) return;
     if (!bitflags.visible) return;
     if (color1.a == 0 && color2.a == 0) return;
-
     cnt++;
     /* GET PARENT VARIABLES */
     float px = 0, py = 0, pz = 0, prx = 0, pry = 0, prz = 0, psx = 1, psy = 1;
@@ -36,7 +35,7 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
     NSEngine::Color c1 = color1;
     NSEngine::Color c2 = color2;
 
-    if (!sb) sb = NSEngine::engineData::layers[layer]->getBatch();
+    if (!sb) sb = &NSEngine::engineData::layers[layer];
     auto p = pos+pos2;
     NSEngine::draw_set_blend(bitflags.blendmode);
     //if (layer == 5) { p += glm::vec3(0,-192,0); }
@@ -102,7 +101,7 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
         float width = float_vars[2] * XS;
         float height = float_vars[3] * YS;
         c2 = mode_of_special_draw == 8 ? c2 : c1;
-        glm::mat4 rotate = glm::eulerAngleZYX(-rotation.z + prz, rotation.y + pry, rotation.x + prx);
+        //glm::mat4 rotate = glm::eulerAngleZYX(-rotation.z + prz, rotation.y + pry, rotation.x + prx);
         // TODO: rotate and fix position
         batch_draw_rectangle_color(sb, p.x+px-width*l,-p.y+py-height*t,p.x+px+width*r,-p.y+py+height*b,c1,c2,c2,c1);
         return;
@@ -132,6 +131,8 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
         }
         NSEngine::draw_circle_set_vertex_count(int_vars[0]);
         draw_set_color(color1);
+        //math::angle_normalize(angleStart);
+        //math::angle_normalize(angleEnd);
         batch_draw_circle_arc_textured(sb, p.x*psx+px, -p.y*psy+py, r1, r2, angleStart, angleEnd, s.texID, u1, u2, int_vars[1]);
         draw_set_color(c_white);
         return;

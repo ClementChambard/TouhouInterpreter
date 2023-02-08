@@ -3,7 +3,7 @@
 BulletManager::BulletManager() {
     BulletList_t* pred = &freelist_head;
     BulletList_t* current = nullptr;
-    for (int i = 0; i < max_bullet; i++)
+    for (size_t i = 0; i < max_bullet; i++)
     {
         current = &bullets[i].freelist_node;
         current->value = &bullets[i];
@@ -186,6 +186,7 @@ void BulletManager::Shoot(EnemyBulletShooter_t *bh)
             {
                 case AIM_AT:
                     a += AngToPlayer;
+                    [[fallthrough]];
                 case AIM_ST:
                     a += bh->ang_aim+jj*bh->ang_bullet_dist;
                     break;
@@ -195,10 +196,13 @@ void BulletManager::Shoot(EnemyBulletShooter_t *bh)
                     break;
                 case AIM_ST_RING2:
                     a -= AngToPlayer;
+                    [[fallthrough]];
                 case AIM_AWAY_RING:
                     a += aRing/2;
+                    [[fallthrough]];
                 case AIM_AT_RING:
                     a += AngToPlayer;
+                    [[fallthrough]];
                 case AIM_ST_RING:
                 case AIM_RAND_RING:
                     a += (j*aRing)+bh->ang_aim+(i*bh->ang_bullet_dist);

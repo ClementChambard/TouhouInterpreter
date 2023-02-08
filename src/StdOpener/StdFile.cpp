@@ -11,11 +11,8 @@ namespace StdOpener {
 
     StdFile::StdFile(std::string const& filename)
     {
-        sprBatch = new NSEngine::SpriteBatch();
-        baseShader = new NSEngine::AnimShader();
         thstd_t* std = std_read_file(filename);
 
-        int i = 0;
         for (auto e : std->entries)
         {
             entries.push_back({});
@@ -48,7 +45,7 @@ namespace StdOpener {
         uint32_t offset = 0;
         for (auto i : std->instrs)
         {
-            script.push_back({i->time, i->type, offset});
+            script.push_back({i->time, i->type, offset, {}});
             offset += 8;
             if (i->size > sizeof(*i))
             {
@@ -63,7 +60,6 @@ namespace StdOpener {
         }
 
         anm_file_name = std->header_10->anm_name;
-
         std_free(std);
     }
 
@@ -128,8 +124,8 @@ namespace StdOpener {
     void StdFile::Draw()
     {
         if (bgVms.size() == 0) return;
-        baseShader->start();
-        baseShader->SetCameraPosition(theCam->getPosition());
+        baseShader.start();
+        baseShader.SetCameraPosition(theCam->getPosition());
         glActiveTexture(GL_TEXTURE0);
         NSEngine::toggleCulling(false);
         glEnable(GL_BLEND);
@@ -138,7 +134,7 @@ namespace StdOpener {
         glm::vec4 col = theCam->getFog(mi,ma);
         col.w = 1.0f;
         if (Inputs::Keyboard().Down(NSK_f5)) mi=1000000.f, ma=1000000.f;
-        sprBatch->begin();
+        sprBatch.begin();
 
         int l = bgVms[0]->getLayer();
         int m = bgVms[0]->getMode();
@@ -147,43 +143,43 @@ namespace StdOpener {
             if (!vm) continue;
             if (vm->getLayer() != l || vm->getMode() != m || vm->getZdis() != z)
             {
-                sprBatch->end();
+                sprBatch.end();
                 if (m < 4) {
-                    baseShader->SetProjectionMatrix(glm::mat4(1.f));
-                    baseShader->SetViewMatrix(theCam->getCamStatic());
+                    baseShader.SetProjectionMatrix(glm::mat4(1.f));
+                    baseShader.SetViewMatrix(theCam->getCamStatic());
                 } else {
-                    baseShader->SetProjectionMatrix(theCam->getProjection(false, false));
-                    baseShader->SetViewMatrix(theCam->getView(false, false));
+                    baseShader.SetProjectionMatrix(theCam->getProjection(false));
+                    baseShader.SetViewMatrix(theCam->getView(false));
                 }
                 if (z || m < 4) glDisable(GL_DEPTH_TEST);
                 else glEnable(GL_DEPTH_TEST);
-                baseShader->SetFog(m<4?1000000.f:mi, m<4?1000000.f:ma, col);
-                sprBatch->renderBatch();
-                sprBatch->begin();
+                baseShader.SetFog(m<4?1000000.f:mi, m<4?1000000.f:ma, col);
+                sprBatch.renderBatch();
+                sprBatch.begin();
                 l = vm->getLayer();
                 m = vm->getMode();
                 z = vm->getZdis();
             }
-            vm->draw(sprBatch);
-
+            vm->draw(&sprBatch);
         }
 
-        sprBatch->end();
+        sprBatch.end();
         if (z) glDisable(GL_DEPTH_TEST);
         else glEnable(GL_DEPTH_TEST);
         if (m < 4) {
-            baseShader->SetProjectionMatrix(glm::mat4(1.f));
-            baseShader->SetViewMatrix(theCam->getCamStatic());
+            baseShader.SetProjectionMatrix(glm::mat4(1.f));
+            baseShader.SetViewMatrix(theCam->getCamStatic());
         } else {
-            baseShader->SetProjectionMatrix(theCam->getProjection(false, false));
-            baseShader->SetViewMatrix(theCam->getView(false, false));
+            baseShader.SetProjectionMatrix(theCam->getProjection(false));
+            baseShader.SetViewMatrix(theCam->getView(false));
         }
-        baseShader->SetFog(m<4?1000000.f:mi, m<4?1000000.f:ma, col);
-        sprBatch->renderBatch();
+        baseShader.SetFog(m<4?1000000.f:mi, m<4?1000000.f:ma, col);
+
+        sprBatch.renderBatch();
 
         glDisable(GL_DEPTH_TEST);
         NSEngine::toggleCulling(true);
-        baseShader->stop();
+        baseShader.stop();
         NSEngine::TextureManager::ResetTexture();
         glDisable(GL_BLEND);
     }
@@ -220,7 +216,7 @@ namespace StdOpener {
         }
         vec.resize(vec.size()-nullptrcnt);
         i = 0;
-        size_t ret = -1;
+        size_t ret = (size_t)-1;
         T toInsert = val;
         while (i < vec.size()) {
             if (toInsert != val || predicate(val, vec[i]))
@@ -232,7 +228,7 @@ namespace StdOpener {
             }
             i++;
         }
-        if (ret == -1) ret = vec.size();
+        if (ret == (size_t)-1) ret = vec.size();
         vec.push_back(toInsert);
         return ret;
     }
@@ -254,7 +250,7 @@ namespace StdOpener {
                 return;
             case 1: // jmp
                 for (uint32_t j = 0; j < script.size(); j++)
-                    if (script[j].offset == S(0)) instr = j;
+                    if (script[j].offset == (uint32_t)S(0)) instr = j;
                 time = S(1);
                 return;
             case 2: // pos
@@ -303,8 +299,8 @@ namespace StdOpener {
                 AnmVM* vm = AnmManagerN::SpawnVMExt(30, S(1));
                 vm->update();
                 vm->setLayer(S(2));
-                std::cout << bgVms.size() << " ";
-                auto predicate = [](AnmVM* const & a, AnmVM* const & b){ return a->getLayer() <= b->getLayer(); };
+                std::cout << "bgVms size : " << bgVms.size() << "  anmSlots[" << S(0) << "] : ";
+                static const auto predicate = [](AnmVM* const & a, AnmVM* const & b){ return a->getLayer() <= b->getLayer(); };
                 anmSlots[S(0)] = insertRemoveNullptr(vm, bgVms, predicate);
                 std::cout << anmSlots[S(0)] << "\n";
                 return; }

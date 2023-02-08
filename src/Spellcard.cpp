@@ -50,7 +50,7 @@ void Spellcard::Stop()
 
 #include "Hardcoded.h"
 
-void Spellcard::Init(int id, int time, int mode, std::string name, int bossId)
+void Spellcard::Init(int /*id*/, int time, int /*mode*/, std::string /*name*/, int bossId)
 {
     std::cout << "Spell card " << "  -> " << time << "\n";
     this->bossId = bossId;

@@ -134,6 +134,7 @@ int LaserInfinite::on_tick()
         __timer_18 = 0;
         __field_10__set_to_3_by_ex_delete = 2;
         laser_st_width = inner.laser_new_arg4;
+        [[fallthrough]];
     case 2:
         if (__timer_18 >= inner.laser_duration) {
             __timer_18 = 0;
@@ -152,12 +153,12 @@ int LaserInfinite::on_tick()
     }
 
     if (((__field_10__set_to_3_by_ex_delete == 4) || (__field_10__set_to_3_by_ex_delete == 2)) && (16.0 < laser_inf_current_length)) {
-        float col_w = laser_st_width;
-        if (32.0 <= laser_st_width) {
-            col_w -= (laser_st_width + 16.0) / 3.0;
-        } else {
-            col_w = laser_st_width * 0.5;
-        }
+        //float col_w = laser_st_width;
+        //if (32.0 <= laser_st_width) {
+            //col_w -= (laser_st_width + 16.0) / 3.0;
+        //} else {
+            //col_w = laser_st_width * 0.5;
+        //}
         int collide = 0; // = enemy_collide_player_rectangle(puVar11, laser_offset, angle, 0, col_w, laser_inf_current_length * 0.9);
         if (collide == 1) {
             cancel_as_bomb_rectangle({Globals::get()->playerX, Globals::get()->playerY, 0}, {32, 32, 0}, 0, 0, 1);
@@ -200,7 +201,7 @@ int LaserInfinite::on_draw()
     return 0;
 }
 
-int LaserInfinite::cancel(int param_2, int as_bomb)
+int LaserInfinite::cancel(int , int as_bomb)
 {
   if (as_bomb && ex_invuln__remaining_frames != 0) return 0;
 
@@ -252,7 +253,7 @@ int LaserInfinite::cancel(int param_2, int as_bomb)
     return i;
 }
 
-int LaserInfinite::cancel_as_bomb_rectangle(glm::vec3 p1, glm::vec3 p2, float rot, int item, int as_bomb)
+int LaserInfinite::cancel_as_bomb_rectangle(glm::vec3 p1, glm::vec3 p2, float rot, int /*item*/, int as_bomb)
 {
     char canceled_node[260] = {};
 
@@ -339,7 +340,7 @@ int LaserInfinite::cancel_as_bomb_rectangle(glm::vec3 p1, glm::vec3 p2, float ro
                         inner_.spd_1 = 8.f;
                         inner_.bullet_type = inner.type;
                         inner_.bullet_color = inner.color;
-                        inner_.flags = inner_.flags ^ ((uint)inner.flags >> 1 ^ inner_.flags) & 1;
+                        inner_.flags = (inner_.flags ^ ((uint)inner.flags >> 1 ^ inner_.flags)) & 1;
                         allocate_new_laser(0, &inner_);
                     } else {
                         j++;

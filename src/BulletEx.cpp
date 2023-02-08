@@ -233,7 +233,7 @@ int Bullet::on_tick()
       }
       if ((active_ex_flags & 0x04000000) != 0) {
         if (ex_delay.timer < 1) {
-          active_ex_flags = active_ex_flags &= 0xfbffffff;
+          active_ex_flags &= 0xfbffffff;
           flags &= 0xfffffdff;
           ended_ex += 1;
         }
@@ -429,6 +429,7 @@ float ang = et_ex->r;
       case 2:
         ang += get_angle_to_player(pos);
         math::angle_normalize(ang);
+        [[fallthrough]];
       case 0:
       case 1:
       case 4:
@@ -739,7 +740,7 @@ float ang = et_ex->r;
             for (int i = 0; i < 20; i++) inner.ex[i] = this->et_ex[i];
             inner.spd_1 = 8.0;
             inner.start_pos = pos;
-            inner.flags = et_ex->d & 0xfd | 2;
+            inner.flags = (et_ex->d & 0xfd) | 2;
             inner.type = et_ex->b;
             inner.color = et_ex->c;
             inner.et_ex_index = et_ex->d >> 8 & 0xff;

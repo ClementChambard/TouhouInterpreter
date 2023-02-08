@@ -10,14 +10,14 @@
     bool __noprint = false; \
     if ((instr->rank_mask&63&cont->difficultyMask)) { \
         switch (instr->id) { \
-        case 0: { std::string __name = "nop"; int __id = 0;
+        case 0: { std::string __name = "nop"; [[maybe_unused]]int __id = 0;
 
 #define _ins(id, name) \
                 if (__doprint) std::cout << ")\n";         \
                 break; \
             } \
             case id: { \
-                int __id = id; \
+                [[maybe_unused]]int __id = id;           \
                 std::string __name = #name; \
                 if (__doprint) { \
                     std::cout << "\e[90m" << fileManager->getSubName(cont->currentLocation.sub_id) << ":  \e[0m"; \

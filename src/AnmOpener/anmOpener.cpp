@@ -196,13 +196,11 @@ namespace AnmOpener {
             archive->entries.push_back(entry);
             entry->header = header;
 
-            assert(
-                ( header->version == 8 ) &&
-                ( header->lowresscale == 0 || header->lowresscale == 1 ) &&
-                ( header->hasdata == 0 || header->hasdata == 1 ) &&
-                //( header->rt_textureslot == 0 ) &&
-                ( header->zero1 == 0 )
-            );
+            assert( header->version == 8 );
+            assert( header->lowresscale == 0 || header->lowresscale == 1 );
+            assert( header->hasdata == 0 || header->hasdata == 1 );
+            //assert( header->rt_textureslot == 0 );
+            assert( header->zero1 == 0 );
 
             entry->name = anm_get_name(archive, (const char*)map + header->nameoffset);
             entry->name2 = nullptr;
@@ -230,7 +228,7 @@ namespace AnmOpener {
                     script->offset = &(script_offsets[s]);
 
                     unsigned char* limit = map;
-                    if (s < header->scripts -1)
+                    if (s < (uint32_t)(header->scripts - 1))
                         limit += script_offsets[s + 1].offset;
                     else if (header->thtxoffset)
                         limit += header->thtxoffset;
@@ -339,7 +337,7 @@ namespace AnmOpener {
         };
 
         format_t format = (format_t) entry->thtx->format;
-        int pixels = entry->thtx->w*entry->thtx->h;
+        unsigned int pixels = (unsigned int)entry->thtx->w*entry->thtx->h;
         unsigned char* data = entry->thtx->data;
         std::vector<pixel_t> pixelvec(pixels);
 
@@ -350,7 +348,7 @@ namespace AnmOpener {
             for (unsigned int i = 0; i < pixels; i++)
                 pixelvec[i] = { data[i*4+2], data[i*4+1], data[i*4+0], data[i*4+3] };
         } else if (format == FORMAT_ARGB4444) {
-            for (unsigned i = 0; i < pixels; i++) {
+            for (unsigned int i = 0; i < pixels; i++) {
                 /* Extends like this: 0x0 -> 0x00, 0x3 -> 0x33, 0xf -> 0xff.
                 * It's required for proper alpha. */
                 uint32_t out = ((data[i * sizeof(uint16_t) + 1] & 0xf0) << 24 & 0xf0000000)
@@ -445,14 +443,14 @@ namespace AnmOpener {
                 unsigned char a = img->data[(i*img->width+j)*4+3];
                 unsigned char gray = 0.299 * r + 0.587 * g + 0.114 * b;
                 gray *= a;
-                if (gray >=   0 && gray <   32) std::cout << ' ';
+                if (               gray <   32) std::cout << ' ';
                 if (gray >=  32 && gray <   64) std::cout << '.';
                 if (gray >=  64 && gray <   96) std::cout << ',';
                 if (gray >=  96 && gray <  128) std::cout << "°";
                 if (gray >= 128 && gray <  160) std::cout << '+';
                 if (gray >= 160 && gray <  192) std::cout << '*';
                 if (gray >= 192 && gray <  224) std::cout << 'X';
-                if (gray >= 224 && gray <= 255) std::cout << '#';
+                if (gray >= 224               ) std::cout << '#';
             }
             std::cout << '\n';
         }
@@ -462,7 +460,7 @@ namespace AnmOpener {
 #define FIND_FORMAT_ERROR "FORMAT-NULL-ERROR"
 const std::string find_format(const std::vector<std::pair<uint32_t, std::string>>& fmts, uint32_t id)
 {
-    for (int i = 0; i < fmts.size(); i++) {
+    for (size_t i = 0; i < fmts.size(); i++) {
         if (fmts[i].first == id)
             return fmts[i].second;
     }
@@ -477,25 +475,25 @@ void anm_entry_descriptor(anm_entry_t* entry, unsigned int& entry_num)
 
     std::cout << "Name: "           << entry->name                   << "\n";
     if (entry->name2)
-    std::cout << "Name2: "          << entry->name2                  << "\n";
+        std::cout << "Name2: "          << entry->name2                  << "\n";
     std::cout << "Format: "         << entry->header->format         << "\n";
     std::cout << "Width: "          << entry->header->w              << "\n";
     std::cout << "Height: "         << entry->header->h              << "\n";
     if (entry->header->x != 0)
-    std::cout << "X-Offset: "       << entry->header->x              << "\n";
+        std::cout << "X-Offset: "       << entry->header->x              << "\n";
     if (entry->header->y != 0)
-    std::cout << "Y-Offset: "       << entry->header->y              << "\n";
+        std::cout << "Y-Offset: "       << entry->header->y              << "\n";
     if (entry->header->zero1 != 0)
-    std::cout << "Zero1: "          << entry->header->zero1          << "\n";
+        std::cout << "Zero1: "          << entry->header->zero1          << "\n";
     std::cout << "MemoryPriority: " << entry->header->memorypriority << "\n";
     std::cout << "LowResScale: "    << entry->header->lowresscale    << "\n";
     if (entry->header->hasdata) {
-    std::cout << "HasData: "        << entry->header->hasdata        << "\n";
-    std::cout << "THTX-Size: "      << entry->thtx->size             << "\n";
-    std::cout << "THTX-Format: "    << entry->thtx->format           << "\n";
-    std::cout << "THTX-Width: "     << entry->thtx->w                << "\n";
-    std::cout << "THTX-Height: "    << entry->thtx->h                << "\n";
-    std::cout << "THTX-Zero: "      << entry->thtx->zero             << "\n";
+        std::cout << "HasData: "        << entry->header->hasdata        << "\n";
+        std::cout << "THTX-Size: "      << entry->thtx->size             << "\n";
+        std::cout << "THTX-Format: "    << entry->thtx->format           << "\n";
+        std::cout << "THTX-Width: "     << entry->thtx->w                << "\n";
+        std::cout << "THTX-Height: "    << entry->thtx->h                << "\n";
+        std::cout << "THTX-Zero: "      << entry->thtx->zero             << "\n";
     }
 }
 
@@ -516,7 +514,7 @@ std::vector<anm_instr_arg_t> anm_instr_get_args(anm_instr_t* instr)
     if (instr->length > sizeof(anm_instr_t))
         for (size_t i = 0; i < (instr->length - sizeof(anm_instr_t)); i += 4)
         {
-            anm_instr_arg_t arg = {0, format[i/4]};
+            anm_instr_arg_t arg = {{0}, format[i/4]};
             arg.val.S = *(int32_t*)(instr->data+i);
             args.push_back(arg);
         }
@@ -553,11 +551,14 @@ void anm_dump(const anm_archive_t* anm)
 
     for (auto entry : anm->entries) {
 
-        anm_entry_descriptor(entry, entry_num);                              std::cout << "\n";
+        anm_entry_descriptor(entry, entry_num);
+        std::cout << "\n";
 
-        for (auto sprite : entry->sprites) anm_sprite_descriptor(sprite);    std::cout << "\n";
+        for (auto sprite : entry->sprites) anm_sprite_descriptor(sprite);
+        std::cout << "\n";
 
-        for (auto script : entry->scripts) anm_script_descriptor(script);    std::cout << "\n";
+        for (auto script : entry->scripts) anm_script_descriptor(script);
+        std::cout << "\n";
 
     }
 }

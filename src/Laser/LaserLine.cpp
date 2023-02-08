@@ -364,7 +364,7 @@ void LaserLine::run_ex()
             et_ex_index++;
         }
 
-        if (inner.et_ex[et_ex_index].type == 0x80000000) {
+        if (inner.et_ex[et_ex_index].type == (int32_t)0x80000000) {
             flags |= 0x80000000;
             ex_wait.timer = inner.et_ex[et_ex_index].a;
         }
@@ -452,7 +452,6 @@ int LaserLine::method_50_line()
         if ((ex_bounce.for_laser_line & 0x10) == 0) {
             FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
                    laser_offset.y, laser_pos2.x, laser_pos2.y, 256.0, 448.0, -256.0, 448.0);
-            LASER_MANAGER_PTR = LASER_MANAGER_PTR;
             inner.start_pos.z = 0.0;
             inner.ang_aim = -angle;
             inner.spd_1 = ex_bounce.bounce_speed;
@@ -492,9 +491,9 @@ int LaserLine::method_50_line()
     return 1;
 }
 
-int LaserLine::cancel_as_bomb_rectangle(glm::vec3 c,glm::vec3 s,float rot,int,int as_bomb) { return 0; }
+int LaserLine::cancel_as_bomb_rectangle(glm::vec3 ,glm::vec3 ,float,int,int) { return 0; }
 int LaserLine::cancel_as_bomb_circle(int,int,int,int) { return 0; }
-int LaserLine::cancel(int param_2, int as_bomb) {
+int LaserLine::cancel(int , int as_bomb) {
   //undefined4 extraout_ECX;
   //undefined4 in_stack_ffffffa0;
 

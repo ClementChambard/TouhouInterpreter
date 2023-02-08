@@ -172,7 +172,7 @@ AnmVM::~AnmVM()
 
 AnmSprite AnmVM::getSprite() const { return AnmManagerN::loadedFiles[anim_slot].getSprite(sprite_id); }
 
-int AnmVM::update(bool printInstr)
+int AnmVM::update(bool /*printInstr*/)
 {
     /* VM IS NOT RUNNING */
     if (bitflags.activeFlags != ANMVM_ACTIVE && time != -1) return 1;
@@ -233,26 +233,34 @@ int AnmVM::update(bool printInstr)
     if (time < -9999) return 0;
 
     /* RUN INSTRUCTIONS */
-    uint32_t oldinstr = current_instr;
-    uint16_t instype, inslength;
+    int32_t oldinstr = current_instr;
+    uint16_t inslength;
     int16_t instime;
-    #define getIns if (instructions[current_instr] == -1) return 1; \
-        instype = *reinterpret_cast<uint16_t*>(&(instructions[current_instr])); \
-        inslength = *reinterpret_cast<uint16_t*>(&(instructions[current_instr+2])); \
+    if (instructions[current_instr] == -1) return 1;
+    else {
+        inslength = *reinterpret_cast<uint16_t*>(&(instructions[current_instr+2]));
         instime = *reinterpret_cast<int16_t*>(&(instructions[current_instr+4]));
-    getIns;
+    }
     while(instime <= time && (bitflags.activeFlags == ANMVM_ACTIVE || time == -1))
     {
         exec_instruction(&(instructions[current_instr]));
 
         if (oldinstr != current_instr)
         {
-            getIns;
+            if (instructions[current_instr] == -1) return 1;
+            else {
+                inslength = *reinterpret_cast<uint16_t*>(&(instructions[current_instr+2]));
+                instime = *reinterpret_cast<int16_t*>(&(instructions[current_instr+4]));
+            }
             if(instime <= time) exec_instruction(&(instructions[current_instr]));
         }
         current_instr+=inslength;
         oldinstr = current_instr;
-        getIns;
+        if (instructions[current_instr] == -1) return 1;
+        else {
+            inslength = *reinterpret_cast<uint16_t*>(&(instructions[current_instr+2]));
+            instime = *reinterpret_cast<int16_t*>(&(instructions[current_instr+4]));
+        }
     }
     time++;
 
@@ -272,7 +280,7 @@ void AnmVM::destroy()
         delete childrens; childrens = nullptr;
     }
 
-    on_set_sprite = [](AnmVM* me, int spr){ return spr; };
+    on_set_sprite = [](AnmVM*, int spr){ return spr; };
     case_return_time = -99;
     return_instr = 0;
     layer = 0;

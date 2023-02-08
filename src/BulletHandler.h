@@ -24,7 +24,7 @@ struct EnemyBulletShooter_t {
     glm::vec3 __vec3_8 = {};
     float ang_aim = 0.f;
     float ang_bullet_dist = 0.f;
-    float spd1 = 0.f;
+    float spd1 = 2.f;
     float spd2 = 0.f;
     float distance = 0.f;
     EtEx_t ex[20] = {};
@@ -37,12 +37,12 @@ struct EnemyBulletShooter_t {
     int32_t __laser_timing_duration = 0;
     int32_t __laser_timing_trans2 = 0;
     int32_t __laser_timing_end = 0;
-    int16_t cnt_count = 0;
-    int16_t cnt_layers = 0;
+    int16_t cnt_count = 1;
+    int16_t cnt_layers = 1;
     int32_t aim_type = 0;
-    uint32_t sfx_flag = 0;
-    uint32_t shot_sfx = 0;
-    uint32_t __shot_transform_sfx = 0;
+    uint32_t sfx_flag = 0x23;
+    uint32_t shot_sfx = 0x15;
+    uint32_t __shot_transform_sfx = 0x26;
     uint32_t __start_transform = 0;
     uint32_t __field_37c = 0;
 };

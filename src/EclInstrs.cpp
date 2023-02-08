@@ -7,6 +7,7 @@
 #include "GlobalData.h"
 #include "Laser/LaserManager.h"
 #include "AnmOpener/AnmManagerN.h"
+#include "Hardcoded.h"
 #include <math/Random.h>
 
 #define PRINT false

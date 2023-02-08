@@ -65,14 +65,14 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
     _ins(541,        noHbDur) _S(t)                                    _args enemy.noHbFrame = t;
     _ins(542,   spellTimeout)                                          _args Spellcard::GetInstance()->SetTimeout();
     _ins(543,     unknown543)                                          _args _alert; // call th17.exe::FUN_41dff0
-    _ins(544,     unknown544) _S(a)                                    _args enemy.flags = enemy.flags ^ (enemy.flags ^ (a << 0x1b)) & 0x8000000; _alert;
+    _ins(544,     unknown544) _S(a)                                    _args enemy.flags = (enemy.flags ^ (enemy.flags ^ (a << 0x1b))) & 0x8000000; _alert;
     _ins(545,    laserCancel)                                          _args LASER_MANAGER_PTR->cancel_all(0);
     _ins(546,     bombShield) _S(set) _S(scr)                          _args
         enemy.bombShieldOnAnmMain = scr; enemy.bombShieldOffAnmMain = enemy.anm0scr;
-        enemy.flags &= 0xffffffffdffffffe; enemy.flags = enemy.flags ^ (enemy.flags ^ (set << 0x1c)) & 0x10000000;
+        enemy.flags &= 0xffffffffdffffffe; enemy.flags = (enemy.flags ^ (enemy.flags ^ (set << 0x1c))) & 0x10000000;
     _ins(547,      gameSpeed) _f(s)                                    _args _alert;
     _ins(548,       diffWait) _S(e) _S(n) _S(h) _S(l)                  _args context.currentContext->time -= Diff(e, n, h, l);
-    _ins(549,     unknown549) _S(a)                                    _args enemy.flags = 0x80000000 | enemy.flags & 0xffffffff7fffffff; _alert;
+    _ins(549,     unknown549) _S(a)                                    _args enemy.flags = 0x80000000 | (enemy.flags & 0xffffffff7fffffff); _alert;
     _ins(550,     unknown550) _S(a)                                    _args enemy.ecl550 = a; _alert;
     _ins(551,     unknown551) _S(a)                                    _args _notImpl;
     _ins(552,         zIndex) _S(l)                                    _args enemy.anmLayers = l;

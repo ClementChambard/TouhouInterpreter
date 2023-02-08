@@ -83,7 +83,7 @@ class AnmVM {
         uint32_t getID() const { return id.val; }
         AnmSprite getSprite() const;
 
-        std::function<int(AnmVM*, int)> on_set_sprite = [](AnmVM* me, int spr){ return spr; };
+        std::function<int(AnmVM*, int)> on_set_sprite = [](AnmVM*, int spr){ return spr; };
         static int cnt;
 
         int32_t case_return_time = -99;

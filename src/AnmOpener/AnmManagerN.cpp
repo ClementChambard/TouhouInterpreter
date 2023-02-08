@@ -1,5 +1,6 @@
 #include "AnmBitflags.h"
 #include "AnmManagerN.h"
+#include <TextureManager.h>
 #include <DrawFuncs.h>
 #include <NSlist.h>
 
@@ -210,7 +211,7 @@ AnmFile* AnmManagerN::LoadFile(size_t slot, std::string filename)
     return &loadedFiles[slot];
 }
 
-void AnmManagerN::update(bool printInstr)
+void AnmManagerN::update(bool /*printInstr*/)
 {
     on_tick_ui();
     on_tick_world();

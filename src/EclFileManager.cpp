@@ -44,7 +44,7 @@ void EclFileManager::LoadEcli(std::string file)
         loaded_subs.push_back(sp);
     for (auto ecli : ecl->ecli_list)
         LoadEcli(ecli);
-    for (int i = 0; i < ecl->anim_list.size(); i++)
+    for (size_t i = 0; i < ecl->anim_list.size(); i++)
         AnmManagerN::LoadFile(i+2, ecl->anim_list[i]);
 }
 

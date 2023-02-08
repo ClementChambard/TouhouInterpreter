@@ -5,6 +5,7 @@
 #include "../EnemyManager.h"
 #include "../Spellcard.h"
 #include "../AnmOpener/AnmManagerN.h"
+#include "../Hardcoded.h"
 #include <math/Random.h>
 #define PRINT false
 void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
@@ -62,7 +63,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
         if (scr < 0) enemy.anmIds[slot].val = 0;
         else {
             int id = AnmManagerN::SpawnVM(enemy.selectedAnmID, scr);
-            if (auto vm = AnmManagerN::getVM(id)) {} // set invisible if intangible enemy, set finalSpriteSize and anmslot0... if slot = 0
+            if (AnmManagerN::getVM(id)) {} // set invisible if intangible enemy, set finalSpriteSize and anmslot0... if slot = 0
             else id = 0;
             enemy.anmIds[slot].val = id;
         }
@@ -72,7 +73,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
         if (scr < 0) enemy.anmIds[slot].val = 0;
         else {
             int id = AnmManagerN::SpawnVM(enemy.selectedAnmID, scr);
-            if (auto vm = AnmManagerN::getVM(id)) {} // set invisible if intangible enemy, set finalSpriteSize and anmslot0... if slot = 0
+            if (AnmManagerN::getVM(id)) {} // set invisible if intangible enemy, set finalSpriteSize and anmslot0... if slot = 0
             else id = 0;
             enemy.anmIds[slot].val = id;
         }
@@ -94,7 +95,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
     _ins(313, anmSelPlay) _S(slot) _args
         AnmManagerN::deleteVM(enemy.anmIds[slot].val);
         int id = AnmManagerN::SpawnVM(enemy.selectedAnmID, enemy.anmSetMain + 5);
-        if (auto vm = AnmManagerN::getVM(id)) {} // set invisible if intangible enemy, set finalSpriteSize and anmslot0... if slot = 0
+        if (AnmManagerN::getVM(id)) {} // set invisible if intangible enemy, set finalSpriteSize and anmslot0... if slot = 0
         else id = 0;
         enemy.anmIds[slot].val = id;
 
@@ -111,7 +112,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
         if (scr < 0) enemy.anmIds[slot].val = 0;
         else {
             int id = AnmManagerN::SpawnVM(enemy.selectedAnmID, scr + enemy.anmSetMain + 5);
-            if (auto vm = AnmManagerN::getVM(id)) {} // set invisible if intangible enemy, set finalSpriteSize and anmslot0... if slot = 0
+            if (AnmManagerN::getVM(id)) {} // set invisible if intangible enemy, set finalSpriteSize and anmslot0... if slot = 0
             else id = 0;
             enemy.anmIds[slot].val = id;
         }
@@ -192,9 +193,13 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
         auto vm = AnmManagerN::getVM(enemy.anmIds[slot].val);
         if (vm) vm->setLayer(layer);
 
-    _ins(337, anmBM) _S(slot) _S(bm) _args
-        auto vm = AnmManagerN::getVM(enemy.anmIds[slot].val);
-        if (vm) vm->bitflags.blendmode = bm;
+    _ins(337, anmBM_16_anmPlayPos)
+        if (TOUHOU_VERSION < 16) { _S(anm) _S(scr) _f(x) _f(y) _f(z) _args
+            AnmManagerN::getVM(AnmManagerN::SpawnVM(anm, scr))->setPos2(x, y, z);
+        } else { _S(slot) _S(bm)  _args
+            auto vm = AnmManagerN::getVM(enemy.anmIds[slot].val);
+            if (vm) vm->bitflags.blendmode = bm;
+        }
 
     _ins(338, anmPlayPos) _S(anm) _S(scr) _f(x) _f(y) _f(z) _args
         AnmManagerN::getVM(AnmManagerN::SpawnVM(anm, scr))->setPos2(x, y, z);

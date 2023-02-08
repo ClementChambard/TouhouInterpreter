@@ -1,3 +1,5 @@
+#define USE_APP
+#ifndef USE_APP
 #include "EclFileManager.h"
 #include "EnemyManager.h"
 #include "BulletManager.h"
@@ -10,13 +12,17 @@
 #include "Spellcard.h"
 #include "Laser/LaserManager.h"
 #include "Hardcoded.h"
-
 #include "profiler.h"
+#else
+#include "App.hpp"
+#endif
 
 int main (int argc, char** argv)
 {
     if (argc == 1) return 1;
-
+#ifdef USE_APP
+    App(argc, argv).run();
+#else
     int windowFlags = 0;
     int windowWidth = 384*2;
     int windowHeight = 448*2;
@@ -64,6 +70,7 @@ int main (int argc, char** argv)
         NSEngine::StartFrame();
 
          NSEngine::StartUpdate();
+
           if (Inputs::Keyboard().Pressed(NSK_f10)) window.nextDisplaymode();
           if (NSEngine::IsFBF() && !Inputs::Keyboard().Pressed(NSK_backspace) && !Inputs::Keyboard().Down(NSK_equals)) continue;
           Globals::get()->playerX = Inputs::Mouse().pos.x/2;
@@ -102,9 +109,8 @@ int main (int argc, char** argv)
          if (EclFileManager::GetInstance()->stdf) EclFileManager::GetInstance()->stdf->Draw();
          UPDATE_FUNC_REGISTRY->run_all_on_draw();
          AnmManagerN::draw();
+
          window.EndDrawing();
-
-
         NSEngine::EndFrame();
     }
     EnemyManager::Cleanup();
@@ -114,5 +120,6 @@ int main (int argc, char** argv)
     window.destroy();
     AnmManagerN::Cleanup();
     NSEngine::Quit();
+#endif
     return 0;
 }

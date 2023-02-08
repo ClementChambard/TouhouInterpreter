@@ -84,7 +84,7 @@ void Bullet::_delete()
 }
 
 
-int Bullet::cancel(bool item)
+int Bullet::cancel(bool /*item*/)
 {
   vm.interrupt(1);
   vm.update();
