@@ -6,7 +6,7 @@
 #include "BulletManager.h"
 #include "GlobalData.h"
 #include "Laser/LaserManager.h"
-#include "AnmOpener/AnmManagerN.h"
+#include "AnmOpener/AnmManager.h"
 #include "Hardcoded.h"
 #include <math/Random.h>
 

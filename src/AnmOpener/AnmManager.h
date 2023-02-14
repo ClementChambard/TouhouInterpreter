@@ -1,11 +1,11 @@
-#ifndef ANMMANAGERN_H_
-#define ANMMANAGERN_H_
+#ifndef ANMMANAGER_H_
+#define ANMMANAGER_H_
 
 #include "AnmFile.h"
 #include "AnmVM.h"
 #include <array>
 
-class AnmManagerN {
+class AnmManager {
 
     public:
 
@@ -16,6 +16,7 @@ class AnmManagerN {
         static AnmVM* SpawnVMExt(size_t slot, size_t script);
 
         static AnmVM* getVM(uint32_t id);
+        static AnmVM* getVM(AnmID id) { return getVM(id.val); }
 
         static void deleteVM(uint32_t id);
         static void killAll();
@@ -34,6 +35,8 @@ class AnmManagerN {
         static int getFreeAnm();
 
         static AnmFile* getLoaded(int i) { return &loadedFiles[i]; }
+
+        static void interrupt_tree(AnmID id, int interrupt) { auto vm = getVM(id.val); if (vm) vm->interruptRec(interrupt); }
     private:
 
         //216 unknown bytes + int32 useless_count
@@ -62,4 +65,4 @@ class AnmManagerN {
 
 
 
-#endif // ANMMANAGERN_H_
+#endif // ANMMANAGER_H_

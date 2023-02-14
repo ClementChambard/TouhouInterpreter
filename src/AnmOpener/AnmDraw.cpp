@@ -1,7 +1,8 @@
 #include <glm/gtx/euler_angles.hpp>
 #include "AnmVM.h"
-#include "AnmManagerN.h"
+#include "AnmManager.h"
 #include <NSEngine.h>
+#include <Engine.hpp>
 
 void AnmVM::draw(NSEngine::SpriteBatch* sb)
 {
@@ -35,13 +36,14 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
     NSEngine::Color c1 = color1;
     NSEngine::Color c2 = color2;
 
-    if (!sb) sb = &NSEngine::engineData::layers[layer];
+    if (!sb) sb = NSEngine::getLayer(layer);
     auto p = pos+pos2;
     NSEngine::draw_set_blend(bitflags.blendmode);
     //if (layer == 5) { p += glm::vec3(0,-192,0); }
     if (bitflags.originMode == 0)
     {
-        p += glm::vec3(-NSEngine::engineData::gameWidth/2,-NSEngine::engineData::gameHeight/2,0);
+        auto windata = NSEngine::getInstance()->window().getWindowData();
+        p += glm::vec3(-windata.bwidth/2,-windata.bheight/2,0);
     }
     //if (!(bitflags_hi & ANMVM_BIT_534_8)) { psx *=2; psy *=2; }
     /* MODE 3 : RECTANGLE      MODE 6 : RECTANGLE GRADIENT      MODE 12 : RECTANGLE BORDER*/
@@ -108,7 +110,7 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
     }
 
     /* GET SPRITE DATA */
-    auto s = AnmManagerN::loadedFiles[anim_slot].getSprite(sprite_id);
+    auto s = AnmManager::loadedFiles[anim_slot].getSprite(sprite_id);
     float u1 = (s.u1+uv_scroll_pos.x)*uv_scale.x;
     float u2 = (s.u2+uv_scroll_pos.x)*uv_scale.x;
     float v1 = (s.v1+uv_scroll_pos.y)*uv_scale.y;

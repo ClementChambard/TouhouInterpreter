@@ -1,19 +1,19 @@
 #include "AnmBitflags.h"
-#include "AnmManagerN.h"
+#include "AnmManager.h"
 #include <TextureManager.h>
 #include <DrawFuncs.h>
 #include <NSlist.h>
 
-std::array<AnmFile, 31> AnmManagerN::loadedFiles;
-AnmVMList* AnmManagerN::first = nullptr;
-AnmVMList* AnmManagerN::last = nullptr;
-AnmVMList* AnmManagerN::uiFirst = nullptr;
-AnmVMList* AnmManagerN::uiLast = nullptr;
-AnmFastVM  AnmManagerN::fastArray[8191];
-AnmFastVMList* AnmManagerN::fastFirst = nullptr;
-int32_t AnmManagerN::last_id_discriminator = 0;
+std::array<AnmFile, 31> AnmManager::loadedFiles;
+AnmVMList* AnmManager::first = nullptr;
+AnmVMList* AnmManager::last = nullptr;
+AnmVMList* AnmManager::uiFirst = nullptr;
+AnmVMList* AnmManager::uiLast = nullptr;
+AnmFastVM  AnmManager::fastArray[8191];
+AnmFastVMList* AnmManager::fastFirst = nullptr;
+int32_t AnmManager::last_id_discriminator = 0;
 
-void AnmManagerN::Init()
+void AnmManager::Init()
 {
     first = new AnmVMList();
     uiFirst = new AnmVMList();
@@ -37,7 +37,7 @@ void AnmManagerN::Init()
     }
 }
 
-void AnmManagerN::Cleanup()
+void AnmManager::Cleanup()
 {
     /* DESTROY HEAP VMS IN WORLD LIST */
     auto n = first;
@@ -67,7 +67,7 @@ void AnmManagerN::Cleanup()
         f.Cleanup();
 }
 
-AnmVM* AnmManagerN::SpawnVMExt(size_t slot, size_t script)
+AnmVM* AnmManager::SpawnVMExt(size_t slot, size_t script)
 {
     AnmVM* activeVM = new AnmVM(loadedFiles[slot].getPreloaded(script));
     activeVM->id = AnmID::fastIdMask;
@@ -76,7 +76,7 @@ AnmVM* AnmManagerN::SpawnVMExt(size_t slot, size_t script)
     return activeVM;
 }
 
-uint32_t AnmManagerN::SpawnVM(size_t slot, size_t script, bool ui, bool front)
+uint32_t AnmManager::SpawnVM(size_t slot, size_t script, bool ui, bool front)
 {
     if (loadedFiles[slot].name == "notLoaded") return -1;
 
@@ -112,7 +112,7 @@ uint32_t AnmManagerN::SpawnVM(size_t slot, size_t script, bool ui, bool front)
     return activeVM->id.val;
 }
 
-void AnmManagerN::killAll()
+void AnmManager::killAll()
 {
     /* DESTROY HEAP VMS IN WORLD LIST */
     auto n = first;
@@ -142,7 +142,7 @@ void AnmManagerN::killAll()
         //f.Cleanup();
 }
 
-void AnmManagerN::deleteVM(uint32_t id)
+void AnmManager::deleteVM(uint32_t id)
 {
     if ((id & AnmID::fastIdMask) == AnmID::fastIdMask)
     {
@@ -170,7 +170,7 @@ void AnmManagerN::deleteVM(uint32_t id)
     ListUtil::listInsertAfter(fastFirst, fastArray[id & AnmID::fastIdMask].freelistNode);
 }
 
-bool AnmManagerN::isAlive(uint32_t id)
+bool AnmManager::isAlive(uint32_t id)
 {
     if ((id & AnmID::fastIdMask) == AnmID::fastIdMask)
     {
@@ -186,7 +186,7 @@ bool AnmManagerN::isAlive(uint32_t id)
     return fastArray[id & AnmID::fastIdMask].isAlive;
 }
 
-AnmVM* AnmManagerN::getVM(uint32_t id)
+AnmVM* AnmManager::getVM(uint32_t id)
 {
     if (id == 0) return nullptr;
     if ((id & AnmID::fastIdMask) == AnmID::fastIdMask)
@@ -204,27 +204,27 @@ AnmVM* AnmManagerN::getVM(uint32_t id)
     return nullptr;
 }
 
-AnmFile* AnmManagerN::LoadFile(size_t slot, std::string filename)
+AnmFile* AnmManager::LoadFile(size_t slot, std::string filename)
 {
     if (loadedFiles[slot].name != "notLoaded") { /* do something */ }
     loadedFiles[slot].Open(filename, slot);
     return &loadedFiles[slot];
 }
 
-void AnmManagerN::update(bool /*printInstr*/)
+void AnmManager::update(bool /*printInstr*/)
 {
     on_tick_ui();
     on_tick_world();
 }
 
-int AnmManagerN::getFreeAnm()
+int AnmManager::getFreeAnm()
 {
     int n = 0;
     for (int i = 0; i < 8191; i++) if (!fastArray[i].isAlive) n++;
     return n;
 }
 
-void AnmManagerN::on_tick_world()
+void AnmManager::on_tick_world()
 {
     for (auto node = first->next; node != last; node = node->next)
     {
@@ -245,7 +245,7 @@ void AnmManagerN::on_tick_world()
     }
 }
 
-void AnmManagerN::on_tick_ui()
+void AnmManager::on_tick_ui()
 {
     for (auto node = uiFirst->next; node != uiLast; node = node->next)
     {
@@ -266,7 +266,7 @@ void AnmManagerN::on_tick_ui()
     }
 }
 
-void AnmManagerN::draw()
+void AnmManager::draw()
 {
     for (auto node = first->next; node != last; node = node->next)
         if (node->value) node->value->draw();
@@ -274,7 +274,7 @@ void AnmManagerN::draw()
         if (node->value) node->value->draw();
 }
 
-void AnmManagerN::on_draw(uint32_t layer)
+void AnmManager::on_draw(uint32_t layer)
 {
     for (auto node = first->next; node != last; node = node->next)
         if (node->value && node->value->layer == layer) node->value->draw();
@@ -282,7 +282,7 @@ void AnmManagerN::on_draw(uint32_t layer)
         if (node->value && node->value->layer == layer) node->value->draw();
 }
 
-void AnmManagerN::drawSprite(size_t slot, size_t& spriteID)
+void AnmManager::drawSprite(size_t slot, size_t& spriteID)
 {
     if (spriteID == (size_t)-1) spriteID = 0;
     if (spriteID >= loadedFiles[slot].sprites.size()) spriteID = loadedFiles[slot].sprites.size()-1;
@@ -294,7 +294,7 @@ void AnmManagerN::drawSprite(size_t slot, size_t& spriteID)
     NSEngine::draw_quad_tex_2d(NSEngine::TextureManager::GetTextureID(s.texID), {-s.w/2.f, +s.h/2.f, u1, v1}, {+s.w/2.f, +s.h/2.f, u2, v1}, {+s.w/2.f, -s.h/2.f, u2, v2}, {-s.w/2.f, -s.h/2.f, u1, v2});
 }
 
-void AnmManagerN::drawTexture(size_t slot, size_t& texID)
+void AnmManager::drawTexture(size_t slot, size_t& texID)
 {
     std::map<std::string, uint32_t>& texturesmap = loadedFiles[slot].textures;
     if (texID == (size_t)-1) texID = 0;

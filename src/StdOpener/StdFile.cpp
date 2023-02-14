@@ -3,7 +3,8 @@
 
 #include "stdOpener.h"
 #include <NSEngine.h>
-#include "../AnmOpener/AnmManagerN.h"
+#include <Engine.hpp>
+#include "../AnmOpener/AnmManager.h"
 
 namespace StdOpener {
 
@@ -70,7 +71,7 @@ namespace StdOpener {
 
     void StdFile::Init()
     {
-        AnmManagerN::LoadFile(30, anm_file_name);
+        AnmManager::LoadFile(30, anm_file_name);
         for (auto f : faces) spawnFace(f);
         std::sort(bgVms.begin(), bgVms.end(), [](AnmVM* const& a, AnmVM* const& b) { return a->getLayer() < b->getLayer();});
         theCam = NSEngine::activeCamera3D();
@@ -128,8 +129,11 @@ namespace StdOpener {
         baseShader.SetCameraPosition(theCam->getPosition());
         glActiveTexture(GL_TEXTURE0);
         NSEngine::toggleCulling(false);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        if (NSEngine::getInstance()->flags().flags.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
         float mi=1000000.f, ma=1000000.f;
         glm::vec4 col = theCam->getFog(mi,ma);
         col.w = 1.0f;
@@ -182,6 +186,7 @@ namespace StdOpener {
         baseShader.stop();
         NSEngine::TextureManager::ResetTexture();
         glDisable(GL_BLEND);
+        if (NSEngine::getInstance()->flags().flags.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     void StdFile::spawnFace(StdFile::face const& f)
@@ -192,7 +197,7 @@ namespace StdOpener {
             float x = f.x + q.x;
             float y = f.y + q.y;
             float z = f.z + q.z;
-            bgVms.push_back(AnmManagerN::SpawnVMExt(30, q.script_index));
+            bgVms.push_back(AnmManager::SpawnVMExt(30, q.script_index));
             bgVms.back()->update();
             bgVms.back()->setEntityPos(x, y, z);
             bgVms.back()->setLayer(e.layer);
@@ -296,7 +301,7 @@ namespace StdOpener {
                     bgVms[anmSlots[S(0)]] = nullptr;
                     anmSlots[S(0)] = -1;
                 }
-                AnmVM* vm = AnmManagerN::SpawnVMExt(30, S(1));
+                AnmVM* vm = AnmManager::SpawnVMExt(30, S(1));
                 vm->update();
                 vm->setLayer(S(2));
                 std::cout << "bgVms size : " << bgVms.size() << "  anmSlots[" << S(0) << "] : ";

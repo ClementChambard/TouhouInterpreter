@@ -6,7 +6,7 @@
 #include "PosVel.h"
 #include "Interp.h"
 
-#include "AnmOpener/AnmManagerN.h"
+#include "AnmOpener/AnmManager.h"
 #include <iostream>
 
 class Enemy;

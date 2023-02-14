@@ -27,4 +27,6 @@ class Globals {
         int stage_id = 0;
 };
 
+extern Globals GLOBALS;
+
 #endif // GLOBALDATA_H_

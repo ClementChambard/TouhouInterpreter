@@ -1,7 +1,7 @@
 #include "AnmBitflags.h"
 #include "AnmVM.h"
 #include <math/Random.h>
-#include "AnmManagerN.h"
+#include "AnmManager.h"
 
 void AnmVM::exec_instruction(int8_t* ins)
 {
@@ -19,7 +19,7 @@ void AnmVM::exec_instruction(int8_t* ins)
     #define jump(n, t) {current_instr = n; time = t;}
     #define createChild(id, u, l)     \
                     tempNode = new AnmVMList();     \
-                    tempNode->value = AnmManagerN::getVM(AnmManagerN::SpawnVM(anim_slot, id, u, l));  \
+                    tempNode->value = AnmManager::getVM(AnmManager::SpawnVM(anim_slot, id, u, l));  \
                     tempNode->value->parent = this;                         \
                     tempNode->value->nodeAsChildren = tempNode
     switch (type)
@@ -382,7 +382,7 @@ void AnmVM::exec_instruction(int8_t* ins)
 
         case 500: // scriptNew
             tempNode = new AnmVMList();
-            tempNode->value = AnmManagerN::getVM(AnmManagerN::SpawnVM(anim_slot, S(0), false, false));
+            tempNode->value = AnmManager::getVM(AnmManager::SpawnVM(anim_slot, S(0), false, false));
             tempNode->value->parent = this;
             tempNode->value->nodeAsChildren = tempNode;
             if (!childrens) childrens = tempNode;
@@ -396,7 +396,7 @@ void AnmVM::exec_instruction(int8_t* ins)
             return;
         case 501: // scriptNewUI
             tempNode = new AnmVMList();
-            tempNode->value = AnmManagerN::getVM(AnmManagerN::SpawnVM(anim_slot, S(0), true, false));
+            tempNode->value = AnmManager::getVM(AnmManager::SpawnVM(anim_slot, S(0), true, false));
             tempNode->value->parent = this;
             tempNode->value->nodeAsChildren = tempNode;
             if (!childrens) childrens = tempNode;
@@ -409,7 +409,7 @@ void AnmVM::exec_instruction(int8_t* ins)
             return;
         case 502: // scriptNewFront
             tempNode = new AnmVMList();
-            tempNode->value = AnmManagerN::getVM(AnmManagerN::SpawnVM(anim_slot, S(0), false, true));
+            tempNode->value = AnmManager::getVM(AnmManager::SpawnVM(anim_slot, S(0), false, true));
             tempNode->value->parent = this;
             tempNode->value->nodeAsChildren = tempNode;
             if (!childrens) childrens = tempNode;
@@ -423,7 +423,7 @@ void AnmVM::exec_instruction(int8_t* ins)
             return;
         case 503: // scriptNewFrontUI
             tempNode = new AnmVMList();
-            tempNode->value = AnmManagerN::getVM(AnmManagerN::SpawnVM(anim_slot, S(0), true, true));
+            tempNode->value = AnmManager::getVM(AnmManager::SpawnVM(anim_slot, S(0), true, true));
             tempNode->value->parent = this;
             tempNode->value->nodeAsChildren = tempNode;
             if (!childrens) childrens = tempNode;
@@ -436,7 +436,7 @@ void AnmVM::exec_instruction(int8_t* ins)
             tempNode->value->update();
             return;
         case 504: // scriptNewRoot
-            AnmManagerN::SpawnVM(anim_slot, S(0));
+            AnmManager::SpawnVM(anim_slot, S(0));
             return;
         case 505: // scriptNewPos
             createChild(S(0), false, false);
@@ -452,7 +452,7 @@ void AnmVM::exec_instruction(int8_t* ins)
             return;
         case 506: // scriptNewPosRoot
             tempNode = new AnmVMList();
-            tempNode->value = AnmManagerN::getVM(AnmManagerN::SpawnVM(anim_slot, S(0)));
+            tempNode->value = AnmManager::getVM(AnmManager::SpawnVM(anim_slot, S(0)));
             tempNode->value->pos2 = { f(1), f(2), 0.f };
             delete tempNode;
             return;

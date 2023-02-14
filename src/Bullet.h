@@ -1,7 +1,7 @@
 #ifndef BULLET_H_
 #define BULLET_H_
 
-#include "AnmOpener/AnmManagerN.h"
+#include "AnmOpener/AnmManager.h"
 #include "BulletHandler.h"
 #include <Interpolator.h>
 #include "BulletEx.h"

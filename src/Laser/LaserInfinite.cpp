@@ -21,7 +21,7 @@ int LaserInfinite::initialize(void* arg)
 
     vm1.destroy();
     // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, BULLET_TYPE_TABLE[bullet_type]["script"].asInt());
-    vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[bullet_type]["script"].asInt()));
+    vm1(AnmManager::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[bullet_type]["script"].asInt()));
     vm1.on_set_sprite = [](AnmVM* vm, int spr) {
         auto b = (Laser*)vm->getEntity();
         if (BULLET_TYPE_TABLE[b->bullet_type]["colors"][0]["main_sprite_id"].asInt() < 0)
@@ -44,7 +44,7 @@ int LaserInfinite::initialize(void* arg)
     vm1.layer = 14;
 
     // anm_init_copy_vm_from_loaded(LASER_MANAGER_PTR->bullet_anm, vm2, inner.__bmgr_004__color + LASER_DATA["spawn_anm_first"].asInt());
-    vm2(AnmManagerN::getLoaded(7)->getPreloaded(inner.color + LASER_DATA["spawn_anm_first"].asInt()));
+    vm2(AnmManager::getLoaded(7)->getPreloaded(inner.color + LASER_DATA["spawn_anm_first"].asInt()));
     vm2.parent = nullptr;
     // vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();
@@ -215,7 +215,7 @@ int LaserInfinite::cancel(int , int as_bomb)
                 //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
                 //vm = AnmManager::allocate_vm();
                 //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.color * 2 + 0xd1);
-                auto vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.color * 2 + 0xd1));
+                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0xd1));
                 vm->bitflags.randomMode=1;
                 vm->entity_pos = p;
                 vm->update();
@@ -225,7 +225,7 @@ int LaserInfinite::cancel(int , int as_bomb)
                 //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
                 //vm = AnmManager::allocate_vm();
                 //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.color * 2 + 0x101);
-                auto vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.color * 2 + 0x101));
+                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0x101));
                 vm->bitflags.randomMode=1;
                 vm->entity_pos = p;
                 vm->update();
@@ -235,7 +235,7 @@ int LaserInfinite::cancel(int , int as_bomb)
                 //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
                 //vm = AnmManager::allocate_vm();
                 //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.color * 2 + 0x119);
-                auto vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.color * 2 + 0x119));
+                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0x119));
                 vm->bitflags.randomMode=1;
                 vm->entity_pos = p;
                 vm->update();
@@ -280,7 +280,7 @@ int LaserInfinite::cancel_as_bomb_rectangle(glm::vec3 p1, glm::vec3 p2, float ro
                 //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
                 //vm = AnmManager::allocate_vm();
                 //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm, vm, inner.color * 2 + 0xd1);
-                auto vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.color * 2 + 0xd1));
+                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0xd1));
                 vm->bitflags.randomMode = 1;
                 vm->entity_pos = p;
                 vm->update();
@@ -290,7 +290,7 @@ int LaserInfinite::cancel_as_bomb_rectangle(glm::vec3 p1, glm::vec3 p2, float ro
                 //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
                 //vm = AnmManager::allocate_vm();
                 //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm, vm, inner.color * 2 + 0x101);
-                auto vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.color * 2 + 0x101));
+                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0x101));
                 vm->bitflags.randomMode = 1;
                 vm->entity_pos = p;
                 vm->update();
@@ -300,7 +300,7 @@ int LaserInfinite::cancel_as_bomb_rectangle(glm::vec3 p1, glm::vec3 p2, float ro
                 //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
                 //vm = AnmManager::allocate_vm();
                 //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm, vm, inner.color * 2 + 0x119);
-                auto vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.color * 2 + 0x119));
+                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0x119));
                 vm->bitflags.randomMode = 1;
                 vm->entity_pos = p;
                 vm->update();

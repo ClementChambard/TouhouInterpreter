@@ -4,7 +4,7 @@
 #include "EclFileManager.h"
 #include "GlobalData.h"
 
-#include "AnmOpener/AnmManagerN.h"
+#include "AnmOpener/AnmManager.h"
 
 
 Enemy::Enemy()
@@ -26,7 +26,7 @@ Enemy::~Enemy()
         if (n->entry) delete n->entry;
         delete n;
     }
-    for (int i = 0; i < 16; i++) AnmManagerN::deleteVM(enemy.anmIds[i].val);
+    for (int i = 0; i < 16; i++) AnmManager::deleteVM(enemy.anmIds[i].val);
 }
 
 void Enemy::Init(std::string sub)
@@ -142,17 +142,17 @@ int EnemyData::step_interpolators()
         }
       }
 
-      vm0 = AnmManagerN::getVM(anmIds[0].val);
+      vm0 = AnmManager::getVM(anmIds[0].val);
       if (vm0 == nullptr) {
         anmIds[0].val = 0;
       }
       glm::vec3 pos = {0, 0, 0};
       if (vm0) {
         pos = vm0->pos;
-        AnmManagerN::deleteVM(anmIds[0].val);
+        AnmManager::deleteVM(anmIds[0].val);
         anmIds[0].val = 0;
       }
-      vm0 = AnmManagerN::getVM(AnmManagerN::SpawnVM(anm0anmID, anm0scr + scr));
+      vm0 = AnmManager::getVM(AnmManager::SpawnVM(anm0anmID, anm0scr + scr));
       vm0->bitflags.randomMode = 1;
       if (anmLayers > -8) {
         vm0->layer = anmLayers + 7;
@@ -168,7 +168,7 @@ int EnemyData::step_interpolators()
   }
 
   // update sprite size
-  vm0 = AnmManagerN::getVM(anmIds[0].val);
+  vm0 = AnmManager::getVM(anmIds[0].val);
   if (vm0) {
     auto s = vm0->getSprite();
     finalSpriteSize.x = fabs(s.w * vm0->scale.x);
@@ -225,7 +225,7 @@ void Enemy::Tick()
     /* Update position of attached anims  */
     for (int i = 0; i < 16; i++)
     {
-        auto anm = AnmManagerN::getVM(enemy.anmIds[i].val);
+        auto anm = AnmManager::getVM(enemy.anmIds[i].val);
         if (!anm) { enemy.anmIds[i].val = 0; continue; }
         glm::vec3 pos = enemy.final_pos.pos + enemy.anmPos[i];
         anm->setEntityPos(pos.x, pos.y, enemy.final_pos.pos.z);
@@ -299,5 +299,5 @@ void Enemy::updateContext(EclRunContext_t* cont)
 void Enemy::Die()
 {
     context.primaryContext.currentLocation.sub_id = -1;
-    for (int i = 0; i < 16; i++) { AnmManagerN::deleteVM(enemy.anmIds[i].val); enemy.anmIds[i].val = -1; }
+    for (int i = 0; i < 16; i++) { AnmManager::deleteVM(enemy.anmIds[i].val); enemy.anmIds[i].val = -1; }
 }

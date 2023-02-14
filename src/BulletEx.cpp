@@ -496,7 +496,7 @@ float ang = et_ex->r;
       hitbox_diameter = __hitbox_diameter_copy;
       layer = sprite_data["default_layer"].asInt();
       flags = flags | 0x10;
-      vm(AnmManagerN::getLoaded(7)->getPreloaded(sprite_data["script"].asInt()));
+      vm(AnmManager::getLoaded(7)->getPreloaded(sprite_data["script"].asInt()));
       vm.setEntity((void*)this);
       vm.setLayer(15);
       vm.on_set_sprite = [](AnmVM* vm, int spr) {

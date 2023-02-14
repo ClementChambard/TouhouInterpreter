@@ -12,7 +12,7 @@ BulletManager::BulletManager() {
         pred = current;
         bullets[i].tick_list_node.value = &bullets[i];
     }
-    bullet_anm = AnmManagerN::LoadFile(7, "bullet.anm");
+    bullet_anm = AnmManager::LoadFile(7, "bullet.anm");
     f_on_tick = new UpdateFunc([this](){ return this->on_tick(); });
     f_on_draw = new UpdateFunc([this](){ return this->on_draw(); });
     UPDATE_FUNC_REGISTRY->register_on_tick(f_on_tick, 29);
@@ -280,7 +280,7 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s, glm:
 
     // TODO: do that but without reallocating vm each time, maybe save the function somewhere
     // init vm
-    b->vm(AnmManagerN::getLoaded(7)->getPreloaded(b->sprite_data["script"].asInt()));
+    b->vm(AnmManager::getLoaded(7)->getPreloaded(b->sprite_data["script"].asInt()));
     b->vm.setEntity((void*)b);
     b->vm.setLayer(15);
     b->vm.on_set_sprite = [](AnmVM* vm, int spr) {

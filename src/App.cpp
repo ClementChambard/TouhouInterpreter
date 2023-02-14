@@ -3,11 +3,12 @@
 #include <chrono>
 #include <thread>
 #include <NSEngine.h>
-#include "AnmOpener/AnmManagerN.h"
+#include "AnmOpener/AnmManager.h"
 #include "StdOpener/StdFile.h"
 #include "GlobalData.h"
 #include "Spellcard.h"
 #include "Hardcoded.h"
+#include "Player.h"
 
 void App::on_create() {
     Hardcoded_Load();
@@ -20,8 +21,8 @@ void App::on_create() {
     NSEngine::addGameLayer(false, false);
     for (int i = 0; i< 40; i++) NSEngine::addGameLayer(false, true);
 
-    AnmManagerN::Init();
-    AnmManagerN::LoadFile(1, "effect.anm");
+    AnmManager::Init();
+    AnmManager::LoadFile(1, "effect.anm");
 
     std::cout << "Touhou " << TOUHOU_VERSION << "\n";
 
@@ -37,21 +38,22 @@ void App::on_create() {
     em = EnemyManager::GetInstance();
 
     em->Start(m_argv[1], m_argc > 2 ? m_argv[2] : "main");
+    new Player();
 }
 
 void App::on_update() {
-    Globals::get()->playerX = Inputs::Mouse().pos.x/2;
-    Globals::get()->playerY = -Inputs::Mouse().pos.y/2+224;
+    Globals::get()->playerX = PLAYER_PTR->inner.pos.x; //Inputs::Mouse().pos.x/2;
+    Globals::get()->playerY = PLAYER_PTR->inner.pos.y;//-Inputs::Mouse().pos.y/2+224;
 
     if (EclFileManager::GetInstance()->stdf) EclFileManager::GetInstance()->stdf->Update();
     UPDATE_FUNC_REGISTRY->run_all_on_tick();
 
-    AnmManagerN::update();
+    AnmManager::update();
 
     if (Inputs::Keyboard().Pressed(NSK_n)) {
-        AnmManagerN::killAll();
-        AnmManagerN::LoadFile(1, "effect.anm");
-        AnmManagerN::LoadFile(7, "bullet.anm");
+        AnmManager::killAll();
+        AnmManager::LoadFile(1, "effect.anm");
+        AnmManager::LoadFile(7, "bullet.anm");
         lm.destroy_all();
         bm->ClearScreen(0);
         em->EnmKillAll();
@@ -61,24 +63,25 @@ void App::on_update() {
 }
 
 void App::on_render() {
-    NSEngine::draw_set_layer(28);
-    NSEngine::draw_circle_color(Globals::get()->playerX, -Globals::get()->playerY, 5, {255,255,255,255}, {255,255,255,255});
-    NSEngine::draw_set_layer(NSEngine::engineData::debugLayer);
+    //NSEngine::draw_set_layer(28);
+    //NSEngine::draw_circle_color(Globals::get()->playerX, -Globals::get()->playerY, 5, {255,255,255,255}, {255,255,255,255});
+    //NSEngine::draw_set_layer(NSEngine::engineData::debugLayer);
 
     //__DRAW
     //NSEngine::Color c;
     //c = {255,   0, 255, 255}; __MONITOR(BulletManager::GetInstance()->get_nb_bul()/2000.f, c);
-    //c = {  0, 255,   0, 255}; __MONITOR(1.f-AnmManagerN::getFreeAnm()/8191.f, c);
+    //c = {  0, 255,   0, 255}; __MONITOR(1.f-AnmManager::getFreeAnm()/8191.f, c);
     //c = {  0,   0, 255, 255}; __MONITOR(EnemyManager::GetInstance()->enemyCount/300.f, c);
 
     if (EclFileManager::GetInstance()->stdf) EclFileManager::GetInstance()->stdf->Draw();
     UPDATE_FUNC_REGISTRY->run_all_on_draw();
-    AnmManagerN::draw();
+    AnmManager::draw();
 }
 
 void App::on_destroy() {
     EnemyManager::Cleanup();
     delete BulletManager::GetInstance();
     delete Spellcard::GetInstance();
-    AnmManagerN::Cleanup();
+    AnmManager::Cleanup();
+    delete PLAYER_PTR;
 }

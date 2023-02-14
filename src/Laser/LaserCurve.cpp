@@ -99,10 +99,10 @@ int LaserCurve::initialize(void* arg)
     vm1.destroy();
     if (bullet_type == 1) {
         // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, LASER_DATA["laser_curve"]["anm_type_0"].asInt());
-        vm1(AnmManagerN::getLoaded(7)->getPreloaded(LASER_DATA["laser_curve"]["anm_type_0"].asInt()));
+        vm1(AnmManager::getLoaded(7)->getPreloaded(LASER_DATA["laser_curve"]["anm_type_0"].asInt()));
     } else {
         // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt());
-        vm1(AnmManagerN::getLoaded(7)->getPreloaded(bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt()));
+        vm1(AnmManager::getLoaded(7)->getPreloaded(bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt()));
         vm1.on_set_sprite = [](AnmVM* vm, int) { return ((Laser*)vm->getEntity())->bullet_color + LASER_DATA["laser_curve"]["sprite_first"].asInt(); };
         vm1.entity = this;
     }
@@ -115,7 +115,7 @@ int LaserCurve::initialize(void* arg)
     vm1.bitflags.originMode = 1;
 
     // anm_init_copy_vm_from_loaded(LASER_MANAGER_PTR->bullet_anm, vm2, inner.color + 0x38);
-    vm2(AnmManagerN::getLoaded(7)->getPreloaded(inner.color + LASER_DATA["spawn_anm_first"].asInt()));
+    vm2(AnmManager::getLoaded(7)->getPreloaded(inner.color + LASER_DATA["spawn_anm_first"].asInt()));
     vm2.parent = nullptr;
     // vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();
@@ -322,7 +322,7 @@ int LaserCurve::on_tick()
 void _dzaww(AnmVM* vm, NSEngine::Vertex* vertices, int count)
 {
     for (int i = 0; i < (count - 1) / 2; i++)
-        NSEngine::engineData::layers[14].draw(vm->getSprite().texID, vertices[i * 2], vertices[i * 2 + 1], vertices[i * 2 + 3], vertices[i * 2 + 2], vm->bitflags.blendmode);
+        NSEngine::getLayer(14)->draw(vm->getSprite().texID, vertices[i * 2], vertices[i * 2 + 1], vertices[i * 2 + 3], vertices[i * 2 + 2], vm->bitflags.blendmode);
 }
 
 int LaserCurve::on_draw()
@@ -476,7 +476,7 @@ void LaserCurve::run_ex()
         }
 
         if (inner.ex[et_ex_index].type == 0x200) {
-            vm1(AnmManagerN::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[inner.ex[et_ex_index].a]["script"].asInt() + inner.ex[et_ex_index].b));
+            vm1(AnmManager::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[inner.ex[et_ex_index].a]["script"].asInt() + inner.ex[et_ex_index].b));
             vm1.parent = nullptr;
             // vm1.__root_vm__or_maybe_not = nullptr;
             vm1.update();
@@ -558,7 +558,7 @@ int LaserCurve::cancel(int , int as_bomb)
                 //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
                 //vm = AnmManager::allocate_vm();
                 //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.color * 2 + 0xd1);
-                AnmVM* vm = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, inner.color * 2 + 0xd1));
+                AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0xd1));
                 vm->bitflags.randomMode = true;
                 vm->entity_pos = nodes[i].pos;
                 vm->rotation.z = 0.0;

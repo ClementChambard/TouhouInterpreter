@@ -91,7 +91,7 @@ int Bullet::cancel(bool /*item*/)
   //AnmManager::interrupt_tree(anmExtraId,1);
   if ((flags & 0x200) == 0) {
     if (-1 < cancel_sprite_id) {
-      auto VM = AnmManagerN::getVM(AnmManagerN::SpawnVM(7, cancel_sprite_id));
+      auto VM = AnmManager::getVM(AnmManager::SpawnVM(7, cancel_sprite_id));
       VM->setEntityPos(pos.x, pos.y, pos.z);
       VM->setScale2(scale, scale);
       VM->setLayer(10);

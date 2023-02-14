@@ -1,6 +1,6 @@
 #include "EclFileManager.h"
 #include "EclRaw.h"
-#include "AnmOpener/AnmManagerN.h"
+#include "AnmOpener/AnmManager.h"
 #include "Hardcoded.h"
 #include <sys/stat.h>
 
@@ -25,7 +25,7 @@ void EclFileManager::LoadEcl(std::string file)
     std::cout << "DONE     loaded " << loaded_subs.size() << " subs in " << loaded_files.size() << " file\n";
 
     std::string logoFile = STAGE_DATA_TABLE[Globals::get()->stage_id]["stage_logo_anm_filename"].asString();
-    if (file_exists(logoFile)) AnmManagerN::LoadFile(8, logoFile);
+    if (file_exists(logoFile)) AnmManager::LoadFile(8, logoFile);
 
     std::string stdFile = STAGE_DATA_TABLE[Globals::get()->stage_id]["std_filename"].asString();
     if (file_exists(stdFile)) {
@@ -45,7 +45,7 @@ void EclFileManager::LoadEcli(std::string file)
     for (auto ecli : ecl->ecli_list)
         LoadEcli(ecli);
     for (size_t i = 0; i < ecl->anim_list.size(); i++)
-        AnmManagerN::LoadFile(i+2, ecl->anim_list[i]);
+        AnmManager::LoadFile(i+2, ecl->anim_list[i]);
 }
 
 void EclFileManager::CloseEcl()

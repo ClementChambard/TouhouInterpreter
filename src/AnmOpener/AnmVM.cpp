@@ -1,6 +1,6 @@
 #include <NSEngine.h>
 #include "AnmVM.h"
-#include "AnmManagerN.h"
+#include "AnmManager.h"
 #include "AnmBitflags.h"
 #include <vertex.h>
 #include <math/Random.h>
@@ -170,7 +170,7 @@ AnmVM::~AnmVM()
     if (childrens != nullptr) delete childrens;
 }
 
-AnmSprite AnmVM::getSprite() const { return AnmManagerN::loadedFiles[anim_slot].getSprite(sprite_id); }
+AnmSprite AnmVM::getSprite() const { return AnmManager::loadedFiles[anim_slot].getSprite(sprite_id); }
 
 int AnmVM::update(bool /*printInstr*/)
 {
@@ -203,7 +203,7 @@ int AnmVM::update(bool /*printInstr*/)
     if (u_vel_i.end_time != 0) uv_scroll_vel.x = u_vel_i.step();
     if (v_vel_i.end_time != 0) uv_scroll_vel.y = v_vel_i.step();
 
-    int8_t* instructions = AnmManagerN::loadedFiles[anim_slot].getScript(script_id);
+    int8_t* instructions = AnmManager::loadedFiles[anim_slot].getScript(script_id);
     if (instructions == nullptr) return 1;
 
     /* CHECK FOR INTERRUPTIONS */

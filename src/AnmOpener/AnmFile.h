@@ -30,7 +30,7 @@ class AnmFile {
         std::vector<AnmVM> preloaded;
         std::vector<int8_t*> scripts;
 
-        friend class AnmManagerN;
+        friend class AnmManager;
 };
 
 #endif // ANMFILE_H_

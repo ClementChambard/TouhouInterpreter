@@ -6,7 +6,7 @@
 #include "../EnemyManager.h"
 #include "../Spellcard.h"
 #include "../Laser/LaserManager.h"
-#include "../AnmOpener/AnmManagerN.h"
+#include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
 #include "../BulletManager.h"
 #define PRINT false

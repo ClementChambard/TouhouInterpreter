@@ -148,7 +148,7 @@ class AnmVM {
         void* entity = nullptr;
 
 
-        friend class AnmManagerN;
+        friend class AnmManager;
         friend class AnmManager;
         friend class AnmFile;
         friend class StdFile;
