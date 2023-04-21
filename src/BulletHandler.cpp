@@ -1,5 +1,5 @@
 #include "BulletHandler.h"
-#include<cstring>
+#include <cstring>
 
 void BM_reset(EnemyBulletShooter_t* bm)
 {
@@ -44,7 +44,7 @@ void BM_reset(EnemyBulletShooter_t* bm)
     }
 }
 
-EtEx_t& EtEx_t::operator=(EtEx_t &other)
+EtEx_t& EtEx_t::operator=(EtEx_t const& other)
 {
     r = other.r;
     s = other.s;
@@ -57,5 +57,5 @@ EtEx_t& EtEx_t::operator=(EtEx_t &other)
     type = other.type;
     slot = other.slot;
     string = other.string;
-    return other;
+    return *this;
 }

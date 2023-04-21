@@ -1,3 +1,4 @@
 #include "GlobalData.h"
 
-Globals GLOBALS;
+Globals GLOBALS{};
+float GAME_SPEED = 1.f;

@@ -2,6 +2,8 @@
 #include "EnemyManager.h"
 #include "AnmOpener/AnmManager.h"
 
+Spellcard* SPELLCARD_PTR = nullptr;
+
 Spellcard* Spellcard::GetInstance()
 {
     static Spellcard* inst = new Spellcard();
@@ -14,6 +16,7 @@ Spellcard::Spellcard()
     f_on_draw = new UpdateFunc([this](){ return this->on_draw(); });
     UPDATE_FUNC_REGISTRY->register_on_tick(f_on_tick, 32);
     UPDATE_FUNC_REGISTRY->register_on_draw(f_on_draw, 12);
+    SPELLCARD_PTR = this;
 }
 
 Spellcard::~Spellcard()
@@ -68,8 +71,8 @@ void Spellcard::Init(int /*id*/, int time, int /*mode*/, std::string /*name*/, i
         while (l) { if (l->value) l->value->setI(2, time); l = l->next; }
     }
     AnmManager::getVM(AnmManager::SpawnVM(1, spellcard_anm_2));
-    spell_bg_anm_id = AnmManager::SpawnVM(STAGE_DATA_TABLE[Globals::get()->stage_id]["boss_data"][bossId]["spell_bg_anim_index"].asInt(),
-                                           STAGE_DATA_TABLE[Globals::get()->stage_id]["boss_data"][bossId]["spell_bg_anm_script"].asInt());
-    AnmManager::SpawnVM(STAGE_DATA_TABLE[Globals::get()->stage_id]["boss_data"][bossId]["spell_portrait_anim_index"].asInt(),
-                         STAGE_DATA_TABLE[Globals::get()->stage_id]["boss_data"][bossId]["spell_portrait_anm_script"].asInt());
+    spell_bg_anm_id = AnmManager::SpawnVM(STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][bossId]["spell_bg_anim_index"].asInt(),
+                                           STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][bossId]["spell_bg_anm_script"].asInt());
+    AnmManager::SpawnVM(STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][bossId]["spell_portrait_anim_index"].asInt(),
+                         STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][bossId]["spell_portrait_anm_script"].asInt());
 }

@@ -15,7 +15,7 @@ struct EtEx_t {
     int32_t type = 0;
     int32_t slot = 0;
     const char* string = 0;
-    EtEx_t& operator=(EtEx_t& other);
+    EtEx_t& operator=(EtEx_t const& other);
 };
 
 struct EnemyBulletShooter_t {

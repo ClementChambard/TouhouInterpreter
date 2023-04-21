@@ -3,7 +3,7 @@
 
 void eclStackPush(EclStack_t* stack, int32_t val)
 {
-    if (stack->stackOffset >= 199) { NSEngine::pr("\n\e[31mFATAL ERROR:\e[0m", "Stack overflow", "\n"); NSEngine::FatalErrorQuit(); }
+    if (stack->stackOffset >= 199) { NSEngine::pr("\n\e[31mFATAL ERROR:\e[0m", "Stack overflow", "\n"); drawStackFrame(stack); NSEngine::FatalErrorQuit(); }
     stack->data[stack->stackOffset].asInt = val;
     stack->data[stack->stackOffset].asFloat = (float)val;
     stack->stackOffset++;
@@ -14,7 +14,7 @@ void eclStackPush(EclStack_t* stack, int32_t val)
 
 void eclStackPush(EclStack_t* stack, float val)
 {
-    if (stack->stackOffset >= 199) { NSEngine::pr("\n\e[31mFATAL ERROR:\e[0m", "Stack overflow", "\n"); NSEngine::FatalErrorQuit(); }
+    if (stack->stackOffset >= 199) { NSEngine::pr("\n\e[31mFATAL ERROR:\e[0m", "Stack overflow", "\n"); drawStackFrame(stack); NSEngine::FatalErrorQuit(); }
     stack->data[stack->stackOffset].asFloat = val;
     stack->data[stack->stackOffset].asInt = (int)val;
     stack->stackOffset++;
@@ -52,10 +52,17 @@ void eclStackPop(EclStack_t* stack, float& val, bool f)
 
 void eclAllocVariables(EclRunContext_t *cont, int32_t nb)
 {
-    for (int i = 0; i < nb/4; i++)
-    {
-        cont->variable_stack_offset[i] = cont->stack.baseOffset + i;
-    }
+    //if (cont->stack.stackOffset + nb/4 < 200) {
+        //int stackOffset = cont->stack.stackOffset;
+        //cont->stack.stackOffset += nb/4;
+        //cont->stack.data[cont->stack.stackOffset] = cont->stack.baseOffset;
+        //cont->stack.stackOffset ++;
+        //cont->stack.baseOffset = stackOffset;
+    //} // TODO: use this
+    //for (int i = 0; i < nb/4; i++)
+    //{
+        //cont->variable_stack_offset[i] = cont->stack.baseOffset + i;
+    //}
     cont->stack.stackOffset = cont->stack.baseOffset + nb/4;
 }
 
@@ -66,7 +73,7 @@ void eclPushContext(EclRunContext_t* ctx)
     eclStackPush(&ctx->stack, ctx->time);
     eclStackPush(&ctx->stack, ctx->currentLocation.offset);
     eclStackPush(&ctx->stack, ctx->currentLocation.sub_id);
-    for (int i = 0; i < 8; i++) eclStackPush(&ctx->stack, ctx->variable_stack_offset[i]);
+    //for (int i = 0; i < 8; i++) eclStackPush(&ctx->stack, ctx->variable_stack_offset[i]);
 
     /* Move stack offset */
     ctx->stack.baseOffset = ctx->stack.stackOffset;
@@ -90,7 +97,7 @@ void eclPopContext(EclRunContext_t* ctx)
     ctx->stack.stackOffset = ctx->stack.baseOffset;
 
     /* Pop every context variable */
-    for (int i = 7; i >= 0; i--) eclStackPop(&ctx->stack, ctx->variable_stack_offset[i], true);
+    //for (int i = 7; i >= 0; i--) eclStackPop(&ctx->stack, ctx->variable_stack_offset[i], true);
     eclStackPop(&ctx->stack, ctx->currentLocation.sub_id, true);
     eclStackPop(&ctx->stack, ctx->currentLocation.offset, true);
     eclStackPop(&ctx->stack, ctx->time, true);

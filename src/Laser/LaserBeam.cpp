@@ -3,5 +3,5 @@
 LaserBeam::LaserBeam()
 {
     vm.sprite_id = -1;
-    vm.current_instr = -1;
+    vm.instr_offset = -1;
 }

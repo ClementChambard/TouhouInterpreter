@@ -23,6 +23,8 @@ class AnmFile {
         size_t nbSprites() const { return sprites.size(); }
         size_t nbScripts() const { return scripts.size(); }
 
+        void setSprite(AnmVM* vm, size_t sprite_id);
+
     private:
         std::string name = "notLoaded";
         std::map<std::string, uint32_t> textures;

@@ -8,6 +8,8 @@ Json::Value STAGE_DATA_TABLE;
 Json::Value PLAYERS;
 Json::Value BULLET_TYPE_TABLE;
 Json::Value LASER_DATA;
+Json::Value ITEM_ANM_SCRIPT_IDS;
+
 int TOUHOU_VERSION = 0;
 
 void prepare_vals()
@@ -17,6 +19,7 @@ void prepare_vals()
     TOUHOU_VERSION = HARDCODED_DATA["version"].empty() ? HARDCODED_DATA_BASE["version"].asInt() : HARDCODED_DATA["version"].asInt();
     LASER_DATA = HARDCODED_DATA["laser_data"].empty() ? HARDCODED_DATA_BASE["laser_data"] : HARDCODED_DATA["laser_data"];
     PLAYERS = HARDCODED_DATA["players"].empty() ? HARDCODED_DATA_BASE["players"] : HARDCODED_DATA["players"];
+    ITEM_ANM_SCRIPT_IDS = HARDCODED_DATA["item_anm_script_ids"].empty() ? HARDCODED_DATA_BASE["item_anm_script_ids"] : HARDCODED_DATA["item_anm_script_ids"];
 }
 
 void Hardcoded_Load() {

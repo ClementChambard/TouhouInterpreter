@@ -1,24 +1,25 @@
 #ifndef ANMVM_H_
 #define ANMVM_H_
 
-#include <functional>
-#include <vector>
-#include <glm/glm.hpp>
-#include "anmOpener.h"
 #include "../Interp.h"
-#include <Interpolator.h>
-#include <vertex.h>
-#include <math/math.h>
-#include <SpriteBatch.h>
-#include "AnmSprite.h"
 #include "AnmBitflags.h"
+#include "AnmSprite.h"
+#include "anmOpener.h"
+#include <Interpolator.h>
+#include <SpriteBatch.h>
+#include <functional>
+#include <glm/glm.hpp>
+#include <math/math.h>
+#include <vector>
+#include <vertex.h>
 
 class AnmVM;
 struct AnmFastVM;
 
 struct AnmID {
-    AnmID() {}
+    AnmID() { }
     AnmID(int i) { val = i; }
+    operator int() { return val; }
     static constexpr uint32_t fastIdMask = 8191;
     static constexpr uint32_t disctOffset = 14;
     uint32_t val = 0;
@@ -28,138 +29,177 @@ struct AnmID {
     bool operator!=(uint32_t other) { return val != other; }
 };
 
-struct AnmVMList {
+struct AnmVMList_t {
     AnmVM* value = nullptr;
-    AnmVMList* next = nullptr;
-    AnmVMList* previous = nullptr;
+    AnmVMList_t* next = nullptr;
+    AnmVMList_t* previous = nullptr;
 };
 
-struct AnmFastVMList {
+struct AnmFastVMList_t {
     AnmFastVM* value = nullptr;
-    AnmFastVMList* next = nullptr;
-    AnmFastVMList* previous = nullptr;
+    AnmFastVMList_t* next = nullptr;
+    AnmFastVMList_t* previous = nullptr;
 };
 
 class AnmVM {
 
-    public:
-        AnmVM() {}
-        AnmVM(AnmVM const& toCopy);
-        void operator()(AnmVM const& other);
-        AnmVM(uint32_t script_id, uint32_t anim_slot);
+public:
+    AnmVM() { }
+    AnmVM(AnmVM const& toCopy);
+    void operator()(AnmVM const& other);
+    AnmVM(uint32_t script_id, uint32_t anim_slot);
 
-        ~AnmVM();
+    ~AnmVM();
 
-        int update(bool printInstr = false);
-        void draw(NSEngine::SpriteBatch* sb = nullptr);
-        void destroy();
-        void interrupt(int i);
-        void interruptRec(int i);
+    int update(bool printInstr = false);
+    void draw(NSEngine::SpriteBatch* sb = nullptr);
+    void destroy();
+    void interrupt(int i);
+    void interruptRec(int i);
 
-        int& check_ref(int i);
-        float& check_ref(float f);
-        int check_val(int i);
-        float check_val(float f);
-        void exec_instruction(int8_t* ins);
+    int& check_ref(int i);
+    float& check_ref(float f);
+    int check_val(int i);
+    float check_val(float f);
+    int exec_instruction(int8_t* ins);
+    int check_interrupt();
 
-        void setPos(float x, float y, float z) { pos = {x, y, z}; }
-        void setEntityPos(float x, float y, float z) { entity_pos = {x, y, z}; }
-        void setPos2(float x, float y, float z) { pos2 = {x, y, z}; }
-        void setScale(float x, float y) { scale = {x, y}; }
-        void setScale2(float x, float y) { scale_2 = {x, y}; }
-        void setI(int i, int v) { int_vars[i] = v; }
-        void setf(int i, int v) { float_vars[i] = v; }
-        void setLayer(uint32_t i) { layer = i; }
-        void setEntity(void* e) { entity = e; }
-        void setRotz(float z) { rotation.z = z; }
-        void setFlags(AnmVM_flags_t flags) { bitflags = flags; }
-        void refreshSprite(int s = -1) { sprite_id = on_set_sprite(this, s==-1?sprite_id:s); }
-        AnmVM_flags_t getFlags() const { return bitflags; }
-        int getMode() const;
-        int getLayer() const { return layer; }
-        int getZdis() const;
-        void* getEntity() const { return entity; }
-        AnmVMList* getChild() { return childrens; }
-        uint32_t getID() const { return id.val; }
-        AnmSprite getSprite() const;
+    void setPos(float x, float y, float z) { pos = { x, y, z }; }
+    void setEntityPos(float x, float y, float z) { entity_pos = { x, y, z }; }
+    void setPos2(float x, float y, float z) { __pos_2 = { x, y, z }; }
+    void setScale(float x, float y) { scale = { x, y }; }
+    void setScale2(float x, float y) { scale_2 = { x, y }; }
+    void setI(int i, int v) { int_script_vars[i] = v; }
+    void setf(int i, int v) { float_script_vars[i] = v; }
+    void setLayer(uint32_t i) { layer = i; }
+    void setEntity(void* e) { associated_game_entity = e; }
+    void setRotz(float z) { rotation.z = z; }
+    void setFlags(AnmVM_flags_t const& flags) { bitflags = flags; }
+    AnmVM_flags_t getFlags() const { return bitflags; }
+    int getMode() const;
+    int getLayer() const { return layer; }
+    int getZdis() const;
+    void* getEntity() const { return associated_game_entity; }
+    AnmVMList_t* getChild() { return list_of_children.next; }
+    uint32_t getID() const { return id.val; }
+    AnmSprite getSprite() const;
+    void getSpriteCorners2D(glm::vec2* corners);
+    void getParentData(glm::vec3& pos, glm::vec3& rot, glm::vec2& scale);
 
-        std::function<int(AnmVM*, int)> on_set_sprite = [](AnmVM*, int spr){ return spr; };
-        static int cnt;
+    int run();
+    void step_interpolators();
+    void update_variables_growth();
 
-        int32_t case_return_time = -99;
-        int32_t return_instr = 0;
-        uint32_t layer = 0;
-        int32_t anim_slot = 0;
-        int32_t sprite_id = 0;
-        int32_t script_id = 0;
-        int32_t current_instr = 0;
-        glm::vec3 pos = {};
-        glm::vec3 rotation = {};
-        glm::vec3 angular_velocity = {};
-        glm::vec2 scale = {1.f, 1.f};
-        glm::vec2 scale_2 = {1.f, 1.f};
-        glm::vec2 scale_growth = {};
-        glm::vec2 uv_scale = {1.f, 1.f};
-        glm::vec2 uv_scroll_pos = {};
-        glm::vec2 anchor_offset = {};
-        // undefined 4
-        Interp<glm::vec3> pos_i = {};
-        Interp<glm::vec3> rgb1_i = {};
-        Interp<int> alpha1_i = {};
-        Interp<glm::vec3> rotate_i = {};
-        Interp<float> rotate_2d_i = {};
-        Interp<glm::vec2> scale_i = {};
-        Interp<glm::vec2> scale_2_i = {};
-        Interp<glm::vec2> uv_scale_i = {};
-        Interp<glm::vec3> rgb2_i = {};
-        Interp<int> alpha2_i = {};
-        Interp<float> u_vel_i = {};
-        Interp<float> v_vel_i = {};
-        glm::vec2 uv_quad_of_sprite[4] = {};
-        glm::vec2 uv_scroll_vel = {};
-        // 3 matrix4 (position, rotation, scale ?  used to not recalculate each frame ?)
-        int32_t pending_switch_label = 0;
-        // unused stuff ?
-        int32_t int_vars[4] = {0, 0, 0, 0};
-        float float_vars[4] = {0, 0, 0, 0};
-        glm::vec3 rot_vars = {};        /* rotation related vars 33 34 35 */
-        int32_t script_var_8 = 0;
-        int32_t script_var_9 = 0;
-        float rand_scale_1f = 1.f;
-        float rand_scale_pi = PI;
-        int32_t num_cycles_in_texture = 1;
-        glm::vec3 pos2 = {};
-    //  glm::vec3 last_rendered_quad_in_surface_space[4];  (used to not recalculate each frame ?)
-        int32_t mode_of_special_draw = -1; // mode_of_create_child
-        NSEngine::Color color1 = {255, 255, 255, 255};
-        NSEngine::Color color2 = {255, 255, 255, 255};
-        // mixed_inherited_color + more unused stuff
-        AnmVM_flags_t bitflags;
+    void alloc_special_vertex_buffer(int size)
+    {
+        special_vertex_buffer_size = size;
+        special_vertex_buffer_data = new uint8_t[size];
+    }
+    AnmID add_child(int i, int mode);
+    void transform_coordinate(glm::vec3& pos);
+    glm::vec3 get_own_transformed_pos();
+    void write_sprite_corners_2d(glm::vec4* corners);
+    void write_sprite_corners__without_rot(glm::vec4& v1, glm::vec4& v2, glm::vec4& v3, glm::vec4& v4);
+    void write_sprite_corners__with_z_rot(glm::vec4& v1, glm::vec4& v2, glm::vec4& v3, glm::vec4& v4);
+    int write_sprite_corners__mode_4();
 
-        AnmID id = 0;
-        uint32_t fast_id = 0;
-        int32_t time = 0;
-        AnmVMList* nodeInGlobalList = nullptr;
-        AnmVMList* nodeAsChildren = nullptr;
-        AnmVMList* childrens = nullptr;
-        AnmVM* parent = nullptr;
-        //things like that
-        glm::vec3 entity_pos = {}; // pos3 ?
-        void* entity = nullptr;
+    static int cnt;
 
+    // PREFIX
+    int32_t interrupt_return_time = -99;
+    int32_t interrupt_return_offset = 0;
+    uint32_t layer = 0;
+    int32_t anm_loaded_index = 0;
+    int32_t sprite_id = 0;
+    int32_t script_id = 0;
+    int32_t instr_offset = 0;
+    glm::vec3 pos = {};
+    glm::vec3 rotation = {};
+    glm::vec3 angular_velocity = {};
+    glm::vec2 scale = { 1.f, 1.f };
+    glm::vec2 scale_2 = { 1.f, 1.f };
+    glm::vec2 scale_growth = {};
+    glm::vec2 uv_scale = { 1.f, 1.f };
+    glm::vec2 sprite_size = {};
+    glm::vec2 uv_scroll_pos = {};
+    glm::vec2 anchor_offset = {};
+    // undefined 4
+    Interp<glm::vec3> pos_i = {};
+    Interp<glm::vec3> rgb1_i = {};
+    Interp<int> alpha1_i = {};
+    Interp<glm::vec3> rotate_i = {};
+    Interp<float> rotate_2d_i = {};
+    Interp<glm::vec2> scale_i = {};
+    Interp<glm::vec2> scale_2_i = {};
+    Interp<glm::vec2> uv_scale_i = {};
+    Interp<glm::vec3> rgb2_i = {};
+    Interp<int> alpha2_i = {};
+    Interp<float> u_vel_i = {};
+    Interp<float> v_vel_i = {};
+    glm::vec2 uv_quad_of_sprite[4] = {};
+    glm::vec2 uv_scroll_vel = {};
+    glm::mat4 __matrix_1 = {}; // translate ?
+    glm::mat4 __matrix_2 = {}; // rotate ?
+    glm::mat4 __matrix_3 = {}; // scale ?
+    int32_t pending_interrupt = 0;
+    int32_t __time_of_last_sprite_set__unused = 0;
+    // undefined4[2]
+    int32_t int_script_vars[4] = { 0, 0, 0, 0 };
+    float float_script_vars[4] = { 0, 0, 0, 0 };
+    glm::vec3 __script_vars_33_34_35 = {}; /* rotation related vars 33 34 35 */
+    int32_t __script_var_8 = 0;
+    int32_t __script_var_9 = 0;
+    float rand_param_one = 1.f;
+    float rand_param_pi = PI;
+    int32_t rand_param_int = 1;
+    glm::vec3 __pos_2 = {};
+    glm::vec3 last_rendered_quad_in_surface_space[4];
+    int32_t mode_of_create_child = -1;
+    NSEngine::Color color_1 = { 255, 255, 255, 255 };
+    NSEngine::Color color_2 = { 255, 255, 255, 255 };
+    NSEngine::Color mixed_inherited_color = { 255, 255, 255, 255 };
+    uint8_t font_dims[2] = {};
+    // undefined2
+    AnmVM_flags_t bitflags;
 
-        friend class AnmManager;
-        friend class AnmManager;
-        friend class AnmFile;
-        friend class StdFile;
+    // SUFFIX
+    AnmID id = 0;
+    int32_t fast_id = 0;
+    int32_t time_in_script = 0; // zTimer
+    int32_t __timer_1c = 0; // zTimer
+    AnmVMList_t node_in_global_list = { this, nullptr, nullptr };
+    AnmVMList_t __node_as_child = { this, nullptr, nullptr };
+    AnmVMList_t list_of_children = {};
+    AnmVMList_t __wierd_list = { this, nullptr, nullptr };
+    // next in layer : disused
+    int32_t new_field_added_in_1_00b__looks_completely_unused__i_shit_you_not = 0;
+    AnmVM* __root_vm__or_maybe_not = nullptr;
+    AnmVM* parent_vm = nullptr;
+    float slowdown = 0.f;
+    void* special_vertex_buffer_data = nullptr;
+    int32_t special_vertex_buffer_size = 0;
+    int32_t index_of_on_wait = 0;
+    int32_t index_of_on_tick = 0;
+    int32_t index_of_on_draw = 0;
+    int32_t index_of_on_destroy = 0;
+    int32_t index_of_on_interrupt = 0;
+    int32_t index_of_on_copy_1__disused = 0;
+    int32_t index_of_on_copy_2__disused = 0;
+    int32_t index_of_sprite_mapping_func = 0;
+    glm::vec3 entity_pos = {};
+    void* associated_game_entity = nullptr;
+
+    friend class AnmManager;
+    friend class AnmManager;
+    friend class AnmFile;
+    friend class StdFile;
 };
 
 struct AnmFastVM {
     AnmVM vm;
-    AnmFastVMList* freelistNode = nullptr;
+    AnmFastVMList_t freelistNode = { this, nullptr, nullptr };
     bool isAlive = false;
     AnmID fastID = 0;
 };
-
 
 #endif // ANMVM_H_

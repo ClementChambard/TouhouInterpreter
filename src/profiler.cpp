@@ -17,7 +17,7 @@ NSEngine::Color hsv(float H, float S, float V)
 
     float m = V - C;
 
-    float R,G,B;
+    float R{},G{},B{};
 
     if (  0 <= H && H <  60) R = C, G = X, B = 0;
     if ( 60 <= H && H < 120) R = X, G = C, B = 0;

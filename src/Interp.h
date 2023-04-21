@@ -28,6 +28,17 @@ struct Interp {
         this->time = 0;
     }
 
+    void start_ex(T begin, T end, T b1, T b2, int32_t time, int32_t mode)
+    {
+        initial = begin;
+        goal = end;
+        bezier_1 = b1;
+        bezier_2 = b2;
+        end_time = time;
+        method = mode;
+        this->time = 0;
+    }
+
     void start_bezier(T begin, T end, T b1, T b2, int32_t time)
     {
         initial = begin;

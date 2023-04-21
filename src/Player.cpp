@@ -1,28 +1,30 @@
 #include "Player.h"
-#include "Laser/LaserManager.h"
-#include "BulletManager.h"
-#include "Input.h"
-#include "EnemyManager.h"
-#include <math/Random.h>
 #include "AnmOpener/AnmManager.h"
+#include "BulletManager.h"
+#include "EnemyManager.h"
 #include "Hardcoded.h"
+#include "Input.h"
+#include "ItemManager.h"
+#include "Laser/LaserManager.h"
+#include <InputManager.h>
+#include <math/Random.h>
 
 Player* PLAYER_PTR = nullptr;
 
-Player::Player()  // at th17.exe:4463f0
+Player::Player() // at th17.exe:4463f0
 {
     PLAYER_PTR = this;
     // load player anm file
-    AnmManager::LoadFile(9, PLAYERS[0]["shottypes"][0]["anm"].asString());
-    //playerAnm = AnmManager::preload_anm(9,plAnmfilenames[GLOBALS.inner.CHARACTER]);
-    //if (!playerAnm) ; // log info
+    AnmManager::LoadFile(9, PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["anm"].asString());
+    // playerAnm = AnmManager::preload_anm(9,plAnmfilenames[GLOBALS.inner.CHARACTER]);
+    // if (!playerAnm) ; // log info
 
     // load sht file
     if (ALREADY_LOADED_SHTFILE) {
         sht_file = ALREADY_LOADED_SHTFILE;
         ALREADY_LOADED_SHTFILE = nullptr;
     } else {
-        sht_file = open_sht(PLAYERS[0]["shottypes"][0]["sht"].asString());//SHT_FILENAMES[GLOBALS.inner.GOAST + GLOBALS.inner.CHARACTER * 3]);
+        sht_file = open_sht(PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["sht"].asString());
     }
 
     // update funcs
@@ -34,33 +36,28 @@ Player::Player()  // at th17.exe:4463f0
     UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 29);
 
     // init vm
-    //playerAnm->anm_init_copy_vm_from_loaded(&vm,0);
+    // playerAnm->anm_init_copy_vm_from_loaded(&vm,0);
     vm(AnmManager::getLoaded(9)->getPreloaded(0));
-    vm.parent = nullptr;
-    // vm.__root_vm__or_maybe_not = nullptr;
+    vm.parent_vm = nullptr;
+    vm.__root_vm__or_maybe_not = nullptr;
     vm.update();
 
-    //for (int i = 0; i < 4; i++) {
-    //    *(int *)((int)__unknown_scaled_pos_array + 0x10+4*i + -0x5c) = (int)(*(float *)(sht_file + 0x10+4*i) * 128.0);
-    //}
+    speed_focus = sht_file->header.move_f_str * 128;
+    speed_focus_diag = sht_file->header.move_f_dia * 128;
+    speed_unfocus = sht_file->header.move_nf_str * 128;
+    speed_unfocus_diag = sht_file->header.move_nf_dia * 128;
 
     sht_file->header.SA_power_divisor = 100;
-    //GLOBALS.inner.MAXIMUM_POWER = sht_file->header.SA_power_divisor * sht_file->header.pwr_lvl_cnt;
-    //GLOBALS.inner.POWER_PER_LEVEL = this->sht_file->header.SA_power_divisor;
+    GLOBALS.inner.MAXIMUM_POWER = sht_file->header.SA_power_divisor * sht_file->header.pwr_lvl_cnt;
+    GLOBALS.inner.POWER_PER_LEVEL = sht_file->header.SA_power_divisor;
 
-    speed_focus = 200;
-    speed_focus_diag = 200/1.42;
-    speed_unfocus = 500;
-    speed_unfocus_diag = 500/1.42;
+    sht_file->header.hitbox_u = PLAYERS[GLOBALS.inner.CHARACTER]["hitbox"].asFloat();
+    sht_file->header.itembox_u = PLAYERS[GLOBALS.inner.CHARACTER]["itembox"].asFloat();
+    sht_file->header.grazebox_u = PLAYERS[GLOBALS.inner.CHARACTER]["grazebox"].asFloat();
 
-    //sht_file->header.hitbox_u = *(undefined4 *)(&DAT_004a2118 + GLOBALS.inner.CHARACTER * 4);
-    //sht_file->header.itembox_u = *(undefined4 *)(&DAT_004a2108 + GLOBALS.inner.CHARACTER * 4);
-    //sht_file->header.grazebox_u = *(undefined4 *)(&DAT_004a20f8 + GLOBALS.inner.CHARACTER * 4);
-
-    hurtbox_halfsize = {sht_file->header.hitbox_u * 0.5f, sht_file->header.hitbox_u * 0.5f, 5.f};
-    item_attract_box_unfocused_halfsize = {sht_file->header.itembox_u * 0.5f, sht_file->header.itembox_u * 0.5f, 5.f};
-    //item_attract_box_focused_halfsize.y = *(float *)(&DAT_004a20e8 + GLOBALS.inner.CHARACTER * 4) * 0.5;
-    //item_attract_box_focused_halfsize.x = *(float *)(&DAT_004a20e8 + GLOBALS.inner.CHARACTER * 4) * 0.5;
+    hurtbox_halfsize = { sht_file->header.hitbox_u * 0.5f, sht_file->header.hitbox_u * 0.5f, 5.f };
+    item_attract_box_unfocused_halfsize = { sht_file->header.itembox_u * 0.5f, sht_file->header.itembox_u * 0.5f, 5.f };
+    item_attract_box_focused_halfsize.x = item_attract_box_focused_halfsize.y = PLAYERS[GLOBALS.inner.CHARACTER]["attractbox"].asFloat() * 0.5;
     item_attract_box_focused_halfsize.z = 5.0;
 
     hurtbox.min_pos = inner.pos - hurtbox_halfsize;
@@ -77,117 +74,124 @@ Player::Player()  // at th17.exe:4463f0
     for (int i = 0; i < 0x100; i++) {
         inner.bullets[i].id = i;
     }
-
 }
 
-
-void FUN_00449630(PlayerInner_t *inner)
+void youmu_option_update_func(PlayerOption_t* opt)
 {
-  int pow = 1;//GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL;
-  //inner[1].__time_in_stage__copy_3c.control = pow;
-  if (true) {//GLOBALS.inner.CURRENT_POWER < GLOBALS.inner.MAXIMUM_POWER) {
-      for (int i = 0; i < 4; i++) {
-          AnmManager::interrupt_tree(inner->options[i].anmId2, 1);
-          inner->options[i].anmId2 = 0;
-      }
-  } else {
-    if (0 < pow) {
-      for (int i = 0; i < pow; i++) {
-        if (auto vm = AnmManager::getVM(inner->options[i].anmId2); vm && !vm->bitflags.f534_27_31) {
-          vm->bitflags.activeFlags = 0b01;
-          auto child = vm->childrens->next;
-          while (child) {
-              child->value->destroy();
-              child = child->next;
-          }
+    // Yukari for fun
+    // static float t = 0.f;
+    // if (!PLAYER_PTR->inner.power) return;
+    // t+=0.06f/PLAYER_PTR->inner.power;
+    // float dif = (float)opt->id/PLAYER_PTR->inner.power*PI2;
+    // float d = 0xc80;
+    // opt->scaled_prefered_pos_rel_to_player[0] = {(int)(cos(t+dif)*d*2), (int)(sin(t+dif)*d*2)};
+    // opt->scaled_prefered_pos_rel_to_player[1] = {(int)(cos(t+dif)*d), (int)(sin(t+dif)*d)};
+    // opt->scaled_prefered_pos = PLAYER_PTR->inner.integer_pos + opt->scaled_prefered_pos_rel_to_player[PLAYER_PTR->inner.focusing];
+    // return;
+    opt->scaled_prefered_pos = PLAYER_PTR->prev_pos[opt->id * 8 + 7];
+    if (!PLAYER_PTR->inner.focusing)
+        opt->scaled_prefered_pos_rel_to_player[0] = opt->scaled_prefered_pos - PLAYER_PTR->inner.integer_pos;
+    else {
+        opt->scaled_prefered_pos_rel_to_player[0].x = 0;
+        opt->scaled_prefered_pos_rel_to_player[0].y = -0xc80;
+        PLAYER_PTR->prev_pos[opt->id * 8 + 8].y = (int)(PLAYER_PTR->inner).integer_pos.y + -0xc80;
+        PLAYER_PTR->prev_pos[opt->id * 8 + 8].x = (int32_t)(PLAYER_PTR->inner).integer_pos.x;
+        for (int i = 1; i <= 7; i++) {
+            PLAYER_PTR->prev_pos[opt->id * 8 + i].x = (PLAYER_PTR->prev_pos[opt->id * 8 + 8].x - PLAYER_PTR->prev_pos[opt->id * 8].x) * 0.125 * i + PLAYER_PTR->prev_pos[opt->id * 8].x;
+            PLAYER_PTR->prev_pos[opt->id * 8 + i].y = (PLAYER_PTR->prev_pos[opt->id * 8 + 8].y - PLAYER_PTR->prev_pos[opt->id * 8].y) * 0.125 * i + PLAYER_PTR->prev_pos[opt->id * 8].y;
         }
-        inner->options[i].anmId2 = AnmManager::SpawnVM(9, 10); //DAT_004a2090[GLOBALS.inner.CHARACTER * 4]);
-        auto vm = AnmManager::getVM(inner->options[i].anmId2);
-        //PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
-        //auto vm = AnmManager::allocate_vm();
-        //PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm, DAT_004a2090[GLOBALS.inner.CHARACTER * 4]);
-        //vm->mode_of_create_child = 2;
-        //inner->options[i].anmId2 = AnmManager::insert_in_world_list_front(&zStack_1c,vm);
-        vm->bitflags.randomMode = 0b1;
-        vm->entity_pos = {0,-32,0};
-        vm->rotation.z = 0.f;
-        vm->update();
-      }
     }
-  }
-  if (inner->__some_index == pow) return;
+    opt->scaled_prefered_pos = PLAYER_PTR->inner.integer_pos + opt->scaled_prefered_pos_rel_to_player[0];
+    opt->focusing = PLAYER_PTR->inner.focusing;
+}
 
-  //fVar10 = 0.0;
-  //local_30 = 0.0;
-  //pzVar14 = inner->options;
-  if (0 < pow) {
-    //piVar18 = &inner->options[0].scaled_cur_pos.y;
-    //local_2c = inner->options[0].scaled_prefered_pos_rel_to_player;
-    do {
-      //((zInt2 *)(piVar18 + -1))->x = (int32_t)(PLAYER_PTR->inner).integer_pos.x;
-      //*piVar18 = (int32_t)inner->integer_pos.y;
-      if (auto vm = AnmManager::getVM(0/*piVar18[0x14]*/); vm && !vm->bitflags.f534_27_31) {
-          vm->bitflags.activeFlags = 0b01;
-          auto child = vm->childrens->next;
-          while (child) {
-              child->value->destroy();
-              child = child->next;
-          }
-      }
-      //piVar18[0x14] = 0;
-      //piVar18[0x1c] = (int32_t)local_30;
-      //piVar18[1] = (int)(PLAYER_PTR->sht_file->option_pos[(int)(&FLOAT_004b673c)[(GLOBALS.inner.GOAST + GLOBALS.inner.CHARACTER * 3) * 8 + pow] + (int)local_30].x * 128.f);
-      //piVar18[2] = (int)(PLAYER_PTR->sht_file->option_pos[(int)(&FLOAT_004b673c)[(GLOBALS.inner.GOAST + GLOBALS.inner.CHARACTER * 3) * 8 + pow] + (int)local_30].y * 128.f);
-      //piVar18[3] = (int)(PLAYER_PTR->sht_file->option_pos[(int)(&FLOAT_004b673c)[(GLOBALS.inner.GOAST + GLOBALS.inner.CHARACTER * 3) * 8 + pow] + (int)local_30 + 10].x * 128.f);
-      //piVar18[4] = (int)(PLAYER_PTR->sht_file->option_pos[(int)(&FLOAT_004b673c)[(GLOBALS.inner.GOAST + GLOBALS.inner.CHARACTER * 3) * 8 + pow] + (int)local_30 + 10].y * 128.f);
-      //pzVar11 = local_2c + 1;
-      //if (!inner->focusing) pzVar11 = local_2c;
-      //local_2c[-2].y = (pzVar11->y + inner->integer_pos.y);
-      //local_2c[-2].x = inner->integer_pos.x + pzVar11->x;
-      //*piVar18 = (pzVar11->y + inner->integer_pos.y);
-      //((zInt2 *)(piVar18 + -1))->x = inner->integer_pos.x + pzVar11->x;
-      //piVar18[0x14] = AnmManager::SpawnVM(9, 10); //DAT_004a2090[GLOBALS.inner.CHARACTER * 4]);
-      AnmVM* vm = nullptr;//AnmManager::getVM(piVar18[0x14]);
-      //PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
-      //auto vm = AnmManager::allocate_vm();
-      //PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm, DAT_004a2090[GLOBALS.inner.CHARACTER * 4]);
-      //vm->mode_of_create_child = 0;
-      //AnmManager::insert_in_world_list_back(piVar18[0x14],vm);
-      vm->bitflags.randomMode = 0b1;
-      vm->bitflags.originMode = 0b01;
-      vm->layer = 14;
-      vm->entity_pos = {0,-32,0};
-      vm->rotation.z = 0.f;
-      vm->update();
+void FUN_00449630(PlayerInner_t* inner)
+{
+    int pow = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL;
+    // inner[1].__time_in_stage__copy_3c.control = pow;
+    if (GLOBALS.inner.CURRENT_POWER < GLOBALS.inner.MAXIMUM_POWER) {
+        for (int i = 0; i < 4; i++) {
+            AnmManager::interrupt_tree(inner->options[i].anmId2, 1);
+            inner->options[i].anmId2 = 0;
+        }
+    } else {
+        if (0 < pow) {
+            for (int i = 0; i < pow; i++) {
+                if (auto vm = AnmManager::getVM(inner->options[i].anmId2); vm && !vm->bitflags.f534_27_31) {
+                    vm->bitflags.activeFlags = 0b01;
+                    // auto child = vm->childrens->next;
+                    // while (child) {
+                    // if (child->value) child->value->destroy();
+                    // child = child->next;
+                    //}
+                }
+                inner->options[i].anmId2 = AnmManager::SpawnVM(9, PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
+                auto vm = AnmManager::getVM(inner->options[i].anmId2);
+                // PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
+                // auto vm = AnmManager::allocate_vm();
+                // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm, PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
+                // vm->mode_of_create_child = 2;
+                // inner->options[i].anmId2 = AnmManager::insert_in_world_list_front(&zStack_1c,vm);
+                vm->bitflags.randomMode = 0b1;
+                vm->entity_pos = { 0, -32, 0 };
+                vm->rotation.z = 0.f;
+                vm->update();
+            }
+        }
+    }
+    if (inner->power == pow)
+        return;
 
-      //pzVar14->flags = 2;
+    if (0 < pow) {
+        int i = 0;
+        for (; i < pow; i++) {
+            if (auto vm = AnmManager::getVM(inner->options[i].anmId1); vm && !vm->bitflags.f534_27_31) {
+                vm->bitflags.activeFlags = 0b01;
+                // auto child = vm->childrens->next;
+                // while (child) {
+                // if (child->value) child->value->destroy();
+                // child = child->next;
+                //}
+            }
+            inner->options[i].id = i;
+            inner->options[i].scaled_prefered_pos_rel_to_player[0].x = (int)(PLAYER_PTR->sht_file->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1].asInt() + i].x * 128.f);
+            inner->options[i].scaled_prefered_pos_rel_to_player[0].y = (int)(PLAYER_PTR->sht_file->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1].asInt() + i].y * 128.f);
+            inner->options[i].scaled_prefered_pos_rel_to_player[1].x = (int)(PLAYER_PTR->sht_file->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1 + HARDCODED_DATA["option_count"].asInt()].asInt() + i].x * 128.f);
+            inner->options[i].scaled_prefered_pos_rel_to_player[1].y = (int)(PLAYER_PTR->sht_file->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1 + HARDCODED_DATA["option_count"].asInt()].asInt() + i].y * 128.f);
+            inner->options[i].scaled_cur_pos = inner->integer_pos + inner->options[i].scaled_prefered_pos_rel_to_player[inner->focusing];
+            // inner->options[i].anmId1 = AnmManager::SpawnVM(9, PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
+            inner->options[i].anmId1 = AnmManager::SpawnVM(9, PLAYERS[GLOBALS.inner.CHARACTER]["option"].asInt());
+            AnmVM* vm = AnmManager::getVM(inner->options[i].anmId1);
+            // PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
+            // auto vm = AnmManager::allocate_vm();
+            // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm, PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
+            // vm->mode_of_create_child = 0;
+            // AnmManager::insert_in_world_list_back(piVar18[0x14],vm);
+            vm->bitflags.randomMode = 0b1;
+            vm->bitflags.originMode = 0b01;
+            vm->layer = 14;
+            vm->entity_pos = { 0, -32, 0 };
+            vm->rotation.z = 0.f;
+            vm->update();
 
-      //if (GLOBALS.inner.CHARACTER == 2) {
-      //  piVar18[0x1f] = (int32_t)FUN_00449b10;
-      //}
-      //pzVar14++;
-      //local_2c = (zInt2 *)((int)(local_2c + 0x1c) + 4);
-      //piVar18 += 0x39;
-      //local_30++;
-    } while (false);//(int)fVar10 < GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL);
-    if (3 < 0)/*(uint)fVar10)*/ goto LAB_00449ad2;
-  }
+            inner->options[i].flags = 2;
 
-  //iVar16 = 4 - (int)fVar10;
-  //do {
-  //  pzVar14->flags = 0;
-  //  AnmManager::interrupt_tree(pzVar14->anmId1,1);
-  //  pzVar14 = pzVar14 + 1;
-  //  iVar16 += -1;
-  //} while (iVar16 != 0);
+            if (TOUHOU_VERSION == 17 && GLOBALS.inner.CHARACTER == 2) {
+                inner->options[i].update_code = youmu_option_update_func;
+            }
+        }
+        for (; i < 4; i++)
+            AnmManager::interrupt_tree(inner->options[i].anmId1, 1);
+    } else
+        for (int i = 0; i < 4; i++)
+            AnmManager::interrupt_tree(inner->options[i].anmId1, 1);
 
-LAB_00449ad2:
-  inner->__some_index = pow;
-  inner->options[0].move_instantly = 1;
-  inner->options[1].move_instantly = 1;
-  inner->options[2].move_instantly = 1;
-  inner->options[3].move_instantly = 1;
-  return;
+    inner->power = pow;
+    inner->options[0].move_instantly = 1;
+    inner->options[1].move_instantly = 1;
+    inner->options[2].move_instantly = 1;
+    inner->options[3].move_instantly = 1;
+    return;
 }
 
 Player::~Player()
@@ -198,173 +202,171 @@ Player::~Player()
         UPDATE_FUNC_REGISTRY->unregister(on_draw);
     PLAYER_PTR = nullptr;
 
-    //if (!(GLOBALS.FLAGS & 1)) {
-        //AnmManager::_unload_file(9);
+    if (!(GLOBALS.FLAGS & 1)) {
+        // AnmManager::_unload_file(9);
         if (sht_file) {
             delete sht_file;
             sht_file = NULL;
         }
         ALREADY_LOADED_SHTFILE = NULL;
-    //}
-    //else {
-    //    //AnmManager::remove_anm_of_file(playerAnm);
-    //    ALREADY_LOADED_SHTFILE = sht_file;
-    //}
+    } else {
+        //    //AnmManager::remove_anm_of_file(playerAnm);
+        ALREADY_LOADED_SHTFILE = sht_file;
+    }
 }
 
 int Player::_on_tick()
 {
     INPUT_STRUCT.Update();
+    if (Inputs::Keyboard().Pressed(NSK_p))
+        try_kill();
+
     // movement state
     switch (inner.state) {
-        case 0: // Respawning
-            inner.integer_pos.y = 61440 - (inner.time_in_state * 512) / 3;
-            inner.pos.y = inner.integer_pos.y * 0.0078125;
-            inner.options[0].move_instantly = true;
-            inner.options[1].move_instantly = true;
-            inner.options[2].move_instantly = true;
-            inner.options[3].move_instantly = true;
+    case 0: // Respawning
+        inner.integer_pos.y = 61440 - (inner.time_in_state * 512) / 3;
+        inner.pos.y = inner.integer_pos.y * 0.0078125;
+        inner.options[0].move_instantly = true;
+        inner.options[1].move_instantly = true;
+        inner.options[2].move_instantly = true;
+        inner.options[3].move_instantly = true;
 
-            for (int i = 0; i < 33; i++)
-                unknown_scaled_pos_array[i] = inner.integer_pos;
+        for (int i = 0; i < 33; i++)
+            prev_pos[i] = inner.integer_pos;
 
-            if (inner.time_in_state < 30) {
-                LASER_MANAGER_PTR->cancel_in_radius(death_pos,0,1,((float)inner.time_in_state * 512.0) / 30.0 + 64.0);
-                LASER_MANAGER_PTR->cancel_in_radius(death_pos,0,0,((float)inner.time_in_state * 512.0) / 120.0 + 16.0);
-            } else {
-                if (false) {//if ((((uint8_t)SPELLCARD_PTR->flags & 1) != 0) && (SPELLCARD_PTR->field25_0x74 == 100)) {
-                    //BulletManager::GetInstance()->cancel_radius(&inner.pos,0,128.0);
-                }
-                //BulletManager::GetInstance()->cancel_radius_as_bomb(inner.pos,0,640.0);
-                LASER_MANAGER_PTR->cancel_in_radius(inner.pos,0,0,640.0);
+        if (inner.time_in_state < 30) {
+            LASER_MANAGER_PTR->cancel_in_radius(death_pos, 0, 1, ((float)inner.time_in_state * 512.0) / 30.0 + 64.0);
+            LASER_MANAGER_PTR->cancel_in_radius(death_pos, 0, 0, ((float)inner.time_in_state * 512.0) / 120.0 + 16.0);
+        } else {
+            if (false) { // if ((((uint8_t)SPELLCARD_PTR->flags & 1) != 0) && (SPELLCARD_PTR->field25_0x74 == 100)) {
+                // BulletManager::GetInstance()->cancel_radius(&inner.pos,0,128.0);
+            }
+            // BulletManager::GetInstance()->cancel_radius_as_bomb(inner.pos,0,640.0);
+            LASER_MANAGER_PTR->cancel_in_radius(inner.pos, 0, 0, 640.0);
+        }
+
+        if (inner.time_in_state >= 60) {
+            inner.state = 1;
+            inner.time_in_state = 0;
+        } else
+            break;
+        [[fallthrough]];
+    case 1: // Normal
+        if (false) { // if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ((byte)INPUT_STRUCT.rising_edge & 2)) {
+            // do_bomb();
+        }
+        move();
+        break;
+    case 4: // Deathbomb window
+        if (inner.time_in_state > 7) {
+            die();
+        } else {
+            // if ((GLOBALS.inner.HYPER_FLAGS & 2U) && !(GLOBALS.inner.HYPER_FLAGS & 4U)) {
+            //     FUN_0040f6d0(GOAST_MANAGER_PTR,1);
+            //     inner.time_in_state = 60;
+            // }
+            // if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ((byte)INPUT_STRUCT.rising_edge & 2)) {
+            //     do_bomb();
+            //     inner.time_in_state = 60;
+            // }
+            break;
+        }
+        [[fallthrough]];
+    case 2: // Dying
+        if (inner.time_in_state == 3) {
+            GLOBALS.inner.CURRENT_POWER -= GLOBALS.inner.POWER_PER_LEVEL / 2;
+            if (GLOBALS.inner.CURRENT_POWER < GLOBALS.inner.POWER_PER_LEVEL)
+                GLOBALS.inner.CURRENT_POWER = GLOBALS.inner.POWER_PER_LEVEL;
+
+            for (int i = 0; i < 7; i++) {
+                ITEM_MANAGER_PTR->spawn_item(1, inner.pos, ((i * 3.141593) / 28.0 + math::point_direction(inner.pos.x, inner.pos.y, 0, -224)) - 0.3926991, 3.0, 0, -1);
             }
 
-            if (inner.time_in_state >= 60) {
-                inner.state = 1;
+            ITEM_MANAGER_PTR->spawn_item(GLOBALS.inner.SHOTTYPE + 16, inner.pos + glm::vec3(-16, -96, 0), -1.570796, 2.2, 0, -1);
+            ITEM_MANAGER_PTR->spawn_item(GLOBALS.inner.SHOTTYPE + 16, inner.pos + glm::vec3(+16, -96, 0), -1.570796, 2.2, 0, -1);
+
+            FUN_00449630(&inner);
+        }
+        if (inner.time_in_state > 30) {
+            if (false) { // if (GLOBALS.inner.CURRENT_LIVES < 0 && inner.time_in_state == 31) {
+                // if (REPLAY_MANAGER_PTR->field3_0xc != 1) FUN_004447e0();
+                inner.time_in_state++;
+            } else {
+                // GAME_SPEED = 1.0;
+                inner.state = 0;
+                inner.iframes = 280;
                 inner.time_in_state = 0;
+                // FUN_00449c80(this,inner.pos, 30, 150, 32.f, 16.f);
+                // set_nb_bomb(GLOBALS.inner.field30_0x78);
+                death_pos = inner.pos;
+                inner.integer_pos.x = 0;
+                inner.integer_pos.y = 480 * 128.0;
+                inner.pos.x = 0;
+                inner.pos.y = 480 * 128.0 * 0.0078125;
+                inner.options[0].move_instantly = true;
+                inner.options[1].move_instantly = true;
+                inner.options[2].move_instantly = true;
+                inner.options[3].move_instantly = true;
             }
-            else break;
-            [[fallthrough]];
-        case 1: // Normal
-            if (false) {// if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ((byte)INPUT_STRUCT.rising_edge & 2)) {
-                //do_bomb();
-            }
-            move();
-            break;
-        case 4: // Deathbomb window
-            if (inner.time_in_state > 7) {
-                die();
-            } else {
-                //if ((GLOBALS.inner.HYPER_FLAGS & 2U) && !(GLOBALS.inner.HYPER_FLAGS & 4U)) {
-                //    FUN_0040f6d0(GOAST_MANAGER_PTR,1);
-                //    inner.time_in_state = 60;
-                //}
-                //if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ((byte)INPUT_STRUCT.rising_edge & 2)) {
-                //    do_bomb();
-                //    inner.time_in_state = 60;
-                //}
-                break;
-            }
-            [[fallthrough]];
-        case 2: // Dying
-            if (inner.time_in_state == 3) {
-                // GLOBALS.inner.CURRENT_POWER -= GLOBALS.inner.POWER_PER_LEVEL / 2;
-                // if (GLOBALS.inner.CURRENT_POWER < GLOBALS.inner.POWER_PER_LEVEL) {
-                //     GLOBALS.inner.CURRENT_POWER = GLOBALS.inner.POWER_PER_LEVEL;
-                // }
-                for (int i = 0; i < 7; i++) {
-                    //ItemManager::spawn_item
-                            //(1,inner.pos,in_stack_ffffff98,(((i * 3.141593) / 28.0 + math::point_direction(0,0,inner.pos.x,inner.pos.y-224)) - 0.3926991,3.0,0,fVar17,-1);
-                }
-
-                //ItemManager::spawn_item
-                            //(GLOBALS.inner.GOAST + 16,inner.pos + glm::vec3(-16,-96,0);,in_stack_ffffff98,-1.570796,2.2,0,fVar17,-1);
-                //ItemManager::spawn_item
-                            //(GLOBALS.inner.GOAST + 16,inner.pos + glm::vec3(+16,-96,0);,in_stack_ffffff98,-1.570796,2.2,0,fVar17,-1);
-
-                //FUN_00449630(&inner);
-            }
-            if (inner.time_in_state > 30) {
-                if (false) {//if (GLOBALS.inner.CURRENT_LIVES < 0 && inner.time_in_state == 31) {
-                    //if (REPLAY_MANAGER_PTR->field3_0xc != 1) {
-                    //    FUN_004447e0();
-                    //}
-                    inner.time_in_state++;
-                }
-                else {
-                    //GAME_SPEED = 1.0;
-                    inner.state = 0;
-                    inner.iframes = 280;
-                    inner.time_in_state = 0;
-                    //FUN_00449c80(this,inner.pos, 30, 150, 32.f, 16.f);
-                    //set_nb_bomb(GLOBALS.inner.field30_0x78);
-                    death_pos = inner.pos;
-                    inner.integer_pos.x = 0;
-                    inner.integer_pos.y = 480 * 128.0;
-                    inner.pos.x = 0;
-                    inner.pos.y = 480 * 128.0 * 0.0078125;
-                    inner.options[0].move_instantly = true;
-                    inner.options[1].move_instantly = true;
-                    inner.options[2].move_instantly = true;
-                    inner.options[3].move_instantly = true;
-                }
-            }
-            break;
-        case 3: // IDK
-            if (inner.time_in_state == 15) {
-                LASER_MANAGER_PTR->cancel_all(1);
-            }
+        }
+        break;
+    case 3: // IDK
+        if (inner.time_in_state == 15) {
+            LASER_MANAGER_PTR->cancel_all(1);
+        }
     }
 
-    // damage source
+    // update damage sources
     for (int i = 0; i < 256; i++) {
         if (inner.damage_sources[i].flags & 1) {
-            inner.damage_sources[i].field_0x1c.update_velocities();
-            inner.damage_sources[i].field_0x1c.update_position();
+            inner.damage_sources[i].pos.update_velocities();
+            inner.damage_sources[i].pos.update_position();
             inner.damage_sources[i].field_0x4 += inner.damage_sources[i].field_0x8;
-            inner.damage_sources[i].field_0xc += inner.damage_sources[i].field_0x10;
-            math::angle_normalize(inner.damage_sources[i].field_0xc);
+            inner.damage_sources[i].angle += inner.damage_sources[i].angle_increase;
             inner.damage_sources[i].field_0x84 = 0;
-            inner.damage_sources[i].field_0x64--;
-            if (inner.damage_sources[i].field_0x64 <= 0) {
+            inner.damage_sources[i].time_to_live--;
+            if (inner.damage_sources[i].time_to_live <= 0)
                 inner.damage_sources[i].flags &= 0xfffffffe;
-            }
+
+            math::angle_normalize(inner.damage_sources[i].angle);
         }
     }
 
     // speed boost anim ?
-    if (inner.iframes < 1) {
+    if (inner.iframes <= 0) {
         vm.bitflags.colmode = 0b00;
         if (!(flags & 0x20)) {
             if (speed_multiplier > 1.01) {
                 if (abs(inner.time_in_state) % 8 < 4) {
-                    vm.color2 = {255,255,0,255};
+                    vm.color_2 = { 255, 255, 0, 255 };
                     vm.bitflags.colmode = 0b01;
                 }
-                //playerAnm->create_4112b0(&got, {17, 19, 21}[GLOBALS.inner.CHARACTER],inner.pos,0,-1,0);
-                //playerAnm->set_sprite(AnmManager::get_vm_with_id(got),vm.sprite_id);
+                // playerAnm->create_4112b0(&got, {17, 19, 21}[GLOBALS.inner.CHARACTER],inner.pos,0,-1,0);
+                // playerAnm->set_sprite(AnmManager::get_vm_with_id(got),vm.sprite_id);
             }
-        }
-        else {
+        } else {
             if (abs(inner.time_in_state) % 8 < 4) {
-                vm.color2 = {255,0,0,255};
+                vm.color_2 = { 255, 0, 0, 255 };
                 vm.bitflags.colmode = 0b01;
             }
-            //playerAnm->create_4112b0(&got,{17, 19, 21}[GLOBALS.inner.CHARACTER],inner.pos,0,-1,0);
-            //playerAnm->set_sprite(AnmManager::get_vm_with_id(got),vm.sprite_id);
-            //AnmManager::get_vm_with_id(got).color1 = {255,0,0,255};
+            // playerAnm->create_4112b0(&got,{17, 19, 21}[GLOBALS.inner.CHARACTER],inner.pos,0,-1,0);
+            // playerAnm->set_sprite(AnmManager::get_vm_with_id(got),vm.sprite_id);
+            // AnmManager::get_vm_with_id(got).color1 = {255,0,0,255};
         }
-    }
-    else inner.iframes--;
+    } else
+        inner.iframes--;
 
+    // reset some values
     speed_multiplier = 1.0;
-    __could_be_subsun_pull_direction = {0,0,0};
+    __could_be_subsun_pull_direction = { 0, 0, 0 };
+
+    // update vm
     vm.update();
 
-    // scale boxes
+    // scale player
     if (!(flags & 0x10)) {
         vm.bitflags.scaled = 0b1;
-        vm.scale = {1,1};
+        vm.scale = { 1, 1 };
         hurtbox.min_pos = inner.pos - hurtbox_halfsize;
         hurtbox.max_pos = inner.pos + hurtbox_halfsize;
         item_collect_box.min_pos = inner.pos - item_attract_box_unfocused_halfsize * 0.5f;
@@ -380,7 +382,8 @@ int Player::_on_tick()
 
         if ((player_scale_i.end_time == 0) || (inner.time_in_state % 3))
             vm.scale.x = vm.scale.y = player_scale__requires_flag_0x10__from_ddc;
-        else vm.scale = {1.f, 1.f};
+        else
+            vm.scale = { 1.f, 1.f };
         vm.bitflags.scaled = 0b1;
 
         hurtbox.min_pos = inner.pos - hurtbox_halfsize * player_scale__requires_flag_0x10__from_ddc;
@@ -397,240 +400,271 @@ int Player::_on_tick()
     inner.time_in_stage++;
     inner.__time_in_stage__copy_3c++;
 
-    if (true) {//if (!GUI_PTR->msg && ENEMY_MANAGER_PTR && ENEMY_MANAGER_PTR->enemy_count_real && !(GAME_THREAD_PTR->flags & 0x4000U) && inner.time_in_stage >= 20 && (~(flags >> 2) & 1) != 0 && !(flags & 0x10U)) {
+    if (true) { // if (!GUI_PTR->msg && ENEMY_MANAGER_PTR && ENEMY_MANAGER_PTR->enemy_count_real && !(GAME_THREAD_PTR->flags & 0x4000U) && inner.time_in_stage >= 20 && (~(flags >> 2) & 1) != 0 && !(flags & 0x10U)) {
         check_shoot();
     } else {
         inner.shoot_key_short_timer = -1;
         inner.shoot_key_long_timer = -1;
 
-        // looks like a timer reset
         // Maybe youmu related
-        //field37_0x19040 = 0;
-        //field38_0x19044 = 0;
-        //if (!(field46_0x19090 & 1)) {
-        //    field45_0x1908c = 0;
-        //    field46_0x19090 |= 1;
-        //}
-        //field43_0x19084 = 0;
-        //field44_0x19088 = 0;
-        //field42_0x19080 = -1;
+        field_0x19080 = 0;
+        field_0x19040 = 0;
+        field_0x19044 = 0;
 
-        //AnmManager::get_vm_with_id(field47_0x19094).delete();
-        //field47_0x19094 = 0;
+        AnmManager::deleteVM(extra_anm_id.val);
+        extra_anm_id = 0;
 
-        //for (int i = 0; i < 12; i++) {
-        //    if ((int)(&DAT_0052480c)[i] < 0) {
-        //        (&DAT_0052480c)[i] = 31;
-        //        (&DAT_0052483c)[i] = -1;
-        //        break;
-        //    }
-        //    if ((&DAT_0052480c)[i] == 31) {
-        //        (&DAT_0052483c)[i] = -1;
-        //        break;
-        //    }
-        //}
-        //for (int i = 0; i < 12; i++) {
-        //    if ((int)(&DAT_0052480c)[i] < 0) {
-        //        (&DAT_0052480c)[i] = 55;
-        //        (&DAT_0052483c)[i] = -1;
-        //        break;
-        //    }
-        //    if ((&DAT_0052480c)[i] == 55) {
-        //        (&DAT_0052483c)[i] = -1;
-        //        break;
-        //    }
-        //}
+        // for (int i = 0; i < 12; i++) {
+        //     if ((int)(&DAT_0052480c)[i] < 0) {
+        //         (&DAT_0052480c)[i] = 31;
+        //         (&DAT_0052483c)[i] = -1;
+        //         break;
+        //     }
+        //     if ((&DAT_0052480c)[i] == 31) {
+        //         (&DAT_0052483c)[i] = -1;
+        //         break;
+        //     }
+        // }
+        // for (int i = 0; i < 12; i++) {
+        //     if ((int)(&DAT_0052480c)[i] < 0) {
+        //         (&DAT_0052480c)[i] = 55;
+        //         (&DAT_0052483c)[i] = -1;
+        //         break;
+        //     }
+        //     if ((&DAT_0052480c)[i] == 55) {
+        //         (&DAT_0052483c)[i] = -1;
+        //         break;
+        //     }
+        // }
     }
 
     for (int i = 0; i < 256; i++) {
-        if (inner.bullets[i].active) inner.bullets[i].update();
+        if (inner.bullets[i].active)
+            inner.bullets[i].update();
     }
 
-    //if (auto vm = AnmManager::get_vm_with_id(field47_0x19094), vm)
-    //    vm->entity_pos = inner.pos;
-    //else field47_0x19094 = 0;
+    // youmu charge anim ?
+    if (auto vm_ = AnmManager::getVM(extra_anm_id); vm_)
+        vm_->entity_pos = inner.pos;
+    else
+        extra_anm_id = 0;
 
     flags &= 0xffffffbf;
     return 1;
 }
 
+int create_damage_source(glm::vec3 const& pos, float angle, int timeToLive, int damage, float w, float h)
+{
+    math::angle_normalize(angle);
+
+    // find damage source index
+    int id = PLAYER_PTR->inner.last_created_damage_source_index;
+    for (int i = 0; i < 257; i++) {
+        id = (id + 1) % 256;
+        if (!(PLAYER_PTR->inner.damage_sources[id].flags & 1))
+            break;
+        if (i == 256) {
+            PLAYER_PTR->inner.last_created_damage_source_index = id;
+            return id + 1;
+        }
+    }
+
+    PLAYER_PTR->inner.damage_sources[id].flags = (PLAYER_PTR->inner.damage_sources[id].flags & 0xfffffff9) | 1;
+    PLAYER_PTR->inner.damage_sources[id].pos = {};
+    PLAYER_PTR->inner.damage_sources[id].pos.pos = pos;
+    PLAYER_PTR->inner.damage_sources[id].hitbox = { w, h };
+    PLAYER_PTR->inner.damage_sources[id].angle = angle;
+    PLAYER_PTR->inner.damage_sources[id].angle_increase = 0;
+    PLAYER_PTR->inner.damage_sources[id].time_to_live = timeToLive;
+    PLAYER_PTR->inner.damage_sources[id].damage = damage;
+    PLAYER_PTR->inner.damage_sources[id].field_0x78 = 0;
+    PLAYER_PTR->inner.damage_sources[id].field_0x7c = 9999999;
+    PLAYER_PTR->inner.damage_sources[id].field_0x80 = 1;
+    PLAYER_PTR->inner.damage_sources[id].ds_on_hit = 0;
+    PLAYER_PTR->inner.damage_sources[id].field_0x84 = 0;
+    PLAYER_PTR->inner.damage_sources[id].field_0x88 = 0;
+    PLAYER_PTR->inner.damage_sources[id].field_0x8c = 0;
+    PLAYER_PTR->inner.last_created_damage_source_index = id;
+    return id + 1;
+}
+
+void Player::set_pos(glm::vec3 const& p)
+{
+    inner.integer_pos = { p.x * 128, p.y * 128 };
+    inner.pos = glm::vec3(inner.integer_pos.x, inner.integer_pos.y, 0) / 128.f;
+    inner.options[0].move_instantly = true;
+    inner.options[1].move_instantly = true;
+    inner.options[2].move_instantly = true;
+    inner.options[3].move_instantly = true;
+}
+
 void Player::check_shoot()
 {
+    // for youmu ?
     if (inner.state != 1) {
-        //field29_0x19040 = 0;
-        //*(undefined *)&field30_0x19044 = 0;
-        //if (field35_0x19084 == 0) {
-        //    return;
-        //}
-        //FUN_004655d0(0x1e);
-        //FUN_004655d0(0x37);
-        //AnmVm::delete_by_id(field39_0x19094);
-        //field39_0x19094 = 0;
-        //if (!(field38_0x19090 & 1)) {
-        //    field37_0x1908c = 0;
-        //    field38_0x19090 |= 1;
-        //}
-        //field35_0x19084 = 0;
-        //field36_0x19088 = 0;
-        //field34_0x19080 = 0xffffffff;
-        return;
-    }
+        field_0x19040 = 0;
+        field_0x19044 = 0;
 
-    //if (GLOBALS.inner.CHARACTER == 2) {
-    //    uVar3 = (uint)GLOBALS.inner.HYPER_FLAGS >> 1 & 1;
-    //    if ((uVar3 == 0) || (GLOBALS.inner.field44_0xe0 != 3)) {
-    //    if ((uVar3 == 0) || (GLOBALS.inner.field44_0xe0 != 1)) {
-    //        if ((this->inner).focusing == 0) goto LAB_0044ab18;
-    //        if ((((byte)INPUT_STRUCT.input & 1) != 0) && (-1 < (int)this->field35_0x19084)) {
-    //        if (this->field35_0x19084 == 0) {
-    //            SoundManager::play_sound_at_position(0x1e);
-    //            if (GLOBALS.inner.GOAST == 0) {
-    //            iVar6 = 0x14;
-    //            }
-    //            else {
-    //            iVar6 = 0x13;
-    //            }
-    //            pzVar4 = AnmLoaded::create_4112b0
-    //                            (PLAYER_PTR->playerAnm,&local_14,iVar6,&(this->inner).pos,0,-1,
-    //                                (zAnmId)0x0);
-    //            this->field39_0x19094 = pzVar4->value;
-    //        }
-    //        Timer::increment((zTimer *)&this->field34_0x19080);
-    //        FUN_004655a0(0x1e);
-    //        FUN_004655a0(0x37);
-    //        if (this->field35_0x19084 != 0x3c) {
-    //            return 0;
-    //        }
-    //        FUN_004655d0(0x1e);
-    //        SoundManager::play_sound_at_position(0x37);
-    //        AnmManager::interrupt_tree(this->field39_0x19094,2);
-    //        return 0;
-    //        }
-    //        if (0 < (int)this->field35_0x19084) {
-    //        FUN_004655d0(0x1e);
-    //        FUN_004655d0(0x37);
-    //        AnmVm::delete_by_id((zAnmId)this->field39_0x19094);
-    //        pzVar5 = (zTimer *)&this->field34_0x19080;
-    //        this->field39_0x19094 = 0;
-    //        if (0x3b < (int)this->field35_0x19084) goto LAB_0044a95f;
-    //        goto LAB_0044ab06;
-    //        }
-    //        if (-1 < (int)this->field35_0x19084) {
-    //        return 0;
-    //        }
-    //    }
-    //    else if (-1 < (int)this->field35_0x19084) {
-    //        if (((byte)INPUT_STRUCT.input & 1) == 0) {
-    //        return 0;
-    //        }
-    //        AnmVm::delete_by_id((zAnmId)this->field39_0x19094);
-    //        this->field39_0x19094 = 0;
-    //    LAB_0044a95f:
-    //        Timer::set_value((zTimer *)&this->field34_0x19080,-0x28);
-    //        fVar1 = (this->inner).pos.z;
-    //        *(undefined8 *)&this->field40_0x19098 = *(undefined8 *)&(this->inner).pos;
-    //        this->field42_0x190a0 = fVar1;
-    //        return 0;
-    //    }
-    //    local_18 = (this->inner).pos.z;
-    //    local_20 = *(undefined8 *)&(this->inner).pos;
-    //    FUN_0044a0f0(this,(float *)&this->field40_0x19098);
-    //    FUN_0044a710(p1,this->field35_0x19084 + 0x28,0);
-    //    FUN_0044a0f0(this,(float *)&local_20);
-    //    Timer::increment((zTimer *)&this->field34_0x19080);
-    //    pzVar5 = extraout_ECX;
-    //    if ((int)this->field35_0x19084 < 0) {
-    //        return 0;
-    //    }
-    //    LAB_0044ab06:
-    //    Timer::set_value(pzVar5,0);
-    //    return 0;
-    //    }
-    //    LAB_0044ab18:
-    //    if ((int)this->field35_0x19084 < 1) {
-    //    if ((int)this->field35_0x19084 < 0) {
-    //        local_18 = (this->inner).pos.z;
-    //        local_20 = *(undefined8 *)&(this->inner).pos;
-    //        iVar2 = (this->inner).focusing;
-    //        (this->inner).focusing = 1;
-    //        FUN_0044a0f0(this,(float *)&this->field40_0x19098);
-    //        FUN_0044a710(p2,this->field35_0x19084 + 0x28,0);
-    //        FUN_0044a0f0(this,(float *)&local_20);
-    //        (this->inner).focusing = iVar2;
-    //        Timer::increment((zTimer *)&this->field34_0x19080);
-    //    }
-    //    }
-    //    else {
-    //    FUN_004655d0(0x1e);
-    //    FUN_004655d0(0x37);
-    //    AnmVm::delete_by_id((zAnmId)this->field39_0x19094);
-    //    this->field39_0x19094 = 0;
-    //    if ((int)this->field35_0x19084 < 0x3c) {
-    //        Timer::set_value((zTimer *)&this->field34_0x19080,0);
-    //    }
-    //    else {
-    //        Timer::set_value((zTimer *)&this->field34_0x19080,-0x28);
-    //        fVar1 = (this->inner).pos.z;
-    //        *(undefined8 *)&this->field40_0x19098 = *(undefined8 *)&(this->inner).pos;
-    //        this->field42_0x190a0 = fVar1;
-    //    }
-    //    }
-    //}
-
-    if (inner.shoot_key_short_timer < 0) {
-        if (!(INPUT_STRUCT.input & 1)) goto LAB_0044ac8d;
-        inner.shoot_key_short_timer = 0;
-    }
-    shoot(inner.shoot_key_short_timer,inner.shoot_key_long_timer);
-    if (inner.shoot_key_short_timer < 14) {
-        inner.shoot_key_short_timer++;
-    }
-    else if (!(INPUT_STRUCT.input & 1)) {
-        inner.shoot_key_short_timer = -1;
-    }
-    else {
-        inner.shoot_key_short_timer -= 14;
-    }
-    LAB_0044ac8d:
-    if (inner.shoot_key_long_timer < 0) {
-        return;
-    }
-    if (0x76 < inner.shoot_key_long_timer) {
-        if (INPUT_STRUCT.input & 1) {
-            inner.shoot_key_long_timer -= 0x77;
+        if (field_0x19080 == 0) {
             return;
         }
-        inner.shoot_key_long_timer = -1;
+
+        // FUN_004655d0(0x1e);
+        // FUN_004655d0(0x37);
+
+        AnmManager::deleteVM(extra_anm_id.val);
+        extra_anm_id = 0;
+
+        field_0x19080 = 0;
         return;
     }
-    inner.shoot_key_long_timer++;
+
+    // youmu shoot code
+    if (GLOBALS.inner.CHARACTER /*GLOBALS.inner.CHARACTER*/ == 2 && TOUHOU_VERSION == 17) {
+        if (true) { //(((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) == 0) || (GLOBALS.inner.field44_0xe0 != 3)) {
+            if (true) { // (((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) == 0) || (GLOBALS.inner.field44_0xe0 != 1)) {
+                if (!inner.focusing)
+                    goto LAB_0044ab18;
+                if ((INPUT_STRUCT.input & 1) && field_0x19080 >= 0) {
+                    if (field_0x19080 == 0) {
+                        //                    SoundManager::play_sound_at_position(31);
+                        if (GLOBALS.inner.SHOTTYPE == 0)
+                            extra_anm_id = AnmManager::SpawnVM(9, 20); // PLAYER_PTR->playerAnm->create_4112b0(nullptr, 20, inner.pos, 0, -1, nullptr);
+                        else
+                            extra_anm_id = AnmManager::SpawnVM(9, 19); // PLAYER_PTR->playerAnm->create_4112b0(nullptr, 19, inner.pos, 0, -1, nullptr);
+                    }
+                    field_0x19080++;
+                    //                FUN_004655a0(31, inner.pos.x);
+                    //                FUN_004655a0(55, inner.pos.x);
+                    if (field_0x19080 == 60) {
+                        //                    FUN_004655d0(31);
+                        //                    SoundManager::play_sound_at_position(55);
+                        AnmManager::interrupt_tree(extra_anm_id, 2);
+                    }
+                    return;
+                }
+                if (field_0x19080 > 0) {
+                    //                FUN_004655d0(31);
+                    //                FUN_004655d0(55);
+                    AnmManager::deleteVM(extra_anm_id.val);
+                    extra_anm_id = 0;
+                    if (field_0x19080 >= 60) {
+                        field_0x19080 = -40;
+                        field_0x19098 = inner.pos;
+                    } else
+                        field_0x19080 = 0;
+                    return;
+                }
+                if (field_0x19080 >= 0)
+                    return;
+            } else if (field_0x19080 >= 0) {
+                if (INPUT_STRUCT.input & 1) {
+                    AnmManager::deleteVM(extra_anm_id.val);
+                    extra_anm_id = 0;
+                    field_0x19080 = -40;
+                    field_0x19098 = inner.pos;
+                }
+                return;
+            }
+            glm::vec3 old_pos = inner.pos;
+            set_pos(field_0x19098);
+            shoot(field_0x19080 + 40, 0);
+            set_pos(old_pos);
+            field_0x19080++;
+            if (field_0x19080 < 0)
+                return;
+            field_0x19080 = 0;
+            return;
+        }
+    LAB_0044ab18:
+        if (field_0x19080 < 1) {
+            if (field_0x19080 < 0) {
+                bool temp = inner.focusing;
+                inner.focusing = 1;
+                glm::vec3 old_pos = inner.pos;
+                set_pos(field_0x19098);
+                shoot(field_0x19080 + 40, 0);
+                set_pos(old_pos);
+                inner.focusing = temp;
+                field_0x19080++;
+            }
+        } else {
+            //        FUN_004655d0(31);
+            //        FUN_004655d0(55);
+            AnmManager::deleteVM(extra_anm_id.val);
+            extra_anm_id = 0;
+            if (field_0x19080 < 60)
+                field_0x19080 = 0;
+            else {
+                field_0x19080 = -40;
+                field_0x19098 = inner.pos;
+            }
+        }
+    }
+
+    if (inner.shoot_key_short_timer < 0) {
+        if (!(INPUT_STRUCT.input & 1)) {
+            if (inner.shoot_key_long_timer > 0x76) {
+                // if (INPUT_STRUCT.input & 1) inner.shoot_key_long_timer -= 0x77;
+                /*else*/ inner.shoot_key_long_timer = -1;
+            } else if (inner.shoot_key_long_timer >= 0)
+                inner.shoot_key_long_timer++;
+            return;
+        }
+        inner.shoot_key_short_timer = 0;
+    }
+    shoot(inner.shoot_key_short_timer, inner.shoot_key_long_timer);
+
+    if (inner.shoot_key_short_timer < 14) {
+        inner.shoot_key_short_timer++;
+    } else if (INPUT_STRUCT.input & 1) {
+        inner.shoot_key_short_timer -= 14;
+    } else {
+        inner.shoot_key_short_timer = -1;
+    }
+
+    if (inner.shoot_key_long_timer > 0x76) {
+        if (INPUT_STRUCT.input & 1)
+            inner.shoot_key_long_timer -= 0x77;
+        else
+            inner.shoot_key_long_timer = -1;
+    } else if (inner.shoot_key_long_timer >= 0)
+        inner.shoot_key_long_timer++;
 }
 
 void Player::shoot(int short_tmr, int long_tmr)
 {
-    int shooter_set = 0;//(GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL);
-    if (inner.focusing) shooter_set += sht_file->header.pwr_lvl_cnt + 1;
+    // get shooterset
+    size_t shooter_set = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL;
+    if (inner.focusing)
+        shooter_set += sht_file->header.pwr_lvl_cnt + 1;
 
-    //if ((((GLOBALS.inner.HYPER_FLAGS >> 1 & 1) == 0) || (GLOBALS.inner.field44_0xe0 != 1)) || ((GLOBALS.inner.HYPER_FLAGS & 4U) != 0)) {
-    //    if ((((GLOBALS.inner.HYPER_FLAGS >> 1 & 1) != 0) && (GLOBALS.inner.field44_0xe0 == 3)) && ((GLOBALS.inner.HYPER_FLAGS & 4U) == 0)) {
-    //        shooter_set = (GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL) + 15;
-    //    }
-    //}
-    //else {
-    //    shooter_set = (GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL) + 10;
-    //}
+    // special shooterset for hyper
+    if ((((GLOBALS.inner.HYPER_FLAGS >> 1 & 1) == 0) /*|| (GLOBALS.inner.field44_0xe0 != 1)*/) || ((GLOBALS.inner.HYPER_FLAGS & 4U) != 0)) {
+        if ((((GLOBALS.inner.HYPER_FLAGS >> 1 & 1) != 0) /*&& (GLOBALS.inner.field44_0xe0 == 3)*/) && ((GLOBALS.inner.HYPER_FLAGS & 4U) == 0)) {
+            shooter_set = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL + 15;
+        }
+    } else {
+        shooter_set = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL + 10;
+    }
 
+    if (shooter_set >= sht_file->shooters.size())
+        return;
     auto shooters = sht_file->shooters[shooter_set];
 
+    // shoot all shooters in set
     for (size_t i = 0; i < shooters.size(); i++) {
+        // check time
         if ((shooters[i].long_fire_rate == 0) ? (short_tmr % shooters[i].fire_rate) == shooters[i].start_delay : (long_tmr % shooters[i].long_fire_rate) == shooters[i].long_start_delay) {
-            if (shooters[i].__unknown_21 == 2) {
-                //if ((inner.field18_0x187f0[(shooters[i].option < 0x10) ? shooters[i].option & 0xf : shooters[i].option >> 4] != 0) continue;
-            }
-            for (int j = 0; j < 0x100; j++)
-            {
+            // idk
+            if (shooters[i].__unknown_21__2_is_unique_bullet == 2)
+                if (inner.unique_bullets[(shooters[i].option < 0x10) ? shooters[i].option & 0xf : shooters[i].option >> 4])
+                    continue;
+
+            // spawn using first free bullet
+            for (int j = 0; j < 0x100; j++) {
                 if (inner.bullets[j].active == 0) {
-                    inner.bullets[j].init((shooter_set << 8 | i),short_tmr,inner);
+                    inner.bullets[j].init((shooter_set << 8 | i), short_tmr, inner);
                     break;
                 }
             }
@@ -640,28 +674,37 @@ void Player::shoot(int short_tmr, int long_tmr)
 
 void PlayerBullet_t::init(int shter, int tmer [[maybe_unused]], PlayerInner_t& inner)
 {
-    auto shooter = PLAYER_PTR->sht_file->shooters[shter >> 8][shter &0xff];
-    active = 1;
+    // get shooter that shooted this bullet
+    auto shooter = PLAYER_PTR->sht_file->shooters[shter >> 8][shter & 0xff];
     this->shter = shter;
-    __field_c = 0;
 
+    // some init
+    active = 1;
+    flags |= 1;
+    __field_c = 0;
     damage = shooter.damage;
     hitbox.x = shooter.hitbox.x;
     hitbox.y = shooter.hitbox.y;
-    pos={};
-    if ((shooter.option & 0xf) == 0) pos.pos = inner.pos;
-    else pos.pos = {inner.options[((int)(char)shooter.option & 0xfu) * 0xe4].scaled_cur_pos.x * 0.0078125f,inner.options[((int)(char)shooter.option & 0xfu) * 0xe4].scaled_cur_pos.y * 0.0078125f,0.f};
-
-    if (shooter.__unknown_21 == 2) {
-        //inner.field18_0x187f0[(shooter.option < 0x10) ? shooter.option & 0xf : shooter.option >> 4] = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL;
-    }
-
+    pos = {};
     pos.speed = shooter.speed;
-
     pos.angle = shooter.angle;
+
+    // set position
+    if ((shooter.option & 0xf) == 0)
+        pos.pos = inner.pos;
+    else
+        pos.pos = { inner.options[shooter.option - 1].scaled_cur_pos.x * 0.0078125f, inner.options[shooter.option - 1].scaled_cur_pos.y * 0.0078125f, 0.f };
+
+    // marisa lasers
+    if (shooter.__unknown_21__2_is_unique_bullet == 2)
+        inner.unique_bullets[(shooter.option < 0x10) ? shooter.option & 0xf : shooter.option >> 4] = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL;
+
+    // special angle
     if (pos.angle < 1000.0) {
-        if (pos.angle < 995.0) math::angle_normalize(pos.angle);
-        else if ((shooter.option & 0xf) == 0) math::angle_normalize(pos.angle);
+        if (pos.angle < 995.0)
+            math::angle_normalize(pos.angle);
+        else if ((shooter.option & 0xf) == 0)
+            math::angle_normalize(pos.angle);
         else {
             pos.angle = inner.options[((int)(char)shooter.option & 0xfU) - 1].shoot_angle_maybe;
             math::angle_normalize(pos.angle);
@@ -670,123 +713,119 @@ void PlayerBullet_t::init(int shter, int tmer [[maybe_unused]], PlayerInner_t& i
         if ((shooter.option & 0xf) != 0) {
             pos.angle = (Random::Floatm11() * 3.141593) / 12.0 + inner.options[((int)(char)shooter.option & 0xfU) - 1].shoot_angle_maybe;
             math::angle_normalize(pos.angle);
-            (this->pos).speed = 2*Random::Floatm11() + shooter.speed;
+            pos.speed = 2 * Random::Floatm11() + shooter.speed;
         } else {
             math::angle_normalize(pos.angle);
         }
     }
 
+    // go back one frame
     pos.update_velocities();
     pos.pos.x += shooter.offset.x - pos.velocity.x;
     pos.pos.y += shooter.offset.y - pos.velocity.y;
 
-    //PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
-    //pzVar5 = AnmManager::allocate_vm();
-    //PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(pzVar5,&shooter.anm + 5);
-    //pzVar5->bitflags.randomMode = 0b1;
-    //pzVar5->entity_pos = pos.pos;
-    //pzVar5->update();
-    //pzVar5->mode_of_create_child = 0;
-    //AnmManager::insert_in_world_list_back(local_30,pzVar5);
-    //anmId = pzVar5 ? local_30->value : 0;
-    //if (pzVar5->bitflags.autoRotate) {
-    //    pzVar5->bitflags.rotated = 0b1;
-    //    pzVar5->rotation.z = shooter.angle;
-    //}
-
-    // create damageSource
-    //damageSourceId = FUN_00449de0((undefined8 *)&this->pos,(this->pos).angle,9999999,damage);
-    inner.damage_sources[damageSourceId].field_0x98 = 1;
-    inner.damage_sources[damageSourceId].field_0x90 = id;
-    inner.damage_sources[damageSourceId].field_0x7c = 10000000;
-
-    flags |= 1;
-
-    if (shooter.on_init && shooter.on_init()) {
-        active = 0;
-        //AnmVm::delete_by_id(anmId);
-        inner.damage_sources[damageSourceId].flags &= 0xfffffffe;
+    // spawn bullet vm
+    // PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
+    // pzVar5 = AnmManager::allocate_vm();
+    // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(pzVar5,&shooter.anm + 5);
+    // pzVar5->mode_of_create_child = 0;
+    // AnmManager::insert_in_world_list_back(local_30,pzVar5);
+    // anmId = pzVar5 ? local_30->value : 0;
+    anmId = AnmManager::SpawnVM(9, shooter.anm + 5);
+    auto vm = AnmManager::getVM(anmId);
+    vm->bitflags.randomMode = 0b1;
+    vm->entity_pos = pos.pos;
+    vm->update();
+    if (vm->bitflags.autoRotate) {
+        vm->bitflags.rotated = 0b1;
+        vm->rotation.z = shooter.angle;
     }
 
-    //if (shooter.sfx_hit >= 0) SoundManager::play_sound_at_position(shooter.sfx_hit);
+    // create damageSource
+    damageSourceId = create_damage_source(pos.pos, pos.angle, 9999999, damage, hitbox.x, hitbox.y);
+    inner.damage_sources[damageSourceId - 1].ds_on_hit = 1;
+    inner.damage_sources[damageSourceId - 1].bullet_id = id;
+    inner.damage_sources[damageSourceId - 1].field_0x7c = 10000000;
+
+    // call special init func
+    if (shooter.on_init && shooter.on_init(this)) {
+        active = 0;
+        vm->destroy();
+        inner.damage_sources[damageSourceId - 1].flags &= 0xfffffffe;
+    }
+
+    // play spawn sound (why sfx_hit though)
+    // if (shooter.sfx_hit >= 0) SoundManager::play_sound_at_position(shooter.sfx_hit);
 }
 
 void PlayerBullet_t::update()
 {
-    auto shooter = PLAYER_PTR->sht_file->shooters[shter >> 8][shter &0xff];
-    if (shooter.on_tick && shooter.on_tick()) return;
+    // get shooter that shooted the bullet
+    auto shooter = PLAYER_PTR->sht_file->shooters[shter >> 8][shter & 0xff];
 
+    // special update func
+    if (shooter.on_tick && shooter.on_tick(this))
+        return;
+
+    // update pos and velocity
     pos.update_velocities();
     pos.update_position();
 
-    auto vm = (AnmVM*)nullptr; //AnmManager::get_vm_with_id(anmId);
+    // update vm
+    auto vm = AnmManager::getVM(anmId);
     if (!vm) {
         active = 0;
         anmId = 0;
-        if (damageSourceId) PLAYER_PTR->inner.damage_sources[damageSourceId].flags &= 0xfffffffe;
+        if (damageSourceId)
+            PLAYER_PTR->inner.damage_sources[damageSourceId - 1].flags &= 0xfffffffe;
         return;
     }
-
-    //if (*(char *)(iVar5 + 0x21) != 2) {
-    //    AnmVm::write_sprite_corners_2d(vm,&local_44);
-    //    if (0xe < (__field_c).current) {
-    //    fVar10 = (float)DAT_0052471c;
-    //    if ((fVar10 < local_44.x) && (local_44.x < fVar10 + 384.0)) {
-    //        if (((float)DAT_00524720 < local_44.y) && (local_44.y < (float)DAT_00524720 + 448.0))
-    //        goto LAB_0044af7d;
-    //    }
-    //    if ((fVar10 < local_38) && (local_38 < fVar10 + 384.0)) {
-    //        if (((float)DAT_00524720 < local_34) && (local_34 < (float)DAT_00524720 + 448.0))
-    //        goto LAB_0044af7d;
-    //    }
-    //    if ((fVar10 < local_2c) && (local_2c < fVar10 + 384.0)) {
-    //        if (((float)DAT_00524720 < local_28) && (local_28 < (float)DAT_00524720 + 448.0))
-    //        goto LAB_0044af7d;
-    //    }
-    //    if ((fVar10 < local_20) && (local_20 < fVar10 + 384.0)) {
-    //        if (((float)DAT_00524720 < local_1c) && (local_1c < (float)DAT_00524720 + 448.0))
-    //        goto LAB_0044af7d;
-    //    }
-    //    AnmVm::delete_by_id((zAnmId)field2_0x8);
-    //    field2_0x8 = 0;
-    //    field7_0x8c = 0;
-    //    if (damageSourceId != 0) {
-    //        puVar7 = (uint *)FUN_0040de80(damageSourceId);
-    //        *puVar7 = *puVar7 & 0xfffffffe;
-    //    }
-    //    return;
-    //    }
-    //}
-//LAB_0044af7d:
-
-    if (damageSourceId && (flags & 1)) {
-        PLAYER_PTR->inner.damage_sources[damageSourceId - 1].field_0x1c.pos = pos.pos;
-        PLAYER_PTR->inner.damage_sources[damageSourceId - 1].field_0x8 = pos.angle;
-        //*(undefined4 *)(&PLAYER_PTR->inner.bullets[0xff] + damageSourceId * 0x9c + 0x5c) = hitbox.x;
-        //*(undefined4 *)(&PLAYER_PTR->inner.bullets[0xff] + damageSourceId * 0x9c + 0x60) = hitbox.y;
-        //(PLAYER_PTR->inner).damage_sources[damageSourceId - 1].field10_0x64.control = field11_0x9c;
-    }
-
     vm->entity_pos = pos.pos;
     if (vm->bitflags.autoRotate) {
         vm->bitflags.rotated = 0b1;
         vm->rotation.z = pos.angle;
     }
 
+    // check offscreen
+    if (shooter.__unknown_21__2_is_unique_bullet != 2) {
+        glm::vec2 corners[4];
+        vm->getSpriteCorners2D(corners);
+        if (0xe < __field_c) {
+            float DAT_00524720 = 0, DAT_0052471c = -192.f;
+            if ((DAT_0052471c > corners[0].x || corners[0].x > DAT_0052471c + 384.0 || DAT_00524720 > corners[0].y || corners[0].y > DAT_00524720 + 448.0) && (DAT_0052471c > corners[1].x || corners[1].x > DAT_0052471c + 384.0 || DAT_00524720 > corners[1].y || corners[1].y > DAT_00524720 + 448.0) && (DAT_0052471c > corners[2].x || corners[2].x > DAT_0052471c + 384.0 || DAT_00524720 > corners[2].y || corners[2].y > DAT_00524720 + 448.0) && (DAT_0052471c > corners[3].x || corners[3].x > DAT_0052471c + 384.0 || DAT_00524720 > corners[3].y || corners[3].y > DAT_00524720 + 448.0)) {
+                AnmManager::deleteVM(anmId.val);
+                anmId = 0;
+                active = 0;
+                if (damageSourceId)
+                    PLAYER_PTR->inner.damage_sources[damageSourceId - 1].flags &= 0xfffffffe;
+                return;
+            }
+        }
+    }
+
+    // update my damage source
+    if (damageSourceId && (flags & 1)) {
+        PLAYER_PTR->inner.damage_sources[damageSourceId - 1].pos.pos = pos.pos;
+        PLAYER_PTR->inner.damage_sources[damageSourceId - 1].angle = pos.angle;
+        PLAYER_PTR->inner.damage_sources[damageSourceId - 1].hitbox = hitbox;
+        PLAYER_PTR->inner.damage_sources[damageSourceId - 1].damage = damage;
+    }
+
+    // time alive ?
     __field_c++;
     return;
 }
 
 const int PlayerMovement__dirTable[] = {
-     0,  0,
-     0, -1,
-     0,  1,
-    -1,  0,
-     1,  0,
+    0, 0,
+    0, -1,
+    0, 1,
+    -1, 0,
+    1, 0,
     -1, -1,
-     1, -1,
-    -1,  1,
-     1,  1
+    1, -1,
+    -1, 1,
+    1, 1
 };
 
 void Player::move_options(PlayerOption_t* options, uint cnt)
@@ -804,14 +843,15 @@ void Player::move_options(PlayerOption_t* options, uint cnt)
                 }
             } else {
                 o.scaled_prefered_pos = o.scaled_prefered_pos_rel_to_player[inner.focusing] + inner.integer_pos;
-                if (o.__some_code) o.__some_code();
+                if (o.update_code)
+                    o.update_code(&o);
             }
 
             if (o.move_instantly) {
                 o.scaled_cur_pos = o.scaled_prefered_pos;
                 o.move_instantly = false;
             } else {
-                if (0x1d < __some_other_ctr) {
+                if (__some_other_ctr >= 30) {
                     if ((((o.scaled_prefered_pos.x - o.scaled_cur_pos.x) * __some_other_ctr) / 100 == 0) && (((o.scaled_prefered_pos.y - o.scaled_cur_pos.y) * __some_other_ctr) / 100 == 0))
                         o.scaled_cur_pos = o.scaled_prefered_pos;
                     else {
@@ -821,8 +861,10 @@ void Player::move_options(PlayerOption_t* options, uint cnt)
                 }
             }
 
-            if (auto vm = AnmManager::getVM(o.anmId1.val); vm) vm->entity_pos = glm::vec3(o.scaled_cur_pos.x*0.0078125f, o.scaled_cur_pos.y*0.0078125f, 0.f);
-            if (auto vm = AnmManager::getVM(o.anmId2.val); vm) vm->entity_pos = glm::vec3(o.scaled_cur_pos.x*0.0078125f, o.scaled_cur_pos.y*0.0078125f, 0.f);
+            if (auto vm_ = AnmManager::getVM(o.anmId1.val); vm_)
+                vm_->entity_pos = glm::vec3(o.scaled_cur_pos.x, o.scaled_cur_pos.y, 0.f) / 128.f;
+            if (auto vm_ = AnmManager::getVM(o.anmId2.val); vm_)
+                vm_->entity_pos = glm::vec3(o.scaled_cur_pos.x, o.scaled_cur_pos.y, 0.f) / 128.f;
         }
     }
 }
@@ -830,16 +872,26 @@ void Player::move_options(PlayerOption_t* options, uint cnt)
 void Player::move()
 {
     // get direction
-    if      ((INPUT_STRUCT.input & 0b01010000) == 0b01010000) direction = 5;
-    else if ((INPUT_STRUCT.input & 0b01100000) == 0b01100000) direction = 7;
-    else if ((INPUT_STRUCT.input & 0b10010000) == 0b10010000) direction = 6;
-    else if ((INPUT_STRUCT.input & 0b10100000) == 0b10100000) direction = 8;
-    else if ((INPUT_STRUCT.input & 0b00010000) == 0b00010000) direction = 1; // up
-    else if ((INPUT_STRUCT.input & 0b00100000) == 0b00100000) direction = 2; // down
-    else if ((INPUT_STRUCT.input & 0b01000000) == 0b01000000) direction = 3; // left
-    else if ((INPUT_STRUCT.input & 0b10000000) == 0b10000000) direction = 4; // right
-    else                                                      direction = 0;
+    if ((INPUT_STRUCT.input & 0b01010000) == 0b01010000)
+        direction = 5;
+    else if ((INPUT_STRUCT.input & 0b01100000) == 0b01100000)
+        direction = 7;
+    else if ((INPUT_STRUCT.input & 0b10010000) == 0b10010000)
+        direction = 6;
+    else if ((INPUT_STRUCT.input & 0b10100000) == 0b10100000)
+        direction = 8;
+    else if ((INPUT_STRUCT.input & 0b00010000) == 0b00010000)
+        direction = 1;
+    else if ((INPUT_STRUCT.input & 0b00100000) == 0b00100000)
+        direction = 2;
+    else if ((INPUT_STRUCT.input & 0b01000000) == 0b01000000)
+        direction = 3;
+    else if ((INPUT_STRUCT.input & 0b10000000) == 0b10000000)
+        direction = 4;
+    else
+        direction = 0;
 
+    // check if player is focusing
     if (!EnemyManager::GetInstance() || !EnemyManager::GetInstance()->killableEnemyCount() || inner.time_in_stage < 4) {
         __some_other_ctr = 31;
         inner.focusing = 0;
@@ -847,146 +899,208 @@ void Player::move()
         inner.focusing = (INPUT_STRUCT.input & 0b00001000) != 0;
     }
 
-
+    // get speed
     float spd;
     if (!inner.focusing) {
-        if (AnmManager::getVM(inner.focus_eff_anmId)) AnmManager::interrupt_tree(inner.focus_eff_anmId, 1);
+        if (AnmManager::getVM(inner.focus_eff_anmId))
+            AnmManager::interrupt_tree(inner.focus_eff_anmId, 1);
         inner.focus_eff_anmId = 0;
         spd = (direction > 4) ? speed_unfocus_diag : speed_unfocus;
     } else {
-        if (inner.focus_eff_anmId == 0) inner.focus_eff_anmId = AnmManager::SpawnVM(1, 26); //EFFECT_MANAGER_PTR->effect_anm->create_effect(nullptr,26,14,nullptr);
-        auto vm = AnmManager::getVM(inner.focus_eff_anmId);
-        if (!vm) inner.focus_eff_anmId = 0;
+        if (inner.focus_eff_anmId == (unsigned)0)
+            inner.focus_eff_anmId = AnmManager::SpawnVM(1, 26); // EFFECT_MANAGER_PTR->effect_anm->create_effect(nullptr,26,14,nullptr);
+        auto vm_ = AnmManager::getVM(inner.focus_eff_anmId);
+        if (!vm_)
+            inner.focus_eff_anmId = 0;
         else {
-            if (!(flags & 0x10)) vm->scale_2 = {1,1};
-            else vm->scale_2 = (2 * player_scale__requires_flag_0x10__from_ddc - 1.f) * glm::vec2(1,1);
-            vm->bitflags.scaled = 0b1;
+            if (!(flags & 0x10))
+                vm_->scale_2 = { 1, 1 };
+            else
+                vm_->scale_2 = (2 * player_scale__requires_flag_0x10__from_ddc - 1.f) * glm::vec2(1, 1);
+            vm_->bitflags.scaled = 0b1;
         }
         spd = (direction > 4) ? speed_focus_diag : speed_focus;
     }
 
-    float xspd = (PlayerMovement__dirTable[direction*2] * spd + 128.f * __could_be_subsun_pull_direction.x) * speed_multiplier;
-    float yspd = (PlayerMovement__dirTable[direction*2+1] * spd + 128.f * __could_be_subsun_pull_direction.y) * speed_multiplier;
+    // calculate directionnal speed
+    float xspd = (PlayerMovement__dirTable[direction * 2] * spd + 128.f * __could_be_subsun_pull_direction.x) * speed_multiplier;
+    float yspd = (PlayerMovement__dirTable[direction * 2 + 1] * spd + 128.f * __could_be_subsun_pull_direction.y) * speed_multiplier;
 
+    // update player vm script
     bool fst_update = false;
-    if      (xspd <  0 && speed.x > -1) { /*playerAnm->anm_init_copy_vm_from_loaded(&vm, 1);*/vm(AnmManager::getLoaded(9)->getPreloaded(1)); fst_update = true; }
-    else if (xspd == 0 && speed.x >  0) { /*playerAnm->anm_init_copy_vm_from_loaded(&vm, 4);*/vm(AnmManager::getLoaded(9)->getPreloaded(4)); fst_update = true; }
-    else if (xspd >  0 && speed.x <  1) { /*playerAnm->anm_init_copy_vm_from_loaded(&vm, 3);*/vm(AnmManager::getLoaded(9)->getPreloaded(3)); fst_update = true; }
-    else if (xspd == 0 && speed.x <  0) { /*playerAnm->anm_init_copy_vm_from_loaded(&vm, 2);*/vm(AnmManager::getLoaded(9)->getPreloaded(2)); fst_update = true; }
+    if (xspd < 0 && speed.x > -1) {
+        vm(AnmManager::getLoaded(9)->getPreloaded(1));
+        fst_update = true;
+    } else if (xspd == 0 && speed.x > 0) {
+        vm(AnmManager::getLoaded(9)->getPreloaded(4));
+        fst_update = true;
+    } else if (xspd > 0 && speed.x < 1) {
+        vm(AnmManager::getLoaded(9)->getPreloaded(3));
+        fst_update = true;
+    } else if (xspd == 0 && speed.x < 0) {
+        vm(AnmManager::getLoaded(9)->getPreloaded(2));
+        fst_update = true;
+    }
     if (fst_update) {
-        vm.parent = nullptr;
-        //vm.__root_vm__or_maybe_not = nullptr;
+        vm.parent_vm = nullptr;
+        vm.__root_vm__or_maybe_not = nullptr;
         vm.update();
     }
 
-    static constexpr float GAME_SPEED = 1.f;
-
+    // move according to speed
     speed.x = xspd;
     speed.y = yspd;
-    last_movement = {speed * GAME_SPEED, 0};
+    last_movement = { speed * GAME_SPEED, 0 };
     last_movement_cpy = last_movement;
-    if (direction != 0) last_movement_no_zero = last_movement;
-    inner.integer_pos += glm::vec<2, int32_t>{last_movement.x, last_movement.y};
-    if (inner.integer_pos.x < -0x5c00) inner.integer_pos.x = -0x5c00;
-    else if (inner.integer_pos.x > 0x5c00) inner.integer_pos.x = 0x5c00;
-    if (inner.integer_pos.y < 0x1000) inner.integer_pos.y = 0x1000;
-    else if (inner.integer_pos.y > 0xd800) inner.integer_pos.y = 0xd800;
-    inner.pos.x = (float)inner.integer_pos.x * 0.0078125;
-    inner.pos.y = (float)inner.integer_pos.y * 0.0078125;
+    if (direction != 0)
+        last_movement_no_zero = last_movement;
+    inner.integer_pos += glm::vec<2, int32_t> { last_movement.x, last_movement.y };
 
-    if (auto vm = AnmManager::getVM(inner.focus_eff_anmId); vm) vm->entity_pos = inner.pos;
+    // screen boundaries
+    if (inner.integer_pos.x < -0x5c00)
+        inner.integer_pos.x = -0x5c00;
+    else if (inner.integer_pos.x > 0x5c00)
+        inner.integer_pos.x = 0x5c00;
+    if (inner.integer_pos.y < 0x1000)
+        inner.integer_pos.y = 0x1000;
+    else if (inner.integer_pos.y > 0xd800)
+        inner.integer_pos.y = 0xd800;
 
+    // update real pos
+    inner.pos = glm::vec3(inner.integer_pos.x, inner.integer_pos.y, 0) / 128.f;
+
+    // set focus vm pos if exists
+    if (auto vm_ = AnmManager::getVM(inner.focus_eff_anmId); vm_)
+        vm_->entity_pos = inner.pos;
+
+    // previous pos used for trail options (TH17 youmu, may not work with TH10 marisa A)
     if (yspd != 0 || xspd != 0) {
         int i = 32;
-        for (; i > inner.__some_index * 8; i--)
-            unknown_scaled_pos_array[i] = unknown_scaled_pos_array[inner.__some_index * 8];
+        for (; i > inner.power * 8; i--)
+            prev_pos[i] = prev_pos[inner.power * 8];
 
-        auto piVar9 = &unknown_scaled_pos_array[i].y;
-        for (; i > 0; i--) {
-            ((glm::vec2*)(piVar9 + -1))->x = piVar9[-3];
-            i--;
-            *piVar9 = piVar9[-2];
-            piVar9 = piVar9 + -2;
-        }
+        for (; i > 0; i--)
+            prev_pos[i] = prev_pos[i - 1];
     }
-    unknown_scaled_pos_array[0] = inner.integer_pos;
-    if (flags & 2) __some_counter++;
+    prev_pos[0] = inner.integer_pos;
+
+    // IDK
+    if (flags & 2)
+        __some_counter++;
     move_options(inner.options, 4);
     move_options(inner.subseason_options, 8);
-    if (__some_counter >= 30) inner.__some_index = 0;
+    if (__some_counter >= 30)
+        inner.power = 0;
 
+    // th15 graze snowflake probably
     if (inner.__timer_187ac > 0) {
-        auto some_vm = AnmManager::getVM(inner.__field_187a8__init_0);
+        auto some_vm = AnmManager::getVM(inner.maybe_th15_graze_snowflake);
         if (!some_vm) {
-            //EFFECT_MANAGER_PTR->effect_anm->__field_134__some_kind_of_counter++;
-            //some_vm = AnmManager::allocate_vm();
-            //EFFECT_MANAGER_PTR->effect_anm->anm_init_copy_vm_from_loaded(some_vm,27);
-            //some_vm->mode_of_create_child = 0;
-            //AnmManager::insert_in_world_list_back(&inner.__field_187a8__init_0,some_vm);
-            inner.__field_187a8__init_0 = AnmManager::SpawnVM(1, 27);
-            some_vm = AnmManager::getVM(inner.__field_187a8__init_0);
+            // EFFECT_MANAGER_PTR->effect_anm->__field_134__some_kind_of_counter++;
+            // some_vm = AnmManager::allocate_vm();
+            // EFFECT_MANAGER_PTR->effect_anm->anm_init_copy_vm_from_loaded(some_vm,27);
+            // some_vm->mode_of_create_child = 0;
+            // AnmManager::insert_in_world_list_back(&inner.__field_187a8__init_0,some_vm);
+            inner.maybe_th15_graze_snowflake = AnmManager::SpawnVM(1, 27);
+            some_vm = AnmManager::getVM(inner.maybe_th15_graze_snowflake);
             some_vm->bitflags.randomMode = 0b1;
             some_vm->bitflags.originMode = 0b01;
             some_vm->layer = 14;
             some_vm->entity_pos = inner.pos;
             some_vm->rotation.z = 0.0;
             some_vm->update();
-        }
-        else some_vm->entity_pos = inner.pos;
+        } else
+            some_vm->entity_pos = inner.pos;
 
         inner.__timer_187ac--;
         if (inner.__timer_187ac <= 0) {
-            AnmManager::interrupt_tree(inner.__field_187a8__init_0, 1);
+            AnmManager::interrupt_tree(inner.maybe_th15_graze_snowflake, 1);
             inner.__timer_187ac = 0;
         }
     }
 }
 
+void Player::try_kill()
+{
+
+    if ((flags & 8) == 0) { } // SoundManager::play_sound_centered(2);
+
+    // EFFECT_MANAGER_PTR->effect_anm->__field_134__some_kind_of_counter++;
+    // vm = AnmManager::allocate_vm();
+    // EFFECT_MANAGER_PTR->effect_anm->anm_init_copy_vm_from_loaded(vm,0x1d);
+    // vm->bitflags.randomMode = 0b1;
+    // vm->entity_pos = inner.pos;
+    // vm->rotation.z = 0.0;
+    // vm->update();
+    // vm->mode_of_create_child = 0;
+    // AnmManager::insert_in_world_list_back(&local_8,vm);
+
+    // if ((SPELLCARD_PTR->flags & 1) != 0) {
+    //     if ((SPELLCARD_PTR->_timer_20).current < 0x3c) {
+    //         if (BOMB_PTR->active) SPELLCARD_PTR->flags |= 0x20;
+    //     }
+    //     else {
+    //         SPELLCARD_PTR->bonus = 0;
+    //         SPELLCARD_PTR->flags &= 0xffffffdd;
+    //     }
+    // }
+
+    inner.time_in_state = 0;
+    inner.state = 4;
+    inner.iframes = 6;
+    // playerAnm->anm_init_copy_vm_from_loaded(&player->vm,0);
+    vm(AnmManager::getLoaded(9)->getPreloaded(0));
+    vm.parent_vm = nullptr;
+    vm.__root_vm__or_maybe_not = nullptr;
+    vm.update();
+}
+
 void Player::die()
 {
     // death effect
-    //EffectManager::addEffect(0x1c);
+    // EffectManager::addEffect(0x1c);
     // <==>
-    //if (int effid = EffectManager::get_next_index(); effid != -1) EFFECT_MANAGER_PTR->anm_ids[effid] = EFFECT_MANAGER_PTR->effect_anm->create_4112b0(nullptr,0x1c,inner.pos,0,-1,nullptr);
+    // if (int effid = EffectManager::get_next_index(); effid != -1) EFFECT_MANAGER_PTR->anm_ids[effid] = EFFECT_MANAGER_PTR->effect_anm->create_4112b0(nullptr,0x1c,inner.pos,0,-1,nullptr);
+    AnmManager::getVM(AnmManager::SpawnVM(1, 0x1c))->pos = inner.pos;
 
     // update life & bombs
-    //GLOBALS.inner.CURRENT_LIVES += -1;
-    //if ((int)GLOBALS.inner.field30_0x78 < 0) {
+    // GLOBALS.inner.CURRENT_LIVES += -1;
+    // if ((int)GLOBALS.inner.field30_0x78 < 0) {
     //    GLOBALS.inner.CURRENT_BOMBS = 0;
     //}
-    //else {
+    // else {
     //    GLOBALS.inner.CURRENT_BOMBS = GLOBALS.inner.field30_0x78;
     //    if (8 < (int)GLOBALS.inner.field30_0x78) {
     //    GLOBALS.inner.CURRENT_BOMBS = 8;
     //    }
     //}
-    //if (GUI_PTR != NULL) {
+    // if (GUI_PTR != NULL) {
     //    FUN_0042fd50(GUI_PTR,GLOBALS.inner.CURRENT_BOMBS,GLOBALS.inner.field29_0x74);
     //}
-    //if (-1 < GLOBALS.inner.CURRENT_LIVES) {
+    // if (-1 < GLOBALS.inner.CURRENT_LIVES) {
     //    FUN_0042fc60(GUI_PTR,GLOBALS.inner.CURRENT_LIVES,GLOBALS.inner.field26_0x68);
     //}
-    //FUN_0042fd50(GUI_PTR,GLOBALS.inner.CURRENT_BOMBS,GLOBALS.inner.field29_0x74);
+    // FUN_0042fd50(GUI_PTR,GLOBALS.inner.CURRENT_BOMBS,GLOBALS.inner.field29_0x74);
 
     // update inner
     inner.state = 2;
     inner.time_in_state = 0;
     inner.iframes = 180;
-    inner.__some_index = 0;
-    //playerAnm->anm_init_copy_vm_from_loaded(&vm,0);
-    vm(AnmManager::getLoaded(9)->getPreloaded(0));
-    vm.parent = nullptr;
-    //vm.__root_vm__or_maybe_not = nullptr;
+    inner.power = 0;
+
+    vm(AnmManager::getLoaded(9)->getPreloaded(0)); // playerAnm->anm_init_copy_vm_from_loaded(&vm,0);
+    vm.parent_vm = nullptr;
+    vm.__root_vm__or_maybe_not = nullptr;
     vm.update();
 
     // update options vms
     for (int i = 0; i < 4; i++) {
-        AnmManager::interrupt_tree(inner.options[i].anmId1,1);
-        AnmManager::interrupt_tree(inner.options[i].anmId2,1);
+        AnmManager::interrupt_tree(inner.options[i].anmId1, 1);
+        AnmManager::interrupt_tree(inner.options[i].anmId2, 1);
     }
 
     // update spell capture
-    //if ((SPELLCARD_PTR->flags & 1) != 0) {
+    // if ((SPELLCARD_PTR->flags & 1) != 0) {
     //    if ((SPELLCARD_PTR->_timer_20).current < 0x3c) {
     //        if (BOMB_PTR->active == 1)
     //            SPELLCARD_PTR->flags |= 0x20;
@@ -998,20 +1112,212 @@ void Player::die()
     //}
 
     // update globals
-    //ENEMY_MANAGER_PTR->miss_count++;
-    //ENEMY_MANAGER_PTR->can_still_capture_spell = 0;
-    //if ((GLOBALS.inner.HYPER_FLAGS & 2) && !(GLOBALS.inner.HYPER_FLAGS & 4)) GLOBALS.inner.HYPER_TIME = 1;
-    //if (GLOBALS.inner.MISS_COUNT_GLOBAL < 999999) GLOBALS.inner.MISS_COUNT_GLOBAL++;
+    // ENEMY_MANAGER_PTR->miss_count++;
+    // ENEMY_MANAGER_PTR->can_still_capture_spell = 0;
+    // if ((GLOBALS.inner.HYPER_FLAGS & 2) && !(GLOBALS.inner.HYPER_FLAGS & 4)) GLOBALS.inner.HYPER_TIME = 1;
+    // if (GLOBALS.inner.MISS_COUNT_GLOBAL < 999999) GLOBALS.inner.MISS_COUNT_GLOBAL++;
 }
 
+#include <Engine.hpp>
+#include <NSEngine.h>
 int Player::_on_draw()
 {
-    if (inner.state != 2)
-    {
+    if (inner.state != 2) {
         vm.entity_pos = inner.pos;
         vm.bitflags.originMode = 0b01;
         vm.setLayer(15);
         vm.draw();
     }
+    if (!NSEngine::getInstance()->flags().flags.debugInfo)
+        return 1;
+    NSEngine::draw_set_layer(20);
+    static NSEngine::Color c = { 255, 0, 0, 128 };
+    static NSEngine::Color c2 = { 255, 255, 0, 128 };
+    for (int i = 0; i < 256; i++) {
+        auto& d = inner.damage_sources[i];
+        if (!(d.flags & 1))
+            continue;
+        if (d.field_0x84)
+            NSEngine::draw_rectangle_rotated_color(d.pos.pos.x, -d.pos.pos.y, d.hitbox.x, d.hitbox.y, -d.angle, c2, c2, c2, c2);
+        else
+            NSEngine::draw_rectangle_rotated_color(d.pos.pos.x, -d.pos.pos.y, d.hitbox.x, d.hitbox.y, -d.angle, c, c, c, c);
+    }
     return 1;
+}
+
+void FUN_0044d8a0(glm::vec3 const& param_1)
+{
+
+    if (GLOBALS.inner.HYPER_FLAGS & 2) {
+        while (99 < PLAYER_PTR->field_0x190ec) {
+            ITEM_MANAGER_PTR->total_items_created = ITEM_MANAGER_PTR->total_items_created + 1;
+            if (ITEM_MANAGER_PTR->cancel_items_freelist_head.next != NULL) {
+                ITEM_MANAGER_PTR->cancel_items_freelist_head.next->field_0xc6c = ITEM_MANAGER_PTR->field_0xe4b984;
+                int uVar5 = ITEM_MANAGER_PTR->total_items_created;
+
+                if (ITEM_MANAGER_PTR->field_0xe4b980 < 0x400) {
+                    if (ITEM_MANAGER_PTR->field_0xe4b980 < 0x200) {
+                        if (ITEM_MANAGER_PTR->field_0xe4b980 < 0x100) {
+                            uVar5 &= 0x80000003;
+                            if ((int)uVar5 < 0) {
+                                uVar5 = ((uVar5 - 1) | 0xfffffffc) + 1;
+                            }
+                        } else {
+                            uVar5 &= 0x80000007;
+                            if ((int)uVar5 < 0) {
+                                uVar5 = ((uVar5 - 1) | 0xfffffff8) + 1;
+                            }
+                            uVar5 += 4;
+                        }
+                    } else {
+                        uVar5 &= 0x8000000f;
+                        if ((int)uVar5 < 0) {
+                            uVar5 = ((uVar5 - 1) | 0xfffffff0) + 1;
+                        }
+                        uVar5 += 8;
+                    }
+                } else {
+                    uVar5 &= 0x8000001f;
+                    if ((int)uVar5 < 0) {
+                        uVar5 = ((uVar5 - 1) | 0xffffffe0) + 1;
+                    }
+                    uVar5 += 0x10;
+                }
+
+                auto i = ITEM_MANAGER_PTR->cancel_items_freelist_head.next;
+                i->intangibility_frames = uVar5;
+                i->state = 5;
+                i->item_type = 9;
+                i->__field_c60__init_to_item_type_but_only_for_piv_items = 9;
+                i->position = param_1;
+                i->velocity_angle = Random::Floatm11() * 0.5235988 - 1.570796;
+                i->velocity_magnitude = Random::Float01() * 1.2 + 1.0;
+                i->velocity = { math::lengthdir_vec(i->velocity_magnitude, i->velocity_angle), 0 };
+                ITEM_MANAGER_PTR->cancel_items_freelist_head.next->time = 0;
+                ITEM_MANAGER_PTR->cancel_items_freelist_head.next->__might_be_unused__force_autocollect__from_th16 = 0;
+                if (i->node_in_free_list.next)
+                    i->node_in_free_list.next->node_in_free_list.prev = i->node_in_free_list.prev;
+                if (i->node_in_free_list.prev)
+                    i->node_in_free_list.prev->node_in_free_list.next = i->node_in_free_list.next;
+                i->node_in_free_list.next = nullptr;
+                i->node_in_free_list.prev = nullptr;
+                i->appear_sound = -1;
+            }
+            PLAYER_PTR->field_0x190ec -= 100;
+        }
+    }
+    return;
+}
+
+#include "GoastManager.h"
+int (*hitFuncs[])(PlayerDamageSource_t*, glm::vec3 const&, float, float, float) = {
+    nullptr,
+    [](PlayerDamageSource_t* param_1, glm::vec3 const& param_2, float param_3, float param_4, float param_5) {
+        FUN_0044d8a0(param_2);
+        auto& shooter = PLAYER_PTR->sht_file->shooters[PLAYER_PTR->inner.bullets[param_1->bullet_id].shter >> 8][PLAYER_PTR->inner.bullets[param_1->bullet_id].shter & 0xff];
+        if (shooter.on_hit)
+            return shooter.on_hit(&PLAYER_PTR->inner.bullets[param_1->bullet_id], param_2, param_3, param_4, param_5);
+        if (GLOBALS.inner.HYPER_FLAGS & 2)
+            PLAYER_PTR->field_0x190ec += 0x32;
+        return pl_b_default_on_hit(PLAYER_PTR->inner.bullets[param_1->bullet_id]);
+    },
+    [](PlayerDamageSource_t* param_1, glm::vec3 const& param_2, float, float, float) {
+        FUN_0044d8a0((param_2 + param_1->pos.pos) / 2.f);
+        int damage = PLAYER_PTR->inner.bullets[param_1->bullet_id].damage;
+        (PLAYER_PTR->inner).bullets[param_1->bullet_id].damage = 1;
+        return damage;
+    },
+    [](PlayerDamageSource_t*, glm::vec3 const& param_2, float, float, float) {
+        auto vm = AnmManager::getVM(AnmManager::SpawnVM(9, 20));
+        vm->entity_pos = param_2;
+        // set script vars 33 & 34 to some bomb related thing
+        return -1;
+    },
+    [](PlayerDamageSource_t*, glm::vec3 const&, float, float, float) { if (GOAST_MANAGER_PTR) GOAST_MANAGER_PTR->field_0x50 = 20; return -1; }
+};
+
+int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb, float hb_size, uint* param_4, glm::vec3& dmg_pos, int param_6, int enemy_id, float ang)
+{
+
+    float local_4c = 0; //(BOMB_PTR->active ? (*(code *)BOMB_PTR->vtable->method_c_2arg_always_returns_0)(enemyPos,enemy_hb) : 0);
+
+    if (param_4)
+        *param_4 = local_4c > 0;
+
+    for (int i = 0; i < 256; i++) {
+        auto& ds = PLAYER_PTR->inner.damage_sources[i];
+        if ((PLAYER_PTR->inner.damage_sources[i].flags & 1) && (PLAYER_PTR->inner.damage_sources[i].time_to_live % PLAYER_PTR->inner.damage_sources[i].field_0x80 == 0) && PLAYER_PTR->inner.damage_sources[i].field_0x88 < 1) {
+
+            if ((PLAYER_PTR->inner.damage_sources[i].flags & 2) == 0) {
+                if (enemy_hb == NULL) {
+                    float yy = (enemyPos.y - ds.pos.pos.y) * cos(-ds.angle) + (enemyPos.x - ds.pos.pos.x) * sin(-ds.angle);
+                    float xx = (enemyPos.x - ds.pos.pos.x) * cos(-ds.angle) - (enemyPos.y - ds.pos.pos.y) * sin(-ds.angle);
+                    if (((ds.hitbox.x / 2 + hb_size < abs(xx)) || (ds.hitbox.y / 2 < abs(yy))) && ((ds.hitbox.x / 2 < abs(xx) || (ds.hitbox.y / 2 + hb_size < abs(yy))))) {
+                        if ((hb_size * hb_size <= (xx - ds.hitbox.x / 2) * (xx - ds.hitbox.x / 2) + (yy - ds.hitbox.y / 2) * (yy - ds.hitbox.y / 2)) && (hb_size * hb_size <= (xx + ds.hitbox.x / 2) * (xx + ds.hitbox.x / 2) + (yy - ds.hitbox.y / 2) * (yy - ds.hitbox.y / 2)) && (hb_size * hb_size <= (xx - ds.hitbox.x / 2) * (xx - ds.hitbox.x / 2) + (yy + ds.hitbox.y / 2) * (yy + ds.hitbox.y / 2)) && (hb_size * hb_size <= (xx + ds.hitbox.x / 2) * (xx + ds.hitbox.x / 2) + (yy + ds.hitbox.y / 2) * (yy + ds.hitbox.y / 2)))
+                            continue;
+                    }
+                } else
+                    continue; // if (!FUN_00404320(&ds,ds.angle,enemyPos.x,enemyPos.y,enemy_hb->x,enemy_hb->y,ang)) continue;
+            } else if (!enemy_hb) {
+                if ((hb_size + ds.field_0x4) * (hb_size + ds.field_0x4) < (ds.pos.pos.y - enemyPos.y) * (ds.pos.pos.y - enemyPos.y) + (ds.pos.pos.x - enemyPos.x) * (ds.pos.pos.x - enemyPos.x))
+                    continue;
+            } else {
+                float xx = (ds.pos.pos.x - enemyPos.x) * cos(-ang) - (ds.pos.pos.y - enemyPos.y) * sin(-ang);
+                float yy = (ds.pos.pos.y - enemyPos.y) * cos(-ang) + (ds.pos.pos.x - enemyPos.x) * sin(-ang);
+                if (((ds.field_0x4 + enemy_hb->x / 2 < abs(xx)) || (enemy_hb->y / 2 < abs(yy))) && ((enemy_hb->x / 2 < abs(xx) || (enemy_hb->y / 2 + ds.field_0x4 < abs(yy))))) {
+                    if ((ds.field_0x4 * ds.field_0x4 <= (yy - enemy_hb->y / 2) * (yy - enemy_hb->y / 2) + (xx - enemy_hb->x / 2) * (xx - enemy_hb->x / 2)) && (ds.field_0x4 * ds.field_0x4 <= (yy - enemy_hb->y / 2) * (yy - enemy_hb->y / 2) + enemy_hb->x / 2) && (ds.field_0x4 * ds.field_0x4 <= (xx - enemy_hb->x / 2) * (xx - enemy_hb->x / 2) + enemy_hb->y / 2) && (ds.field_0x4 * ds.field_0x4 <= (yy + enemy_hb->y / 2) * (yy + enemy_hb->y / 2) + (xx + enemy_hb->x / 2) * (xx + enemy_hb->x / 2)))
+                        continue;
+                }
+            }
+
+            if (ds.field_0x8c - 1U < 4) {
+                // if ((*(int *)(local_34 + ds.field_0x8c * 4 + 0xc) != 0) && ((int)PLAYER_PTR->inner.damage_sources[i].damage < *(int *)(local_44 + ds.field_0x8c * 4 + 0xc))) continue;
+                // local_4c -= *(int *)(local_44 + ds.field_0x8c * 4 + -4);
+                //*(undefined4 *)(local_34 + ds.field_0x8c * 4 + 0xc) = 1;
+                //*(uint32_t *)(local_44 + ds.field_0x8c * 4 + 0xc) = PLAYER_PTR->inner.damage_sources[i].damage;
+            }
+
+            if (enemy_id != 0) {
+                if (ds.field_0x84 == enemy_id)
+                    continue;
+                ds.field_0x84 = enemy_id;
+            }
+
+            if (param_4 && (ds.flags & 4))
+                *param_4 = 1;
+
+            int uVar3 = ds.damage;
+            if (param_6 == 0) {
+                if (ds.ds_on_hit != 0) {
+                    ds.field_0x94 = enemy_id;
+                    int r = hitFuncs[ds.ds_on_hit](&ds, enemyPos, enemy_hb ? enemy_hb->x : hb_size, ang, hb_size);
+                    if (r >= 0)
+                        ds.field_0x78 += r;
+                    else
+                        ds.field_0x78 += ds.damage;
+                } else
+                    ds.field_0x78 += ds.damage;
+            }
+
+            if (PLAYER_PTR->inner.damage_sources[i].field_0x8c - 1 < 4) {
+                //*(uint32_t *)(local_44 + PLAYER_PTR->inner.damage_sources[i].field14_0x8c * 4 + -4) = uVar3;
+            }
+
+            local_4c += uVar3;
+            dmg_pos = ds.pos.pos;
+
+            if ((ds.field_0x7c < 9999999) && (ds.field_0x7c <= ds.field_0x78)) {
+                ds.flags &= 0xfffffffe;
+                ds.damage = 0;
+            }
+        }
+    }
+
+    local_4c = fmin(local_4c, PLAYER_PTR->sht_file->header.max_dmg);
+    if (((param_6 == 0) && local_4c)) {
+        GLOBALS.inner.CURRENT_SCORE += (local_4c / 10 + 10) / 10;
+        if (999999999 < GLOBALS.inner.CURRENT_SCORE)
+            GLOBALS.inner.CURRENT_SCORE = 999999999;
+    }
+    return local_4c;
 }

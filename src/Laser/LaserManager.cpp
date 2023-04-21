@@ -4,6 +4,8 @@ LaserManager* LASER_MANAGER_PTR = nullptr;
 
 LaserManager::LaserManager()
 {
+    if (LASER_MANAGER_PTR)
+        delete LASER_MANAGER_PTR;
     current_id = 0x10000;
     LASER_MANAGER_PTR = this;
 
@@ -66,7 +68,8 @@ int LaserManager::cancel_all(bool as_bomb)
     Laser* prev = (LASER_MANAGER_PTR->dummy_laser_for_list_tail).prev;
     for (Laser* laser = prev; laser != nullptr; laser = prev) {
         prev = laser->prev;
-        if (laser->__field_10__set_to_3_by_ex_delete != 1) laser->cancel(as_bomb,0);
+        if (laser->__field_10__set_to_3_by_ex_delete != 1)
+            laser->cancel(as_bomb, 0);
     }
     return 1;
 }
@@ -135,11 +138,20 @@ int allocate_new_laser(int32_t type, void* init_arg)
         LASER_MANAGER_PTR->current_id = 0x10000;
 
     switch (type) {
-    case 0: newLaser = new LaserLine();     break;
-    case 1: newLaser = new LaserInfinite(); break;
-    case 2: newLaser = new LaserCurve();    break;
-    case 3: newLaser = new LaserBeam();     break;
-    default: return LASER_MANAGER_PTR->current_id;
+    case 0:
+        newLaser = new LaserLine();
+        break;
+    case 1:
+        newLaser = new LaserInfinite();
+        break;
+    case 2:
+        newLaser = new LaserCurve();
+        break;
+    case 3:
+        newLaser = new LaserBeam();
+        break;
+    default:
+        return LASER_MANAGER_PTR->current_id;
     }
 
     newLaser->laser_id = LASER_MANAGER_PTR->current_id;

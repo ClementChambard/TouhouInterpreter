@@ -7,7 +7,7 @@
 #include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
 #define PRINT false
-void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
+int Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
 {
     _insNop
 #endif
@@ -41,5 +41,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
 
 #ifndef __INCLUDE_PARTS__
     _insDefault
+
+  return 0;
 }
 #endif

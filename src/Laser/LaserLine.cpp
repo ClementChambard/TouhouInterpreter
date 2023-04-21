@@ -1,15 +1,17 @@
 #include "LaserLine.h"
 #include "../BulletManager.h"
-#include "../GlobalData.h"
+#include "../ItemManager.h"
+#include "../Player.h"
+#include <math/Random.h>
 
 LaserLine::LaserLine()
 {
     vm1.sprite_id = -1;
-    vm1.current_instr = -1;
+    vm1.instr_offset = -1;
     vm2.sprite_id = -1;
-    vm2.current_instr = -1;
+    vm2.instr_offset = -1;
     vm3.sprite_id = -1;
-    vm3.current_instr = -1;
+    vm3.instr_offset = -1;
 }
 
 int LaserLine::initialize(void* arg)
@@ -25,19 +27,8 @@ int LaserLine::initialize(void* arg)
     vm1.destroy();
     // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, BULLET_TYPE_Table()[bullet_type]["script"].asInt());
     vm1(AnmManager::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[bullet_type]["script"].asInt()));
-    vm1.on_set_sprite = [](AnmVM* vm, int spr) {
-        auto b = (Laser*)vm->getEntity();
-        if (BULLET_TYPE_TABLE[b->bullet_type]["colors"][0]["main_sprite_id"].asInt() < 0)
-            return spr;
-        if (spr == 0)
-            return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]["main_sprite_id"].asInt();
-        if (spr == 1)
-            return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]["spawn_sprite_id"].asInt();
-        if (spr == 2)
-            return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]["cancel_sprite_id"].asInt();
-        return spr;
-    };
-    vm1.entity = this;
+    vm1.index_of_sprite_mapping_func = 2;
+    vm1.associated_game_entity = this;
     vm1.interrupt(2);
     vm1.update();
     vm1.bitflags.originMode = 1;
@@ -49,7 +40,7 @@ int LaserLine::initialize(void* arg)
 
     vm2.destroy();
     vm2(AnmManager::getLoaded(7)->getPreloaded(bullet_color + LASER_DATA["spawn_anm_first"].asInt()));
-    vm2.parent = nullptr;
+    vm2.parent_vm = nullptr;
     // vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();
     vm2.interrupt(2);
@@ -62,13 +53,13 @@ int LaserLine::initialize(void* arg)
     vm3.destroy();
     if ((bullet_type < 18) || (bullet_type == 38)) {
         vm3(AnmManager::getLoaded(7)->getPreloaded(bullet_color + 0x5b));
-        vm3.parent = nullptr;
+        vm3.parent_vm = nullptr;
         // vm3.__root_vm__or_maybe_not = nullptr;
         vm3.update();
         vm3.bitflags.blendmode = 1;
     } else {
         vm3(AnmManager::getLoaded(7)->getPreloaded(bullet_color + 0x53));
-        vm3.parent = nullptr;
+        vm3.parent_vm = nullptr;
         // vm3.__root_vm__or_maybe_not = nullptr;
         vm3.update();
     }
@@ -105,7 +96,6 @@ int LaserLine::initialize(void* arg)
 int LaserLine::on_tick()
 {
 
-    float GAME_SPEED = 1.f;
     int finished_ex = 0;
 
     do {
@@ -243,7 +233,7 @@ void LaserLine::run_ex()
             if (inner.et_ex[et_ex_index].s <= -990.0)
                 ex_accel.angle = angle;
             if (990.0 <= inner.et_ex[et_ex_index].s)
-                ex_accel.angle = math::point_direction(laser_offset.x, laser_offset.y, Globals::get()->playerX, Globals::get()->playerY);
+                ex_accel.angle = math::point_direction(laser_offset.x, laser_offset.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
             ex_accel.timer = 0;
             ex_accel.duration = inner.et_ex[et_ex_index].a;
             ex_accel.vec3_a14 = { math::lengthdir_vec(ex_accel.acceleration, ex_accel.angle), 0.f };
@@ -301,7 +291,7 @@ void LaserLine::run_ex()
 
         if (inner.et_ex[et_ex_index].type == 0x200) {
             vm1(AnmManager::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[inner.et_ex[et_ex_index].a]["script"].asInt() + inner.et_ex[et_ex_index].b));
-            vm1.parent = nullptr;
+            vm1.parent_vm = nullptr;
             // vm1.__root_vm__or_maybe_not = nullptr;
             vm1.update();
         }
@@ -334,7 +324,7 @@ void LaserLine::run_ex()
             if (bs.ang_aim <= -999990.0)
                 bs.ang_aim = angle;
             if (999990.0 <= bs.ang_aim)
-                bs.ang_aim = math::point_direction(laser_offset.x, laser_offset.y, Globals::get()->playerX, Globals::get()->playerY);
+                bs.ang_aim = math::point_direction(laser_offset.x, laser_offset.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
             if (bs.spd1 <= -999990.0)
                 bs.spd1 = speed;
             et_ex_index++;
@@ -344,7 +334,8 @@ void LaserLine::run_ex()
             for (int i = 0; i < 20; i++)
                 bs.ex[i] = inner.et_ex[i];
             BulletManager::GetInstance()->Shoot(&bs);
-            if (inner.et_ex[et_ex_index].c != 0) cancel(0, 0);
+            if (inner.et_ex[et_ex_index].c != 0)
+                cancel(0, 0);
         }
 
         if (inner.et_ex[et_ex_index].type == 0x8000) {
@@ -378,21 +369,21 @@ void LaserLine::run_ex()
 int FUN_004038d0(float* xout, float* yout, float lx1, float ly1, float lx2,
     float ly2, float x1, float y1, float x2, float y2)
 {
-    float fVar3;
-    float fVar4;
-    float fVar5;
     float fVar6;
     float fVar7;
 
     fVar6 = (ly2 - y2) * (x2 - x1) + (x2 - lx2) * (y2 - y1);
     fVar7 = (x2 - lx1) * (y2 - y1) + (ly1 - y2) * (x2 - x1);
     if (fVar7 * fVar6 <= 0.0) {
+        float fVar3;
+        float fVar4;
+        float fVar5;
         if ((fVar6 == 0.0) || (fVar7 != 0.0)) {
             if (0.0 < ((y2 - ly2) * (lx2 - lx1) + (lx2 - x2) * (ly2 - ly1)) * ((y1 - ly2) * (lx2 - lx1) + (lx2 - x1) * (ly2 - ly1))) {
                 return 0;
             }
-        }
-        else if (fmax(lx1,lx2) < fmin(x1,x2) || fmax(ly1,ly2) < fmin(y1,y2) || fmax(x1,x2) < fmin(lx1,lx2) || fmax(y1,y2) < fmin(ly1,ly2)) return 0;
+        } else if (fmax(lx1, lx2) < fmin(x1, x2) || fmax(ly1, ly2) < fmin(y1, y2) || fmax(x1, x2) < fmin(lx1, lx2) || fmax(y1, y2) < fmin(ly1, ly2))
+            return 0;
         if (0.01 <= fabs(x1 - x2)) {
             fVar3 = (y1 - y2) / (x1 - x2);
             fVar7 = y2 - ((y1 - y2) * x2) / (x1 - x2);
@@ -439,7 +430,7 @@ int LaserLine::method_50_line()
     if (((ex_bounce.for_laser_line & 1) != 0) && (laser_pos2.y < 0.0)) {
         if ((ex_bounce.for_laser_line & 0x10) == 0) {
             FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
-                   laser_offset.y, laser_pos2.x, laser_pos2.y, 256.0, 0.0, -256.0, 0.0);
+                laser_offset.y, laser_pos2.x, laser_pos2.y, 256.0, 0.0, -256.0, 0.0);
             inner.start_pos.z = 0.0;
             inner.ang_aim = -angle;
             inner.spd_1 = ex_bounce.bounce_speed;
@@ -451,7 +442,7 @@ int LaserLine::method_50_line()
     if (((ex_bounce.for_laser_line & 2) != 0) && (448.0 < laser_pos2.y)) {
         if ((ex_bounce.for_laser_line & 0x10) == 0) {
             FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
-                   laser_offset.y, laser_pos2.x, laser_pos2.y, 256.0, 448.0, -256.0, 448.0);
+                laser_offset.y, laser_pos2.x, laser_pos2.y, 256.0, 448.0, -256.0, 448.0);
             inner.start_pos.z = 0.0;
             inner.ang_aim = -angle;
             inner.spd_1 = ex_bounce.bounce_speed;
@@ -463,7 +454,7 @@ int LaserLine::method_50_line()
     if (((ex_bounce.for_laser_line & 4) != 0) && (laser_pos2.x < -192.0)) {
         if ((ex_bounce.for_laser_line & 0x10) == 0) {
             FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
-                   laser_offset.y, laser_pos2.x, laser_pos2.y, -192.0, 640.0, -192.0, -192.0);
+                laser_offset.y, laser_pos2.x, laser_pos2.y, -192.0, 640.0, -192.0, -192.0);
             inner.start_pos.z = 0.0;
             inner.ang_aim = PI - angle;
             inner.spd_1 = ex_bounce.bounce_speed;
@@ -479,7 +470,7 @@ int LaserLine::method_50_line()
         }
     } else if ((ex_bounce.for_laser_line & 0x10) == 0) {
         FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
-                laser_offset.y, laser_pos2.x, laser_pos2.y, 192.0, 640.0, 192.0, -192.0);
+            laser_offset.y, laser_pos2.x, laser_pos2.y, 192.0, 640.0, 192.0, -192.0);
         inner.start_pos.z = 0.0;
         inner.ang_aim = PI - angle;
         inner.spd_1 = ex_bounce.bounce_speed;
@@ -487,60 +478,60 @@ int LaserLine::method_50_line()
         allocate_new_laser(0, &inner);
     }
     flags &= 0xffffffbf;
-    if (-1 < inner.shot_transform_sfx) {/*SoundManager::play_sound_centered(inner.shot_transform_sfx);*/}
+    if (-1 < inner.shot_transform_sfx) { /*SoundManager::play_sound_centered(inner.shot_transform_sfx);*/
+    }
     return 1;
 }
 
-int LaserLine::cancel_as_bomb_rectangle(glm::vec3 ,glm::vec3 ,float,int,int) { return 0; }
-int LaserLine::cancel_as_bomb_circle(int,int,int,int) { return 0; }
-int LaserLine::cancel(int , int as_bomb) {
-  //undefined4 extraout_ECX;
-  //undefined4 in_stack_ffffffa0;
+int LaserLine::cancel_as_bomb_rectangle(glm::vec3, glm::vec3, float, int, int) { return 0; }
+int LaserLine::cancel_as_bomb_circle(int, int, int, int) { return 0; }
+int LaserLine::cancel(int, int as_bomb)
+{
+    // undefined4 extraout_ECX;
+    // undefined4 in_stack_ffffffa0;
 
-  if (as_bomb && (ex_invuln__remaining_frames != 0)) return 0;
-  float len = 8.0;
-  int n = 0;
-  glm::vec3 inc = {math::lengthdir_vec(8.f, angle), 0.f};
-  glm::vec3 p = laser_offset + inc;
-  inc *= 2.f;
-  if (laser_inf_current_length > 16.f) {
-    do {
-      if (bullet_type < 18 || bullet_type == 34 || bullet_type == 38) {
-        //BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
-        //vm = AnmManager::allocate_vm();
-        //anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.bullet_color * 2 + 0xd1);
-        AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.bullet_color * 2 + 0xd1));
-        vm->bitflags.randomMode = true;
-        vm->entity_pos = p;
-        vm->update();
-      }
-      else {
-        if (bullet_type < 32) {
-          // Same
-          AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.bullet_color * 2 + 0x101));
-          vm->bitflags.randomMode = true;
-          vm->entity_pos = p;
-          vm->update();
-        }
-        if (bullet_type < 0x22) {
-          // Same
-          AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.bullet_color * 2 + 0x119));
-          vm->bitflags.randomMode = true;
-          vm->entity_pos = p;
-          vm->update();
-        }
-      }
-      //if ((((param_2 != 0) && (-192.0 < p.x + 32.0)) &&
-          //((p.x - 32.0 < 192.0 && ((0.0 < p.y + 32.0 && (p.y - 32.0 < 448.0)))))) &&
-          //(BULLET_MANAGER_PTR->__related_to_cancels = BULLET_MANAGER_PTR->__related_to_cancels + 1, param_2 == 1)) {
-        //ItemManager::spawn_item (ITEM_MANAGER_PTR,9,p,in_stack_ffffffa0,Rng::randf_neg_1_to_1(&REPLAY_SAFE_RNG) * 0.1745329 - 1.570796, 2.2,0,extraout_ECX,0xffffffff);
-      //}
-      n++;
-      p += inc;
-      len += 16.0;
-    } while (len + 8.0 < laser_inf_current_length);
-  }
-  __field_10__set_to_3_by_ex_delete = 1;
-  return n;
-
+    if (as_bomb && (ex_invuln__remaining_frames != 0))
+        return 0;
+    int n = 0;
+    glm::vec3 inc = { math::lengthdir_vec(8.f, angle), 0.f };
+    glm::vec3 p = laser_offset + inc;
+    inc *= 2.f;
+    if (laser_inf_current_length > 16.f) {
+        float len = 8.0;
+        do {
+            if (bullet_type < 18 || bullet_type == 34 || bullet_type == 38) {
+                // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
+                // vm = AnmManager::allocate_vm();
+                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.bullet_color * 2 + 0xd1);
+                AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.bullet_color * 2 + 0xd1));
+                vm->bitflags.randomMode = true;
+                vm->entity_pos = p;
+                vm->update();
+            } else {
+                if (bullet_type < 32) {
+                    // Same
+                    AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.bullet_color * 2 + 0x101));
+                    vm->bitflags.randomMode = true;
+                    vm->entity_pos = p;
+                    vm->update();
+                }
+                if (bullet_type < 0x22) {
+                    // Same
+                    AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.bullet_color * 2 + 0x119));
+                    vm->bitflags.randomMode = true;
+                    vm->entity_pos = p;
+                    vm->update();
+                }
+            }
+            if (((as_bomb && (-192.0 < p.x + 32.0)) && ((p.x - 32.0 < 192.0 && ((0.0 < p.y + 32.0 && (p.y - 32.0 < 448.0))))))) {
+                // BULLET_MANAGER_PTR->__related_to_cancels = BULLET_MANAGER_PTR->__related_to_cancels + 1;
+                ITEM_MANAGER_PTR->spawn_item(9, p, Random::Floatm11() * 0.1745329 - 1.570796, 2.2, 0, -1);
+            }
+            n++;
+            p += inc;
+            len += 16.0;
+        } while (len + 8.0 < laser_inf_current_length);
+    }
+    __field_10__set_to_3_by_ex_delete = 1;
+    return n;
 }

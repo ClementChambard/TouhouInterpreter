@@ -1,5 +1,6 @@
 #ifndef __INCLUDE_PARTS__
 #include "../EclInstrMacros.h"
+#include "../Player.h"
 #include "../EclContext.h"
 #include "../Enemy.h"
 #include "../EnemyManager.h"
@@ -7,7 +8,7 @@
 #include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
 #define PRINT false
-void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
+int Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
 {
     _insNop
 #endif
@@ -174,7 +175,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
             math::angle_normalize(a);
         }
         else {
-            if (Globals::get()->playerX <= enemy.final_pos.pos.x) {
+            if (PLAYER_PTR->inner.pos.x <= enemy.final_pos.pos.x) {
             a = Random::Angle() * 0.25f;
             if (rand() % 3 != 0) a += PI;
             }
@@ -211,7 +212,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
             math::angle_normalize(a);
         }
         else {
-            if (Globals::get()->playerX <= enemy.final_pos.pos.x) {
+            if (PLAYER_PTR->inner.pos.x <= enemy.final_pos.pos.x) {
             a = Random::Angle() * 0.25;
             if (rand() % 3 != 0) a += PI;
             }
@@ -563,5 +564,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
 
 #ifndef __INCLUDE_PARTS__
     _insDefault
+
+  return 0;
 }
 #endif

@@ -7,10 +7,11 @@
 #include "../Spellcard.h"
 #include "../Laser/LaserManager.h"
 #include "../AnmOpener/AnmManager.h"
+#include "../Player.h"
 #include <math/Random.h>
 #include "../BulletManager.h"
 #define PRINT false
-void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
+int Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
 {
     _insNop
 #endif
@@ -153,7 +154,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
         enemy.BSs[id].cnt_layers = Rank2(a2, b2);
 
     _ins(623, angleToPlayer) _rf(va) _f(x)  _f(y)                                                                _args
-        va = math::point_direction(x, y, Globals::get()->playerX, Globals::get()->playerY);
+        va = math::point_direction(x, y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
 
     _ins(624,      etSpeedD) _S(id)  _f(a1) _f(b1) _f(c1) _f(d1) _f(a2) _f(b2) _f(c2) _f(d2)                     _args
         enemy.BSs[id].spd1 = Diff(a1, b1, c1, d1);
@@ -218,5 +219,7 @@ void Enemy::execInstr(EclRunContext_t* cont, EclRawInstr_t* instr)
 
 #ifndef __INCLUDE_PARTS__
     _insDefault
+
+  return 0;
 }
 #endif

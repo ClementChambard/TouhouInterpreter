@@ -1,10 +1,10 @@
 #ifndef ECLVM_H_
 #define ECLVM_H_
-#include "EclFileManager.h"
-#include "EclContext.h"
 #include "BulletHandler.h"
-#include "PosVel.h"
+#include "EclContext.h"
+#include "EclFileManager.h"
 #include "Interp.h"
+#include "PosVel.h"
 
 #include "AnmOpener/AnmManager.h"
 #include <iostream>
@@ -18,8 +18,10 @@ struct EnemyList_t {
 
 struct EnemyDrop_t {
     int32_t main_type = 0;
-    int32_t extra_counts[17];
-    glm::vec2 area = {};
+    int32_t extra_counts[32];
+    glm::vec2 area = { 32, 32 };
+
+    void eject_all_drops(glm::vec3 const& pos);
 };
 
 struct EnemyDropSeason_t {
@@ -61,12 +63,12 @@ struct EnemyData {
     PosVel final_pos = {};
     PosVel abs_pos = {};
     PosVel rel_pos = {};
-    float rotation = 0.f;
     glm::vec2 hurtbox_size = {};
     glm::vec2 hitbox_size = {};
+    float rotation = 0.f;
     AnmID anmIds[16] = {};
     glm::vec3 anmPos[16] = {};
-    int32_t anmRelated[16] = {};
+    int32_t anmRelated[16] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
     int32_t selectedAnmID = -1;
     int32_t anm0anmID = -1;
     int32_t anm0scr = -1;
@@ -104,7 +106,7 @@ struct EnemyData {
     int32_t extra_dmg = 0;
     uint32_t deathSnd = -1;
     int32_t deathAnm = -1;
-    int32_t deathScr = -1;
+    int32_t deathScr = 0;
     int32_t frBefNxtHurtFx = 0;
     int32_t hitSnd = -1;
     int32_t invFrame = 0;
@@ -121,46 +123,59 @@ struct EnemyData {
     Enemy* enemy = nullptr;
     EnemyFog_t fog;
     std::string setDeath = "";
-    //some void*
+    std::function<int(void)> func_from_ecl_func_set = nullptr;
+    uint32_t is_func_set_2 = 0;
+    std::function<int(void)> func_from_ecl_flag_ext_dmg = nullptr;
+    std::function<void(void)> hitbox_func = nullptr;
+    int32_t own_chapter = 0;
+    int32_t __bool_cleared_by_ecl_570 = 0;
 
-    void calc_final_pos();
+    int update();
     int step_interpolators();
+    int step_game_logic();
+    void related_to_fog();
+    void calc_final_pos();
 };
 
 class Enemy {
 
-    public:
+public:
+    Enemy();
+    ~Enemy();
 
-        Enemy();
-        ~Enemy();
+    void Init(std::string const& sub);
+    void Tick();
+    void Die();
+    int update();
 
-        void Init(std::string sub);
-        void Tick();
-        void Die();
+    void DebugDraw();
+    EnemyData* getData() { return &enemy; }
 
-        void DebugDraw();
-        EnemyData* getData() { return &enemy; }
+private:
+    int die();
+    int ecl_run(float speed = 1.f);
+    void clear_async_contexts();
+    void reset_ecl();
+    void set_sub(std::string const& sub);
 
-    private:
+    int updateContext(EclRunContext_t* cont, float speed = 1.f);
+    int execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr);
+    int32_t checkVarI(int32_t id);
+    float checkVarF(float id);
+    int32_t& checkVarRI(int32_t id);
+    float& checkVarRF(float id);
 
-        void updateContext(EclRunContext_t* cont);
-        void execInstr(EclRunContext_t* cont, EclRawInstr_t* instr);
-        int32_t checkVarI(int32_t id);
-        float checkVarF(float id);
-        int32_t& checkVarRI(int32_t id);
-        float& checkVarRF(float id);
-
-        EclRunContextHolder_t context;
-        EclFileManager* fileManager;
-        EclRunContextList_t* asyncListHead = nullptr;
-        EnemyData enemy;
-        void* onDeath = nullptr;
-        int32_t enemyId;
-        int32_t parentEnemyId;
-        int32_t stackToRemove = 0;
-        // uint32_t unknown
-        friend class EnemyManager;
+    EclRunContextHolder_t context;
+    EclFileManager* fileManager;
+    EclRunContextList_t* asyncListHead = nullptr;
+    EnemyData enemy;
+    std::function<void(void)> onDeath = nullptr;
+    int32_t enemyId;
+    int32_t parentEnemyId;
+    int32_t stackToRemove = 0;
+    // uint32_t unknown
+    friend class EnemyManager;
+    friend struct EnemyData;
 };
-
 
 #endif // ECLVM_H_

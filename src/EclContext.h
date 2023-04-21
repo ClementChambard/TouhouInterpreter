@@ -1,11 +1,12 @@
 #ifndef ECLCONTEXT_H_
 #define ECLCONTEXT_H_
 
+#include "Interp.h"
 #include <array>
 #include <iostream>
 
 class Enemy;
-class EclRunContext_t;
+struct EclRunContext_t;
 
 struct EclLocation_t {
     int32_t sub_id = 0;
@@ -15,9 +16,21 @@ struct EclLocation_t {
 struct EclStackItem_t {
     float asFloat = 0;
     int32_t asInt = 0;
-    EclStackItem_t(int32_t i) : asFloat(i), asInt(i) {}
-    EclStackItem_t(float f) : asFloat(f), asInt(f) {}
-    EclStackItem_t() : asFloat(0), asInt(0) {}
+    EclStackItem_t(int32_t i)
+        : asFloat(i)
+        , asInt(i)
+    {
+    }
+    EclStackItem_t(float f)
+        : asFloat(f)
+        , asInt(f)
+    {
+    }
+    EclStackItem_t()
+        : asFloat(0)
+        , asInt(0)
+    {
+    }
 };
 
 struct EclStack_t {
@@ -43,11 +56,12 @@ struct EclRunContext_t {
     int32_t variable_stack_offset[8];
     int32_t int_vars[8];
     float float_vars[8];
-    //float_i
-    //float_i_locs
-    //int32_t set_by_ins_18_19
+    Interp<float> float_i[8] {}; // XXX
+    float float_interps_locs[8] {}; // XXX
+    // float_i
+    // float_i_locs
+    int32_t set_by_ins_18_19 = 0;
 };
-
 
 struct EclRunContextHolder_t {
     EclRunContext_t* currentContext = nullptr;

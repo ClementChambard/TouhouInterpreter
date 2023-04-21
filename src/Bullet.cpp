@@ -1,6 +1,7 @@
 #include "Bullet.h"
 #include "BulletHandler.h"
 #include "BulletManager.h"
+#include "ItemManager.h"
 
 Bullet::Bullet() {}
 Bullet::~Bullet() {}
@@ -83,8 +84,7 @@ void Bullet::_delete()
 
 }
 
-
-int Bullet::cancel(bool /*item*/)
+int Bullet::cancel(bool item)
 {
   vm.interrupt(1);
   vm.update();
@@ -101,7 +101,7 @@ int Bullet::cancel(bool /*item*/)
       //BULLET_MANAGER_PTR->anm_ids[index_in_bullet_array].value = pzVar3->value;
     }
     //SoundManager::play_sound_at_position(0x47);
-    //FUN_00419c30(&pos,item); // create cancel item
+    gen_items_from_et_cancel(pos, item);
   }
   state = 4;
   pos += velocity * 0.5f;

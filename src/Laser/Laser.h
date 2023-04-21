@@ -28,6 +28,7 @@ class Laser {
         void set_id(int i) { laser_id = i; }
 
     protected:
+    public:
         Laser* next = nullptr;
         Laser* prev = nullptr;
         uint32_t some_flags = 0;

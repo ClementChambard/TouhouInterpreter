@@ -16,14 +16,17 @@ struct UpdateFunc {
     std::function<int(void)> function_ptr = nullptr;
     std::function<int(void)> on_registration = nullptr;
     std::function<int(void)> on_cleanup = nullptr;
-    UpdateFuncList_t list_node = {this, nullptr, nullptr};
+    UpdateFuncList_t list_node = { this, nullptr, nullptr };
 
-    UpdateFunc(std::function<int(void)> f) : function_ptr(f) {}
+    explicit UpdateFunc(std::function<int(void)> f)
+        : function_ptr(f)
+    {
+    }
 };
 
 struct UpdateFuncRegistry {
-    UpdateFunc on_game_tick_list_head = {nullptr};
-    UpdateFunc on_draw_list_head = {nullptr};
+    UpdateFunc on_game_tick_list_head = UpdateFunc(nullptr);
+    UpdateFunc on_draw_list_head = UpdateFunc(nullptr);
     UpdateFuncList_t* current_node = nullptr;
     int32_t is_cleaning_up = 0;
 
