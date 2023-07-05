@@ -2,6 +2,7 @@
 #define THECL_VALUE_H_
 
 #include <iostream>
+#include <cstdint>
 
 struct thecl_value_t {
     int type;

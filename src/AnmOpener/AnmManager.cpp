@@ -272,6 +272,21 @@ void AnmManager::deleteVM(AnmVM* vm)
     }
 }
 
+void AnmManager::delete_of_file(AnmFile *f) {
+    if (!f) return;
+    int id = -1;
+    for (int i = 0; i < 32; i++) {
+        if (&loadedFiles[i] == f) {
+            id = i;
+            break;
+        }
+    }
+    if (id == -1) return;
+    for (auto node = world_list_head->next; node != world_list_tail; node = node->next)
+        if (node->value->anm_loaded_index == id)
+            deleteVM(node->value);
+}
+
 bool AnmManager::isAlive(uint32_t id)
 {
     if ((id & AnmID::fastIdMask) == AnmID::fastIdMask) {
@@ -307,10 +322,22 @@ AnmVM* AnmManager::getVM(uint32_t id)
         return &(fastArray[id & AnmID::fastIdMask].vm);
     return nullptr;
 }
+#include <fstream>
 
 AnmFile* AnmManager::LoadFile(size_t slot, std::string filename)
 {
+    std::ifstream ifile;
+    if (filename[filename.size() - 4] != '.' || filename[filename.size() - 3] != 'a' || filename[filename.size() - 2] != 'n' || filename[filename.size() - 1] != 'm') {
+        filename += ".anm";
+    }
+    ifile.open(filename);
+    if (!ifile) {
+        std::cout << filename << ": No such file\n";
+        return nullptr;
+    }
+    ifile.close();
     if (loadedFiles[slot].name != "notLoaded") { /* do something */
+        loadedFiles[slot].Cleanup();
     }
     loadedFiles[slot].Open(filename, slot);
     return &loadedFiles[slot];

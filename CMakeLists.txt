@@ -23,17 +23,23 @@ add_subdirectory(NSEngineGit)
 file(GLOB_RECURSE SRCS src/*.cpp src/*.c)
 file(GLOB_RECURSE INCLUDES src/*.hpp src/*.h)
 
+file(GLOB IMGUIIMPLSRCS imgui/*.cpp)
+
 # add the executable
-add_executable(ecl ${SRCS} ${INCLUDES})
+add_executable(ecl ${SRCS} ${INCLUDES} ${IMGUIIMPLSRCS})
 
 # add the build directory as an include directory (for the config header)
 target_include_directories(ecl PUBLIC
                             "${PROJECT_BINARY_DIR}"
+                            "${PROJECT_SOURCE_DIR}/imgui"
                           )
+
+find_package(imgui REQUIRED)
 
 # link the NSEngine library. All the dependencies are added directly to the engine
 target_link_libraries(ecl PUBLIC NSEngine
-                                 -ljsoncpp)
+                                 -ljsoncpp
+                                 imgui::imgui)
 
 # TODO do this better (copy assets in build directory)
 file(COPY assets DESTINATION ${PROJECT_BINARY_DIR})

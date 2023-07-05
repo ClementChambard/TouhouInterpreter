@@ -1,5 +1,6 @@
 #include "AnmFile.h"
 #include "AnmFuncs.h"
+#include "AnmManager.h"
 #include "anmOpener.h"
 #include <ImageLoader.h>
 #include <TextureManager.h>
@@ -81,8 +82,8 @@ void AnmFile::Open(std::string const& filename, uint32_t slot)
     std::cout << "Opened Anm : " << filename << "\n";
 }
 
-void AnmFile::Cleanup()
-{
+void AnmFile::Cleanup() {
+    AnmManager::delete_of_file(this);
     for (auto s : scripts)
         delete[] s;
     for (auto vm : preloaded)

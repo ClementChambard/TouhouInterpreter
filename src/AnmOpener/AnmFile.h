@@ -20,6 +20,7 @@ class AnmFile {
         int8_t* getScript(size_t id) const;
         AnmSprite getSprite(size_t id) const;
         uint32_t getTextureFromName(std::string const& name) const;
+        std::string const& getName() const { return name; }
         size_t nbSprites() const { return sprites.size(); }
         size_t nbScripts() const { return scripts.size(); }
 

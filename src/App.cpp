@@ -57,6 +57,8 @@ void App::on_update() {
 
     AnmManager::update();
 
+    anmViewer.on_tick();
+
     if (Inputs::Keyboard().Pressed(NSK_n)) {
         AnmManager::killAll();
         AnmManager::LoadFile(1, "effect.anm");
@@ -81,6 +83,8 @@ void App::on_render() {
     if (EclFileManager::GetInstance()->stdf) EclFileManager::GetInstance()->stdf->Draw();
     UPDATE_FUNC_REGISTRY->run_all_on_draw();
     AnmManager::draw();
+
+    anmViewer.on_draw();
 }
 
 void App::on_destroy() {

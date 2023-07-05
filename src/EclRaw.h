@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cstdint>
 
 struct EclRawHeader_t {
     char magic[4];

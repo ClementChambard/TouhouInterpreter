@@ -1,6 +1,7 @@
 #include "BulletManager.h"
 #include "EnemyManager.h"
 #include "Laser/LaserManager.h"
+#include "./AnmViewer.hpp"
 #include <Engine.hpp>
 
 #define WINDOW_WIDTH (384 * 2 /*1920*/)
@@ -29,4 +30,5 @@ private:
     EnemyManager* em = nullptr;
     BulletManager* bm = nullptr;
     LaserManager lm {};
+    AnmViewer anmViewer;
 };
