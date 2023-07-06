@@ -58,6 +58,8 @@ void AnmFile::Open(std::string const& filename, uint32_t slot)
             sprites.push_back({ tex, spr->x + entry->header->x, spr->y + entry->header->y, spr->w, spr->h, 0, 0, 0, 0, NSEngine::TextureManager::GetTextureID(tex) });
             sprites.back().genTexCoords(w, h);
         }
+    }
+    for (auto entry : archive->entries) {
         for (uint32_t scrid = 0; scrid < entry->scripts.size(); scrid++) {
             // generate data
             uint32_t size = std::accumulate(entry->scripts[scrid]->instrs.begin(),
