@@ -9,6 +9,7 @@ struct AnmView {
   bool ok = true;
   bool windowOpen = false;
   bool followPlayer = false;
+  int pauseInstr = -1;
 
   void renderInList();
 };
@@ -22,7 +23,7 @@ public:
   void on_draw();
 
   std::vector<AnmView> &views() { return m_anmviews; }
-  void anim(int id) { m_anmviews.push_back({id, true, false, false}); }
+  void anim(int id) { m_anmviews.push_back({id, true, false, false, -1}); }
 
 private:
   void check_anmviews();

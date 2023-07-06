@@ -47,9 +47,13 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
     auto p = pos + __pos_2;
     NSEngine::draw_set_blend(bitflags.blendmode);
     // if (layer == 5) { p += glm::vec3(0,-192,0); }
+    if (bitflags.resolutionMode == 2) {
+        p /= 2;
+        XS /= 2;
+        YS /= 2;
+    }
     if (bitflags.originMode == 0) {
-        auto windata = NSEngine::getInstance()->window().getWindowData();
-        p += glm::vec3(-windata.bwidth / 2, -windata.bheight / 2, 0);
+        p += glm::vec3(-224, 16, 0);
     }
     // if (!(bitflags_hi & ANMVM_BIT_534_8)) { psx *=2; psy *=2; }
     /* MODE 16 : RECTANGLE      MODE 20 : RECTANGLE GRADIENT      MODE 27 : RECTANGLE BORDER*/
@@ -58,11 +62,11 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
         float width = sprite_size.x * XS;
         float height = sprite_size.y * YS;
         glm::vec4 pp = glm::vec4(/*psx */ p.x + px, /*psy */ -p.y + py, p.z + pz, 0);
-        glm::vec4 pos1 = pp + rotZ * glm::vec4(-width * l, -height * t, 0, 0);
-        glm::vec4 pos2 = pp + rotZ * glm::vec4(+width * r, -height * t, 0, 0);
-        glm::vec4 pos3 = pp + rotZ * glm::vec4(+width * r, +height * b, 0, 0);
-        glm::vec4 pos4 = pp + rotZ * glm::vec4(-width * l, +height * b, 0, 0);
-        c2 = bitflags.rendermode == 16 ? c2 : c1;
+        glm::vec2 pos1 = pp + rotZ * glm::vec4(width * l - anchor_offset.x, height * t + anchor_offset.y, 0, 0);
+        glm::vec2 pos2 = pp + rotZ * glm::vec4(width * r - anchor_offset.x, height * t + anchor_offset.y, 0, 0);
+        glm::vec2 pos3 = pp + rotZ * glm::vec4(width * r - anchor_offset.x, height * b + anchor_offset.y, 0, 0);
+        glm::vec2 pos4 = pp + rotZ * glm::vec4(width * l - anchor_offset.x, height * b + anchor_offset.y, 0, 0);
+        c2 = bitflags.rendermode == 20 ? c2 : c1;
         batch_draw_quad_color_2d(sb, pos1, pos2, pos3, pos4, c1, c2, c2, c1, bitflags.rendermode == 27);
         return;
     }
@@ -102,12 +106,23 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
 
     /* MODE 21 : RECT_ROT    22 : RECT_ROT_GRAD */
     if (bitflags.rendermode == 21 || bitflags.rendermode == 22) {
+        glm::mat4 rotZ = glm::rotate(glm::mat4(1.0f), rotation.z, { 0, 0, -1 });
         float width = sprite_size.x * XS;
         float height = sprite_size.y * YS;
+        glm::vec4 pp = glm::vec4(/*psx */ p.x + px, /*psy */ -p.y + py, p.z + pz, 0);
+        glm::vec2 pos1 = pp + rotZ * glm::vec4(width * l - anchor_offset.x, height * t + anchor_offset.y, 0, 0);
+        glm::vec2 pos2 = pp + rotZ * glm::vec4(width * r - anchor_offset.x, height * t + anchor_offset.y, 0, 0);
+        glm::vec2 pos3 = pp + rotZ * glm::vec4(width * r - anchor_offset.x, height * b + anchor_offset.y, 0, 0);
+        glm::vec2 pos4 = pp + rotZ * glm::vec4(width * l - anchor_offset.x, height * b + anchor_offset.y, 0, 0);
+        glm::vec2 po1 = pp + rotZ * glm::vec4(width * l - anchor_offset.x-0.5, height * t + anchor_offset.y+0.5, 0, 0);
+        glm::vec2 po2 = pp + rotZ * glm::vec4(width * r - anchor_offset.x+0.5, height * t + anchor_offset.y+0.5, 0, 0);
+        glm::vec2 po3 = pp + rotZ * glm::vec4(width * r - anchor_offset.x+0.5, height * b + anchor_offset.y-0.5, 0, 0);
+        glm::vec2 po4 = pp + rotZ * glm::vec4(width * l - anchor_offset.x-0.5, height * b + anchor_offset.y-0.5, 0, 0);
         c2 = bitflags.rendermode == 22 ? c2 : c1;
-        // glm::mat4 rotate = glm::eulerAngleZYX(-rotation.z + prz, rotation.y + pry, rotation.x + prx);
-        //  TODO: rotate and fix position
-        batch_draw_rectangle_color(sb, p.x + px - width * l, -p.y + py - height * t, p.x + px + width * r, -p.y + py + height * b, c1, c2, c2, c1);
+        auto c11 = c1; c11.a /= 2;
+        auto c21 = c2; c21.a /= 2;
+        batch_draw_quad_color_2d(sb, po1, po2, po3, po4, c11, c21, c21, c11);
+        batch_draw_quad_color_2d(sb, pos1, pos2, pos3, pos4, c1, c2, c2, c1);
         return;
     }
 

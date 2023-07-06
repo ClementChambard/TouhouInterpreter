@@ -112,8 +112,8 @@ void anm_view_window(AnmView *v) {
   }
   ImGui::SameLine();
   ImGui::Text("Slot: %d, Script: %d", vm->anm_loaded_index, vm->script_id);
-  ImGui::Text("Instr: %d, return: %d@%d", vm->instr_offset,
-              vm->interrupt_return_offset, vm->interrupt_return_time);
+  ImGui::Text("Instr: %d@%d, return: %d@%d", vm->instr_offset,
+    vm->time_in_script, vm->interrupt_return_offset, vm->interrupt_return_time);
   if (ImGui::Button("Interrupt")) {
     ImGui::OpenPopup("InterruptVM");
   }
@@ -121,7 +121,21 @@ void anm_view_window(AnmView *v) {
   if (ImGui::Button("Reset")) {
     (*vm)(AnmManager::getLoaded(vm->anm_loaded_index)
               ->getPreloaded(vm->script_id));
+    v->pauseInstr = -1;
   }
+  ImGui::SameLine();
+  if (v->pauseInstr == -1) {
+    if (ImGui::Button("Pause")) {
+      v->pauseInstr = vm->instr_offset;
+      vm->instr_offset = -1;
+    }
+  } else {
+    if (ImGui::Button("Continue")) {
+      vm->instr_offset = v->pauseInstr;
+      v->pauseInstr = -1;
+    }
+  }
+
   ImGui::Checkbox("Follow player", &v->followPlayer);
   int spid = vm->sprite_id;
   ImGui::InputInt("sprite_id", &spid);
@@ -150,6 +164,83 @@ void anm_view_window(AnmView *v) {
   vm->color_2.g = color.g * 255.f;
   vm->color_2.b = color.b * 255.f;
   vm->color_2.a = color.a * 255.f;
+  ImGui::InputFloat3("anchor offset", &vm->anchor_offset[0]);
+  ImGui::InputFloat2("sprite size", &vm->sprite_size[0]);
+  ImGui::InputInt4("Integer vars", vm->int_script_vars);
+  ImGui::InputFloat4("Float vars", vm->float_script_vars);
+  ImGui::InputInt2("Additionnal int vars", &vm->__script_var_8);
+  ImGui::InputFloat3("Additionnal float vars", &vm->__script_vars_33_34_35[0]);
+
+  if (ImGui::CollapsingHeader("flags")) {
+    bool val;
+    const char* selected;
+    #define FLAG_CHECKBOX(flagname) \
+        val = vm->bitflags.flagname; \
+        ImGui::Checkbox(#flagname, &val); \
+        vm->bitflags.flagname = val;
+
+    #define FLAG_COMBOBOX(flagname, ...) \
+      static const char* flagname ## _options[] = { __VA_ARGS__ }; \
+      selected = flagname ## _options[vm->bitflags.flagname]; \
+      if (ImGui::BeginCombo(#flagname, selected)) { \
+        for (int i = 0; i < IM_ARRAYSIZE(flagname ## _options); i++) { \
+          bool isSelected = (selected == flagname ## _options[i]); \
+          if (strlen(flagname ## _options[i]) == 0) continue; \
+          if (ImGui::Selectable(flagname ## _options[i], isSelected)) { \
+            selected = flagname ## _options[i]; \
+            vm->bitflags.flagname = i; \
+          } \
+          if (isSelected) ImGui::SetItemDefaultFocus(); \
+        } \
+        ImGui::EndCombo(); \
+      }
+
+    FLAG_CHECKBOX(visible)
+    FLAG_CHECKBOX(f530_1)
+    FLAG_CHECKBOX(rotated)
+    FLAG_CHECKBOX(scaled)
+    FLAG_CHECKBOX(zoomed)
+    FLAG_COMBOBOX(blendmode, "Normal", "Add", "Subtract", "Replace", "Screen", "Multiply", "uh", "Behind", "Darken", "Lighten")
+    FLAG_CHECKBOX(f530_9)
+    FLAG_CHECKBOX(alt_pos)
+    FLAG_CHECKBOX(flip_x)
+    FLAG_CHECKBOX(flip_y)
+    FLAG_CHECKBOX(zwritedis)
+    FLAG_CHECKBOX(f530_14)
+    FLAG_CHECKBOX(f530_15)
+    FLAG_CHECKBOX(f530_16)
+    FLAG_COMBOBOX(colmode, "Use set1", "Use set2", "H gradient", "V gradient")
+    FLAG_CHECKBOX(f530_19)
+    FLAG_CHECKBOX(f530_20)
+    FLAG_COMBOBOX(anchorX, "Center", "Left", "Right");
+    FLAG_COMBOBOX(anchorY, "Center", "Top", "Bottom");
+    FLAG_COMBOBOX(rendermode, "Normal", "RotateZ", "", "", "", "", "", "", "3D",
+                  "Textured circle", "", "", "", "Textured arc even", "Textured arc", "", "Rectangle",
+                  "Polygon", "Polygon outline", "Ring", "Rectangle grad", "Rectangle rot",
+                  "Rectangle rot grad", "", "Cylinder", "3D Textured ring", "Line horiz", "Rectangle outline")
+    FLAG_COMBOBOX(scrollY, "Wrap", "Clamp", "Mirror")
+    ImGui::Separator();
+    FLAG_COMBOBOX(scrollX, "Wrap", "Clamp", "Mirror")
+    FLAG_COMBOBOX(rotationMode, "000", "001", "010", "011", "100", "101", "110", "111")
+    FLAG_COMBOBOX(activeFlags, "00", "01", "10", "11")
+    FLAG_CHECKBOX(autoRotate)
+    FLAG_CHECKBOX(f534_8)
+    FLAG_CHECKBOX(noSlowdown)
+    FLAG_CHECKBOX(randomMode)
+    FLAG_COMBOBOX(resampleMode, "Linear", "Nearest")
+    FLAG_CHECKBOX(f534_12)
+    FLAG_CHECKBOX(ins419)
+    FLAG_COMBOBOX(f534_14_15, "00", "01", "10", "11")
+    FLAG_CHECKBOX(noParent)
+    FLAG_CHECKBOX(f534_17)
+    FLAG_COMBOBOX(originMode, "TopLeft", "0,0", "scaled 0,0");
+    FLAG_COMBOBOX(resolutionMode, "0", "1", "2", "3");
+    FLAG_CHECKBOX(parRotate)
+    FLAG_CHECKBOX(hasGrowth)
+    FLAG_CHECKBOX(colorizeChildren)
+    FLAG_CHECKBOX(f534_26)
+    ImGui::Text("unknown flags 27-31: %d", vm->bitflags.f534_27_31);
+  }
 
   if (ImGui_BeginPopupCenter("InterruptVM")) {
     static bool interrupt_recursive = false;

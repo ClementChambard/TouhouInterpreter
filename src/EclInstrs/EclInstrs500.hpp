@@ -100,7 +100,7 @@ int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr)
     _ins(551, unknown551) _S(a) _args _notImpl;
     _ins(552, zIndex) _S(l) _args enemy.anmLayers = l;
     _ins(553, hitSound) _S(s) _args enemy.hitSnd = s;
-    _ins(554, logo) _args AnmManager::getVM(AnmManager::SpawnVM(8, 0))->setScale(0.5, 0.5);
+    _ins(554, logo) _args AnmManager::getVM(AnmManager::SpawnVM(8, 0));
     _ins(555, enmAlive) _rS(var) _S(id) _args var = EnemyManager::GetInstance()->EnmFind(id) != nullptr;
     _ins(556, setDeath) _z(sub) _args enemy.setDeath = sub;
     _ins(557, fogTime) _S(t) _S(m) _S(c) _f(s) _f(e) _args _notImpl;

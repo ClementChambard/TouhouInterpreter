@@ -173,6 +173,14 @@ void AnmVM::getParentData(glm::vec3& pos, glm::vec3& rot, glm::vec2& scale)
         pos.z += parent_vm->pos.z + parent_vm->entity_pos.z;
         rot += parent_vm->rotation;
         scale *= parent_vm->scale;
+        //if (parent_vm->bitflags.resolutionMode == 2) {
+        //    pos /= 2.f;
+        //    scale /= 2.f;
+        //}
+        if (parent_vm->getFlags().originMode == 0) {
+            pos.x -= 224.f;
+            pos.y += 16.f;
+        }
     }
 }
 
