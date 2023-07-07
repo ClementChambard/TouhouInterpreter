@@ -1,15 +1,16 @@
-#include "thecl_value.h"
+#include "./thecl_value.h"
 
 #include <string.h>
 
-ssize_t thecl_value_from_data(const unsigned char* data, size_t data_length, char type, thecl_value_t* value)
-{
-#define READ(x, n)                                                                                                        \
-    if (data_length < n) {                                                                                                \
-        std::cerr << "thecl:value_from_data: unexpected end of data, wanted to read " << n << " bytes for format '#x'\n"; \
-        return -1;                                                                                                        \
-    }                                                                                                                     \
-    memcpy(&value->val.x, data, n);                                                                                       \
+ssize_t thecl_value_from_data(const unsigned char* data,
+        size_t data_length, char type, thecl_value_t* value) {
+#define READ(x, n)                                                             \
+    if (data_length < n) {                                                     \
+        std::cerr << "thecl:value_from_data: unexpected"                       \
+            "end of data, wanted to read " << n << " bytes for format '#x'\n"; \
+        return -1;                                                             \
+    }                                                                          \
+    memcpy(&value->val.x, data, n);                                            \
     return n;
 
     value->type = type;
@@ -47,7 +48,8 @@ ssize_t thecl_value_from_data(const unsigned char* data, size_t data_length, cha
         memcpy(value->val.m.data, data, data_length);
         return data_length;
     default:
-        std::cerr << "thecl:value_from_data: invalid type '" << value->type << "'\n";
+        std::cerr << "thecl:value_from_data: invalid type '" <<
+                value->type << "'\n";
         return -1;
     }
 
@@ -64,11 +66,12 @@ struct thecl_sub_param_t {
     } val;
 };
 
-static ssize_t th10_value_from_data(const unsigned char* data, size_t data_length, char type, thecl_value_t* value)
-{
+static ssize_t th10_value_from_data(const unsigned char* data,
+            size_t data_length, char type, thecl_value_t* value) {
     switch (type) {
     case 'D':
-        return thecl_value_from_data(data, sizeof(thecl_sub_param_t), 'm', value);
+        return thecl_value_from_data(data,
+                                    sizeof(thecl_sub_param_t), 'm', value);
     case 'm':
     case 'x': {
         uint32_t length;
@@ -76,11 +79,12 @@ static ssize_t th10_value_from_data(const unsigned char* data, size_t data_lengt
         thecl_value_t temp;
 
         thecl_value_from_data(data + sizeof(length), length, 'm', &temp);
-        if (type == 'x')
+        if (type == 'x') {
             for (size_t i = 0; i < length; ++i) {
                 const int ip = i - 1;
                 temp.val.m.data[i] ^= 0x77 + i * 7 + (ip * ip + ip) / 2 * 16;
             }
+        }
         value->type = 'z';
         value->val.z = reinterpret_cast<char*>(temp.val.m.data);
 
@@ -91,8 +95,8 @@ static ssize_t th10_value_from_data(const unsigned char* data, size_t data_lengt
     }
 }
 
-thecl_value_t* thecl_value_list_from_data(const unsigned char* data, size_t data_length, const char* format)
-{
+thecl_value_t* thecl_value_list_from_data(const unsigned char* data,
+                                size_t data_length, const char* format) {
     size_t format_length = strlen(format);
     size_t i = 0;
     thecl_value_t* values = NULL;
@@ -109,17 +113,21 @@ thecl_value_t* thecl_value_list_from_data(const unsigned char* data, size_t data
         }
 
         do {
-            values = reinterpret_cast<thecl_value_t*>(realloc(values, (i + 1) * sizeof(thecl_value_t)));
-            ssize_t incr = th10_value_from_data(data, data_length, f, &values[i]);
+            values = reinterpret_cast<thecl_value_t*>(
+                realloc(values, (i + 1) * sizeof(thecl_value_t)));
+            ssize_t incr = th10_value_from_data(data,
+                                                data_length, f, &values[i]);
             if (incr == -1) {
-                /* XXX: Leaksstatic_cast<unsigned char>( values, expecting program termination. */
+                /* XXX: Leaks */
+                // static_cast<unsigned char>( values, expecting program te
                 return NULL;
             }
 
             data += incr;
             data_length -= incr;
 
-            /* TODO: Check data_length and break when it is 0, warn below if all formats haven't been parsed. */
+            /* TODO: Check data_length and break when it
+             * is 0, warn below if all formats haven't been parsed. */
             if (repeat)
                 ++i;
         } while (repeat && data_length);
@@ -129,15 +137,18 @@ thecl_value_t* thecl_value_list_from_data(const unsigned char* data, size_t data
     }
 
     if (data_length)
-        fprintf(stderr, "thecl:value_list_from_data: %zu bytes left over when parsing format \"%s\"\n", data_length, format);
+        fprintf(stderr, "thecl:value_list_from_data: %zu bytes left over"
+                "when parsing format \"%s\"\n", data_length, format);
 
-    values = reinterpret_cast<thecl_value_t*>(realloc(values, (i + 1) * sizeof(thecl_value_t)));
+    values = reinterpret_cast<thecl_value_t*>(realloc(values, (i + 1) *
+                                                      sizeof(thecl_value_t)));
     memset(&values[i], 0, sizeof(thecl_value_t));
 
     return values;
 }
 
-/* TODO: Should write to a passed buffer and return the number of bytes written. */
+/* TODO: Should write to a passed buffer and return the
+ * number of bytes written. */
 char* thecl_value_to_text(const thecl_value_t* value)
 {
     /* XXX: This might be too short. */
@@ -145,53 +156,53 @@ char* thecl_value_to_text(const thecl_value_t* value)
 
     switch (value->type) {
     case 'f':
-        snprintf(temp, 256, "%ff", value->val.f);
+        snprintf(temp, sizeof(temp), "%ff", value->val.f);
         break;
     case 'd':
-        snprintf(temp, 256, "%f", value->val.d);
+        snprintf(temp, sizeof(temp), "%f", value->val.d);
         break;
     case 'b':
-        snprintf(temp, 256, "%02x", value->val.b);
+        snprintf(temp, sizeof(temp), "%02x", value->val.b);
         break;
     case 'c':
-        snprintf(temp, 256, "%c", value->val.c);
+        snprintf(temp, sizeof(temp), "%c", value->val.c);
         break;
     case 'u':
-        snprintf(temp, 256, "%u", value->val.u);
+        snprintf(temp, sizeof(temp), "%u", value->val.u);
         break;
     case 's':
-        snprintf(temp, 256, "%i", value->val.s);
+        snprintf(temp, sizeof(temp), "%i", value->val.s);
         break;
     case 'U':
-        snprintf(temp, 256, "%u", value->val.U);
+        snprintf(temp, sizeof(temp), "%u", value->val.U);
         break;
     case 'S':
-        snprintf(temp, 256, "%i", value->val.S);
+        snprintf(temp, sizeof(temp), "%i", value->val.S);
         break;
     case 'z':
-        snprintf(temp, 256, "%s", value->val.z);
+        snprintf(temp, sizeof(temp), "%s", value->val.z);
         break;
     case 'm':
         memcpy(temp, value->val.m.data, value->val.m.length);
         temp[value->val.m.length] = '\0';
         break;
     case 'C':
-        snprintf(temp, 256, "#%02hhx%02hhx%02hhx%02hhx",
+        snprintf(temp, sizeof(temp), "#%02hhx%02hhx%02hhx%02hhx",
             static_cast<unsigned char>(value->val.C[0]),
             static_cast<unsigned char>(value->val.C[1]),
             static_cast<unsigned char>(value->val.C[2]),
             static_cast<unsigned char>(value->val.C[3]));
         break;
     default:
-        fprintf(stderr, "thecl:value_to_text: invalid type '%c'\n", value->type);
+        fprintf(stderr, "thecl:value_to_text: invalid type '%c'\n",
+                value->type);
         return NULL;
     }
 
     return strdup(temp);
 }
 
-void thecl_value_free(thecl_value_t* value)
-{
+void thecl_value_free(thecl_value_t* value) {
     if (value->type == 'z') {
         delete[] value->val.z;
         value->val.z = NULL;

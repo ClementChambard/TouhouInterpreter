@@ -50,6 +50,7 @@ struct ShtShooterRaw_t {
     int32_t on_hit;
     int16_t __unknown[16];
 };
+
 struct ShtShooterRaw18_t {
     uint8_t fire_rate;
     uint8_t start_delay;

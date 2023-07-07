@@ -1,16 +1,14 @@
-#include "App.hpp"
-#include "EclFileManager.h"
-#include <chrono>
-#include <thread>
+#include "./App.hpp"
+#include "./EclFileManager.h"
 #include <NSEngine.h>
-#include "AnmOpener/AnmManager.h"
-#include "GoastManager.h"
-#include "StdOpener/StdFile.h"
-#include "GlobalData.h"
-#include "ItemManager.h"
-#include "Spellcard.h"
-#include "Hardcoded.h"
-#include "Player.h"
+#include "./AnmOpener/AnmManager.h"
+#include "./GoastManager.h"
+#include "./StdOpener/StdFile.h"
+#include "./GlobalData.h"
+#include "./ItemManager.h"
+#include "./Spellcard.h"
+#include "./Hardcoded.h"
+#include "./Player.h"
 
 void App::on_create() {
     Hardcoded_Load();
@@ -31,8 +29,13 @@ void App::on_create() {
     auto cam = NSEngine::activeCamera3D();
     cam->setUp(0, 0, -1);
     float dist_coeff = 1.207106781186548;
-    glm::mat4 perspS = glm::perspective(PI1_4, (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.01f, 10000.f);
-    glm::mat4 viewMatrixS = glm::lookAt(glm::vec3(0.f, -224.f, dist_coeff*(float)WINDOW_HEIGHT/2.f), glm::vec3(0.f, -224.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+    glm::mat4 perspS = glm::perspective(PI1_4,
+        static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT),
+        0.01f, 10000.f);
+    glm::mat4 viewMatrixS = glm::lookAt(
+        glm::vec3(0.f, -224.f,
+                 dist_coeff * static_cast<float>(WINDOW_HEIGHT) / 2.f),
+        glm::vec3(0.f, -224.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
     cam->setMatStatic(perspS * viewMatrixS);
 
     GLOBALS.inner.CHARACTER = 1;
@@ -51,8 +54,8 @@ void App::on_create() {
 }
 
 void App::on_update() {
-
-    if (EclFileManager::GetInstance()->stdf) EclFileManager::GetInstance()->stdf->Update();
+    if (EclFileManager::GetInstance()->stdf)
+        EclFileManager::GetInstance()->stdf->Update();
     UPDATE_FUNC_REGISTRY->run_all_on_tick();
 
     AnmManager::update();
@@ -72,15 +75,19 @@ void App::on_update() {
 }
 
 void App::on_render() {
-    //NSEngine::draw_set_layer(NSEngine::engineData::debugLayer);
+    // NSEngine::draw_set_layer(NSEngine::engineData::debugLayer);
 
-    //__DRAW
-    //NSEngine::Color c;
-    //c = {255,   0, 255, 255}; __MONITOR(BulletManager::GetInstance()->get_nb_bul()/2000.f, c);
-    //c = {  0, 255,   0, 255}; __MONITOR(1.f-AnmManager::getFreeAnm()/8191.f, c);
-    //c = {  0,   0, 255, 255}; __MONITOR(EnemyManager::GetInstance()->enemyCount/300.f, c);
+    // __DRAW
+    // NSEngine::Color c;
+    // c = {255,   0, 255, 255};
+    // __MONITOR(BulletManager::GetInstance()->get_nb_bul()/2000.f, c);
+    // c = {  0, 255,   0, 255};
+    // __MONITOR(1.f-AnmManager::getFreeAnm()/8191.f, c);
+    // c = {  0,   0, 255, 255};
+    // __MONITOR(EnemyManager::GetInstance()->enemyCount/300.f, c);
 
-    if (EclFileManager::GetInstance()->stdf) EclFileManager::GetInstance()->stdf->Draw();
+    if (EclFileManager::GetInstance()->stdf)
+        EclFileManager::GetInstance()->stdf->Draw();
     UPDATE_FUNC_REGISTRY->run_all_on_draw();
     AnmManager::draw();
 

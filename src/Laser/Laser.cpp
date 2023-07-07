@@ -1,7 +1,6 @@
-#include "Laser.h"
+#include "./Laser.h"
 
-Laser::~Laser()
-{
+Laser::~Laser() {
     if (next) next->prev = prev;
     if (prev) prev->next = next;
 }

@@ -1,8 +1,8 @@
 #ifndef ITEMMANAGER_H_
 #define ITEMMANAGER_H_
 
-#include "Item.h"
-#include "UpdateFuncRegistry.h"
+#include "./Item.h"
+#include "./UpdateFuncRegistry.h"
 
 class ItemManager {
 public:
@@ -12,7 +12,8 @@ public:
     ItemManager& operator=(ItemManager const&) = delete;
 
     void reset();
-    Item* spawn_item(int type, glm::vec3 const& pos, float angle, float speed, int32_t iframe, int32_t sfx);
+    Item* spawn_item(int type, glm::vec3 const& pos, float angle,
+                     float speed, int32_t iframe, int32_t sfx);
 
 private:
     int _on_tick();

@@ -2,7 +2,7 @@
 #define LASERINFINITE_H_
 
 #include "../AnmOpener/AnmVM.h"
-#include "Laser.h"
+#include "./Laser.h"
 
 struct LaserInfiniteInner_t {
     glm::vec3 start_pos = {};
@@ -29,7 +29,6 @@ struct LaserInfiniteInner_t {
 };
 
 class LaserInfinite : public Laser {
-
 public:
     LaserInfinite();
     ~LaserInfinite() { }
@@ -37,7 +36,8 @@ public:
     int initialize(void*) override;
     int on_tick() override;
     int on_draw() override;
-    int cancel_as_bomb_rectangle(glm::vec3, glm::vec3, float, int, int) override;
+    int cancel_as_bomb_rectangle(glm::vec3, glm::vec3,
+                                 float, int, int) override;
     int cancel(int, int) override;
 
     LaserInfiniteInner_t& getInner() { return inner; }

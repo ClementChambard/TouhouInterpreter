@@ -1,9 +1,8 @@
-#include "UpdateFuncRegistry.h"
+#include "./UpdateFuncRegistry.h"
 
 UpdateFuncRegistry* const UPDATE_FUNC_REGISTRY = new UpdateFuncRegistry();
 
-int UpdateFuncRegistry::run_all_on_tick()
-{
+int UpdateFuncRegistry::run_all_on_tick() {
     UpdateFunc* current_update_func;
     UpdateFuncList_t* cur_node = on_game_tick_list_head.list_node.next;
     int ret = 0;
@@ -59,8 +58,7 @@ int UpdateFuncRegistry::run_all_on_tick()
     } while (true);
 }
 
-int UpdateFuncRegistry::run_all_on_draw()
-{
+int UpdateFuncRegistry::run_all_on_draw() {
     UpdateFunc* func;
     int ret = 0;
     UpdateFuncList_t* cur_node = on_draw_list_head.list_node.next;
@@ -97,8 +95,7 @@ int UpdateFuncRegistry::run_all_on_draw()
     } while (true);
 }
 
-int UpdateFuncRegistry::register_on_tick(UpdateFunc* func, int32_t priority)
-{
+int UpdateFuncRegistry::register_on_tick(UpdateFunc* func, int32_t priority) {
     int ret = 0;
     if (func->on_registration != nullptr) {
         ret = func->on_registration();
@@ -120,8 +117,7 @@ int UpdateFuncRegistry::register_on_tick(UpdateFunc* func, int32_t priority)
     return ret;
 }
 
-int UpdateFuncRegistry::register_on_draw(UpdateFunc* func, int32_t priority)
-{
+int UpdateFuncRegistry::register_on_draw(UpdateFunc* func, int32_t priority) {
     int ret = 0;
     if (func->on_registration != nullptr) {
         ret = func->on_registration();
@@ -143,8 +139,7 @@ int UpdateFuncRegistry::register_on_draw(UpdateFunc* func, int32_t priority)
     return ret;
 }
 
-void UpdateFuncRegistry::unregister(UpdateFunc* func)
-{
+void UpdateFuncRegistry::unregister(UpdateFunc* func) {
     if (!func)
         return;
     if (func->list_node.prev)
@@ -154,8 +149,8 @@ void UpdateFuncRegistry::unregister(UpdateFunc* func)
     delete func;
 }
 
-void UpdateFuncRegistry::unregister_from(UpdateFuncList_t* node [[maybe_unused]])
-{
+void UpdateFuncRegistry::unregister_from(UpdateFuncList_t* node
+                                         [[maybe_unused]]) {
     // UpdateFuncList_t* prev_node = node[1].prev;
     // while (node) {
     //     UpdateFunc* func = prev_node->entry;

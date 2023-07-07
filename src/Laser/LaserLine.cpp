@@ -1,11 +1,11 @@
-#include "LaserLine.h"
+#include "./LaserLine.h"
+#include "./LaserManager.h"
 #include "../BulletManager.h"
 #include "../ItemManager.h"
 #include "../Player.h"
 #include <math/Random.h>
 
-LaserLine::LaserLine()
-{
+LaserLine::LaserLine() {
     vm1.sprite_id = -1;
     vm1.instr_offset = -1;
     vm2.sprite_id = -1;
@@ -14,8 +14,7 @@ LaserLine::LaserLine()
     vm3.instr_offset = -1;
 }
 
-int LaserLine::initialize(void* arg)
-{
+int LaserLine::initialize(void* arg) {
 
     inner = *reinterpret_cast<LaserLineInner_t*>(arg);
 
@@ -93,8 +92,7 @@ int LaserLine::initialize(void* arg)
     return 0;
 }
 
-int LaserLine::on_tick()
-{
+int LaserLine::on_tick() {
 
     int finished_ex = 0;
 
@@ -197,15 +195,15 @@ int LaserLine::on_tick()
     return 0;
 }
 
-int LaserLine::on_draw()
-{
+int LaserLine::on_draw() {
     float vmAngle = angle + 1.570796;
     math::angle_normalize(vmAngle);
     vm1.pos = laser_offset;
     vm1.bitflags.rotated = true;
     vm1.rotation.z = vmAngle;
     vm1.draw();
-    vm3.pos = laser_offset + glm::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
+    vm3.pos = laser_offset + glm::vec3(
+        math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
     vm3.draw();
     if (__field_7c__sometimes_0p01_or_0f == 0.0) {
         vm2.pos = laser_offset;
@@ -214,10 +212,9 @@ int LaserLine::on_draw()
     return 0;
 }
 
-void LaserLine::run_ex()
-{
-    while (et_ex_index < 17 && inner.et_ex[et_ex_index].type && !(inner.et_ex[et_ex_index].slot == 0 && flags != 0)) {
-
+void LaserLine::run_ex() {
+    while (et_ex_index < 17 && inner.et_ex[et_ex_index].type &&
+        !(inner.et_ex[et_ex_index].slot == 0 && flags != 0)) {
         if (inner.et_ex[et_ex_index].type == 1) {
             flags |= 1;
             ex_speedup.timer = 0;
@@ -233,10 +230,14 @@ void LaserLine::run_ex()
             if (inner.et_ex[et_ex_index].s <= -990.0)
                 ex_accel.angle = angle;
             if (990.0 <= inner.et_ex[et_ex_index].s)
-                ex_accel.angle = math::point_direction(laser_offset.x, laser_offset.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+                ex_accel.angle = math::point_direction(laser_offset.x,
+                                                       laser_offset.y,
+                                                       PLAYER_PTR->inner.pos.x,
+                                                       PLAYER_PTR->inner.pos.y);
             ex_accel.timer = 0;
             ex_accel.duration = inner.et_ex[et_ex_index].a;
-            ex_accel.vec3_a14 = { math::lengthdir_vec(ex_accel.acceleration, ex_accel.angle), 0.f };
+            ex_accel.vec3_a14 = { math::lengthdir_vec(
+                ex_accel.acceleration, ex_accel.angle), 0.f };
             if (et_ex_index != 0 && inner.shot_transform_sfx >= 0) {
                 // SoundManager::play_sound_centered(inner.shot_transform_sfx);
             }
@@ -290,7 +291,9 @@ void LaserLine::run_ex()
         }
 
         if (inner.et_ex[et_ex_index].type == 0x200) {
-            vm1(AnmManager::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[inner.et_ex[et_ex_index].a]["script"].asInt() + inner.et_ex[et_ex_index].b));
+            vm1(AnmManager::getLoaded(7)->getPreloaded(
+                BULLET_TYPE_TABLE[inner.et_ex[et_ex_index].a]["script"].asInt()
+                + inner.et_ex[et_ex_index].b));
             vm1.parent_vm = nullptr;
             // vm1.__root_vm__or_maybe_not = nullptr;
             vm1.update();
@@ -312,7 +315,8 @@ void LaserLine::run_ex()
         if (inner.et_ex[et_ex_index].type == 0x2000) {
             EnemyBulletShooter_t bs;
             bs.__shot_transform_sfx = -1;
-            bs.__vec3_8 = { glm::vec2(laser_offset) + math::lengthdir_vec(laser_inf_current_length, angle), 0.f };
+            bs.__vec3_8 = { glm::vec2(laser_offset) + math::lengthdir_vec(
+                laser_inf_current_length, angle), 0.f };
             bs.aim_type = inner.et_ex[et_ex_index].a;
             bs.__start_transform = inner.et_ex[et_ex_index].b;
             bs.cnt_count = inner.et_ex[et_ex_index].c;
@@ -324,7 +328,10 @@ void LaserLine::run_ex()
             if (bs.ang_aim <= -999990.0)
                 bs.ang_aim = angle;
             if (999990.0 <= bs.ang_aim)
-                bs.ang_aim = math::point_direction(laser_offset.x, laser_offset.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+                bs.ang_aim = math::point_direction(laser_offset.x,
+                                                   laser_offset.y,
+                                                   PLAYER_PTR->inner.pos.x,
+                                                   PLAYER_PTR->inner.pos.y);
             if (bs.spd1 <= -999990.0)
                 bs.spd1 = speed;
             et_ex_index++;
@@ -364,11 +371,8 @@ void LaserLine::run_ex()
     }
 }
 
-#include "LaserManager.h"
-
 int FUN_004038d0(float* xout, float* yout, float lx1, float ly1, float lx2,
-    float ly2, float x1, float y1, float x2, float y2)
-{
+    float ly2, float x1, float y1, float x2, float y2) {
     float fVar6;
     float fVar7;
 
@@ -379,11 +383,15 @@ int FUN_004038d0(float* xout, float* yout, float lx1, float ly1, float lx2,
         float fVar4;
         float fVar5;
         if ((fVar6 == 0.0) || (fVar7 != 0.0)) {
-            if (0.0 < ((y2 - ly2) * (lx2 - lx1) + (lx2 - x2) * (ly2 - ly1)) * ((y1 - ly2) * (lx2 - lx1) + (lx2 - x1) * (ly2 - ly1))) {
+            if (0.0 < ((y2 - ly2) * (lx2 - lx1) + (lx2 - x2) * (ly2 - ly1))
+                * ((y1 - ly2) * (lx2 - lx1) + (lx2 - x1) * (ly2 - ly1))) {
                 return 0;
             }
-        } else if (fmax(lx1, lx2) < fmin(x1, x2) || fmax(ly1, ly2) < fmin(y1, y2) || fmax(x1, x2) < fmin(lx1, lx2) || fmax(y1, y2) < fmin(ly1, ly2))
+        } else if (fmax(lx1, lx2) < fmin(x1, x2) || fmax(ly1, ly2) <
+                fmin(y1, y2) || fmax(x1, x2) < fmin(lx1, lx2) ||
+                fmax(y1, y2) < fmin(ly1, ly2)) {
             return 0;
+        }
         if (0.01 <= fabs(x1 - x2)) {
             fVar3 = (y1 - y2) / (x1 - x2);
             fVar7 = y2 - ((y1 - y2) * x2) / (x1 - x2);
@@ -421,16 +429,18 @@ int FUN_004038d0(float* xout, float* yout, float lx1, float ly1, float lx2,
     return 0;
 }
 
-int LaserLine::method_50_line()
-{
-    glm::vec3 laser_pos2 = { glm::vec2(laser_offset) + math::lengthdir_vec(laser_inf_current_length, angle), 0.f };
-    if (-192.0 < laser_pos2.x + 0.0 && laser_pos2.x - 0.0 < 192.0 && 0.0 < laser_pos2.y + 0.0 && laser_pos2.y - 0.0 < 448.0)
+int LaserLine::method_50_line() {
+    glm::vec3 laser_pos2 = { glm::vec2(laser_offset) +
+        math::lengthdir_vec(laser_inf_current_length, angle), 0.f };
+    if (-192.0 < laser_pos2.x + 0.0 && laser_pos2.x - 0.0 < 192.0 &&
+        0.0 < laser_pos2.y + 0.0 && laser_pos2.y - 0.0 < 448.0)
         return 0;
     bool has_bounced = false;
     if (((ex_bounce.for_laser_line & 1) != 0) && (laser_pos2.y < 0.0)) {
         if ((ex_bounce.for_laser_line & 0x10) == 0) {
             FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
-                laser_offset.y, laser_pos2.x, laser_pos2.y, 256.0, 0.0, -256.0, 0.0);
+                laser_offset.y, laser_pos2.x, laser_pos2.y, 256.0, 0.0,
+                         -256.0, 0.0);
             inner.start_pos.z = 0.0;
             inner.ang_aim = -angle;
             inner.spd_1 = ex_bounce.bounce_speed;
@@ -442,7 +452,8 @@ int LaserLine::method_50_line()
     if (((ex_bounce.for_laser_line & 2) != 0) && (448.0 < laser_pos2.y)) {
         if ((ex_bounce.for_laser_line & 0x10) == 0) {
             FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
-                laser_offset.y, laser_pos2.x, laser_pos2.y, 256.0, 448.0, -256.0, 448.0);
+                laser_offset.y, laser_pos2.x, laser_pos2.y, 256.0, 448.0,
+                         -256.0, 448.0);
             inner.start_pos.z = 0.0;
             inner.ang_aim = -angle;
             inner.spd_1 = ex_bounce.bounce_speed;
@@ -454,7 +465,8 @@ int LaserLine::method_50_line()
     if (((ex_bounce.for_laser_line & 4) != 0) && (laser_pos2.x < -192.0)) {
         if ((ex_bounce.for_laser_line & 0x10) == 0) {
             FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
-                laser_offset.y, laser_pos2.x, laser_pos2.y, -192.0, 640.0, -192.0, -192.0);
+                laser_offset.y, laser_pos2.x, laser_pos2.y, -192.0, 640.0,
+                         -192.0, -192.0);
             inner.start_pos.z = 0.0;
             inner.ang_aim = PI - angle;
             inner.spd_1 = ex_bounce.bounce_speed;
@@ -470,7 +482,8 @@ int LaserLine::method_50_line()
         }
     } else if ((ex_bounce.for_laser_line & 0x10) == 0) {
         FUN_004038d0(&inner.start_pos.x, &inner.start_pos.y, laser_offset.x,
-            laser_offset.y, laser_pos2.x, laser_pos2.y, 192.0, 640.0, 192.0, -192.0);
+            laser_offset.y, laser_pos2.x, laser_pos2.y, 192.0, 640.0,
+                     192.0, -192.0);
         inner.start_pos.z = 0.0;
         inner.ang_aim = PI - angle;
         inner.spd_1 = ex_bounce.bounce_speed;
@@ -478,12 +491,14 @@ int LaserLine::method_50_line()
         allocate_new_laser(0, &inner);
     }
     flags &= 0xffffffbf;
-    if (-1 < inner.shot_transform_sfx) { /*SoundManager::play_sound_centered(inner.shot_transform_sfx);*/
+    if (-1 < inner.shot_transform_sfx) {
+        /*SoundManager::play_sound_centered(inner.shot_transform_sfx);*/
     }
     return 1;
 }
 
-int LaserLine::cancel_as_bomb_rectangle(glm::vec3, glm::vec3, float, int, int) { return 0; }
+int LaserLine::cancel_as_bomb_rectangle(glm::vec3, glm::vec3, float,
+                                        int, int) { return 0; }
 int LaserLine::cancel_as_bomb_circle(int, int, int, int) { return 0; }
 int LaserLine::cancel(int, int as_bomb)
 {
@@ -502,30 +517,37 @@ int LaserLine::cancel(int, int as_bomb)
             if (bullet_type < 18 || bullet_type == 34 || bullet_type == 38) {
                 // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
                 // vm = AnmManager::allocate_vm();
-                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.bullet_color * 2 + 0xd1);
-                AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.bullet_color * 2 + 0xd1));
+                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,
+                // vm,inner.bullet_color * 2 + 0xd1);
+                AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7,
+                                                inner.bullet_color * 2 + 0xd1));
                 vm->bitflags.randomMode = true;
                 vm->entity_pos = p;
                 vm->update();
             } else {
                 if (bullet_type < 32) {
                     // Same
-                    AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.bullet_color * 2 + 0x101));
+                    AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7,
+                                               inner.bullet_color * 2 + 0x101));
                     vm->bitflags.randomMode = true;
                     vm->entity_pos = p;
                     vm->update();
                 }
                 if (bullet_type < 0x22) {
                     // Same
-                    AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.bullet_color * 2 + 0x119));
+                    AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7,
+                                               inner.bullet_color * 2 + 0x119));
                     vm->bitflags.randomMode = true;
                     vm->entity_pos = p;
                     vm->update();
                 }
             }
-            if (((as_bomb && (-192.0 < p.x + 32.0)) && ((p.x - 32.0 < 192.0 && ((0.0 < p.y + 32.0 && (p.y - 32.0 < 448.0))))))) {
-                // BULLET_MANAGER_PTR->__related_to_cancels = BULLET_MANAGER_PTR->__related_to_cancels + 1;
-                ITEM_MANAGER_PTR->spawn_item(9, p, Random::Floatm11() * 0.1745329 - 1.570796, 2.2, 0, -1);
+            if (((as_bomb && (-192.0 < p.x + 32.0)) && ((p.x - 32.0 < 192.0 &&
+                ((0.0 < p.y + 32.0 && (p.y - 32.0 < 448.0))))))) {
+                // BULLET_MANAGER_PTR->__related_to_cancels =
+                // BULLET_MANAGER_PTR->__related_to_cancels + 1;
+                ITEM_MANAGER_PTR->spawn_item(9, p, Random::Floatm11() *
+                                             0.1745329 - 1.570796, 2.2, 0, -1);
             }
             n++;
             p += inc;

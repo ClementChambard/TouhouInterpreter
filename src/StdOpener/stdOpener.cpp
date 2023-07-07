@@ -1,4 +1,4 @@
-#include "stdOpener.h"
+#include "./stdOpener.h"
 #include <fstream>
 
 namespace StdOpener {
@@ -26,8 +26,7 @@ const std::vector<std::pair<uint32_t, std::string>> formats_v2 = {
     { 0, "NULL" }
 };
 
-thstd_t* std_read_file(std::string const& filename)
-{
+thstd_t* std_read_file(std::string const& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (file.fail())
         return nullptr;
@@ -48,7 +47,7 @@ thstd_t* std_read_file(std::string const& filename)
     uint32_t* offsets;
 
     thstd_t* std = new thstd_t();
-    std->map_size = static_cast<long>(fileSize);
+    std->map_size = static_cast<int64_t>(fileSize);
     std->map = map_base = buf;
     map = map_base;
 
@@ -79,7 +78,8 @@ thstd_t* std_read_file(std::string const& filename)
     map = map_base + std->header_10->faces_offset;
 
     while (true) {
-        std_object_instance_t* instance = reinterpret_cast<std_object_instance_t*>(map);
+        std_object_instance_t* instance =
+            reinterpret_cast<std_object_instance_t*>(map);
         if (instance->object_id == 0xFFFF)
             break;
 
@@ -87,20 +87,21 @@ thstd_t* std_read_file(std::string const& filename)
         map = map + sizeof(std_object_instance_t);
     }
 
-    instr = reinterpret_cast<std_instr_t*>(map_base + std->header_10->script_offset);
+    instr = reinterpret_cast<std_instr_t*>
+        (map_base + std->header_10->script_offset);
 
     while (true) {
         if (instr->size == 0xFFFF)
             break;
         std->instrs.push_back(instr);
-        instr = reinterpret_cast<std_instr_t*>(reinterpret_cast<char*>(instr) + instr->size);
+        instr = reinterpret_cast<std_instr_t*>
+            (reinterpret_cast<char*>(instr) + instr->size);
     }
 
     return std;
 }
 
-void std_free(thstd_t* std)
-{
+void std_free(thstd_t* std) {
     for (auto entry : std->entries) {
         entry->quads.clear();
         delete entry;
@@ -115,23 +116,23 @@ void std_free(thstd_t* std)
     delete std;
 }
 
-void quad_dump(const std_object_t* object)
-{
+void quad_dump(const std_object_t* object) {
     std::cout << "\n    QUAD:\n";
     std::cout << "        Type: " << object->unknown << '\n';
     std::cout << "        Scr_id: " << object->script_index << '\n';
-    std::cout << "        Position: " << object->x << ' ' << object->y << ' ' << object->z << '\n';
+    std::cout << "        Position: " << object->x << ' '
+        << object->y << ' ' << object->z << '\n';
     std::cout << "        Padding: " << object->_padding << '\n';
     std::cout << "        Width: " << object->width << '\n';
     std::cout << "        Height: " << object->height << '\n';
 }
 
-void entry_dump(const std_entry_t* entry, uint16_t& objID)
-{
+void entry_dump(const std_entry_t* entry, uint16_t& objID) {
     std_entry_header_t* header = entry->header;
     std::cout << "\nENTRY " << objID++ << ":\n";
     std::cout << "    Unknown: " << header->unknown << '\n';
-    std::cout << "    Position: " << header->x << ' ' << header->y << ' ' << header->z << '\n';
+    std::cout << "    Position: " << header->x << ' ' <<
+        header->y << ' ' << header->z << '\n';
     std::cout << "    Depth: " << header->depth << '\n';
     std::cout << "    Width: " << header->width << '\n';
     std::cout << "    Height: " << header->height << '\n';
@@ -139,20 +140,18 @@ void entry_dump(const std_entry_t* entry, uint16_t& objID)
         quad_dump(q);
 }
 
-void objInst_dump(const std_object_instance_t* instance)
-{
+void objInst_dump(const std_object_instance_t* instance) {
     std::cout << "    FACE: " << instance->object_id
               << ' ' << instance->unknown1 << ' '
-              << instance->x << ' ' << instance->y << ' ' << instance->z << '\n';
+              << instance->x << ' ' << instance->y << ' '
+              << instance->z << '\n';
 }
 
-void instr_dump(const std_instr_t*, uint32_t&)
-{
-    // TODO
+void instr_dump(const std_instr_t*, uint32_t&) {
+    // TODo
 }
 
-void std_dump(const thstd_t* std)
-{
+void std_dump(const thstd_t* std) {
     uint16_t object_id = 0;
     uint32_t time = 0;
 
@@ -173,4 +172,4 @@ void std_dump(const thstd_t* std)
         instr_dump(i, time);
 }
 
-}
+}  // namespace StdOpener

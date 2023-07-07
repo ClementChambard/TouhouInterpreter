@@ -2,7 +2,7 @@
 #define HARDCODED_H_
 
 #include <json/json.h>
-#include "GlobalData.h"
+#include "./GlobalData.h"
 
 extern Json::Value HARDCODED_DATA;
 extern Json::Value HARDCODED_DATA_BASE;

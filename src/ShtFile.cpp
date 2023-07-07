@@ -7,8 +7,7 @@
 
 ShtFile_t* ALREADY_LOADED_SHTFILE = nullptr;
 
-ShtFile_t* open_sht(std::string filename)
-{
+ShtFile_t* open_sht(std::string filename) {
     std::ifstream file(filename, std::ios::binary);
     if (file.fail())
         return nullptr;

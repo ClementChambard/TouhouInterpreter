@@ -6,9 +6,9 @@
 #include "../EnemyManager.h"
 #include "../Spellcard.h"
 #include <math/Random.h>
+#include <vector>
 #define PRINT false
-int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr)
-{
+inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _insNop
 #endif
 
@@ -19,7 +19,8 @@ int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr)
     return -1;
 
     _ins(10, return) eclPopContext(cont);
-    _ret // TODO
+    // TODO(ClementChambard)
+    _ret
 
         int bo
         = cont->stack.baseOffset;
@@ -77,20 +78,20 @@ int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr)
         std::cout << ")\n";
     _args _ret;
 
-    _ins(12, jump) _S(offset) _f(time) _args // OK
+    _ins(12, jump) _S(offset) _f(time) _args /* OK */
         cont->time
         += time;
     cont->currentLocation.offset += offset;
     _ret;
 
-    _ins(13, jumpEq) _S(offset) _f(time) _args _popS(top); // OK
+    _ins(13, jumpEq) _S(offset) _f(time) _args _popS(top); /* OK */
     if (!top) {
         cont->currentLocation.offset += offset;
         cont->time += time;
         _ret;
     }
 
-    _ins(14, jumpNeq) _S(offset) _f(time) _args _popS(top); // OK
+    _ins(14, jumpNeq) _S(offset) _f(time) _args _popS(top); /* OK */
     if (top) {
         cont->currentLocation.offset += offset;
         cont->time += time;
@@ -177,47 +178,72 @@ int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr)
     _args;
 
     /////// OK FROM HERE /////////
-    _ins(17, killAsync) _S(id) _args for (EclRunContextList_t* node = asyncListHead; node != nullptr; node = node->next) if (node->entry->asyncId == id)
-    {
+    _ins(17, killAsync) _S(id) _args
+    for (EclRunContextList_t* node = asyncListHead;
+         node != nullptr; node = node->next) {
+        if (node->entry->asyncId == id) {
+            node->entry->currentLocation.sub_id = -1;
+            node->entry->currentLocation.offset = -1;
+            break;
+        }
+    }
+
+    _ins(18, unknown18) _S(id) _args
+    for (EclRunContextList_t* node = asyncListHead;
+         node != nullptr; node = node->next) {
+        if (node->entry->asyncId == id) {
+            node->entry->set_by_ins_18_19 |= 1;
+            break;
+        }
+    }
+
+    _ins(19, unknown19) _S(id) _args
+    for (EclRunContextList_t* node = asyncListHead;
+        node != nullptr; node = node->next) {
+        if (node->entry->asyncId == id) {
+            node->entry->set_by_ins_18_19 &= 0xfffffffe;
+            break;
+        }
+    }
+
+    _ins(20, unknown20) _S(id) _S(b) _args
+    for (EclRunContextList_t* node = asyncListHead;
+         node != nullptr; node = node->next) {
+        if (node->entry->asyncId == id) {
+            node->entry->set_by_ins_20 = b;
+            break;
+        }
+    }
+
+    _ins(21, killAllAsync)
+    for (EclRunContextList_t* node = asyncListHead;
+         node != nullptr; node = node->next) {
         node->entry->currentLocation.sub_id = -1;
         node->entry->currentLocation.offset = -1;
-        break;
     }
 
-    _ins(18, unknown18) _S(id) _args for (EclRunContextList_t* node = asyncListHead; node != nullptr; node = node->next) if (node->entry->asyncId == id)
-    {
-        node->entry->set_by_ins_18_19 |= 1;
-        break;
-    }
+    _ins(22, debug22) _S(a) _z(b) _args
+    // std::cout << "debug22 on" << a << " : " << b << "\n";
+    // NOPed in the code
 
-    _ins(19, unknown19) _S(id) _args for (EclRunContextList_t* node = asyncListHead; node != nullptr; node = node->next) if (node->entry->asyncId == id)
-    {
-        node->entry->set_by_ins_18_19 &= 0xfffffffe;
-        break;
-    }
+    _ins(23, wait) _S(time) _args
+    cont->time -= time;
 
-    _ins(20, unknown20) _S(id) _S(b) _args for (EclRunContextList_t* node = asyncListHead; node != nullptr; node = node->next) if (node->entry->asyncId == id)
-    {
-        node->entry->set_by_ins_20 = b;
-        break;
-    }
+    _ins(24, waitf) _f(time) _args
+    cont->time -= time;
 
-    _ins(21, killAllAsync) for (EclRunContextList_t* node = asyncListHead; node != nullptr; node = node->next)
-    {
-        node->entry->currentLocation.sub_id = -1;
-        node->entry->currentLocation.offset = -1;
-    }
+    _ins(30, printf) _z(str) _args
 
-    _ins(22, debug22) _S(a) _z(b) _args // std::cout << "debug22 on" << a << " : " << b << "\n"; // NOPed in the code
+    // std::cout << str; // NOPed in the code
+    _ins(31, unknown31)
+    // NOPed in the code
 
-        _ins(23, wait) _S(time) _args cont->time
-        -= time;
-    _ins(24, waitf) _f(time) _args cont->time -= time;
-    _ins(30, printf) _z(str) _args // std::cout << str; // NOPed in the code
-        _ins(31, unknown31) // NOPed in the code
-        _ins(40, stackAlloc) _S(s) _args eclAllocVariables(cont, s); // TODO see in the function
+    _ins(40, stackAlloc) _S(s) _args
+    eclAllocVariables(cont, s);
+    // TODO(ClementChambard) see in the function
+
     _ins(41, stackDlloc)
-        cont->stack.stackOffset--;
+    cont->stack.stackOffset--;
     int bo = cont->stack.baseOffset;
     cont->stack.baseOffset = cont->stack.data[cont->stack.stackOffset].asInt;
     cont->stack.stackOffset = bo;
@@ -250,14 +276,18 @@ int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr)
     _ins(56, divi) _popS(a);
     _popS(b);
     if (a != 0)
-        _push(b / a) else _push(0);
+        _push(b / a)
+    else
+        _push(0);
     _ins(57, divf) _popf(a);
     _popf(b);
     _push(b / a);
     _ins(58, modi) _popS(a);
     _popS(b);
     if (a != 0)
-        _push(b % a) else _push(0);
+        _push(b % a)
+    else
+        _push(0);
     _ins(59, equi) _popS(a);
     _popS(b);
     _push(b == a);
@@ -342,31 +372,29 @@ int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr)
     _ins(87, getAng) _rf(v) _f(x1) _f(y1) _f(x2) _f(y2) _args
         v
         = math::point_direction(x1, y1, x2, y2);
-    _ins(89, linFunc) _rf(v) _f(a) _f(x) _args if (x - a <= PI)
-    {
+    _ins(89, linFunc) _rf(v) _f(a) _f(x) _args
+    if (x - a <= PI) {
         if (PI < a - x)
             v = x - a + PI2;
         else
             v = x - a;
+    } else {
+        v = x - a - PI2;
     }
-    else v = x - a - PI2;
     _ins(90, ptRot) _rf(vx) _rf(vy) _f(x) _f(y) _f(a) _args
-        vx
-        = x * cos(a) - y * sin(a);
+    vx = x * cos(a) - y * sin(a);
     vy = y * cos(a) + x * sin(a);
     _ins(91, floatTime) _S(slot) _rf(var) _S(t) _S(m) _f(i) _f(f) _args
-        cont->float_interps_locs[slot]
-        = __var_var;
+    cont->float_interps_locs[slot] = __var_var;
     cont->float_i[slot].start(i, f, t, m);
     var = i;
-    _ins(92, floatTimeEx) _S(slot) _rf(var) _S(t) _S(m) _f(i) _f(f) _f(a) _f(b) _args
-        cont->float_interps_locs[slot]
-        = __var_var;
+    _ins(92, floatTimeEx) _S(slot) _rf(var) _S(t) _S(m) _f(i) _f(f)
+                          _f(a) _f(b) _args
+    cont->float_interps_locs[slot] = __var_var;
     cont->float_i[slot].start_ex(i, f, a, b, t, m);
     var = i;
     _ins(93, RandRadius) _rf(vx) _rf(vy) _f(r1) _f(r2) _args
-        r1
-        += Random::Float01() * (r2 - r1);
+    r1 += Random::Float01() * (r2 - r1);
     float a = Random::Angle();
     vx = r1 * cos(a);
     vy = r1 * sin(a);

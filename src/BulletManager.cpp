@@ -1,7 +1,9 @@
-#include "BulletManager.h"
+#include "./BulletManager.h"
+#include "./Player.h"
+#include <NSEngine.h>
+#include <math/Random.h>
 
-BulletManager::BulletManager()
-{
+BulletManager::BulletManager() {
     BulletList_t* pred = &freelist_head;
     BulletList_t* current = nullptr;
     for (size_t i = 0; i < max_bullet; i++) {
@@ -19,20 +21,17 @@ BulletManager::BulletManager()
     UPDATE_FUNC_REGISTRY->register_on_draw(f_on_draw, 38);
 }
 
-BulletManager::~BulletManager()
-{
+BulletManager::~BulletManager() {
     UPDATE_FUNC_REGISTRY->unregister(f_on_tick);
     UPDATE_FUNC_REGISTRY->unregister(f_on_draw);
 }
 
-BulletManager* BulletManager::GetInstance()
-{
+BulletManager* BulletManager::GetInstance() {
     static BulletManager* inst = new BulletManager();
     return inst;
 }
 
-void BulletManager::ClearScreen(int mode, float r, float x, float y)
-{
+void BulletManager::ClearScreen(int mode, float r, float x, float y) {
     if (r == -1) {
         while (tick_list_head.next) {
             tick_list_head.next->value->cancel(mode & 1);
@@ -57,10 +56,8 @@ void BulletManager::ClearScreen(int mode, float r, float x, float y)
         RemoveBullet(b);
 }
 
-#include <NSEngine.h>
 
-int BulletManager::on_tick()
-{
+int BulletManager::on_tick() {
     Bullet* bullet;
     /* shift the graze_recent array, then
        set the graze for the current frame to 0 */
@@ -89,7 +86,8 @@ int BulletManager::on_tick()
             return 1;
         }
         // if game is not paused ?
-        // if ((GAME_THREAD_PTR == NULL) || ((GAME_THREAD_PTR->flags & 0x400U) == 0)) {
+        // if ((GAME_THREAD_PTR == NULL) ||
+        //     ((GAME_THREAD_PTR->flags & 0x400U) == 0)) {
         if ((bullet->flags & 0x100) != 0) {
             if (bullet->state == 2) {
                 if (7 < bullet->__timer_e54) {
@@ -131,12 +129,13 @@ int BulletManager::on_tick()
     } while (true);
 }
 
-int BulletManager::on_draw()
-{
-    // if ((GAME_THREAD_PTR == NULL) || ((*(byte *)&GAME_THREAD_PTR->flags & 4) == 0)) {
+int BulletManager::on_draw() {
+    // if ((GAME_THREAD_PTR == NULL) ||
+    //     ((*(byte *)&GAME_THREAD_PTR->flags & 4) == 0)) {
     auto layer_head = layer_list_heads;
     for (int i = 0; i < 6; i++) {
-        for (Bullet* bullet = *layer_head; bullet != NULL; bullet = bullet->next_in_layer) {
+        for (Bullet* bullet = *layer_head; bullet != NULL;
+             bullet = bullet->next_in_layer) {
             bullet->vm.entity_pos = bullet->pos;
             if (bullet->vm.bitflags.autoRotate) {
                 float a = bullet->angle + 1.570796;
@@ -148,8 +147,8 @@ int BulletManager::on_draw()
                 bullet->vm.bitflags.scaled = true;
                 bullet->vm.scale_2 = { bullet->scale, bullet->scale };
             }
-            bullet->vm.setLayer(17); // TODO: do not
-            bullet->vm.draw(); /* draw the vm TODO: unique vm per bullet */
+            bullet->vm.setLayer(17); // TODO(ClementChambard): remove this
+            bullet->vm.draw();
         }
         layer_head++;
     }
@@ -172,21 +171,20 @@ int BulletManager::on_draw()
 #define AIM_ST_PYRAMID 10
 #define AIM_PEANUT 11
 #define AIM_PEANUT2 12
-#include "Player.h"
-#include <math/Random.h>
 
-void BulletManager::Shoot(EnemyBulletShooter_t* bh)
-{
+void BulletManager::Shoot(EnemyBulletShooter_t* bh) {
     // use cnt & aim_mode to shoot single bullets (and play sound)
     glm::vec2 pos = bh->__vec3_8;
-    float AngToPlayer = math::point_direction(pos.x, pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
-    float aRing = PI2 / (float)bh->cnt_count;
+    float AngToPlayer = math::point_direction(pos.x, pos.y,
+                            PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+    float aRing = PI2 / static_cast<float>(bh->cnt_count);
     // fire bullet :
-    if (bh->aim_type < 9)
+    if (bh->aim_type < 9) {
         for (int j = 0; j < bh->cnt_count; j++) {
             for (float i = 0; i < bh->cnt_layers; i++) {
                 float a = 0.f;
-                float jj = (int)(j - (bh->cnt_count / 2)) + (1 - (bh->cnt_count % 2)) * 0.5f;
+                float jj = static_cast<int>(j - (bh->cnt_count / 2)) +
+                           (1 - (bh->cnt_count % 2)) * 0.5f;
                 switch (bh->aim_type) {
                 case AIM_AT:
                     a += AngToPlayer;
@@ -212,13 +210,14 @@ void BulletManager::Shoot(EnemyBulletShooter_t* bh)
                     a += (j * aRing) + bh->ang_aim + (i * bh->ang_bullet_dist);
                     break;
                 }
-                float s = bh->spd1 + (bh->spd2 - bh->spd1) * (float)i / (float)bh->cnt_layers;
+                float s = bh->spd1 + (bh->spd2 - bh->spd1) *
+                    static_cast<float>(i) / static_cast<float>(bh->cnt_layers);
                 if (bh->aim_type == AIM_RAND_RING || bh->aim_type == AIM_MEEK)
                     s = bh->spd1 + (bh->spd2 - bh->spd1) * Random::Float01();
                 ShootSingle(bh, a, s, pos);
             }
         }
-    else if (bh->aim_type < 11)
+    } else if (bh->aim_type < 11) {
         for (int i = 0; i < bh->cnt_count; i++) {
             for (int j = 0; j < bh->cnt_layers / 2 + 1; j++) {
                 float a = 0;
@@ -227,27 +226,30 @@ void BulletManager::Shoot(EnemyBulletShooter_t* bh)
                     a += AngToPlayer;
                 float a1 = a - j * bh->ang_bullet_dist;
                 float a2 = a + j * bh->ang_bullet_dist;
-                float s = bh->spd2 + (bh->spd1 - bh->spd2) * (1 - (float)j / ((float)bh->cnt_layers / 2 + 1));
+                float s = bh->spd2 + (bh->spd1 - bh->spd2) *
+                    (1 - static_cast<float>(j) / (bh->cnt_layers / 2.f + 1));
                 ShootSingle(bh, a1, s, pos);
                 if (j != 0)
                     ShootSingle(bh, a2, s, pos);
             }
         }
+    }
     // NSEngine::AudioEngine::PlaySound(snd1);
     // std::cout << "Shooting " << bh->cnt_count * bh->cnt_layers << " : {\n";
 }
 
-void BulletManager::ShootSingle(EnemyBulletShooter_t* bh, float a, float s, glm::vec2 pos)
-{
+void BulletManager::ShootSingle(EnemyBulletShooter_t* bh,
+                                float a, float s, glm::vec2 pos) {
     if (!freelist_head.next)
         return;
     Bullet* b = freelist_head.next->value;
     AddBullet(b);
 
     // angle normalize shoot angle
-    b->Reset(); // TODO: reset should occur when destroyed
+    b->Reset(); // TODO(ClementChambard): reset should occur when destroyed
 
-    b->pos = glm::vec3(pos + glm::vec2 { bh->distance * cos(a), bh->distance * sin(a) }, 0);
+    b->pos = glm::vec3(pos +
+                glm::vec2 { bh->distance * cos(a), bh->distance * sin(a) }, 0);
     // remove if too close to player TODO
 
     b->angle = a;
@@ -258,10 +260,10 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t* bh, float a, float s, glm:
     b->scale = 1.0;
     b->scale_i.end_time = 0;
     b->pos_i.end_time = 0;
-    b->__timer_e24 = 0; // init
-    b->__timer_e38 = 0; // init
-    b->__timer_e54 = 0; // init
-    b->__timer_e68 = 0; // init
+    b->__timer_e24 = 0;
+    b->__timer_e38 = 0;
+    b->__timer_e54 = 0;
+    b->__timer_e68 = 0;
     b->velocity = { s * cos(a), s * sin(a), 0.f };
     b->color = bh->__color;
     b->type = bh->type;
@@ -273,7 +275,7 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t* bh, float a, float s, glm:
     b->__field_678_had_35 = bh->sfx_flag;
     b->active_ex_flags = 0;
     b->__ex_goto_b_loop_count = 0;
-    b->sprite_data = BULLET_TYPE_TABLE[bh->type]; // XXX 6.74% of the execution : probably bad
+    b->sprite_data = BULLET_TYPE_TABLE[bh->type];
     b->__hitbox_diameter_copy = b->sprite_data["default_radius"].asFloat();
     b->layer = b->sprite_data["default_layer"].asInt();
     b->hitbox_diameter = b->__hitbox_diameter_copy;
@@ -284,7 +286,8 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t* bh, float a, float s, glm:
         b->et_ex[i] = bh->ex[i];
 
     // init vm
-    b->vm(AnmManager::getLoaded(7)->getPreloaded(b->sprite_data["script"].asInt()));
+    b->vm(AnmManager::getLoaded(7)->getPreloaded(
+        b->sprite_data["script"].asInt()));
     b->vm.setEntity(static_cast<void*>(b));
     b->vm.setLayer(15);
     b->vm.index_of_sprite_mapping_func = 1;
@@ -303,7 +306,8 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t* bh, float a, float s, glm:
         b->cancel_sprite_id = bh->__color * 2 + 4;
         break;
     case 1:
-        b->cancel_sprite_id = -1; // BULLET_ADDITIONAL_CANCEL_SCR[color];
+        b->cancel_sprite_id = -1;
+        // BULLET_ADDITIONAL_CANCEL_SCR[color];
         break;
     case 2:
         b->cancel_sprite_id = -1;
@@ -316,7 +320,8 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t* bh, float a, float s, glm:
     default:
         break;
     case 6:
-        b->cancel_sprite_id = b->sprite_data["colors"][bh->__color]["cancel_script"].asInt();
+        b->cancel_sprite_id = b->sprite_data["colors"][bh->__color]
+                ["cancel_script"].asInt();
         break;
     case 7:
         b->cancel_sprite_id = 0x104;
@@ -336,18 +341,19 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t* bh, float a, float s, glm:
         if (bh->ex[bh->__start_transform].a != 1)
             b->vm.interrupt(bh->ex[bh->__start_transform].a + 7);
         b->state = 2;
-        b->pos -= glm::vec3(b->speed * cos(b->angle), b->speed * sin(b->angle), 0.f) * 4.f;
+        b->pos -= glm::vec3(b->speed * cos(b->angle),
+                            b->speed * sin(b->angle), 0.f) * 4.f;
         b->ex_index = bh->__start_transform + 1;
-    } else
+    } else {
         b->vm.interrupt(2);
+    }
 
     // run once
     b->run_et_ex();
     b->vm.update();
 }
 
-void BulletManager::AddBullet(Bullet* b)
-{
+void BulletManager::AddBullet(Bullet* b) {
     if (b->freelist_node.previous)
         b->freelist_node.previous->next = b->freelist_node.next;
     if (b->freelist_node.next)
@@ -362,8 +368,7 @@ void BulletManager::AddBullet(Bullet* b)
     tick_list_head.next = &b->tick_list_node;
 }
 
-void BulletManager::RemoveBullet(Bullet* b)
-{
+void BulletManager::RemoveBullet(Bullet* b) {
     b->Reset();
 
     if (b->tick_list_node.previous)

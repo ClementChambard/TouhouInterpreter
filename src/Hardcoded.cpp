@@ -1,4 +1,4 @@
-#include "Hardcoded.h"
+#include "./Hardcoded.h"
 #include <fstream>
 #include <iostream>
 
@@ -12,22 +12,31 @@ Json::Value ITEM_ANM_SCRIPT_IDS;
 
 int TOUHOU_VERSION = 0;
 
-void prepare_vals()
-{
-    STAGE_DATA_TABLE = HARDCODED_DATA["stage_data_table"].empty() ? HARDCODED_DATA_BASE["stage_data_table"] : HARDCODED_DATA["stage_data_table"];
-    BULLET_TYPE_TABLE = HARDCODED_DATA["bullet_type_table"].empty() ? HARDCODED_DATA_BASE["bullet_type_table"] : HARDCODED_DATA["bullet_type_table"];
-    TOUHOU_VERSION = HARDCODED_DATA["version"].empty() ? HARDCODED_DATA_BASE["version"].asInt() : HARDCODED_DATA["version"].asInt();
-    LASER_DATA = HARDCODED_DATA["laser_data"].empty() ? HARDCODED_DATA_BASE["laser_data"] : HARDCODED_DATA["laser_data"];
-    PLAYERS = HARDCODED_DATA["players"].empty() ? HARDCODED_DATA_BASE["players"] : HARDCODED_DATA["players"];
-    ITEM_ANM_SCRIPT_IDS = HARDCODED_DATA["item_anm_script_ids"].empty() ? HARDCODED_DATA_BASE["item_anm_script_ids"] : HARDCODED_DATA["item_anm_script_ids"];
+void prepare_vals() {
+    STAGE_DATA_TABLE = HARDCODED_DATA["stage_data_table"].empty()
+        ? HARDCODED_DATA_BASE["stage_data_table"]
+        : HARDCODED_DATA["stage_data_table"];
+    BULLET_TYPE_TABLE = HARDCODED_DATA["bullet_type_table"].empty()
+        ? HARDCODED_DATA_BASE["bullet_type_table"]
+        : HARDCODED_DATA["bullet_type_table"];
+    TOUHOU_VERSION = HARDCODED_DATA["version"].empty()
+        ? HARDCODED_DATA_BASE["version"].asInt()
+        : HARDCODED_DATA["version"].asInt();
+    LASER_DATA = HARDCODED_DATA["laser_data"].empty()
+        ? HARDCODED_DATA_BASE["laser_data"]
+        : HARDCODED_DATA["laser_data"];
+    PLAYERS = HARDCODED_DATA["players"].empty()
+        ? HARDCODED_DATA_BASE["players"]
+        : HARDCODED_DATA["players"];
+    ITEM_ANM_SCRIPT_IDS = HARDCODED_DATA["item_anm_script_ids"].empty()
+        ? HARDCODED_DATA_BASE["item_anm_script_ids"]
+        : HARDCODED_DATA["item_anm_script_ids"];
 }
 
 void Hardcoded_Load() {
-
     std::ifstream file("hardcoded.json");
 
-    if (file.fail())
-    {
+    if (file.fail()) {
         std::cout << "resulting to superfile \n";
         file.open("../hardcoded.json");
         if (file.fail()) {

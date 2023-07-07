@@ -1,11 +1,11 @@
 #ifndef BULLET_H_
 #define BULLET_H_
 
-#include "AnmOpener/AnmManager.h"
-#include "BulletEx.h"
-#include "BulletHandler.h"
-#include "Hardcoded.h"
-#include "Interp.h"
+#include "./AnmOpener/AnmManager.h"
+#include "./BulletEx.h"
+#include "./BulletHandler.h"
+#include "./Hardcoded.h"
+#include "./Interp.h"
 #include <Interpolator.h>
 
 class Bullet;

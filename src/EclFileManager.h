@@ -1,9 +1,10 @@
 #ifndef ECLMANAGER_H_
 #define ECLMANAGER_H_
 
-#include "EclRaw.h"
-#include "StdOpener/StdFile.h"
+#include "./EclRaw.h"
+#include "./StdOpener/StdFile.h"
 #include <vector>
+#include <string>
 
 class EclFileManager {
 public:
@@ -15,21 +16,19 @@ public:
     void CloseEcl();
     void ListSubs();
 
-    size_t getSubId(std::string const& subName)
-    {
+    size_t getSubId(std::string const& subName) {
         for (size_t i = 0; i < loaded_subs.size(); i++)
             if (subName == loaded_subs[i].name)
                 return i;
         return -1;
     }
-    const char* getSubStartPtr(size_t id)
-    {
+    const char* getSubStartPtr(size_t id) {
         if (id >= loaded_subs.size())
             return nullptr;
-        return reinterpret_cast<const char*>(loaded_subs[id].subHeader) + sizeof(EclRawSub_t);
+        return reinterpret_cast<const char*>(loaded_subs[id].subHeader)
+               + sizeof(EclRawSub_t);
     }
-    std::string getSubName(size_t id)
-    {
+    std::string getSubName(size_t id) {
         if (id >= loaded_subs.size())
             return "void";
         return loaded_subs[id].name;

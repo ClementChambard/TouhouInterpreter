@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
 
 #include "../AnmOpener/AnmVM.h"
 #include <AnimShader.h>
@@ -78,6 +79,6 @@ private:
     NSEngine::AnimShader baseShader;
 };
 
-}
+}  // namespace StdOpener
 
 #endif

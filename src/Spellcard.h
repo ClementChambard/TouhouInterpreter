@@ -1,7 +1,7 @@
 #ifndef SPELLCARD_INCLUDED_H
 #define SPELLCARD_INCLUDED_H
 
-#include "UpdateFuncRegistry.h"
+#include "./UpdateFuncRegistry.h"
 #include <string>
 
 class Spellcard {
@@ -22,12 +22,13 @@ private:
     static constexpr int spellcard_anm_1 = 13;
     static constexpr int spellcard_anm_2 = 20;
 
-    int on_tick()
-    {
+    int on_tick() {
         update();
         return 1;
-    } // TODO
-    int on_draw() { return 1; } // TODO
+    }
+    int on_draw() {
+        return 1;
+    }
 
 public:
     int spell_bg_anm_id = 0;

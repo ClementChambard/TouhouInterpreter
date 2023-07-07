@@ -1,22 +1,27 @@
-#include "Player.h"
-#include "AnmOpener/AnmManager.h"
-#include "BulletManager.h"
-#include "EnemyManager.h"
-#include "Hardcoded.h"
-#include "Input.h"
-#include "ItemManager.h"
-#include "Laser/LaserManager.h"
+#include "./Player.h"
+#include "./AnmOpener/AnmManager.h"
+#include "./BulletManager.h"
+#include "./EnemyManager.h"
+#include "./Hardcoded.h"
+#include "./Input.h"
+#include "./ItemManager.h"
+#include "./Laser/LaserManager.h"
 #include <InputManager.h>
 #include <math/Random.h>
+#include <Engine.hpp>
+#include <NSEngine.h>
+#include "./GoastManager.h"
 
 Player* PLAYER_PTR = nullptr;
 
-Player::Player() // at th17.exe:4463f0
-{
+// at th17.exe:4463f0
+Player::Player() {
     PLAYER_PTR = this;
     // load player anm file
-    AnmManager::LoadFile(9, PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["anm"].asString());
-    // playerAnm = AnmManager::preload_anm(9,plAnmfilenames[GLOBALS.inner.CHARACTER]);
+    AnmManager::LoadFile(9, PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
+                         [GLOBALS.inner.SHOTTYPE]["anm"].asString());
+    // playerAnm = AnmManager::preload_anm(9,
+    // plAnmfilenames[GLOBALS.inner.CHARACTER]);
     // if (!playerAnm) ; // log info
 
     // load sht file
@@ -24,7 +29,8 @@ Player::Player() // at th17.exe:4463f0
         sht_file = ALREADY_LOADED_SHTFILE;
         ALREADY_LOADED_SHTFILE = nullptr;
     } else {
-        sht_file = open_sht(PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["sht"].asString());
+        sht_file = open_sht(PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
+                            [GLOBALS.inner.SHOTTYPE]["sht"].asString());
     }
 
     // update funcs
@@ -48,26 +54,37 @@ Player::Player() // at th17.exe:4463f0
     speed_unfocus_diag = sht_file->header.move_nf_dia * 128;
 
     sht_file->header.SA_power_divisor = 100;
-    GLOBALS.inner.MAXIMUM_POWER = sht_file->header.SA_power_divisor * sht_file->header.pwr_lvl_cnt;
+    GLOBALS.inner.MAXIMUM_POWER = sht_file->header.SA_power_divisor *
+        sht_file->header.pwr_lvl_cnt;
     GLOBALS.inner.POWER_PER_LEVEL = sht_file->header.SA_power_divisor;
 
-    sht_file->header.hitbox_u = PLAYERS[GLOBALS.inner.CHARACTER]["hitbox"].asFloat();
-    sht_file->header.itembox_u = PLAYERS[GLOBALS.inner.CHARACTER]["itembox"].asFloat();
-    sht_file->header.grazebox_u = PLAYERS[GLOBALS.inner.CHARACTER]["grazebox"].asFloat();
+    sht_file->header.hitbox_u = PLAYERS[GLOBALS.inner.CHARACTER]
+        ["hitbox"].asFloat();
+    sht_file->header.itembox_u = PLAYERS[GLOBALS.inner.CHARACTER]
+        ["itembox"].asFloat();
+    sht_file->header.grazebox_u = PLAYERS[GLOBALS.inner.CHARACTER]
+        ["grazebox"].asFloat();
 
-    hurtbox_halfsize = { sht_file->header.hitbox_u * 0.5f, sht_file->header.hitbox_u * 0.5f, 5.f };
-    item_attract_box_unfocused_halfsize = { sht_file->header.itembox_u * 0.5f, sht_file->header.itembox_u * 0.5f, 5.f };
-    item_attract_box_focused_halfsize.x = item_attract_box_focused_halfsize.y = PLAYERS[GLOBALS.inner.CHARACTER]["attractbox"].asFloat() * 0.5;
+    hurtbox_halfsize = { sht_file->header.hitbox_u * 0.5f, sht_file->
+        header.hitbox_u * 0.5f, 5.f };
+    item_attract_box_unfocused_halfsize = { sht_file->header.itembox_u * 0.5f,
+        sht_file->header.itembox_u * 0.5f, 5.f };
+    item_attract_box_focused_halfsize.x = item_attract_box_focused_halfsize.y =
+        PLAYERS[GLOBALS.inner.CHARACTER]["attractbox"].asFloat() * 0.5;
     item_attract_box_focused_halfsize.z = 5.0;
 
     hurtbox.min_pos = inner.pos - hurtbox_halfsize;
     hurtbox.max_pos = inner.pos + hurtbox_halfsize;
     item_collect_box.min_pos = inner.pos - item_attract_box_unfocused_halfsize;
     item_collect_box.max_pos = inner.pos + item_attract_box_unfocused_halfsize;
-    item_attract_box_focused.min_pos = inner.pos - item_attract_box_focused_halfsize;
-    item_attract_box_focused.max_pos = inner.pos + item_attract_box_focused_halfsize;
-    item_attract_box_unfocused.min_pos = inner.pos - item_attract_box_focused_halfsize;
-    item_attract_box_unfocused.max_pos = inner.pos + item_attract_box_focused_halfsize;
+    item_attract_box_focused.min_pos = inner.pos -
+        item_attract_box_focused_halfsize;
+    item_attract_box_focused.max_pos = inner.pos +
+        item_attract_box_focused_halfsize;
+    item_attract_box_unfocused.min_pos = inner.pos -
+        item_attract_box_focused_halfsize;
+    item_attract_box_unfocused.max_pos = inner.pos +
+        item_attract_box_focused_halfsize;
 
     flags &= 0xfffffffb;
 
@@ -76,37 +93,35 @@ Player::Player() // at th17.exe:4463f0
     }
 }
 
-void youmu_option_update_func(PlayerOption_t* opt)
-{
-    // Yukari for fun
-    // static float t = 0.f;
-    // if (!PLAYER_PTR->inner.power) return;
-    // t+=0.06f/PLAYER_PTR->inner.power;
-    // float dif = (float)opt->id/PLAYER_PTR->inner.power*PI2;
-    // float d = 0xc80;
-    // opt->scaled_prefered_pos_rel_to_player[0] = {(int)(cos(t+dif)*d*2), (int)(sin(t+dif)*d*2)};
-    // opt->scaled_prefered_pos_rel_to_player[1] = {(int)(cos(t+dif)*d), (int)(sin(t+dif)*d)};
-    // opt->scaled_prefered_pos = PLAYER_PTR->inner.integer_pos + opt->scaled_prefered_pos_rel_to_player[PLAYER_PTR->inner.focusing];
-    // return;
+void youmu_option_update_func(PlayerOption_t* opt) {
     opt->scaled_prefered_pos = PLAYER_PTR->prev_pos[opt->id * 8 + 7];
-    if (!PLAYER_PTR->inner.focusing)
-        opt->scaled_prefered_pos_rel_to_player[0] = opt->scaled_prefered_pos - PLAYER_PTR->inner.integer_pos;
-    else {
+    if (!PLAYER_PTR->inner.focusing) {
+        opt->scaled_prefered_pos_rel_to_player[0] =
+            opt->scaled_prefered_pos - PLAYER_PTR->inner.integer_pos;
+    } else {
         opt->scaled_prefered_pos_rel_to_player[0].x = 0;
         opt->scaled_prefered_pos_rel_to_player[0].y = -0xc80;
-        PLAYER_PTR->prev_pos[opt->id * 8 + 8].y = (int)(PLAYER_PTR->inner).integer_pos.y + -0xc80;
-        PLAYER_PTR->prev_pos[opt->id * 8 + 8].x = (int32_t)(PLAYER_PTR->inner).integer_pos.x;
+        PLAYER_PTR->prev_pos[opt->id * 8 + 8].y =
+            static_cast<int>(PLAYER_PTR->inner.integer_pos.y) + -0xc80;
+        PLAYER_PTR->prev_pos[opt->id * 8 + 8].x =
+            static_cast<int32_t>(PLAYER_PTR->inner.integer_pos.x);
         for (int i = 1; i <= 7; i++) {
-            PLAYER_PTR->prev_pos[opt->id * 8 + i].x = (PLAYER_PTR->prev_pos[opt->id * 8 + 8].x - PLAYER_PTR->prev_pos[opt->id * 8].x) * 0.125 * i + PLAYER_PTR->prev_pos[opt->id * 8].x;
-            PLAYER_PTR->prev_pos[opt->id * 8 + i].y = (PLAYER_PTR->prev_pos[opt->id * 8 + 8].y - PLAYER_PTR->prev_pos[opt->id * 8].y) * 0.125 * i + PLAYER_PTR->prev_pos[opt->id * 8].y;
+            PLAYER_PTR->prev_pos[opt->id * 8 + i].x =
+                (PLAYER_PTR->prev_pos[opt->id * 8 + 8].x -
+                PLAYER_PTR->prev_pos[opt->id * 8].x) *
+                0.125 * i + PLAYER_PTR->prev_pos[opt->id * 8].x;
+            PLAYER_PTR->prev_pos[opt->id * 8 + i].y =
+                (PLAYER_PTR->prev_pos[opt->id * 8 + 8].y -
+                PLAYER_PTR->prev_pos[opt->id * 8].y) *
+                0.125 * i + PLAYER_PTR->prev_pos[opt->id * 8].y;
         }
     }
-    opt->scaled_prefered_pos = PLAYER_PTR->inner.integer_pos + opt->scaled_prefered_pos_rel_to_player[0];
+    opt->scaled_prefered_pos = PLAYER_PTR->inner.integer_pos +
+        opt->scaled_prefered_pos_rel_to_player[0];
     opt->focusing = PLAYER_PTR->inner.focusing;
 }
 
-void FUN_00449630(PlayerInner_t* inner)
-{
+void FUN_00449630(PlayerInner_t* inner) {
     int pow = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL;
     // inner[1].__time_in_stage__copy_3c.control = pow;
     if (GLOBALS.inner.CURRENT_POWER < GLOBALS.inner.MAXIMUM_POWER) {
@@ -117,7 +132,8 @@ void FUN_00449630(PlayerInner_t* inner)
     } else {
         if (0 < pow) {
             for (int i = 0; i < pow; i++) {
-                if (auto vm = AnmManager::getVM(inner->options[i].anmId2); vm && !vm->bitflags.f534_27_31) {
+                if (auto vm = AnmManager::getVM(inner->options[i].anmId2);
+                    vm && !vm->bitflags.f534_27_31) {
                     vm->bitflags.activeFlags = 0b01;
                     // auto child = vm->childrens->next;
                     // while (child) {
@@ -125,13 +141,16 @@ void FUN_00449630(PlayerInner_t* inner)
                     // child = child->next;
                     //}
                 }
-                inner->options[i].anmId2 = AnmManager::SpawnVM(9, PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
+                inner->options[i].anmId2 = AnmManager::SpawnVM(9,
+                    PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
                 auto vm = AnmManager::getVM(inner->options[i].anmId2);
                 // PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
                 // auto vm = AnmManager::allocate_vm();
-                // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm, PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
+                // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm,
+                // PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
                 // vm->mode_of_create_child = 2;
-                // inner->options[i].anmId2 = AnmManager::insert_in_world_list_front(&zStack_1c,vm);
+                // inner->options[i].anmId2 =
+                // AnmManager::insert_in_world_list_front(&zStack_1c,vm);
                 vm->bitflags.randomMode = 0b1;
                 vm->entity_pos = { 0, -32, 0 };
                 vm->rotation.z = 0.f;
@@ -145,7 +164,8 @@ void FUN_00449630(PlayerInner_t* inner)
     if (0 < pow) {
         int i = 0;
         for (; i < pow; i++) {
-            if (auto vm = AnmManager::getVM(inner->options[i].anmId1); vm && !vm->bitflags.f534_27_31) {
+            if (auto vm = AnmManager::getVM(inner->options[i].anmId1);
+                vm && !vm->bitflags.f534_27_31) {
                 vm->bitflags.activeFlags = 0b01;
                 // auto child = vm->childrens->next;
                 // while (child) {
@@ -154,17 +174,40 @@ void FUN_00449630(PlayerInner_t* inner)
                 //}
             }
             inner->options[i].id = i;
-            inner->options[i].scaled_prefered_pos_rel_to_player[0].x = (int)(PLAYER_PTR->sht_file->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1].asInt() + i].x * 128.f);
-            inner->options[i].scaled_prefered_pos_rel_to_player[0].y = (int)(PLAYER_PTR->sht_file->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1].asInt() + i].y * 128.f);
-            inner->options[i].scaled_prefered_pos_rel_to_player[1].x = (int)(PLAYER_PTR->sht_file->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1 + HARDCODED_DATA["option_count"].asInt()].asInt() + i].x * 128.f);
-            inner->options[i].scaled_prefered_pos_rel_to_player[1].y = (int)(PLAYER_PTR->sht_file->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1 + HARDCODED_DATA["option_count"].asInt()].asInt() + i].y * 128.f);
-            inner->options[i].scaled_cur_pos = inner->integer_pos + inner->options[i].scaled_prefered_pos_rel_to_player[inner->focusing];
-            // inner->options[i].anmId1 = AnmManager::SpawnVM(9, PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
-            inner->options[i].anmId1 = AnmManager::SpawnVM(9, PLAYERS[GLOBALS.inner.CHARACTER]["option"].asInt());
+            inner->options[i].scaled_prefered_pos_rel_to_player[0].x =
+                static_cast<int>(PLAYER_PTR->sht_file->option_pos[PLAYERS
+                    [GLOBALS.inner.CHARACTER]["shottypes"]
+                    [GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1]
+                    .asInt() + i].x * 128.f);
+            inner->options[i].scaled_prefered_pos_rel_to_player[0].y =
+                static_cast<int>(PLAYER_PTR->sht_file->option_pos[PLAYERS
+                    [GLOBALS.inner.CHARACTER]["shottypes"]
+                    [GLOBALS.inner.SHOTTYPE]["option_pos_lookup"][pow - 1]
+                    .asInt() + i].y * 128.f);
+            inner->options[i].scaled_prefered_pos_rel_to_player[1].x =
+                static_cast<int>(PLAYER_PTR->sht_file->option_pos[PLAYERS
+                    [GLOBALS.inner.CHARACTER]["shottypes"]
+                    [GLOBALS.inner.SHOTTYPE]["option_pos_lookup"]
+                    [pow - 1 + HARDCODED_DATA["option_count"].asInt()]
+                    .asInt() + i].x * 128.f);
+            inner->options[i].scaled_prefered_pos_rel_to_player[1].y =
+                static_cast<int>(PLAYER_PTR->sht_file->option_pos[PLAYERS
+                    [GLOBALS.inner.CHARACTER]["shottypes"]
+                    [GLOBALS.inner.SHOTTYPE]["option_pos_lookup"]
+                    [pow - 1 + HARDCODED_DATA["option_count"].asInt()]
+                    .asInt() + i].y * 128.f);
+            inner->options[i].scaled_cur_pos = inner->integer_pos +
+                inner->options[i].scaled_prefered_pos_rel_to_player
+                [inner->focusing];
+            // inner->options[i].anmId1 = AnmManager::SpawnVM(9,
+            // PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
+            inner->options[i].anmId1 = AnmManager::SpawnVM(9,
+                PLAYERS[GLOBALS.inner.CHARACTER]["option"].asInt());
             AnmVM* vm = AnmManager::getVM(inner->options[i].anmId1);
             // PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
             // auto vm = AnmManager::allocate_vm();
-            // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm, PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
+            // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm,
+            // PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
             // vm->mode_of_create_child = 0;
             // AnmManager::insert_in_world_list_back(piVar18[0x14],vm);
             vm->bitflags.randomMode = 0b1;
@@ -182,9 +225,10 @@ void FUN_00449630(PlayerInner_t* inner)
         }
         for (; i < 4; i++)
             AnmManager::interrupt_tree(inner->options[i].anmId1, 1);
-    } else
+    } else {
         for (int i = 0; i < 4; i++)
             AnmManager::interrupt_tree(inner->options[i].anmId1, 1);
+    }
 
     inner->power = pow;
     inner->options[0].move_instantly = 1;
@@ -194,8 +238,7 @@ void FUN_00449630(PlayerInner_t* inner)
     return;
 }
 
-Player::~Player()
-{
+Player::~Player() {
     if (on_game_tick)
         UPDATE_FUNC_REGISTRY->unregister(on_game_tick);
     if (on_draw)
@@ -215,15 +258,14 @@ Player::~Player()
     }
 }
 
-int Player::_on_tick()
-{
+int Player::_on_tick() {
     INPUT_STRUCT.Update();
     if (Inputs::Keyboard().Pressed(NSK_p))
         try_kill();
 
     // movement state
     switch (inner.state) {
-    case 0: // Respawning
+    case 0:  // Respawning
         inner.integer_pos.y = 61440 - (inner.time_in_state * 512) / 3;
         inner.pos.y = inner.integer_pos.y * 0.0078125;
         inner.options[0].move_instantly = true;
@@ -1118,8 +1160,6 @@ void Player::die()
     // if (GLOBALS.inner.MISS_COUNT_GLOBAL < 999999) GLOBALS.inner.MISS_COUNT_GLOBAL++;
 }
 
-#include <Engine.hpp>
-#include <NSEngine.h>
 int Player::_on_draw()
 {
     if (inner.state != 2) {
@@ -1209,7 +1249,6 @@ void FUN_0044d8a0(glm::vec3 const& param_1)
     return;
 }
 
-#include "GoastManager.h"
 int (*hitFuncs[])(PlayerDamageSource_t*, glm::vec3 const&, float, float, float) = {
     nullptr,
     [](PlayerDamageSource_t* param_1, glm::vec3 const& param_2, float param_3, float param_4, float param_5) {

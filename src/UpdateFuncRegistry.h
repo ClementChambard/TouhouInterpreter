@@ -19,9 +19,7 @@ struct UpdateFunc {
     UpdateFuncList_t list_node = { this, nullptr, nullptr };
 
     explicit UpdateFunc(std::function<int(void)> f)
-        : function_ptr(f)
-    {
-    }
+        : function_ptr(f) {}
 };
 
 struct UpdateFuncRegistry {

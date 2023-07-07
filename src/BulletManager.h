@@ -1,9 +1,9 @@
 #ifndef BULLETMANAGER_H_
 #define BULLETMANAGER_H_
 
-#include "Bullet.h"
-#include "BulletHandler.h"
-#include "UpdateFuncRegistry.h"
+#include "./Bullet.h"
+#include "./BulletHandler.h"
+#include "./UpdateFuncRegistry.h"
 #include <glm/glm.hpp>
 
 class BulletManager {
@@ -19,8 +19,7 @@ public:
 
     void ClearScreen(int mode, float r = -1.f, float x = 0.f, float y = 0.f);
 
-    void set_bounce_rect(float w, float h)
-    {
+    void set_bounce_rect(float w, float h) {
         et_bounce_rect_w = w;
         et_bounce_rect_h = h;
     }

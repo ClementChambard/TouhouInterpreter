@@ -1,20 +1,21 @@
-#include "Bullet.h"
-#include "BulletManager.h"
-#include "Hardcoded.h"
-#include "Laser/LaserManager.h"
-#include "Player.h"
-#include "math/Random.h"
+#include "./Bullet.h"
+#include "./BulletManager.h"
+#include "./Hardcoded.h"
+#include "./Laser/LaserManager.h"
+#include "./Player.h"
+#include "./math/Random.h"
+#include "./math/math.h"
 
-inline float get_angle_to_player(glm::vec3 from) { return math::point_direction(from.x, from.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y); }
+inline float get_angle_to_player(glm::vec3 from) {
+    return math::point_direction(from.x, from.y,
+            PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+}
 
-glm::vec3 cartesian3_from_polar(float a, float r)
-{
+glm::vec3 cartesian3_from_polar(float a, float r) {
     return { r * cos(a), r * sin(a), 0.f };
 }
 
-int Bullet::on_tick()
-{
-
+int Bullet::on_tick() {
     /* Update timer (e68) */
     __timer_e68++;
     /* delete if flag is set */
@@ -38,7 +39,9 @@ int Bullet::on_tick()
     /* seems like state 2 is spawn anim */
     if (state == 2) {
         pos += velocity * game_speed * 0.5f;
-        if ((__timer_e54 < 8 || true /*(check_player_collision(this, 0) != 1)*/) && (vm.int_script_vars[0] != 0))
+        if ((__timer_e54 < 8 || true
+            /*(check_player_collision(this, 0) != 1)*/) &&
+            (vm.int_script_vars[0] != 0))
             state = 1;
     }
 
@@ -50,37 +53,41 @@ int Bullet::on_tick()
     if (state == 1) {
         int ended_ex;
         do {
-            if ((active_ex_flags & 0x4000000) == 0) {
+            if (!(active_ex_flags & 0x4000000)) {
                 run_et_ex();
             }
             if (active_ex_flags == 0)
                 break;
             ended_ex = 0;
-            if ((active_ex_flags & 0x00000001) != 0) {
+            if (active_ex_flags & 0x00000001) {
                 if ((ex_speedup).timer >= 0x11) {
                     active_ex_flags &= 0xfffffffe;
                     ended_ex++;
                 } else {
-                    velocity = cartesian3_from_polar(angle, 5.0 - ex_speedup.timer * 5.0 * 0.0625 + speed);
+                    velocity = cartesian3_from_polar(angle,
+                                5.0 - ex_speedup.timer * 5.0 * 0.0625 + speed);
                     ex_speedup.timer++;
                 }
             }
-            if ((active_ex_flags & 0x00000004) != 0) {
+            if (active_ex_flags & 0x00000004) {
                 if (ex_accel.timer >= ex_accel.duration) {
                     active_ex_flags &= 0xfffffffb;
                     ended_ex++;
                 } else {
                     speed += ex_accel.acceleration * game_speed;
                     velocity += ex_accel.vec3_a14 * game_speed;
-                    if (fabs(velocity.x) > 0.0001 || fabs(velocity.y) > 0.0001) {
-                        speed = math::point_distance(0, 0, velocity.x, velocity.y);
-                        angle = math::point_direction(0, 0, velocity.x, velocity.y);
+                    if (fabs(velocity.x) > 0.0001 ||
+                        fabs(velocity.y) > 0.0001) {
+                        speed = math::point_distance(0, 0,
+                                    velocity.x, velocity.y);
+                        angle = math::point_direction(0, 0,
+                                    velocity.x, velocity.y);
                         math::angle_normalize(angle);
                     }
                     ex_accel.timer++;
                 }
             }
-            if ((active_ex_flags & 0x00000008) != 0) {
+            if (active_ex_flags & 0x00000008) {
                 if (ex_angleaccel.timer >= ex_angleaccel.duration) {
                     active_ex_flags = active_ex_flags & 0xfffffff7;
                     ended_ex++;
@@ -92,12 +99,14 @@ int Bullet::on_tick()
                     ex_angleaccel.timer++;
                 }
             }
-            if ((active_ex_flags & 0x00000010) != 0) {
+            if (active_ex_flags & 0x00000010) {
                 float spd;
                 if ((ex_angle).timer < ex_angle.duration) {
-                    spd = speed - (ex_angle.timer * speed) / (float)ex_angle.duration;
+                    spd = speed - (ex_angle.timer * speed) /
+                        static_cast<float>(ex_angle.duration);
                 } else {
-                    if (-1 < transform_sound) { } // SoundManager::play_sound_centered(transform_sound);
+                    // SoundManager::play_sound_centered(transform_sound);
+                    if (-1 < transform_sound) { } // Here
                     ex_angle.turns_so_far++;
                     switch ((ex_angle).aim_type) {
                     case 0:
@@ -126,64 +135,79 @@ int Bullet::on_tick()
                 velocity = cartesian3_from_polar(angle, spd);
                 ex_angle.timer++;
             }
-            if ((active_ex_flags & 0x00000040) != 0) {
-                float rect_h = BulletManager::GetInstance()->et_bounce_rect_h <= 0 ? ex_bounce.dim_y : BulletManager::GetInstance()->et_bounce_rect_h;
-                float rect_w = BulletManager::GetInstance()->et_bounce_rect_w <= 0 ? ex_bounce.dim_x : BulletManager::GetInstance()->et_bounce_rect_w;
+            if (active_ex_flags & 0x00000040) {
+                float rect_h =
+                    BulletManager::GetInstance()->et_bounce_rect_h <= 0
+                    ? ex_bounce.dim_y
+                    : BulletManager::GetInstance()->et_bounce_rect_h;
+                float rect_w =
+                    BulletManager::GetInstance()->et_bounce_rect_w <= 0
+                    ? ex_bounce.dim_x
+                    : BulletManager::GetInstance()->et_bounce_rect_w;
 
-                if (!((pos.x > rect_w * -0.5) && (pos.x < rect_w * 0.5) && (pos.y > 224.0 - rect_h * 0.5) && (pos.y < rect_h * 0.5 + 224.0))) {
+                if (pos.x <= -rect_w / 2.0 ||
+                    pos.x >= rect_w / 2.0 ||
+                    pos.y <= 224.0 - rect_h / 2.0 ||
+                    pos.y >= 224.0 + rect_h / 2.0) {
                     bool bounced = false;
-                    if ((ex_bounce.wall_flags & 1) != 0) {
-                        if ((pos.y < 224.0 - rect_h * 0.5) && ((ex_bounce.wall_flags & 0x10) == 0)) {
+                    if (ex_bounce.wall_flags & 1) {
+                        if (pos.y <= 224.0 - rect_h / 2.0 &&
+                            !(ex_bounce.wall_flags & 0x10)) {
                             angle = -angle;
                             math::angle_normalize(angle);
                             pos.y = (448.0 - rect_h) - pos.y;
                             bounced = true;
                         }
                     }
-                    if ((ex_bounce.wall_flags & 2) != 0) {
-                        if ((rect_h * 0.5 + 224.0 <= pos.y) && ((ex_bounce.wall_flags & 0x10) == 0)) {
+                    if (ex_bounce.wall_flags & 2) {
+                        if (pos.y >= 224.0 + rect_h / 2.0 &&
+                            !(ex_bounce.wall_flags & 0x10)) {
                             angle = -angle;
                             math::angle_normalize(angle);
                             pos.y = (448.0 + rect_h) - pos.y;
                             bounced = true;
                         }
                     }
-                    if ((ex_bounce.wall_flags & 8) != 0) {
-                        if ((rect_w * 0.5 <= pos.x) && ((ex_bounce.wall_flags & 0x10) == 0)) {
-                            angle = -angle - PI;
-                            math::angle_normalize(angle);
-                            pos.x = rect_w - pos.x;
-                            bounced = true;
-                        }
-                    }
-                    if ((ex_bounce.wall_flags & 4) != 0) {
-                        if ((pos.x < rect_w * -0.5 && ((ex_bounce.wall_flags & 0x10) == 0))) {
+                    if (ex_bounce.wall_flags & 4) {
+                        if (pos.x <= -rect_w / 2.0 &&
+                            !(ex_bounce.wall_flags & 0x10)) {
                             angle = -angle - PI;
                             math::angle_normalize(angle);
                             pos.x = -rect_w - pos.x;
                             bounced = true;
                         }
                     }
-                    speed = ex_bounce.bounce_speed > -990.0 ? ex_bounce.bounce_speed : speed;
+                    if (ex_bounce.wall_flags & 8) {
+                        if (pos.x >= rect_w / 2.0 &&
+                            !(ex_bounce.wall_flags & 0x10)) {
+                            angle = -angle - PI;
+                            math::angle_normalize(angle);
+                            pos.x = rect_w - pos.x;
+                            bounced = true;
+                        }
+                    }
+                    speed = ex_bounce.bounce_speed > -990.0
+                          ? ex_bounce.bounce_speed : speed;
                     velocity = cartesian3_from_polar(angle, speed);
                     if (bounced) {
                         ex_bounce.rebounds_so_far++;
-                        if (-1 < transform_sound) { } // SoundManager::play_sound_centered(transform_sound);
+                        // SoundManager::play_sound_centered(transform_sound);
+                        if (-1 < transform_sound) { } // Here
                     }
-                    if ((ex_bounce).rebounds_so_far >= ex_bounce.max_rebounds) {
-                        active_ex_flags = active_ex_flags & 0xffffffbf;
+                    if (ex_bounce.rebounds_so_far >= ex_bounce.max_rebounds) {
+                        active_ex_flags &= 0xffffffbf;
                         ended_ex++;
                     }
                 }
             }
-            if ((active_ex_flags & 0x00000100) != 0) {
+            if (active_ex_flags & 0x00000100) {
                 ex_offscreen.timer--;
                 if (0 >= ex_offscreen.timer) {
                     active_ex_flags = active_ex_flags ^ 0x100;
                     ended_ex++;
                 }
             }
-            if ((active_ex_flags & 0x00020000) != 0) {
+            if (active_ex_flags & 0x00020000) {
                 if (ex_move.__a <= ex_move.timer) {
                     pos = ex_move.__rs__target_pos;
                     speed = ex_move.__field_bf8__had_4;
@@ -196,15 +220,18 @@ int Bullet::on_tick()
                     pos_i.step();
                     velocity = pos_i.current - pos;
                     velocity.z = 0.0;
-                    if ((0.0001 < fabs(velocity.x)) || (0.0001 < fabs(velocity.y))) {
-                        speed = math::point_distance(0, 0, velocity.x, velocity.y);
-                        angle = math::point_direction(0, 0, velocity.x, velocity.y);
+                    if (fabs(velocity.x) > 0.0001 ||
+                        fabs(velocity.y) > 0.0001) {
+                        speed = math::point_distance(0, 0,
+                                                     velocity.x, velocity.y);
+                        angle = math::point_direction(0, 0,
+                                                      velocity.x, velocity.y);
                         math::angle_normalize(angle);
                     }
                     ex_move.timer++;
                 }
             }
-            if ((active_ex_flags & 0x00080000) != 0) {
+            if (active_ex_flags & 0x00080000) {
                 if (ex_veladd.timer < ex_veladd.duration) {
                     pos += ex_veladd.vel * game_speed;
                     ex_veladd.timer = 0; // wierd...
@@ -213,21 +240,23 @@ int Bullet::on_tick()
                     ended_ex++;
                 }
             }
-            if ((active_ex_flags & 0x00200000) != 0) {
+            if (active_ex_flags & 0x00200000) {
                 if (ex_veltime.timer >= ex_veltime.duration) {
                     active_ex_flags = active_ex_flags & 0xffdfffff;
                     ended_ex++;
                 } else {
                     speed += ex_veltime.acceleration * game_speed;
                     velocity += ex_veltime.acceleration_vector * game_speed;
-                    if (fabs(velocity.x) > 0.0001 || fabs(velocity.y) > 0.0001) {
-                        angle = math::point_direction(0, 0, velocity.x, velocity.y);
+                    if (fabs(velocity.x) > 0.0001 ||
+                        fabs(velocity.y) > 0.0001) {
+                        angle = math::point_direction(0, 0,
+                                                      velocity.x, velocity.y);
                         math::angle_normalize(angle);
                     }
                     ex_veltime.timer++;
                 }
             }
-            if ((active_ex_flags & 0x04000000) != 0) {
+            if (active_ex_flags & 0x04000000) {
                 if (ex_delay.timer < 1) {
                     active_ex_flags &= 0xfbffffff;
                     flags &= 0xfffffdff;
@@ -237,37 +266,39 @@ int Bullet::on_tick()
                     ex_delay.timer--;
                 }
             }
-            if ((active_ex_flags & 0x40000000) != 0) {
+            if (active_ex_flags & 0x40000000) {
                 if (ex_homing.duration <= ex_homing.timer) {
                     active_ex_flags = active_ex_flags & 0xbfffffff;
                     ended_ex++;
                 } else {
                     float ang = ex_homing.angule + get_angle_to_player(pos);
                     math::angle_normalize(ang);
-                    glm::vec3 velAdd = cartesian3_from_polar(ang, ex_homing.norm);
-                    velocity.x += (velAdd.x - (velocity).x) * (ex_homing).__m;
-                    velocity.y += (velAdd.y - (velocity).y) * (ex_homing).__m;
+                    glm::vec3 velAdd = cartesian3_from_polar(ang,
+                                                             ex_homing.norm);
+                    velocity.x += (velAdd.x - velocity.x) * ex_homing.__m;
+                    velocity.y += (velAdd.y - velocity.y) * ex_homing.__m;
                     velocity.z = 0.0;
-                    speed = sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+                    speed = math::point_distance(0, 0, velocity.x, velocity.y);
                     angle = math::point_direction(0, 0, velocity.x, velocity.y);
                     math::angle_normalize(angle);
                     ex_homing.timer++;
                 }
             }
-            if ((active_ex_flags & 0x80000000) != 0) {
+            if (active_ex_flags & 0x80000000) {
                 if (ex_wait.timer < 1) {
                     active_ex_flags &= 0x7fffffff;
                     ended_ex += 1;
-                } else
+                } else {
                     ex_wait.timer--;
+                }
             }
 
             if (ex_invuln__remaining_frames != 0) {
-                ex_invuln__remaining_frames = ex_invuln__remaining_frames + -1;
+                ex_invuln__remaining_frames--;
             }
         } while (ended_ex != 0);
 
-        if ((flags & 0x200) == 0) {
+        if (!(flags & 0x200)) {
             pos += velocity * game_speed;
             // check_player_collision(0);
         }
@@ -276,33 +307,41 @@ int Bullet::on_tick()
     // get sprite
     auto spr = vm.getSprite();
 
-    if ((active_ex_flags & 0x1000) != 0 && !((-192.0 < pos.x + spr.w * 0.5) && (pos.x - spr.w * 0.5 < 192.0) && (0.0 < pos.y + spr.h * 0.5) && (pos.y - spr.h * 0.5 < 448.0))) {
-
+    if ((active_ex_flags & 0x1000) && (
+        pos.x + spr.w / 2.0 <= -192.0 ||
+        pos.x - spr.w / 2.0 >= 192.0 ||
+        pos.y + spr.h / 2.0 <= 0.0 ||
+        pos.y - spr.h / 2.0 >= 448.0)) {
         bool wraped = true;
-        if (((ex_wrap.wall_flags & 1) != 0) && (pos.y < 0.0))
+        if ((ex_wrap.wall_flags & 1) && pos.y < 0.0)
             pos.y += spr.h + 448.0;
-        else if (((ex_wrap.wall_flags & 2) != 0) && (pos.y > 448.0))
+        else if ((ex_wrap.wall_flags & 2) && pos.y > 448.0)
             pos.y -= spr.h + 448.0;
-        else if (((ex_wrap.wall_flags & 4) != 0) && (pos.x < -192.0))
+        else if ((ex_wrap.wall_flags & 4) && pos.x < -192.0)
             pos.x += spr.w + 384.0;
-        else if (((ex_wrap.wall_flags & 8) != 0) && (pos.x > 192.0))
+        else if ((ex_wrap.wall_flags & 8) && pos.x > 192.0)
             pos.x -= spr.w + 384.0;
         else
             wraped = false;
 
         if (wraped) {
             ex_wrap.wraps_count++;
-            // if (transform_sound >= 0) SoundManager::play_sound_centered(transform_sound);
+            // if (transform_sound >= 0)
+            //     SoundManager::play_sound_centered(transform_sound);
             if (ex_wrap.wraps_count >= ex_wrap.num_wraps)
                 active_ex_flags = active_ex_flags ^ 0x1000;
         }
     }
 
-    if (((active_ex_flags & 0x100) == 0) && (__field_664_had_5 < 1))
-        if ((pos.x + spr.w * scale * 0.5 <= -192.0) || (pos.x - spr.w * scale * 0.5 >= 192.0) || (pos.y + spr.h * scale * 0.5 <= -64.0) || (pos.y - spr.h * scale * 0.5 >= 448.0)) {
+    if (!(active_ex_flags & 0x100) && __field_664_had_5 < 1) {
+        if (pos.x + spr.w * scale / 2.0 <= -192.0 ||
+            pos.x - spr.w * scale / 2.0 >= 192.0 ||
+            pos.y + spr.h * scale / 2.0 <= -64.0 ||
+            pos.y - spr.h * scale / 2.0 >= 448.0) {
             _delete();
             return -1;
         }
+    }
 
     if (ex_invuln__remaining_frames != 0) {
         ex_invuln__remaining_frames--;
@@ -312,7 +351,7 @@ int Bullet::on_tick()
         __field_664_had_5--;
     }
 
-    if ((flags & 0x200) != 0)
+    if (flags & 0x200)
         return 0;
     if (vm.update() == 1) {
         _delete();
@@ -321,8 +360,7 @@ int Bullet::on_tick()
     return 0;
 }
 
-int Bullet::run_et_ex()
-{
+int Bullet::run_et_ex() {
     /// zLaserBaseClass *pzVar5;
     /// bool bVar6;
     /// zLaserManager *pzVar8;
@@ -366,7 +404,8 @@ int Bullet::run_et_ex()
         EtEx_t* cur_et_ex = this->et_ex + cur_ex_id;
         uint ex_type = cur_et_ex->type;
 
-        if ((ex_type == 0) || (((cur_et_ex->slot == 0 && ((active_ex_flags & 0xfffffeff) != 0)) || (ex_type & active_ex_flags) != 0)))
+        if (ex_type == 0 || (ex_type & active_ex_flags) ||
+           (cur_et_ex->slot == 0 && (active_ex_flags & 0xfffffeff)))
             break;
 
         /* Speedup */
@@ -388,17 +427,19 @@ int Bullet::run_et_ex()
             ex_accel.duration = cur_et_ex->a;
             ex_accel.timer = 0;
 
-            float dir = cur_et_ex->s;
-            if (-999990.0 < dir) {
-                if (999990.0 <= dir) {
-                    dir = cur_et_ex->m + get_angle_to_player(pos);
-                }
-                math::angle_normalize(dir);
-            } else
-                dir = angle;
-            ex_accel.angle = dir;
-            ex_accel.vec3_a14 = cartesian3_from_polar(ex_accel.angle, ex_accel.acceleration);
-            if ((ex_index != 0) && (-1 < transform_sound)) { } // SoundManager::play_sound_centered(transform_sound);
+            if (cur_et_ex->s <= -999990.0) {
+                ex_accel.angle = angle;
+            } else if (cur_et_ex->s >= 999990.0) {
+                ex_accel.angle = cur_et_ex->m + get_angle_to_player(pos);
+                math::angle_normalize(ex_accel.angle);
+            } else {
+                ex_accel.angle = cur_et_ex->s;
+                math::angle_normalize(ex_accel.angle);
+            }
+            ex_accel.vec3_a14 =
+                cartesian3_from_polar(ex_accel.angle, ex_accel.acceleration);
+            // SoundManager::play_sound_centered(transform_sound);
+            if (ex_index != 0 && transform_sound >= 0) { } // Here
         }
 
         if (ex_type == 8) {
@@ -407,20 +448,23 @@ int Bullet::run_et_ex()
             ex_angleaccel.angular_velocity = cur_et_ex->s;
             ex_angleaccel.timer = 0;
             ex_angleaccel.duration = cur_et_ex->a;
-            if ((ex_index != 0) && (-1 < transform_sound)) { } // SoundManager::play_sound_centered(transform_sound);
+            // SoundManager::play_sound_centered(transform_sound);
+            if (ex_index != 0 && transform_sound >= 0) { } // Here
         }
 
         if (ex_type == 0x10) {
             active_ex_flags |= 0x10;
             ex_angle.speed = cur_et_ex->s <= -999990.f ? speed : cur_et_ex->s;
-            float ang = cur_et_ex->r;
-            if (-999990.0 < ang) {
-                if (999990.0 <= ang) {
-                    ang = cur_et_ex->m + get_angle_to_player(pos);
-                }
-                math::angle_normalize(ang);
-            } else
+            float ang;
+            if (cur_et_ex->r <= -999990.0) {
                 ang = angle;
+            } else if (cur_et_ex->r >= 999990.0) {
+                ang = cur_et_ex->m + get_angle_to_player(pos);
+                math::angle_normalize(ang);
+            } else {
+                ang = cur_et_ex->r;
+                math::angle_normalize(ang);
+            }
 
             switch (cur_et_ex->c) {
             case 2:
@@ -442,13 +486,15 @@ int Bullet::run_et_ex()
                 ex_angle.angle = Random::Floatm11() * cur_et_ex->r;
                 break;
             case 7:
-                ang = cur_et_ex->r;
-                if (-999990.0 < ang) {
-                    if (ang >= 990.0)
-                        ang = get_angle_to_player(pos);
-                    math::angle_normalize(ang);
-                } else
+                if (cur_et_ex->r <= -999990.0) {
                     ang = angle;
+                } else if (cur_et_ex->r >= 990.0) {
+                    ang = get_angle_to_player(pos);
+                    math::angle_normalize(ang);
+                } else {
+                    ang = cur_et_ex->r;
+                    math::angle_normalize(ang);
+                }
                 ex_angle.angle = ang;
                 ex_angle.speed += Random::Floatm11() * cur_et_ex->s;
             }
@@ -466,12 +512,12 @@ int Bullet::run_et_ex()
             ex_bounce.max_rebounds = cur_et_ex->a;
             ex_bounce.rebounds_so_far = 0;
             ex_bounce.wall_flags = cur_et_ex->b;
-            if ((cur_et_ex->b & 0x20) == 0) {
-                ex_bounce.dim_x = 384.0;
-                ex_bounce.dim_y = 448.0;
-            } else {
+            if (cur_et_ex->b & 0x20) {
                 ex_bounce.dim_x = cur_et_ex->s;
                 ex_bounce.dim_y = cur_et_ex->m;
+            } else {
+                ex_bounce.dim_x = 384.0;
+                ex_bounce.dim_y = 448.0;
             }
         }
 
@@ -493,7 +539,8 @@ int Bullet::run_et_ex()
             hitbox_diameter = __hitbox_diameter_copy;
             layer = sprite_data["default_layer"].asInt();
             flags = flags | 0x10;
-            vm(AnmManager::getLoaded(7)->getPreloaded(sprite_data["script"].asInt()));
+            vm(AnmManager::getLoaded(7)->getPreloaded(
+                sprite_data["script"].asInt()));
             vm.setEntity(static_cast<void*>(this));
             vm.setLayer(15);
             vm.index_of_sprite_mapping_func = 1;
@@ -506,9 +553,9 @@ int Bullet::run_et_ex()
             // anmExtraId = 0;
             // if (sprite_data["__field_114"].asInt() != 0) {
             // zAnmId* id = zAnmLoaded__create_4112b0
-            //(BULLET_MANAGER_PTR->bullet_anm,nullptr,
+            // (BULLET_MANAGER_PTR->bullet_anm,nullptr,
             // sprite_data["__field_114"].asInt(),
-            //&pos,0,-1,nullptr);
+            // &pos,0,-1,nullptr);
             // anmExtraId = id->value;
             //}
             switch (sprite_data["__field_10c"].asInt()) {
@@ -531,7 +578,8 @@ int Bullet::run_et_ex()
                 cancel_sprite_id = 0xc;
                 break;
             case 6:
-                cancel_sprite_id = sprite_data["colors"][color]["cancel_script"].asInt();
+                cancel_sprite_id = sprite_data["colors"]
+                        [color]["cancel_script"].asInt();
                 break;
             case 7:
                 cancel_sprite_id = 0x104;
@@ -545,7 +593,7 @@ int Bullet::run_et_ex()
             case 10:
                 cancel_sprite_id = 0x113;
             }
-            if ((cur_et_ex->b & 0x8000U) != 0)
+            if (cur_et_ex->b & 0x8000)
                 vm.interrupt(2);
         }
 
@@ -553,7 +601,6 @@ int Bullet::run_et_ex()
             if (cur_et_ex->a == 1)
                 cancel_sprite_id = -1;
             cancel(0);
-            // BulletManager::GetInstance()->RemoveBullet(this);
             return -1;
         }
 
@@ -569,7 +616,8 @@ int Bullet::run_et_ex()
             ex_wrap.wall_flags = cur_et_ex->b;
         }
 
-        if (ex_type == 0x2000) { // automatically checks for 0x4000
+        // automatically checks for 0x4000
+        if (ex_type == 0x2000) {
             EnemyBulletShooter_t bullet_shooter = {};
             // memset(&bullet_shooter,0,0x380);
             bullet_shooter.__vec3_8 = pos;
@@ -578,9 +626,15 @@ int Bullet::run_et_ex()
             bullet_shooter.cnt_count = cur_et_ex->c;
             bullet_shooter.cnt_layers = cur_et_ex->d;
             bullet_shooter.__shot_transform_sfx = -1;
-            bullet_shooter.ang_aim = (cur_et_ex->r >= 999990.0) ? get_angle_to_player(pos) : ((cur_et_ex->r <= -999990.0) ? angle : cur_et_ex->r);
+            bullet_shooter.ang_aim = cur_et_ex->r >= 999990.0
+                ? get_angle_to_player(pos)
+                : (cur_et_ex->r <= -999990.0
+                ? angle
+                : cur_et_ex->r);
             bullet_shooter.ang_bullet_dist = cur_et_ex->s;
-            bullet_shooter.spd1 = cur_et_ex->m > -999990.0 ? cur_et_ex->m : speed;
+            bullet_shooter.spd1 = cur_et_ex->m > -999990.0
+                ? cur_et_ex->m
+                : speed;
             bullet_shooter.spd2 = cur_et_ex->n;
             math::angle_normalize(bullet_shooter.ang_aim);
 
@@ -600,7 +654,6 @@ int Bullet::run_et_ex()
             if (cur_et_ex->c != 0) {
                 cancel(0);
                 return -1;
-                // BulletManager::GetInstance()->RemoveBullet(this);
             }
         }
 
@@ -618,10 +671,10 @@ int Bullet::run_et_ex()
                 }
                 if (__ex_goto_b_loop_count == 1) {
                     __ex_goto_b_loop_count = 0;
-                    ex_index = ex_index + 1;
+                    ex_index++;
                     continue;
                 }
-                __ex_goto_b_loop_count = __ex_goto_b_loop_count + -1;
+                __ex_goto_b_loop_count++;
             }
             ex_index = cur_et_ex->a;
             continue;
@@ -637,10 +690,11 @@ int Bullet::run_et_ex()
             ex_move.timer = 0;
             ex_move.__rs__target_pos.x = cur_et_ex->r;
             ex_move.__rs__target_pos.y = cur_et_ex->s;
-            if ((cur_et_ex->b & 0x100U) != 0)
+            if (cur_et_ex->b & 0x100)
                 ex_move.__rs__target_pos += glm::vec3(pos.x, pos.y, 0.f);
             ex_move.__rs__target_pos.z = 0.f;
-            pos_i.start(pos, ex_move.__rs__target_pos, cur_et_ex->a, cur_et_ex->b);
+            pos_i.start(pos, ex_move.__rs__target_pos,
+                        cur_et_ex->a, cur_et_ex->b);
         }
 
         /* set vel */
@@ -668,33 +722,40 @@ int Bullet::run_et_ex()
         /* brightness effect
             Changes the blendmode of the anm */
         if (ex_type == 0x100000) {
-            if (cur_et_ex->a == 2)
+            if (cur_et_ex->a == 2) {
                 vm.bitflags.blendmode = 2;
-            else if (cur_et_ex->a == 1)
+            } else if (cur_et_ex->a == 1) {
                 vm.bitflags.blendmode = 1;
-            else
+            } else {
                 vm.bitflags.blendmode = 0;
+            }
         }
 
         if (ex_type == 0x200000) {
             active_ex_flags |= 0x200000;
-            ex_veltime.acceleration = (cur_et_ex->r - speed) / (float)cur_et_ex->a;
+            ex_veltime.acceleration = (cur_et_ex->r - speed) /
+                static_cast<float>(cur_et_ex->a);
             ex_veltime.field2_0x18 = cur_et_ex->s;
             if (cur_et_ex->s >= 999990.f)
-                ex_veltime.field2_0x18 = cur_et_ex->m + get_angle_to_player(pos);
+                ex_veltime.field2_0x18 = cur_et_ex->m +
+                    get_angle_to_player(pos);
             else if (cur_et_ex->s <= -999990.f)
                 ex_veltime.field2_0x18 = angle;
             math::angle_normalize(ex_veltime.field2_0x18);
             ex_veltime.timer = 0;
             ex_veltime.duration = cur_et_ex->a;
-            ex_veltime.acceleration_vector = cartesian3_from_polar(ex_veltime.field2_0x18, ex_veltime.acceleration);
-            if ((ex_index != 0) && (-1 < transform_sound)) { } // SoundManager::play_sound_centered(transform_sound);
+            ex_veltime.acceleration_vector =
+                cartesian3_from_polar(ex_veltime.field2_0x18,
+                                      ex_veltime.acceleration);
+            // SoundManager::play_sound_centered(transform_sound);
+            if (ex_index != 0 && transform_sound >= 0) { } // Here
         }
 
         /* Scale time */
         if (ex_type == 0x400000) {
             active_ex_flags |= 0x400000;
-            scale_i.start(cur_et_ex->r, cur_et_ex->s, cur_et_ex->a, cur_et_ex->b);
+            scale_i.start(cur_et_ex->r, cur_et_ex->s,
+                          cur_et_ex->a, cur_et_ex->b);
             flags |= 0x40;
         }
 
@@ -736,7 +797,7 @@ int Bullet::run_et_ex()
             }
         }
 
-        /* Shoot laser TODO */
+        /* Shoot laser */
         if (ex_type == 0x8000000) {
             if (cur_et_ex->a == 1) {
                 LaserInfiniteInner_t inner;
@@ -767,7 +828,7 @@ int Bullet::run_et_ex()
                 inner.shot_sfx = 18;
                 inner.shot_transform_sfx = -1;
                 allocate_new_laser(1, &inner);
-                if ((cur_et_ex->d & 0x10000) != 0) {
+                if (cur_et_ex->d & 0x10000) {
                     cancel(0);
                 }
             }
@@ -806,7 +867,9 @@ int Bullet::run_et_ex()
 
         /* Set hitbox size */
         if (ex_type == 0x20000000) {
-            __hitbox_diameter_copy = cur_et_ex->r < 0.f ? sprite_data["default_radius"].asFloat() : cur_et_ex->r;
+            __hitbox_diameter_copy = cur_et_ex->r < 0.f
+                ? sprite_data["default_radius"].asFloat()
+                : cur_et_ex->r;
             hitbox_diameter = __hitbox_diameter_copy;
         }
 

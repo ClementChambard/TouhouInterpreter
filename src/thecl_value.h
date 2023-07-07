@@ -26,11 +26,13 @@ struct thecl_value_t {
 
 /* Reads a value_t from a block of data.  Returns the number of bytes read, or
  * -1 on error.  The passed value is filled in. */
-ssize_t thecl_value_from_data(const unsigned char* data, size_t data_length, char type, thecl_value_t* value);
+ssize_t thecl_value_from_data(const unsigned char* data, size_t data_length,
+                              char type, thecl_value_t* value);
 
 /* Reads a list of values, the list is terminated by a value with type 0.  NULL
  * is returned on error. */
-thecl_value_t* thecl_value_list_from_data(const unsigned char* data, size_t data_length, const char* data_format);
+thecl_value_t* thecl_value_list_from_data(const unsigned char* data,
+                              size_t data_length, const char* data_format);
 
 /* Returns a text representation of a value. */
 char* thecl_value_to_text(const thecl_value_t* value);

@@ -14,7 +14,7 @@ struct EtEx_t {
     int32_t d = 0;
     int32_t type = 0;
     int32_t slot = 0;
-    const char* string = 0;
+    const char* string = nullptr;
     EtEx_t& operator=(EtEx_t const& other);
 };
 

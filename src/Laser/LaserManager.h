@@ -2,11 +2,11 @@
 #define LASERMANAGER_H_
 
 #include "../UpdateFuncRegistry.h"
-#include "Laser.h"
-#include "LaserBeam.h"
-#include "LaserCurve.h"
-#include "LaserInfinite.h"
-#include "LaserLine.h"
+#include "./Laser.h"
+#include "./LaserBeam.h"
+#include "./LaserCurve.h"
+#include "./LaserInfinite.h"
+#include "./LaserLine.h"
 
 class LaserManager {
 public:
@@ -17,7 +17,8 @@ public:
 
     void destroy_all();
     int cancel_all(bool as_bomb);
-    int cancel_in_radius(glm::vec3 /*pos*/, bool /*item*/, int /*a*/, float /*r*/) { return 0; }
+    int cancel_in_radius(glm::vec3 /*pos*/, bool /*item*/,
+                         int /*a*/, float /*r*/) { return 0; }
 
 private:
     int f_on_tick();

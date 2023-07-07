@@ -1,11 +1,11 @@
 #ifndef PLAYER_H_
 #define PLAYER_H_
 
-#include "AnmOpener/AnmVM.h"
-#include "Interp.h"
-#include "PosVel.h"
-#include "ShtFile.h"
-#include "UpdateFuncRegistry.h"
+#include "./AnmOpener/AnmVM.h"
+#include "./Interp.h"
+#include "./PosVel.h"
+#include "./ShtFile.h"
+#include "./UpdateFuncRegistry.h"
 
 struct BoundingBox3_t {
     glm::vec3 min_pos {};
@@ -22,11 +22,11 @@ struct PlayerOption_t {
     AnmID anmId1 {};
     AnmID anmId2 {};
     // undefined4[5]
-    int32_t focusing = false; // boolean
+    int32_t focusing = false;
     int32_t id = 0;
-    int32_t move_instantly = true; // boolean
+    int32_t move_instantly = true;
     // undefined4
-    void (*update_code)(PlayerOption_t*) = nullptr; // function ptr
+    void (*update_code)(PlayerOption_t*) = nullptr;
     // undefined4
     float shoot_angle_maybe = 0.f;
 };
@@ -37,9 +37,9 @@ struct PlayerBullet_t {
     // undefined1[3]
     int32_t id = 0;
     AnmID anmId {};
-    int32_t __field_c = 0; // zTimer
-    int32_t __field_20 = 0; // zTimer
-    int32_t __field_34 = 0; // zTimer
+    int32_t __field_c = 0;
+    int32_t __field_20 = 0;
+    int32_t __field_34 = 0;
     PosVel pos {};
     int32_t active = 0;
     int32_t targeted_entity = 0;
@@ -66,7 +66,7 @@ struct PlayerDamageSource_t {
     float angle_increase;
     glm::vec2 hitbox;
     PosVel pos;
-    int32_t time_to_live; // zTimer;
+    int32_t time_to_live;
     int32_t damage;
     int32_t field_0x78;
     int32_t field_0x7c;
@@ -82,9 +82,9 @@ struct PlayerDamageSource_t {
 struct PlayerInner_t {
     glm::vec3 pos { 0.f, 400.f, 0.f };
     glm::vec<2, int32_t> integer_pos { 0, 0xc800 };
-    int32_t time_in_state = 0; // zTimer
-    int32_t time_in_stage = 0; // zTimer
-    int32_t __time_in_stage__copy_3c = 0; // zTimer
+    int32_t time_in_state = 0;
+    int32_t time_in_stage = 0;
+    int32_t __time_in_stage__copy_3c = 0;
     PlayerOption_t options[4] {};
     PlayerOption_t subseason_options[8] {};
     PlayerBullet_t bullets[256] {};
@@ -93,14 +93,14 @@ struct PlayerInner_t {
     int32_t state = 0;
     AnmID focus_eff_anmId = 0;
     uint32_t maybe_th15_graze_snowflake = 0;
-    int32_t __timer_187ac = 0; // zTimer
-    int32_t focusing = 0; // boolean
-    int32_t shoot_key_short_timer = -1; // zTimer
-    int32_t shoot_key_long_timer = -1; // zTimer
+    int32_t __timer_187ac = 0;
+    int32_t focusing = false;
+    int32_t shoot_key_short_timer = -1;
+    int32_t shoot_key_long_timer = -1;
     int32_t power = 0;
     int32_t unique_bullets[16] = {};
     // undefined4[14]
-    int32_t iframes = 0; // zTimer
+    int32_t iframes = 0;
 };
 
 class Player {
@@ -128,6 +128,7 @@ private:
     UpdateFunc* on_game_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
     // AnmLoaded* playerAnm
+
 public:
     AnmVM vm {};
     PlayerInner_t inner {};
@@ -159,7 +160,7 @@ public:
     Interp<float> player_scale_i {};
     float player_scale__requires_flag_0x10__from_ddc = 1.f;
     float damage_multiplier__used_by_winter_in_th16 = 1.f;
-    int32_t field_0x19080 = 0; // zTimer
+    int32_t field_0x19080 = 0;  // zTimer
     AnmID extra_anm_id {};
     glm::vec3 field_0x19098 {};
     BoundingBox3_t item_collect_box {};
@@ -175,8 +176,11 @@ public:
 
 extern Player* PLAYER_PTR;
 
-extern int create_damage_source(glm::vec3 const&, float, int, int, float, float);
+extern int create_damage_source(glm::vec3 const&, float,
+                                int, int, float, float);
 
-extern int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb, float hb_size, uint* param_4, glm::vec3& dmg_pos, int param_6, int enemy_id, float ang);
+extern int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb,
+                       float hb_size, uint* param_4, glm::vec3& dmg_pos,
+                       int param_6, int enemy_id, float ang);
 
 #endif // PLAYER_H_

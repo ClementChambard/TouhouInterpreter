@@ -1,4 +1,4 @@
-#include "profiler.h"
+#include "./profiler.h"
 
 const unsigned int __nTimes = 30;
 float __times[__nTimes];
@@ -9,15 +9,14 @@ unsigned int __ti = 0;
 std::chrono::time_point<std::chrono::high_resolution_clock> __begin_time;
 
 #include <cmath>
-NSEngine::Color hsv(float H, float S, float V)
-{
+NSEngine::Color hsv(float H, float S, float V) {
     float C = V * S;
 
-    float X = C * (1 - fabs((std::fmod((H / 60.f),2) - 1)));
+    float X = C * (1 - fabs((std::fmod((H / 60.f), 2) - 1)));
 
     float m = V - C;
 
-    float R{},G{},B{};
+    float R{}, G{}, B{};
 
     if (  0 <= H && H <  60) R = C, G = X, B = 0;
     if ( 60 <= H && H < 120) R = X, G = C, B = 0;
@@ -26,5 +25,6 @@ NSEngine::Color hsv(float H, float S, float V)
     if (240 <= H && H < 300) R = X, G = 0, B = C;
     if (300 <= H && H < 360) R = C, G = 0, B = X;
 
-    return {(uint8_t)((R+m)*255), (uint8_t)((G+m)*255), (uint8_t)((B+m)*255), 255};
+    return {(uint8_t)((R+m)*255), (uint8_t)((G+m)*255),
+            (uint8_t)((B+m)*255), 255};
 }

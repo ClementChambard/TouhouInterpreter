@@ -1,6 +1,6 @@
-#include "AnmViewer.hpp"
-#include "AnmOpener/AnmManager.h"
-#include "Player.h"
+#include "./AnmViewer.hpp"
+#include "./AnmOpener/AnmManager.h"
+#include "./Player.h"
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl.h>
@@ -141,6 +141,10 @@ void anm_view_window(AnmView *v) {
   ImGui::InputInt("sprite_id", &spid);
   if (spid != vm->sprite_id)
     AnmManager::getLoaded(vm->anm_loaded_index)->setSprite(vm, spid);
+  int layid = vm->layer;
+  ImGui::InputInt("layer_id", &layid);
+  if (static_cast<unsigned int>(layid) != vm->layer)
+    vm->setLayer(layid);
   ImGui::Separator();
   ImGui::InputFloat3("pos", &vm->pos[0]);
   ImGui::InputFloat3("pos2", &vm->__pos_2[0]);

@@ -1,18 +1,18 @@
-#include "Enemy.h"
-#include "EnemyManager.h"
-#include "GlobalData.h"
-#include "GoastManager.h"
-#include "Player.h"
+#include "./Enemy.h"
+#include "./EnemyManager.h"
+#include "./GlobalData.h"
+#include "./GoastManager.h"
+#include "./Player.h"
 #include <math/Random.h>
 #include <math/math.h>
 
 //////// TODO: some variables are missing ///////////
 //////// For the boss variables, do some check //////
 
-#define VAR(x) context.currentContext->stack.data[context.currentContext->stack.baseOffset + x]
+#define VAR(x) context.currentContext->stack.data[\
+        context.currentContext->stack.baseOffset + x]
 
-int32_t Enemy::checkVarI(int32_t id)
-{
+int32_t Enemy::checkVarI(int32_t id) {
     if (id == -10000)
         return random();
     if (id == -9999)
@@ -36,7 +36,10 @@ int32_t Enemy::checkVarI(int32_t id)
     if (id == -9990)
         return PLAYER_PTR->inner.pos.y;
     if (id == -9989)
-        return math::point_direction(enemy.final_pos.pos.x, enemy.final_pos.pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+        return math::point_direction(enemy.final_pos.pos.x,
+                                     enemy.final_pos.pos.y,
+                                     PLAYER_PTR->inner.pos.x,
+                                     PLAYER_PTR->inner.pos.y);
     if (id == -9988)
         return context.currentContext->time;
     if (id == -9987)
@@ -88,9 +91,13 @@ int32_t Enemy::checkVarI(int32_t id)
     if (id == -9964)
         return PLAYER_PTR->inner.pos.y;
     if (id == -9963)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.final_pos.pos.x;
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->
+            data.boss_ids[0])->enemy.final_pos.pos.x;
     if (id == -9962)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.final_pos.pos.y;
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->
+            data.boss_ids[0])->enemy.final_pos.pos.y;
     if (id == -9961)
         return enemy.anmIds[0].val;
     if (id == -9960)
@@ -102,9 +109,15 @@ int32_t Enemy::checkVarI(int32_t id)
     if (id == -9957)
         return true;
     if (id == -9956)
-        return math::point_direction(enemy.abs_pos.pos.x, enemy.abs_pos.pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+        return math::point_direction(enemy.abs_pos.pos.x,
+                                     enemy.abs_pos.pos.y,
+                                     PLAYER_PTR->inner.pos.x,
+                                     PLAYER_PTR->inner.pos.y);
     if (id == -9955)
-        return math::point_direction(enemy.rel_pos.pos.x, enemy.rel_pos.pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+        return math::point_direction(enemy.rel_pos.pos.x,
+                                     enemy.rel_pos.pos.y,
+                                     PLAYER_PTR->inner.pos.x,
+                                     PLAYER_PTR->inner.pos.y);
     if (id == -9954)
         return enemy.life.current;
     if (id == -9953)
@@ -126,23 +139,42 @@ int32_t Enemy::checkVarI(int32_t id)
     if (id == -9945)
         return GLOBALS.inner.SHOTTYPE;
     if (id == -9944)
-        return math::point_distance(enemy.final_pos.pos.x, enemy.final_pos.pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+        return math::point_distance(enemy.final_pos.pos.x,
+                                    enemy.final_pos.pos.y,
+                                    PLAYER_PTR->inner.pos.x,
+                                    PLAYER_PTR->inner.pos.y);
     if (id == -9943)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[0];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[0];
     if (id == -9942)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[1];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[1];
     if (id == -9941)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[2];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[2];
     if (id == -9940)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[3];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[3];
     if (id == -9939)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[0];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[0];
     if (id == -9938)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[1];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[1];
     if (id == -9937)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[2];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[2];
     if (id == -9936)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[3];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[3];
     if (id == -9935)
         return enemy.ecl_float_vars[4];
     if (id == -9934)
@@ -192,9 +224,13 @@ int32_t Enemy::checkVarI(int32_t id)
     if (id == -9912)
         return GLOBALS.DS3;
     if (id == -9911)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.final_pos.angle;
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.final_pos.angle;
     if (id == -9910)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.final_pos.speed;
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.final_pos.speed;
     if (id == -9909)
         return parentEnemyId;
     if (id == -9908)
@@ -220,11 +256,11 @@ int32_t Enemy::checkVarI(int32_t id)
     if (id >= 0)
         return VAR(id / 4).asInt;
     stackToRemove++;
-    return context.currentContext->stack.data[context.currentContext->stack.stackOffset + id].asInt;
+    return context.currentContext->stack.data[
+        context.currentContext->stack.stackOffset + id].asInt;
 }
 
-float Enemy::checkVarF(float id)
-{
+float Enemy::checkVarF(float id) {
     if (id == -10000.f)
         return random();
     if (id == -9999.f)
@@ -248,7 +284,10 @@ float Enemy::checkVarF(float id)
     if (id == -9990.f)
         return PLAYER_PTR->inner.pos.y;
     if (id == -9989.f)
-        return math::point_direction(enemy.final_pos.pos.x, enemy.final_pos.pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+        return math::point_direction(enemy.final_pos.pos.x,
+                                     enemy.final_pos.pos.y,
+                                     PLAYER_PTR->inner.pos.x,
+                                     PLAYER_PTR->inner.pos.y);
     if (id == -9988.f)
         return context.currentContext->time;
     if (id == -9987.f)
@@ -300,9 +339,13 @@ float Enemy::checkVarF(float id)
     if (id == -9964.f)
         return PLAYER_PTR->inner.pos.y;
     if (id == -9963.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.final_pos.pos.x;
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.final_pos.pos.x;
     if (id == -9962.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.final_pos.pos.y;
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.final_pos.pos.y;
     if (id == -9961.f)
         return enemy.anmIds[0].val;
     if (id == -9960.f)
@@ -314,9 +357,15 @@ float Enemy::checkVarF(float id)
     if (id == -9957.f)
         return true;
     if (id == -9956.f)
-        return math::point_direction(enemy.abs_pos.pos.x, enemy.abs_pos.pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+        return math::point_direction(enemy.abs_pos.pos.x,
+                                     enemy.abs_pos.pos.y,
+                                     PLAYER_PTR->inner.pos.x,
+                                     PLAYER_PTR->inner.pos.y);
     if (id == -9955.f)
-        return math::point_direction(enemy.rel_pos.pos.x, enemy.rel_pos.pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+        return math::point_direction(enemy.rel_pos.pos.x,
+                                     enemy.rel_pos.pos.y,
+                                     PLAYER_PTR->inner.pos.x,
+                                     PLAYER_PTR->inner.pos.y);
     if (id == -9954.f)
         return enemy.life.current;
     if (id == -9953.f)
@@ -338,23 +387,42 @@ float Enemy::checkVarF(float id)
     if (id == -9945.f)
         return GLOBALS.inner.SHOTTYPE;
     if (id == -9944.f)
-        return math::point_distance(enemy.final_pos.pos.x, enemy.final_pos.pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+        return math::point_distance(enemy.final_pos.pos.x,
+                                    enemy.final_pos.pos.y,
+                                    PLAYER_PTR->inner.pos.x,
+                                    PLAYER_PTR->inner.pos.y);
     if (id == -9943.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[0];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[0];
     if (id == -9942.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[1];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[1];
     if (id == -9941.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[2];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[2];
     if (id == -9940.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[3];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[3];
     if (id == -9939.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[0];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[0];
     if (id == -9938.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[1];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[1];
     if (id == -9937.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[2];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[2];
     if (id == -9936.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[3];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[3];
     if (id == -9935.f)
         return enemy.ecl_float_vars[4];
     if (id == -9934.f)
@@ -404,9 +472,13 @@ float Enemy::checkVarF(float id)
     if (id == -9912.f)
         return GLOBALS.DS3;
     if (id == -9911.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.final_pos.angle;
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.final_pos.angle;
     if (id == -9910.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.final_pos.speed;
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.final_pos.speed;
     if (id == -9909.f)
         return parentEnemyId;
     if (id == -9908.f)
@@ -432,11 +504,11 @@ float Enemy::checkVarF(float id)
     if (id >= 0.f)
         return VAR((int)id / 4).asFloat;
     stackToRemove++;
-    return context.currentContext->stack.data[context.currentContext->stack.stackOffset + (int)id].asFloat;
+    return context.currentContext->stack.data[context.currentContext
+        ->stack.stackOffset + static_cast<int>(id)].asFloat;
 }
 
-int32_t& Enemy::checkVarRI(int32_t id)
-{
+int32_t& Enemy::checkVarRI(int32_t id) {
     if (id == -9985)
         return enemy.ecl_int_vars[0];
     if (id == -9984)
@@ -452,13 +524,21 @@ int32_t& Enemy::checkVarRI(int32_t id)
     if (id == -9947)
         return EnemyManager::GetInstance()->data.can_still_capture_spell;
     if (id == -9943)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[0];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[0];
     if (id == -9942)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[1];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[1];
     if (id == -9941)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[2];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[2];
     if (id == -9940)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_int_vars[3];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_int_vars[3];
     if (id == -9926)
         return EnemyManager::GetInstance()->data.ecl_int_vars[0];
     if (id == -9925)
@@ -472,8 +552,7 @@ int32_t& Enemy::checkVarRI(int32_t id)
     return context.currentContext->int_vars[7];
 }
 
-float& Enemy::checkVarRF(float id)
-{
+float& Enemy::checkVarRF(float id) {
     if (id == -9981.f)
         return enemy.ecl_float_vars[0];
     if (id == -9980.f)
@@ -483,13 +562,21 @@ float& Enemy::checkVarRF(float id)
     if (id == -9978.f)
         return enemy.ecl_float_vars[3];
     if (id == -9939.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[0];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[0];
     if (id == -9938.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[1];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[1];
     if (id == -9937.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[2];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[2];
     if (id == -9936.f)
-        return EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])->enemy.ecl_float_vars[3];
+        return EnemyManager::GetInstance()->EnmFind(
+            EnemyManager::GetInstance()->data.boss_ids[0])
+            ->enemy.ecl_float_vars[3];
     if (id == -9935.f)
         return enemy.ecl_float_vars[4];
     if (id == -9934.f)

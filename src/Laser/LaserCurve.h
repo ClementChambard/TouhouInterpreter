@@ -18,8 +18,11 @@ struct LaserCurveTransform_t {
     float accel = 0.f;
     float angle_accel = 0.f;
 
-    void posvel(glm::vec3* pos, float* speed, float* angle, float node_time_alive);
-    void posvel_from_prev(glm::vec3* pos, float* speed, float* angle, glm::vec3 const& pos_prev, float speed_prev, float angle_prev, float node_time_alive);
+    void posvel(glm::vec3* pos, float* speed, float* angle,
+                float node_time_alive);
+    void posvel_from_prev(glm::vec3* pos, float* speed, float* angle,
+                          glm::vec3 const& pos_prev, float speed_prev,
+                          float angle_prev, float node_time_alive);
 };
 
 struct LaserCurveInner_t {
@@ -48,28 +51,27 @@ struct LaserCurveNode_t {
 };
 
 class LaserCurve : public Laser {
+public:
+    LaserCurve();
+    ~LaserCurve() override;
 
-    public:
-        LaserCurve();
-        ~LaserCurve() override;
+    void run_ex() override;
+    int initialize(void*) override;
+    int on_tick() override;
+    int on_draw() override;
 
-        void run_ex() override;
-        int initialize(void*) override;
-        int on_tick() override;
-        int on_draw() override;
+    int cancel(int param_2, int as_bomb) override;
 
-        int cancel(int param_2, int as_bomb) override;
+    LaserCurveInner_t& getInner() { return inner; }
 
-        LaserCurveInner_t& getInner() { return inner; }
-
-    private:
-        LaserCurveInner_t inner;
-        AnmVM vm1;
-        AnmVM vm2;
-        LaserCurveNode_t* nodes = nullptr;
-        NSEngine::Vertex* vertices = nullptr;
-        LaserCurveTransform_t transforms = {};
-        int offscreen_timer = 0;
+private:
+    LaserCurveInner_t inner;
+    AnmVM vm1;
+    AnmVM vm2;
+    LaserCurveNode_t* nodes = nullptr;
+    NSEngine::Vertex* vertices = nullptr;
+    LaserCurveTransform_t transforms = {};
+    int offscreen_timer = 0;
 };
 
 #endif // LASERCURVE_H_

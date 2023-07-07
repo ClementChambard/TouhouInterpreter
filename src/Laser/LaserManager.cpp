@@ -1,9 +1,8 @@
-#include "LaserManager.h"
+#include "./LaserManager.h"
 
 LaserManager* LASER_MANAGER_PTR = nullptr;
 
-LaserManager::LaserManager()
-{
+LaserManager::LaserManager() {
     if (LASER_MANAGER_PTR)
         delete LASER_MANAGER_PTR;
     current_id = 0x10000;
@@ -27,8 +26,7 @@ LaserManager::LaserManager()
     list_head = &dummy_laser_for_list_tail;
 }
 
-LaserManager::~LaserManager()
-{
+LaserManager::~LaserManager() {
     if (on_tick)
         UPDATE_FUNC_REGISTRY->unregister(on_tick);
     if (on_draw)
@@ -38,11 +36,11 @@ LaserManager::~LaserManager()
     LASER_MANAGER_PTR = nullptr;
 }
 
-Laser* find_laser_by_id(int id)
-{
+Laser* find_laser_by_id(int id) {
     if (id == 0)
         return nullptr;
-    for (auto laser = LASER_MANAGER_PTR->dummy_laser_for_list_tail.prev; laser; laser = laser->prev) {
+    for (auto laser = LASER_MANAGER_PTR->dummy_laser_for_list_tail.prev;
+        laser; laser = laser->prev) {
         if (laser->laser_id == id)
             return laser;
     }
@@ -50,8 +48,7 @@ Laser* find_laser_by_id(int id)
     return nullptr;
 }
 
-void LaserManager::destroy_all()
-{
+void LaserManager::destroy_all() {
     Laser* laser = dummy_laser_for_list_tail.prev;
     while (laser != NULL) {
         Laser* prev = laser->prev;
@@ -63,8 +60,7 @@ void LaserManager::destroy_all()
     return;
 }
 
-int LaserManager::cancel_all(bool as_bomb)
-{
+int LaserManager::cancel_all(bool as_bomb) {
     Laser* prev = (LASER_MANAGER_PTR->dummy_laser_for_list_tail).prev;
     for (Laser* laser = prev; laser != nullptr; laser = prev) {
         prev = laser->prev;
@@ -74,8 +70,7 @@ int LaserManager::cancel_all(bool as_bomb)
     return 1;
 }
 
-int LaserManager::f_on_tick()
-{
+int LaserManager::f_on_tick() {
     // Temprorarily change game speed to 0 ????
 
     uint uVar4;
@@ -119,16 +114,14 @@ int LaserManager::f_on_tick()
     } while (true);
 }
 
-int LaserManager::f_on_draw()
-{
+int LaserManager::f_on_draw() {
     // if gamethread flag 0x4 is 0
     for (auto l = dummy_laser_for_list_tail.prev; l != nullptr; l = l->prev)
         l->on_draw();
     return 1;
 }
 
-int allocate_new_laser(int32_t type, void* init_arg)
-{
+int allocate_new_laser(int32_t type, void* init_arg) {
     Laser* newLaser;
     if (LASER_MANAGER_PTR->list_length > 511)
         return 0;

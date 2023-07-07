@@ -1,20 +1,17 @@
-#include "Enemy.h"
-#include "EclContext.h"
-#include "EclFileManager.h"
-#include "EnemyManager.h"
-#include "GlobalData.h"
-#include "ItemManager.h"
-#include "Player.h"
-#include "Spellcard.h"
-#include <math/Random.h>
-
-#include "AnmOpener/AnmManager.h"
-
+#include "./AnmOpener/AnmManager.h"
+#include "./Enemy.h"
+#include "./EclContext.h"
+#include "./EclFileManager.h"
+#include "./EnemyManager.h"
+#include "./GlobalData.h"
+#include "./ItemManager.h"
+#include "./Player.h"
+#include "./Spellcard.h"
 #include <DrawFuncs.h>
+#include <math/Random.h>
 #include <NSEngine.h>
 
-Enemy::Enemy()
-{
+Enemy::Enemy() {
     fileManager = EclFileManager::GetInstance();
     enemy.enemy = this;
     if (GLOBALS.inner.STAGE_NUM == 7)
@@ -24,27 +21,27 @@ Enemy::Enemy()
         enemy.anmIds[i] = 0;
 }
 
-Enemy::~Enemy()
-{
+Enemy::~Enemy() {
     /* Clear async list */
     clear_async_contexts();
     for (int i = 0; i < 16; i++)
         AnmManager::deleteVM(enemy.anmIds[i].val);
 }
 
-void Enemy::Init(std::string const& sub)
-{
+void Enemy::Init(std::string const& sub) {
     eclContextInit(&context.primaryContext, fileManager->getSubId(sub));
 }
 
-void EnemyDrop_t::eject_all_drops(glm::vec3 const& pos)
-{
+void EnemyDrop_t::eject_all_drops(glm::vec3 const& pos) {
     if (main_type != 0)
         ITEM_MANAGER_PTR->spawn_item(main_type, pos, -1.570796, 2.2, 0, -1);
     float a = Random::Floatm11() * 3.141593;
     for (int i = 0; i < 32; i++) {
         for (int j = 0; j < extra_counts[i]; j++) {
-            ITEM_MANAGER_PTR->spawn_item(i + 1, (Random::Float01() * 0.5f + 0.5f) * glm::vec3 { (cos(a) * area.x), sin(a) * area.y, 0 } + pos, -1.570796, 2.2, 0, -1);
+            ITEM_MANAGER_PTR->spawn_item(i + 1,
+                (Random::Float01() * 0.5f + 0.5f) * glm::vec3 {
+                    (cos(a) * area.x), sin(a) * area.y, 0
+                } + pos, -1.570796, 2.2, 0, -1);
             a += 1.570796 + Random::Floatm11() * 3.141593 * 0.25;
             math::angle_normalize(a);
         }
@@ -54,32 +51,37 @@ void EnemyDrop_t::eject_all_drops(glm::vec3 const& pos)
     return;
 }
 
-void Enemy::DebugDraw()
-{
+void Enemy::DebugDraw() {
     NSEngine::draw_set_layer(20);
-    NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x, -enemy.final_pos.pos.y, enemy.hurtbox_size.x, enemy.hurtbox_size.y, -enemy.rotation, { 255, 0, 255, 90 }, { 255, 0, 255, 90 }, { 255, 0, 255, 90 }, { 255, 0, 255, 90 });
+    NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x,
+        -enemy.final_pos.pos.y, enemy.hurtbox_size.x, enemy.hurtbox_size.y,
+        -enemy.rotation, { 255, 0, 255, 90 }, { 255, 0, 255, 90 },
+        { 255, 0, 255, 90 }, { 255, 0, 255, 90 });
 
     NSEngine::draw_set_layer(21);
     float wt = 64;
     float ht = 4;
     float y = -16;
-    NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x, -enemy.final_pos.pos.y + y, wt, ht, 0, { 0, 0, 0, 255 }, { 0, 0, 0, 255 }, { 0, 0, 0, 255 }, { 0, 0, 0, 255 });
-    float w = (enemy.life.current / (float)enemy.life.max) * wt;
+    NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x,
+        -enemy.final_pos.pos.y + y, wt, ht, 0, { 0, 0, 0, 255 },
+        { 0, 0, 0, 255 }, { 0, 0, 0, 255 }, { 0, 0, 0, 255 });
+    float w = (enemy.life.current / static_cast<float>(enemy.life.max)) * wt;
     float x = -(wt - w) / 2;
-    NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x + x, -enemy.final_pos.pos.y + y, w, ht, 0, { 255, 0, 0, 255 }, { 255, 0, 0, 255 }, { 255, 0, 0, 255 }, { 255, 0, 0, 255 });
+    NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x + x,
+        -enemy.final_pos.pos.y + y, w, ht, 0, { 255, 0, 0, 255 },
+        { 255, 0, 0, 255 }, { 255, 0, 0, 255 }, { 255, 0, 0, 255 });
     // if (0 && enemy.moveLimitSize.x > 0)
     //{
     // NSEngine::draw_set_layer(4);
     // NSEngine::draw_set_color({255,255,0,255});
     // NSEngine::draw_rectangle(enemy.moveLimitPos.x-enemy.moveLimitSize.x/2,
-    //-enemy.moveLimitPos.y+enemy.moveLimitSize.y/2,
+    // -enemy.moveLimitPos.y+enemy.moveLimitSize.y/2,
     // enemy.moveLimitPos.x+enemy.moveLimitSize.x/2,
-    //-enemy.moveLimitPos.y-enemy.moveLimitSize.y/2);
+    // -enemy.moveLimitPos.y-enemy.moveLimitSize.y/2);
     //}
 }
 
-void EnemyData::calc_final_pos()
-{
+void EnemyData::calc_final_pos() {
     final_pos.velocity = rel_pos.pos + abs_pos.pos - final_pos.pos;
     final_pos.update_position();
     // move limits
@@ -100,17 +102,18 @@ void EnemyData::calc_final_pos()
     }
 }
 
-int EnemyData::step_interpolators()
-{
+int EnemyData::step_interpolators() {
     prev_final_pos = final_pos;
-    if (abs_angle_i.end_time != 0 && (abs_pos.flags & 0xf) != 2 && (abs_pos.flags & 0xf) != 3) {
+    if (abs_angle_i.end_time != 0 &&
+        (abs_pos.flags & 0xf) != 2 && (abs_pos.flags & 0xf) != 3) {
         abs_pos.angle = abs_angle_i.step();
         math::angle_normalize(abs_pos.angle);
     }
     if (abs_speed_i.end_time != 0) {
         abs_pos.speed = abs_speed_i.step();
     }
-    if (rel_angle_i.end_time != 0 && (rel_pos.flags & 0xf) != 2 && (rel_pos.flags & 0xf) != 3) {
+    if (rel_angle_i.end_time != 0 &&
+        (rel_pos.flags & 0xf) != 2 && (rel_pos.flags & 0xf) != 3) {
         rel_pos.angle = rel_angle_i.step();
         math::angle_normalize(rel_pos.angle);
     }
@@ -140,7 +143,7 @@ int EnemyData::step_interpolators()
         rel_pos.velocity = out - rel_pos.pos;
     }
     abs_pos.update_position();
-    if ((flags & 0x4000000U) != 0) {
+    if (flags & 0x4000000) {
         // rel_pos.pos += SUPERVISOR.cameras[0].__vec3_104;
     }
     rel_pos.update_position();
@@ -175,7 +178,8 @@ int EnemyData::step_interpolators()
                 AnmManager::deleteVM(anmIds[0].val);
                 anmIds[0].val = 0;
             }
-            vm0 = AnmManager::getVM(AnmManager::SpawnVM(anm0anmID, anm0scr + scr));
+            vm0 = AnmManager::getVM(
+                AnmManager::SpawnVM(anm0anmID, anm0scr + scr));
             vm0->bitflags.randomMode = 1;
             if (anmLayers > -8) {
                 vm0->layer = anmLayers + 7;
@@ -197,36 +201,45 @@ int EnemyData::step_interpolators()
         auto s = vm0->getSprite();
         finalSpriteSize.x = fabs(s.w * vm0->scale.x);
         finalSpriteSize.y = fabs(s.h * vm0->scale.y);
-    } else
+    } else {
         anmIds[0].val = 0;
+    }
 
     // check offscreen
-    if ((final_pos.pos.x + finalSpriteSize.x * 0.5 < -192.0) || (final_pos.pos.x - finalSpriteSize.x * 0.5 > 192.0)) {
-        return (flags & 0x10004U) == 0x10000 ? -1 : 0;
+    if ((final_pos.pos.x + finalSpriteSize.x * 0.5 < -192.0) ||
+        (final_pos.pos.x - finalSpriteSize.x * 0.5 > 192.0)) {
+        return (flags & 0x10004) == 0x10000 ? -1 : 0;
     } else {
-        if ((final_pos.pos.y + finalSpriteSize.y * 0.5 >= 0.0) && (final_pos.pos.y - finalSpriteSize.y * 0.5 <= 448.0)) {
+        if ((final_pos.pos.y + finalSpriteSize.y * 0.5 >= 0.0) &&
+            (final_pos.pos.y - finalSpriteSize.y * 0.5 <= 448.0)) {
             flags |= 0x10000;
             return 0;
         }
-        if ((flags & 0x10000U) == 0) {
+        if ((flags & 0x10000) == 0) {
             return 0;
         }
-        return (flags & 8U) == 0 ? -1 : 0;
+        return (flags & 8) == 0 ? -1 : 0;
     }
 }
 
-int Enemy::die()
-{
-    // if (enemy.deathSnd >= 0) SoundManager::play_sound_at_position(enemy.deathSnd);
+int Enemy::die() {
+    // if (enemy.deathSnd >= 0)
+    //     SoundManager::play_sound_at_position(enemy.deathSnd);
 
-    float rot_z = math::point_direction(enemy.final_pos.pos.x, enemy.final_pos.pos.y, enemy.lastDmgPos.x, enemy.lastDmgPos.y);
+    float rot_z = math::point_direction(enemy.final_pos.pos.x,
+                                        enemy.final_pos.pos.y,
+                                        enemy.lastDmgPos.x,
+                                        enemy.lastDmgPos.y);
 
     // ENEMY_MANAGER_PTR->field78_0x190 = rot_z;
     if (enemy.deathScr >= 0) {
         // if (int e_m_id = EffectManager::get_next_index(); e_m_id != -1) {
-        // EFFECT_MANAGER_PTR->anm_ids[e_m_id].value = ENEMY_MANAGER_PTR->anms_in_anim_list[enemy.deathAnm]->create_4112b0(nullptr, enemy.deathScr, enemy.final_pos.pos, rot_z, 3, nullptr);
+        // EFFECT_MANAGER_PTR->anm_ids[e_m_id].value =
+        // ENEMY_MANAGER_PTR->anms_in_anim_list[enemy.deathAnm]->create_4112b0(
+        // nullptr, enemy.deathScr, enemy.final_pos.pos, rot_z, 3, nullptr);
         //}
-        auto vm = AnmManager::getVM(AnmManager::SpawnVM(enemy.deathAnm, enemy.deathScr));
+        auto vm = AnmManager::getVM(
+            AnmManager::SpawnVM(enemy.deathAnm, enemy.deathScr));
         if (vm)
             vm->rotation.z = rot_z;
         if (vm)
@@ -248,8 +261,7 @@ int Enemy::die()
     return 1;
 }
 
-void Enemy::clear_async_contexts()
-{
+void Enemy::clear_async_contexts() {
     while (asyncListHead) {
         delete asyncListHead->entry;
         auto c = asyncListHead->next;
@@ -258,8 +270,7 @@ void Enemy::clear_async_contexts()
     }
 }
 
-void Enemy::reset_ecl()
-{
+void Enemy::reset_ecl() {
     context.primaryContext.set_by_ins_18_19 &= 0xfffffffe;
     context.primaryContext.time = 0.0;
     context.primaryContext.currentLocation.offset = -1;
@@ -279,29 +290,28 @@ void Enemy::reset_ecl()
     context.primaryContext.stack.stackOffset = 0;
     context.primaryContext.stack.baseOffset = 0;
     asyncListHead = nullptr;
-    //__unused__prev_ptr_of_list_head = NULL;
-    //__unused__field_c_ptr_of_list_head = NULL;
+    // __unused__prev_ptr_of_list_head = NULL;
+    // __unused__field_c_ptr_of_list_head = NULL;
     return;
 }
 
-void Enemy::set_sub(std::string const& sub)
-{
+void Enemy::set_sub(std::string const& sub) {
     context.currentContext->currentLocation.sub_id = fileManager->getSubId(sub);
     context.currentContext->currentLocation.offset = 0;
     context.currentContext->time = 0.0;
 }
 
-int EnemyData::step_game_logic()
-{
+int EnemyData::step_game_logic() {
     // bomb shield logic
-    if ((flags & 0x10000000) == 0) {
+    if (!(flags & 0x10000000)) {
         if (/*(BOMB_PTR->active != 1) && */ (flags & 0x20000000)) {
             // anm_main = bombshield_off_anm_main;
             // anmIds[0] = sub_476910_creates_anm(bombshield_off_anm_main);
             flags &= 0xdffffffe;
         }
     } else {
-        if (false) { // BOMB_PTR->active == 1) {
+        // if (BOMB_PTR->active == 1) // below
+        if (false) {
             if (!((flags >> 0x1d) & 1)) {
                 // anm_main = bombshield_on_anm_main;
                 // anmIds[0] = sub_476910_creates_anm(bombshield_on_anm_main);
@@ -316,7 +326,10 @@ int EnemyData::step_game_logic()
 
     if (flags & 0x800) {
         uint ret;
-        int dam = applyDamage(final_pos.pos, (flags & 0x1000) ? &hurtbox_size : nullptr, (flags & 0x1000) ? 0.f : hurtbox_size.x * 0.5f, &ret, lastDmgPos, 1, enemy->enemyId, (flags & 0x1000) ? rotation : 0);
+        int dam = applyDamage(final_pos.pos, (flags & 0x1000) ?
+            &hurtbox_size : nullptr, (flags & 0x1000) ? 0.f :
+            hurtbox_size.x * 0.5f, &ret, lastDmgPos, 1,
+            enemy->enemyId, (flags & 0x1000) ? rotation : 0);
         if (dam && ret && enemy->die())
             return 1;
     }
@@ -324,8 +337,10 @@ int EnemyData::step_game_logic()
     for (int i = 0; i < 8; i++) {
         if (interrupts[i].life >= 0 && interrupts[i].time > 0) {
             if (flags & 0x800000) {
-                // GUI_PTR->remaining_spell_time_seconds = (interrupts[i].time - time_in_ecl) / 0x3c;
-                // GUI_PTR->remaining_spell_time_centiseconds = (((interrupts[i].time - time_in_ecl) % 0x3c) * 100) / 0x3c;
+                // GUI_PTR->remaining_spell_time_seconds =
+                //   (interrupts[i].time - time_in_ecl) / 0x3c;
+                // GUI_PTR->remaining_spell_time_centiseconds =
+                //   (((interrupts[i].time - time_in_ecl) % 0x3c) * 100) / 0x3c;
                 // if (GUI_PTR->remaining_spell_time_seconds > 99) {
                 //   GUI_PTR->remaining_spell_time_seconds = 99;
                 //   GUI_PTR->remaining_spell_time_centiseconds = 99;
@@ -360,7 +375,9 @@ int EnemyData::step_game_logic()
                     enemy->clear_async_contexts();
                     enemy->reset_ecl();
                     enemy->set_sub(interrupts[i].subTimeout);
-                    if (enemy->ecl_run(/*(float *)(&PTR_GAME_SPEED) [(int)(enemy->time_in_ecl).__game_speed__disused]*/))
+                    // param: (float *)(&PTR_GAME_SPEED)
+                    // [(int)(enemy->time_in_ecl).__game_speed__disused]
+                    if (enemy->ecl_run())
                         return -1;
                 }
             }
@@ -373,8 +390,12 @@ int EnemyData::step_game_logic()
         uint ret;
         int totalDamage = 0;
         if (0.0 < hurtbox_size.x) {
-            totalDamage = applyDamage(final_pos.pos, (flags & 0x1000) ? &hurtbox_size : nullptr, (flags & 0x1000) ? 0.f : hurtbox_size.x * 0.5f, &ret, lastDmgPos, 0, enemy->enemyId, (flags & 0x1000) ? rotation : 0);
-            totalDamage *= PLAYER_PTR->damage_multiplier__used_by_winter_in_th16;
+            totalDamage = applyDamage(final_pos.pos, (flags & 0x1000) ?
+                &hurtbox_size : nullptr, (flags & 0x1000) ? 0.f :
+                hurtbox_size.x * 0.5f, &ret, lastDmgPos, 0, enemy->enemyId,
+                (flags & 0x1000) ? rotation : 0);
+            totalDamage *= PLAYER_PTR
+                ->damage_multiplier__used_by_winter_in_th16;
         }
         if (func_from_ecl_flag_ext_dmg)
             totalDamage += func_from_ecl_flag_ext_dmg();
@@ -389,13 +410,18 @@ int EnemyData::step_game_logic()
         if (totalDamage > 0) {
             // if (!ret) ENEMY_MANAGER_PTR->field27_0xb0 += totalDamage;
             // else {
-            //     if (totalDamage < life.current) ENEMY_MANAGER_PTR->field26_0xac += totalDamage;
-            //     else ENEMY_MANAGER_PTR->field26_0xac += ((int)(((totalDamage - life.current) >> 0x1f & 3U) + (totalDamage - life.current)) >> 2) + totalDamage;
+            //     if (totalDamage < life.current)
+            //         ENEMY_MANAGER_PTR->field26_0xac += totalDamage;
+            //     else
+            //         ENEMY_MANAGER_PTR->field26_0xac += ((int)(((totalDamage -
+            //         life.current) >> 0x1f & 3U) + (totalDamage - life.current
+            //         )) >> 2) + totalDamage;
             // }
         }
 
         // if ((BOMB_PTR->active == 1) && bombDmgMul < 1.0) {
-        //     if ((totalDamage != 0) && (bombDmgMul <= 0.0)) SoundManager::play_sound_at_position(0x24);
+        //     if ((totalDamage != 0) && (bombDmgMul <= 0.0))
+        //         SoundManager::play_sound_at_position(0x24);
         //     totalDamage *= bombDmgMul;
         // }
 
@@ -411,10 +437,12 @@ int EnemyData::step_game_logic()
                     life.curx7 = life.current * 7;
                 } else {
                     life.curx7 -= totalDamage;
-                    life.current = (life.curx7 - life.nextAtk * 7) / 7 + life.nextAtk;
+                    life.current = (life.curx7 - life.nextAtk * 7) / 7
+                        + life.nextAtk;
                 }
-            } else
+            } else {
                 life.totalDmgIncIgn += totalDamage;
+            }
 
             timerCountDown = 30;
             life.curAtk = life.current;
@@ -424,8 +452,10 @@ int EnemyData::step_game_logic()
                     life.curAtk = life.current - interrupts[i].life;
                     life.nextAtk = interrupts[i].life;
                     if (life.current <= interrupts[i].life) {
-                        if (__bool_cleared_by_ecl_570 && own_chapter == GLOBALS.inner.CURRENT_CHAPTER) {
-                            // GLOBALS.inner.field32_0x80 += __bool_cleared_by_ecl_570;
+                        if (__bool_cleared_by_ecl_570 &&
+                            own_chapter == GLOBALS.inner.CURRENT_CHAPTER) {
+                            // GLOBALS.inner.field32_0x80 +=
+                            // __bool_cleared_by_ecl_570;
                             __bool_cleared_by_ecl_570 = 0;
                         }
                         life.current = interrupts[i].life;
@@ -436,7 +466,9 @@ int EnemyData::step_game_logic()
                             enemy->clear_async_contexts();
                             enemy->reset_ecl();
                             enemy->set_sub(interrupts[i].subNext);
-                            if (enemy->ecl_run(/**(float *)(&PTR_GAME_SPEED) [(int)(enemy->time_in_ecl).__game_speed__disused]*/))
+                            // param: (float *)(&PTR_GAME_SPEED)
+                            // [(int)(enemy->time_in_ecl).__game_speed__disused]
+                            if (enemy->ecl_run())
                                 return -1;
                         }
                     }
@@ -454,23 +486,31 @@ int EnemyData::step_game_logic()
 
     if (!(flags & 0x22) && noHbFrame <= 0 && !(flags & 0x4000000)) {
         if (!hitbox_func) {
-            int a = 0;
+            // int a = 0;
             if (!(flags & 0x1000)) {
-                // a = Bullet::try_kill_player(final_pos.pos, 0, hitbox_size.x * 0.5);
+                // a = Bullet::try_kill_player(final_pos.pos,
+                //      0, hitbox_size.x * 0.5);
             } else {
-                // if (auto vm = anm_find_existing_or_clear_id(&enemy->anmIds[0]); vm) {
-                // zStack_14.y = (hitbox_size.y * 0.5) * cos(vm->rotation.z + PI1_2);
-                // zStack_14.x = -(hitbox_size.y * 0.5) * sin(vm->rotation.z + PI1_2);
+                // if (auto vm =
+                //  anm_find_existing_or_clear_id(&enemy->anmIds[0]); vm) {
+                // zStack_14.y = (hitbox_size.y * 0.5) *
+                //  cos(vm->rotation.z + PI1_2);
+                // zStack_14.x = -(hitbox_size.y * 0.5) *
+                //  sin(vm->rotation.z + PI1_2);
                 //}
                 // pvVar10 = extraout_ECX;
                 // zStack_14.x += final_pos.pos.x;
                 // zStack_14.y += final_pos.pos.y;
                 // zStack_14.z  = final_pos.pos.z;
-                // a = enemy_collide_player_rectangle(pvVar10, &zStack_14, rotation, 0, hitbox_size.x, hitbox_size.y);
+                // a = enemy_collide_player_rectangle(pvVar10, &zStack_14,
+                //  rotation, 0, hitbox_size.x, hitbox_size.y);
             }
-            if (((flags & 0x200) && a == 2) && timeInEcl % 6 == 0) { } // Player::do_graze(&(PLAYER_PTR->inner).pos);
-        } else
+            // if (((flags & 0x200) && a == 2) &&
+            //     timeInEcl % 6 == 0)
+            //     Player::do_graze(&(PLAYER_PTR->inner).pos);
+        } else {
             hitbox_func();
+        }
     }
 
     if (timerCountDown > 0)
@@ -492,8 +532,9 @@ int EnemyData::step_game_logic()
         if (abs(timeInEcl) % 4 == 0) {
             vm0->color_2 = { 255, 0, 255, 255 };
             vm0->bitflags.colmode = 0b01;
-        } else
+        } else {
             vm0->bitflags.colmode = 0b00;
+        }
     }
 
     if (!(flags & 0x200000) || (flags & 0x2000)) {
@@ -508,8 +549,9 @@ int EnemyData::step_game_logic()
                 vm0->color_2 = { 0, 0, 255, 255 };
                 vm0->bitflags.colmode = 0b01;
             }
-        } else
+        } else {
             vm0->bitflags.colmode = 0b00;
+        }
         return 0;
     }
 
@@ -519,22 +561,26 @@ int EnemyData::step_game_logic()
 
     // hit sound
     if (hitSnd >= 0) {
-    } // SoundManager::play_sound_at_position(hitSnd);
-    else if ((flags & 0x408000000) /*&& (SPELLCARD_PTR->flags & 9) != 9*/) {
+        // SoundManager::play_sound_at_position(hitSnd);
+    } else if ((flags & 0x408000000) /*&& (SPELLCARD_PTR->flags & 9) != 9*/) {
         // if (!(SPELLCARD_PTR->flags & 1)) {
-        if (life.curAtk < 900) { } // SoundManager::play_sound_at_position(0x23);
-        //}
-        // else if (life.curAtk < 200) {}//SoundManager::play_sound_at_position(0x23);
+        if (life.curAtk < 900) {
+            // SoundManager::play_sound_at_position(0x23);
+        }
+        // } else if (life.curAtk < 200) {
+        //     SoundManager::play_sound_at_position(0x23);
+        // }
     } else {
-    } // SoundManager::play_sound_at_position(0x22);
+        // SoundManager::play_sound_at_position(0x22);
+    }
 
     return 0;
 }
 
-void EnemyData::related_to_fog() // TODO
-{
+void EnemyData::related_to_fog() {
     // if (fog.fog_ptr) {
-    //     if (fog.__fog_field_c__init_16f < fog.fog_radius) fog.__fog_field_c__init_16f += GAME_SPEED * 2.0;
+    //     if (fog.__fog_field_c__init_16f < fog.fog_radius)
+    //         fog.__fog_field_c__init_16f += GAME_SPEED * 2.0;
     //     FUN_0041bb80(fog.fog_ptr,2*fog.__fog_field_c__init_16f + 40.0);
     //     pfVar7 = (float *)fog.fog_ptr->field8_0x14;
     //     if (fog.fog_ptr->field0_0x0 > 0) {
@@ -543,22 +589,33 @@ void EnemyData::related_to_fog() // TODO
     //         pfVar8 = (float *)(fog.fog_ptr->time).current_f;
     //         for (int i = 0; i < fog.fog_ptr->field0_0x0; i++) {
     //             for (int j = 0; j < fog.fog_ptr->field_0x4; j++) {
-    //               local_18 = pfVar8[0] - final_pos.pos.x - DAT_00524710 * 0.5;
+    //               local_18 = pfVar8[0] - final_pos.pos.x - DAT_00524710
+    //                  * 0.5;
     //               local_14 = pfVar8[1] - final_pos.pos.y - SURF_ORIGIN_ECL_Y;
-    //               fVar11 = pow(fog.__fog_field_c__init_16f, 2) - (local_14 * local_14 + local_18 * local_18);
+    //               fVar11 = pow(fog.__fog_field_c__init_16f, 2) - (local_14 *
+    //                  local_14 + local_18 * local_18);
     //               if (fVar11 < 0.0) {
     //                   *(undefined *)((int)pfVar7 + 0x13) = 0;
     //               }
     //               else {
-    //                   local_44 = fVar11 / pow(fog.__fog_field_c__init_16f, 2);
+    //                   local_44 = fVar11 / pow(fog.__fog_field_c__init_16f,
+    //                      2);
     //                   pfVar7[4] = fog.fog_color;
     //                   *(undefined *)((int)pfVar7 + 0x13) = 0xff;
-    //                   *(char *)((int)pfVar7 + 0x12) = (char)(int)(255.0 - (float)(0xff - ((uint)fog.fog_color >> 0x10 & 0xff)) * local_44);
-    //                   *(char *)((int)pfVar7 + 0x11) = (char)(int)(255.0 - (float)(0xff - (uint)*(byte *)((int)pfVar7 + 0x11)) * local_44);
-    //                   *(char *)((int)pfVar7 + 0x04) = (char)(int)(255.0 - (float)(0xff - (uint)*(byte *)(pfVar7 + 4)) * local_44);
+    //                   *(char *)((int)pfVar7 + 0x12) = (char)(int)(255.0 -
+    //                   (float)(0xff - ((uint)fog.fog_color >> 0x10 & 0xff))
+    //                   * local_44);
+    //                   *(char *)((int)pfVar7 + 0x11) = (char)(int)(255.0 -
+    //                   (float)(0xff - (uint)*(byte *)((int)pfVar7 + 0x11))
+    //                   * local_44);
+    //                   *(char *)((int)pfVar7 + 0x04) = (char)(int)(255.0
+    //                   - (float)(0xff - (uint)*(byte *)(pfVar7 + 4)) *
+    //                   local_44);
     //                   D3DXVec3Normalize(&local_18,&local_18);
-    //                   local_18 = local_44 * 32.0 * local_18 + sin(local_50) * local_44 * 8.0;
-    //                   local_14 = local_44 * 32.0 * local_14 + sin(local_4c) * local_44 * 8.0;
+    //                   local_18 = local_44 * 32.0 * local_18 + sin(local_50)
+    //                   * local_44 * 8.0;
+    //                   local_14 = local_44 * 32.0 * local_14 + sin(local_4c)
+    //                   * local_44 * 8.0;
     //                   pfVar7[0] += local_18;
     //                   pfVar7[1] += local_14;
     //                   pfVar7[2] = 0.0;
@@ -606,8 +663,7 @@ void EnemyData::related_to_fog() // TODO
     // }
 }
 
-int Enemy::ecl_run(float speed)
-{
+int Enemy::ecl_run(float speed) {
     // IDK
     // int run_ret = 1;
     // next_node = (zLinkedList<zEclRunContext> *)&(enemy->ecl).enemy;
@@ -625,8 +681,10 @@ int Enemy::ecl_run(float speed)
     //    int context_ended = ecl_run(cur_context, speed);
     //    if (context_ended != 0) {
     //      delete context.currentContext;
-    //      if (current_node->next) current_node->next->prev = current_node->prev;
-    //      if (current_node->prev) current_node->prev->next = current_node->next;
+    //      if (current_node->next)
+    //          current_node->next->prev = current_node->prev;
+    //      if (current_node->prev)
+    //          current_node->prev->next = current_node->next;
     //      current_node->next = NULL;
     //      current_node->prev = NULL;
     //      delete current_node;
@@ -659,43 +717,50 @@ int Enemy::ecl_run(float speed)
         }
         node = next;
     }
-    return 0; // context.primaryContext.currentLocation.sub_id < 0;
+    // context.primaryContext.currentLocation.sub_id < 0;
+    return 0;
 }
 
-int EnemyData::update()
-{
+int EnemyData::update() {
     if (!(flags & 0x40000)) {
         flags |= 0x40000;
 
-        if (step_interpolators() || enemy->ecl_run(/*(float *)(&PTR_GAME_SPEED) [(int)(enemy->time_in_ecl).__game_speed__disused]*/) || (func_from_ecl_func_set && func_from_ecl_func_set()) || step_game_logic()) {
+        // param: (float *)(&PTR_GAME_SPEED)
+        // [(int)(enemy->time_in_ecl).__game_speed__disused]
+        if (step_interpolators() || enemy->ecl_run() ||
+            (func_from_ecl_func_set && func_from_ecl_func_set()) ||
+            step_game_logic()) {
             enemy->Die();
             return -1;
         }
 
         related_to_fog();
 
-        if (!(flags & 0x4000000)) {
+        if (flags & 0x4000000) {
+            for (size_t i = 0; i < 14; i++) {
+                if (auto vm = AnmManager::getVM(anmIds[i]); vm)
+                    vm->entity_pos = final_pos.pos;
+            }
+        } else {
             for (size_t i = 0; i < 14; i++) {
                 if (auto vm = AnmManager::getVM(anmIds[i]); vm) {
                     glm::vec3 p = anmPos[i] + final_pos.pos;
                     if (anmRelated[i] >= 0) {
-                        if (auto vm2 = AnmManager::getVM(anmIds[anmRelated[i]]); vm2)
+                        if (auto vm2 = AnmManager::getVM(
+                            anmIds[anmRelated[i]]); vm2)
                             p += vm2->pos;
                         else
                             anmIds[anmRelated[i]] = 0;
                     }
                     vm->entity_pos = p;
                     if (vm->bitflags.autoRotate) {
-                        vm->rotation.z = rotation = math::point_direction(0, 0, final_pos.velocity.x, final_pos.velocity.y);
+                        vm->rotation.z = rotation = math::point_direction(
+                            0, 0, final_pos.velocity.x, final_pos.velocity.y);
                         vm->bitflags.rotated = true;
                     }
-                } else
+                } else {
                     anmIds[i] = 0;
-            }
-        } else {
-            for (size_t i = 0; i < 14; i++) {
-                if (auto vm = AnmManager::getVM(anmIds[i]); vm)
-                    vm->entity_pos = final_pos.pos;
+                }
             }
         }
 
@@ -709,8 +774,7 @@ int EnemyData::update()
     return 0;
 }
 
-int Enemy::update()
-{
+int Enemy::update() {
     if (enemy.slowdown > 0) {
         float saved_game_speed = GAME_SPEED;
 
@@ -719,8 +783,9 @@ int Enemy::update()
                 GAME_SPEED = GAME_SPEED - enemy.slowdown * GAME_SPEED;
             else
                 GAME_SPEED = 1.f;
-        } else
+        } else {
             GAME_SPEED = 0.f;
+        }
 
         for (size_t i = 0; i < 16; i++) {
             if (auto vm = AnmManager::getVM(enemy.anmIds[i]); vm)
@@ -745,15 +810,15 @@ int Enemy::update()
     return enemy.update();
 }
 
-void Enemy::Tick()
-{
+void Enemy::Tick() {
     if (context.primaryContext.currentLocation.sub_id == -1)
         return;
 
     /* Update all contexts */
     context.currentContext = &context.primaryContext;
     updateContext(&context.primaryContext);
-    for (EclRunContextList_t* node = asyncListHead; node != nullptr; node = node->next) {
+    for (EclRunContextList_t* node = asyncListHead;
+         node != nullptr; node = node->next) {
         context.currentContext = node->entry;
         updateContext(node->entry);
     }
@@ -771,8 +836,9 @@ void Enemy::Tick()
             node = node->next;
             delete nodeS->entry;
             delete nodeS;
-        } else
+        } else {
             node = node->next;
+        }
     }
 
     int r = enemy.step_interpolators();
@@ -822,7 +888,8 @@ void Enemy::Tick()
                 delete n;
             }
             // reset context
-            eclContextInit(&context.primaryContext, fileManager->getSubId(interrupt));
+            eclContextInit(&context.primaryContext,
+                           fileManager->getSubId(interrupt));
         }
     }
 
@@ -831,7 +898,8 @@ void Enemy::Tick()
     //    float y = enemy.final_pos.pos.y;
     //    if (enemy.timeAlive > 120 && (abs(x) > 234 || y < -64 || y > 486))
     //    {
-    //        for (int i = 0; i < 4; i++) if (EnemyManager::GetInstance()->data.boss_ids[i] == enemyId) return;
+    //        for (int i = 0; i < 4; i++) if (EnemyManager::GetInstance()->
+    //          data.boss_ids[i] == enemyId) return;
     //        Die();
     //    }
     if (enemy.life.current <= 0 && (enemy.flags & 0b1011000) == 0) {
@@ -846,17 +914,18 @@ void Enemy::Tick()
     }
 }
 
-int Enemy::updateContext(EclRunContext_t* cont, float speed)
-{
+int Enemy::updateContext(EclRunContext_t* cont, float speed) {
     if (cont->currentLocation.sub_id < 0)
         return -1;
 
-    const char* off = fileManager->getSubStartPtr(cont->currentLocation.sub_id) + cont->currentLocation.offset;
+    const char* off = fileManager->getSubStartPtr(cont->currentLocation.sub_id)
+        + cont->currentLocation.offset;
     const EclRawInstr_t* instr = reinterpret_cast<const EclRawInstr_t*>(off);
     while (cont->currentLocation.sub_id != -1 && instr->time <= cont->time) {
         if (execInstr(cont, instr) == -1)
             return -1;
-        off = fileManager->getSubStartPtr(cont->currentLocation.sub_id) + cont->currentLocation.offset;
+        off = fileManager->getSubStartPtr(cont->currentLocation.sub_id) +
+            cont->currentLocation.offset;
         instr = reinterpret_cast<const EclRawInstr_t*>(off);
     }
 
@@ -870,9 +939,8 @@ int Enemy::updateContext(EclRunContext_t* cont, float speed)
     return 0;
 }
 
-// TODO: this is not the correct way to kill an enemy
-void Enemy::Die()
-{
+// TODO(ClementChambard): this is not the correct way to kill an enemy
+void Enemy::Die() {
     context.primaryContext.currentLocation.sub_id = -1;
     context.primaryContext.currentLocation.offset = -1;
     for (int i = 0; i < 16; i++) {

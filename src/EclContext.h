@@ -1,7 +1,7 @@
 #ifndef ECLCONTEXT_H_
 #define ECLCONTEXT_H_
 
-#include "Interp.h"
+#include "./Interp.h"
 #include <array>
 #include <iostream>
 
@@ -18,19 +18,13 @@ struct EclStackItem_t {
     int32_t asInt = 0;
     EclStackItem_t(int32_t i)
         : asFloat(i)
-        , asInt(i)
-    {
-    }
+        , asInt(i) {}
     EclStackItem_t(float f)
         : asFloat(f)
-        , asInt(f)
-    {
-    }
+        , asInt(f) {}
     EclStackItem_t()
         : asFloat(0)
-        , asInt(0)
-    {
-    }
+        , asInt(0) {}
 };
 
 struct EclStack_t {

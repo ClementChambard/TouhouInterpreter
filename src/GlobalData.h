@@ -28,7 +28,7 @@ struct GlobalsInner_t {
 };
 
 class Globals {
-    public:
+public:
     static Globals* get() { static Globals* inst = new Globals(); return inst; }
         int timeout = 0;
         int DS1 = 0;

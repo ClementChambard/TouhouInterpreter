@@ -1,6 +1,6 @@
-#include "BulletManager.h"
-#include "EnemyManager.h"
-#include "Laser/LaserManager.h"
+#include "./BulletManager.h"
+#include "./EnemyManager.h"
+#include "./Laser/LaserManager.h"
 #include "./AnmViewer.hpp"
 #include <Engine.hpp>
 
@@ -8,15 +8,12 @@
 #define WINDOW_HEIGHT (448 * 2 /*1080*/)
 
 class App : public NSEngine::IEngine {
-
 public:
     App(int argc, char** argv)
         : IEngine(WINDOW_WIDTH, WINDOW_HEIGHT, "ecl viewer")
         , m_argc(argc)
-        , m_argv(argv)
-    {
-    }
-    ~App() override { }
+        , m_argv(argv) {}
+    ~App() override {}
 
     void on_create() override;
     void on_update() override;

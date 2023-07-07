@@ -1,7 +1,6 @@
-#include "LaserBeam.h"
+#include "./LaserBeam.h"
 
-LaserBeam::LaserBeam()
-{
+LaserBeam::LaserBeam() {
     vm.sprite_id = -1;
     vm.instr_offset = -1;
 }

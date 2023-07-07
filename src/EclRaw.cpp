@@ -1,9 +1,7 @@
-#include "EclRaw.h"
-
+#include "./EclRaw.h"
 #include <fstream>
 
-EclRaw_t* ecl_open(std::string filename)
-{
+EclRaw_t* ecl_open(std::string filename) {
     std::ifstream file(filename, std::ios::binary);
     if (file.fail()) {
         std::cerr << "Invalid file name: " << filename << '\n';
@@ -18,7 +16,7 @@ EclRaw_t* ecl_open(std::string filename)
     file.close();
 
     /* Input. */
-    long file_size;
+    int64_t file_size;
     unsigned char* map;
 
     /* Temporary. */
@@ -27,7 +25,7 @@ EclRaw_t* ecl_open(std::string filename)
 
     /* Output data. */
 
-    file_size = (long)fileSize;
+    file_size = fileSize;
     if (file_size == -1) {
         delete[] buf;
         return NULL;
@@ -41,16 +39,19 @@ EclRaw_t* ecl_open(std::string filename)
 
     ecl->header = reinterpret_cast<EclRawHeader_t*>(map);
     std::string magic = std::string(ecl->header->magic);
-    if (magic[0] != 'S' || magic[1] != 'C' || magic[2] != 'P' || magic[3] != 'T') {
+    if (magic[0] != 'S' || magic[1] != 'C' ||
+        magic[2] != 'P' || magic[3] != 'T') {
         delete[] map;
         delete ecl;
         std::cerr << "thecl:" << filename << ": SCPT signature missing\n";
         return NULL;
     }
 
-    const EclRawIncList_t* anim_list = reinterpret_cast<EclRawIncList_t*>(map + ecl->header->include_offset);
+    const EclRawIncList_t* anim_list =
+        reinterpret_cast<EclRawIncList_t*>(map + ecl->header->include_offset);
     magic = std::string(anim_list->magic);
-    if (magic[0] != 'A' || magic[1] != 'N' || magic[2] != 'I' || magic[3] != 'M') {
+    if (magic[0] != 'A' || magic[1] != 'N' ||
+        magic[2] != 'I' || magic[3] != 'M') {
         delete[] map;
         delete ecl;
         std::cerr << "thecl:" << filename << ": ANIM signature missing\n";
@@ -65,9 +66,11 @@ EclRaw_t* ecl_open(std::string filename)
 
     while (reinterpret_cast<ptrdiff_t>(string_data) % 4)
         ++string_data;
-    const EclRawIncList_t* ecli_list = reinterpret_cast<const EclRawIncList_t*>(string_data);
+    const EclRawIncList_t* ecli_list =
+        reinterpret_cast<const EclRawIncList_t*>(string_data);
     magic = std::string(ecli_list->magic);
-    if (magic[0] != 'E' || magic[1] != 'C' || magic[2] != 'L' || magic[3] != 'I') {
+    if (magic[0] != 'E' || magic[1] != 'C' ||
+        magic[2] != 'L' || magic[3] != 'I') {
         std::cerr << "thecl:" << filename << ": ECLI signature missing\n";
         return NULL;
     }
@@ -80,37 +83,42 @@ EclRaw_t* ecl_open(std::string filename)
 
     while (reinterpret_cast<ptrdiff_t>(string_data) % 4)
         ++string_data;
-    const uint32_t* sub_offsets = reinterpret_cast<const uint32_t*>(string_data + ((4 - reinterpret_cast<ptrdiff_t>(string_data)) % 4));
+    const uint32_t* sub_offsets = reinterpret_cast<const uint32_t*>(
+        string_data + ((4 - reinterpret_cast<ptrdiff_t>(string_data)) % 4));
 
-    string_data = reinterpret_cast<const char*>(sub_offsets + ecl->header->sub_count);
+    string_data =
+        reinterpret_cast<const char*>(sub_offsets + ecl->header->sub_count);
 
     for (i = 0; i < ecl->header->sub_count; ++i) {
 
         std::string name = std::string(string_data);
         string_data += name.length() + 1;
 
-        const EclRawSub_t* raw_sub = reinterpret_cast<const EclRawSub_t*>(map + sub_offsets[i]);
+        const EclRawSub_t* raw_sub =
+            reinterpret_cast<const EclRawSub_t*>(map + sub_offsets[i]);
 
         ecl->subs.push_back(EclSubPtr_t { name, raw_sub, {} });
 
         magic = std::string(raw_sub->magic);
-        if (magic[0] != 'E' || magic[1] != 'C' || magic[2] != 'L' || magic[3] != 'H') {
+        if (magic[0] != 'E' || magic[1] != 'C' ||
+            magic[2] != 'L' || magic[3] != 'H') {
             std::cerr << "thecl:" << filename << ": ECLH signature missing\n";
             return NULL;
         }
 
         const EclRawInstr_t* instr;
         for (instr = reinterpret_cast<const EclRawInstr_t*>(raw_sub->data);
-             reinterpret_cast<const unsigned char*>(instr) != map + file_size && reinterpret_cast<const unsigned char*>(instr) != map + sub_offsets[i + 1];
-             instr = reinterpret_cast<const EclRawInstr_t*>(reinterpret_cast<const unsigned char*>(instr) + instr->size))
+             reinterpret_cast<const unsigned char*>(instr) != map + file_size &&
+             reinterpret_cast<const unsigned char*>(instr) != map +
+             sub_offsets[i + 1]; instr = reinterpret_cast<const EclRawInstr_t*>(
+                reinterpret_cast<const unsigned char*>(instr) + instr->size))
             ecl->subs.back().instrs.push_back(instr);
     }
 
     return ecl;
 }
 
-void ecl_close(EclRaw_t* ecl)
-{
+void ecl_close(EclRaw_t* ecl) {
     delete[] reinterpret_cast<const char*>(ecl->header);
     delete ecl;
 }

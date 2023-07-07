@@ -1,17 +1,15 @@
-#include "EnemyManager.h"
-#include "Player.h"
+#include "./EnemyManager.h"
+#include "./GlobalData.h"
+#include "./Player.h"
 #include <NSlist.h>
-
-#include "GlobalData.h"
-
+#include <InputManager.h>
 #include <sstream>
 
 EnemyManager* ENEMY_MANAGER_PTR = nullptr;
 
 bool dospawn = true;
 
-void EnemyManager::Start(std::string const& eclFile, std::string const& sub)
-{
+void EnemyManager::Start(std::string const& eclFile, std::string const& sub) {
     if (eclFile.size() > 3 && eclFile[3] >= '0' && eclFile[3] < '8')
         GLOBALS.inner.STAGE_NUM = eclFile[3] - '0';
 
@@ -22,15 +20,16 @@ void EnemyManager::Start(std::string const& eclFile, std::string const& sub)
     ENEMY_MANAGER_PTR = this;
 }
 
-Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life, int score, int item)
-{
+Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
+                                int score, int item) {
     if (!dospawn)
         sub = "";
     if (enemyCount >= data.enemy_limit) {
         std::cout << "Can't spawn " << sub << ": Too much enemies.\n";
         return nullptr;
     }
-    auto e = ListUtil::listInsertAfter(active_enemy_list_head, new Enemy())->value;
+    auto e = ListUtil::listInsertAfter(active_enemy_list_head,
+                                       new Enemy())->value;
     e->Init(sub);
     e->enemy.abs_pos.pos = { x, y, 0 };
     e->enemy.scoreReward = score;
@@ -75,12 +74,12 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life, int
     data.last_enemy_id = data.next_enemy_id;
     data.next_enemy_id++;
     enemyCount++;
-    std::cout << "Spawning " << sub << " at (" << x << ',' << y << ") ID=" << e->enemyId << " -> total: " << enemyCount << "\n";
+    std::cout << "Spawning " << sub << " at (" << x << ',' << y
+              << ") ID=" << e->enemyId << " -> total: " << enemyCount << "\n";
     return e;
 }
 
-EnemyManager::EnemyManager()
-{
+EnemyManager::EnemyManager() {
     fileManager = EclFileManager::GetInstance();
     active_enemy_list_head = new EnemyList_t();
     active_enemy_list_tail = new EnemyList_t();
@@ -93,8 +92,7 @@ EnemyManager::EnemyManager()
     UPDATE_FUNC_REGISTRY->register_on_draw(f_on_draw, 23);
 }
 
-EnemyManager::~EnemyManager()
-{
+EnemyManager::~EnemyManager() {
     fileManager->CloseEcl();
     delete fileManager;
     auto n = active_enemy_list_head;
@@ -108,12 +106,13 @@ EnemyManager::~EnemyManager()
     UPDATE_FUNC_REGISTRY->unregister(f_on_tick);
     UPDATE_FUNC_REGISTRY->unregister(f_on_draw);
 }
-int EnemyManager::closest_enemy_id(glm::vec2 pos)
-{
+int EnemyManager::closest_enemy_id(glm::vec2 pos) {
     int closest = 0;
     float dist = 999999999.f;
-    for (EnemyList_t* node = active_enemy_list_head->next; node != active_enemy_list_tail; node = node->next) {
-        float d = math::point_distance_sq(node->value->enemy.final_pos.pos.x, node->value->enemy.final_pos.pos.y, pos.x, pos.y);
+    for (EnemyList_t* node = active_enemy_list_head->next;
+         node != active_enemy_list_tail; node = node->next) {
+        float d = math::point_distance_sq(node->value->enemy.final_pos.pos.x,
+            node->value->enemy.final_pos.pos.y, pos.x, pos.y);
         if (d < dist) {
             dist = d;
             closest = node->value->enemyId;
@@ -122,16 +121,20 @@ int EnemyManager::closest_enemy_id(glm::vec2 pos)
     return closest;
 }
 
-int EnemyManager::on_tick()
-{
+int EnemyManager::on_tick() {
     // Update();
-    // if ((((GAME_THREAD_PTR != NULL) && (game_thread_flags = GAME_THREAD_PTR->flags, ((game_thread_flags >> 2 | game_thread_flags) & 1) == 0)) && ((game_thread_flags & 0x400) == 0)) && ((game_thread_flags & 2) == 0)) {
+    // if ((((GAME_THREAD_PTR != NULL) &&
+    //       (game_thread_flags = GAME_THREAD_PTR->flags,
+    //        ((game_thread_flags >> 2 | game_thread_flags) & 1) == 0)) &&
+    //      ((game_thread_flags & 0x400) == 0)) &&
+    //     ((game_thread_flags & 2) == 0)) {
     data.field_0xac = 0;
     data.field_0xb0 = 0;
     auto current_node = active_enemy_list_head->next;
     while (current_node->value) {
         auto next_node = current_node->next;
-        if (!(current_node->value->enemy.flags & 0x2000000) && !current_node->value->update()) {
+        if (!(current_node->value->enemy.flags & 0x2000000) &&
+            !current_node->value->update()) {
             current_node->value->enemy.flags &= 0xfffffffffffbffff;
             current_node = next_node;
         } else {
@@ -156,18 +159,17 @@ int EnemyManager::on_tick()
     return 1;
 }
 
-int EnemyManager::on_draw()
-{
+int EnemyManager::on_draw() {
     if (NSEngine::getInstance()->flags().flags.debugInfo)
         on_draw_debug();
     return 1;
 }
 
-#include <InputManager.h>
-void EnemyManager::Update()
-{
-    for (EnemyList_t* node = active_enemy_list_head->next; node != active_enemy_list_tail; node = node->next) {
-        if (!node->value || node->value->context.primaryContext.currentLocation.sub_id == -1) {
+void EnemyManager::Update() {
+    for (EnemyList_t* node = active_enemy_list_head->next;
+         node != active_enemy_list_tail; node = node->next) {
+        if (!node->value ||
+            node->value->context.primaryContext.currentLocation.sub_id == -1) {
             node->previous->next = node->next;
             node->next->previous = node->previous;
             EnemyList_t* n = node;
@@ -182,31 +184,35 @@ void EnemyManager::Update()
         node->value->enemy.flags &= ~0x40000;
         node->value->update();
     }
-    if (Inputs::Keyboard().Pressed(NSK_k))
-        for (EnemyList_t* node = active_enemy_list_head->next; node != active_enemy_list_tail; node = node->next) {
+    if (Inputs::Keyboard().Pressed(NSK_k)) {
+        for (EnemyList_t* node = active_enemy_list_head->next;
+             node != active_enemy_list_tail; node = node->next) {
             if (node->value)
                 node->value->getData()->life.current = 0;
         }
+    }
     data.time_in_stage++;
     if (data.boss_ids[0] > 0) {
-        for (EnemyList_t* node = active_enemy_list_head->next; node != active_enemy_list_tail; node = node->next)
+        for (EnemyList_t* node = active_enemy_list_head->next;
+             node != active_enemy_list_tail; node = node->next)
             if (node->value && node->value->enemyId == data.boss_ids[0])
                 return;
         data.boss_ids[0] = -1;
     }
 }
 
-void EnemyManager::EnmKillAll(const Enemy* caller, bool byDialog)
-{
-    for (auto n = active_enemy_list_head->next; n != active_enemy_list_tail; n = n->next) {
+void EnemyManager::EnmKillAll(const Enemy* caller, bool byDialog) {
+    for (auto n = active_enemy_list_head->next;
+         n != active_enemy_list_tail; n = n->next) {
         auto e = n->value;
         if (e && e != caller) {
             auto f = e->enemy.flags;
             if (f & 256) {
                 e->die();
                 e->Die();
-            } else if (f & 32 || f & 128)
+            } else if (f & 32 || f & 128) {
                 continue;
+            }
             if (f & 1024 && !byDialog)
                 continue;
             e->die();
@@ -215,9 +221,9 @@ void EnemyManager::EnmKillAll(const Enemy* caller, bool byDialog)
     }
 }
 
-void EnemyManager::on_draw_debug()
-{
-    for (auto n = active_enemy_list_head->next; n != active_enemy_list_tail; n = n->next) {
+void EnemyManager::on_draw_debug() {
+    for (auto n = active_enemy_list_head->next;
+         n != active_enemy_list_tail; n = n->next) {
         auto e = n->value;
         if (e)
             e->DebugDraw();

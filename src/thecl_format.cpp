@@ -449,8 +449,8 @@ static const std::pair<int, std::string> th13_fmts[] = {
     { 334, "S" },
     { 335, "Sff" },
     { 336, "SS" },
-    //{ 337, "SSfff" }, // Pre th16
-    { 337, "SS" }, // Post th16
+    // { 337, "SSfff" }, // Pre th16
+    { 337, "SS" },  // Post th16
     { 338, "SSfff" },
     { 339, "SSS" },
     { 340, "S" },
@@ -641,7 +641,7 @@ static const std::pair<int, std::string> th13_fmts[] = {
     { 901, "" },
     { 902, "" },
     { 904, "f" },
-    { 1000, "S" },  //Special per game
+    { 1000, "S" },  // Special per game
     { 1001, "S" },
     { 1002, "S" },
     { 1003, "S" },
@@ -659,10 +659,8 @@ static const std::pair<int, std::string> th13_fmts[] = {
     { -1, "NOFORMAT" }
 };
 
-std::string find_format(const std::pair<int, std::string>* fmts, int id)
-{
-    while (fmts->first != -1)
-    {
+std::string find_format(const std::pair<int, std::string>* fmts, int id) {
+    while (fmts->first != -1) {
         if (fmts->first == id) return fmts->second;
         fmts++;
     }
@@ -670,8 +668,8 @@ std::string find_format(const std::pair<int, std::string>* fmts, int id)
 }
 
 
-const std::string thecl_find_format(unsigned int version, unsigned int id, bool is_timeline)
-{
+const std::string thecl_find_format(unsigned int version, unsigned int id,
+                                    bool is_timeline) {
     if (is_timeline) return "NOTFOUND";
 
     std::string ret = "NOTFOUND";
@@ -686,16 +684,21 @@ const std::string thecl_find_format(unsigned int version, unsigned int id, bool 
     case 143:
     case 14:
     case 13:
-        if ((ret = find_format(th13_fmts   , id)) != "NOTFOUND") break; /* fallthrough */
+        if ((ret = find_format(th13_fmts   , id)) != "NOTFOUND") break;
+        [[fallthrough]];
     case 128:
     case 125:
-        if ((ret = find_format(th125_fmts  , id)) != "NOTFOUND") break; /* fallthrough */
+        if ((ret = find_format(th125_fmts  , id)) != "NOTFOUND") break;
+        [[fallthrough]];
     case 12:
-        if ((ret = find_format(th12_fmts   , id)) != "NOTFOUND") break; /* fallthrough */
+        if ((ret = find_format(th12_fmts   , id)) != "NOTFOUND") break;
+        [[fallthrough]];
     case 11:
-        if ((ret = find_format(th11_fmts   , id)) != "NOTFOUND") break; /* fallthrough */
+        if ((ret = find_format(th11_fmts   , id)) != "NOTFOUND") break;
+        [[fallthrough]];
     case 103:
-        if ((ret = find_format(alcostg_fmts, id)) != "NOTFOUND") break; /* fallthrough */
+        if ((ret = find_format(alcostg_fmts, id)) != "NOTFOUND") break;
+        [[fallthrough]];
     case 10:
         ret = find_format(th10_fmts, id);
         break;
@@ -705,7 +708,8 @@ const std::string thecl_find_format(unsigned int version, unsigned int id, bool 
     }
 
     if (ret == "NOTFOUND")
-        std::cerr << "thecl: id " << id << " was not found in the format table\n";
+        std::cerr << "thecl: id " << id <<
+            " was not found in the format table\n";
 
     return ret;
 }

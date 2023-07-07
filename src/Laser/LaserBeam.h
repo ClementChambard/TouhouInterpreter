@@ -2,7 +2,7 @@
 #define LASERBEAM_H_
 
 #include "../AnmOpener/AnmVM.h"
-#include "Laser.h"
+#include "./Laser.h"
 
 struct LaserBeamInner_t {
     glm::vec3 startPos {};
@@ -20,7 +20,6 @@ struct LaserBeamInner_t {
 };
 
 class LaserBeam : public Laser {
-
 public:
     LaserBeam();
     ~LaserBeam() { }

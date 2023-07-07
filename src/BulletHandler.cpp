@@ -1,8 +1,7 @@
-#include "BulletHandler.h"
+#include "./BulletHandler.h"
 #include <cstring>
 
-void BM_reset(EnemyBulletShooter_t* bm)
-{
+void BM_reset(EnemyBulletShooter_t* bm) {
     bm->type = 0;
     bm->__color = 0;
     bm->__vec3_8 = {};
@@ -44,8 +43,7 @@ void BM_reset(EnemyBulletShooter_t* bm)
     }
 }
 
-EtEx_t& EtEx_t::operator=(EtEx_t const& other)
-{
+EtEx_t& EtEx_t::operator=(EtEx_t const& other) {
     r = other.r;
     s = other.s;
     m = other.m;

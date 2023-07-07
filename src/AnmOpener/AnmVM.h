@@ -159,7 +159,7 @@ public:
   glm::vec3 last_rendered_quad_in_surface_space[4];
   int32_t mode_of_create_child = -1;
   NSEngine::Color color_1 = {255, 255, 255, 255};
-  NSEngine::Color color_2 = {255, 255, 255, 255};
+  NSEngine::Color color_2 = {0, 0, 0, 0};
   NSEngine::Color mixed_inherited_color = {255, 255, 255, 255};
   uint8_t font_dims[2] = {};
   // undefined2

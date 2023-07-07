@@ -1,7 +1,7 @@
 #ifndef LASERLINE_H_
 #define LASERLINE_H_
 
-#include "Laser.h"
+#include "./Laser.h"
 #include "../BulletEx.h"
 #include "../AnmOpener/AnmVM.h"
 
@@ -24,25 +24,26 @@ struct LaserLineInner_t {
 };
 
 class LaserLine : public Laser {
-    public:
-        LaserLine();
-        ~LaserLine() {}
+public:
+    LaserLine();
+    ~LaserLine() {}
 
-        void run_ex() override;
-        int initialize(void* inner) override;
-        int on_tick() override;
-        int on_draw() override;
-        int cancel_as_bomb_rectangle(glm::vec3,glm::vec3,float,int,int) override;
-        int cancel_as_bomb_circle(int,int,int,int) override;
-        int cancel(int,int) override;
-        int check_graze_or_kill(int) override { return 0; }
-        int method_50_line();
+    void run_ex() override;
+    int initialize(void* inner) override;
+    int on_tick() override;
+    int on_draw() override;
+    int cancel_as_bomb_rectangle(glm::vec3, glm::vec3,
+                                 float, int, int) override;
+    int cancel_as_bomb_circle(int, int, int, int) override;
+    int cancel(int, int) override;
+    int check_graze_or_kill(int) override { return 0; }
+    int method_50_line();
 
-        LaserLineInner_t& getInner() { return inner; }
+    LaserLineInner_t& getInner() { return inner; }
 
-    private:
-        LaserLineInner_t inner;
-        AnmVM vm1, vm2, vm3;
+private:
+    LaserLineInner_t inner;
+    AnmVM vm1, vm2, vm3;
 };
 
 #endif // LASERLINE_H_

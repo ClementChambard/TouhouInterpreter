@@ -1,13 +1,13 @@
 #ifndef ECLVM_H_
 #define ECLVM_H_
-#include "BulletHandler.h"
-#include "EclContext.h"
-#include "EclFileManager.h"
-#include "Interp.h"
-#include "PosVel.h"
-
-#include "AnmOpener/AnmManager.h"
+#include "./AnmOpener/AnmManager.h"
+#include "./BulletHandler.h"
+#include "./EclContext.h"
+#include "./EclFileManager.h"
+#include "./Interp.h"
+#include "./PosVel.h"
 #include <iostream>
+#include <string>
 
 class Enemy;
 struct EnemyList_t {
@@ -68,7 +68,8 @@ struct EnemyData {
     float rotation = 0.f;
     AnmID anmIds[16] = {};
     glm::vec3 anmPos[16] = {};
-    int32_t anmRelated[16] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    int32_t anmRelated[16] = { -1, -1, -1, -1, -1, -1, -1, -1,
+                               -1, -1, -1, -1, -1, -1, -1, -1 };
     int32_t selectedAnmID = -1;
     int32_t anm0anmID = -1;
     int32_t anm0scr = -1;
@@ -138,7 +139,6 @@ struct EnemyData {
 };
 
 class Enemy {
-
 public:
     Enemy();
     ~Enemy();

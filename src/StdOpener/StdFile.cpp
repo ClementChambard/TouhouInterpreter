@@ -1,8 +1,8 @@
-#include "StdFile.h"
+#include "./StdFile.h"
 #include <algorithm>
 
 #include "../AnmOpener/AnmManager.h"
-#include "stdOpener.h"
+#include "./stdOpener.h"
 #include <Engine.hpp>
 #include <NSEngine.h>
 
@@ -10,8 +10,7 @@ namespace StdOpener {
 
 void StdFile::interrupt(int s) { pending_switch_label = s; }
 
-StdFile::StdFile(std::string const& filename)
-{
+StdFile::StdFile(std::string const& filename) {
     thstd_t* std = std_read_file(filename);
 
     for (auto e : std->entries) {
@@ -33,13 +32,17 @@ StdFile::StdFile(std::string const& filename)
         // std::cout << "    depth = " << entries.back().depth  << "\n";
         // std::cout << "    quads = {\n";
         for (auto q : e->quads) {
-            entries.back().quads.push_back({ q->size, q->script_index, q->x, q->y, q->z, q->width, q->height });
-            // std::cout << "        {" << q->size<< ", " << q->script_index<< ", " << q->x<< ", " << q->y<< ", " << q->z<< ", " << q->width<< ", " << q->height << "}\n";
+            entries.back().quads.push_back({ q->size,
+                q->script_index, q->x, q->y, q->z, q->width, q->height });
+            // std::cout << "        {" << q->size<< ", " << q->script_index
+            // << ", " << q->x<< ", " << q->y<< ", " << q->z<< ", " <<
+            // q->width<< ", " << q->height << "}\n";
         }
         // std::cout << "}\n";
     }
 
-    // std::transform(std->instances.begin(), std->instances.end(), faces.begin(), [](std_object_instance_t* i) -> face {
+    // std::transform(std->instances.begin(), std->instances.end(),
+    // faces.begin(), [](std_object_instance_t* i) -> face {
     //     return { i->object_id, i->x, i->y, i->z };
     // });
     for (auto i : std->instances)
@@ -53,7 +56,8 @@ StdFile::StdFile(std::string const& filename)
             uint16_t nbArgs = (i->size - sizeof(*i)) / 4;
             offset += nbArgs * 4;
             for (uint16_t j = 0; j < nbArgs; j++) {
-                int32_t S = *reinterpret_cast<int32_t*>(reinterpret_cast<char*>(i) + 8 + j * 4);
+                int32_t S = *reinterpret_cast<int32_t*>(
+                    reinterpret_cast<char*>(i) + 8 + j * 4);
                 script.back().args.push_back({ .S = S });
             }
         }
@@ -63,29 +67,28 @@ StdFile::StdFile(std::string const& filename)
     std_free(std);
 }
 
-StdFile::~StdFile()
-{
+StdFile::~StdFile() {
     Clear();
 }
 
-void StdFile::Init()
-{
+void StdFile::Init() {
     AnmManager::LoadFile(30, anm_file_name);
     for (auto f : faces)
         spawnFace(f);
-    std::sort(bgVms.begin(), bgVms.end(), [](AnmVM* const& a, AnmVM* const& b) { return a->getLayer() < b->getLayer(); });
+    std::sort(bgVms.begin(), bgVms.end(),
+              [](AnmVM* const& a, AnmVM* const& b) {
+                    return a->getLayer() < b->getLayer();
+              });
     theCam = NSEngine::activeCamera3D();
 }
 
-void StdFile::Clear()
-{
+void StdFile::Clear() {
     for (auto vm : bgVms)
         delete vm;
     bgVms.clear();
 }
 
-void StdFile::Update()
-{
+void StdFile::Update() {
     for (auto vm : bgVms)
         if (vm)
             vm->update();
@@ -123,17 +126,16 @@ void StdFile::Update()
     time++;
 }
 
-void StdFile::Draw()
-{
+void StdFile::Draw() {
     if (bgVms.size() == 0)
         return;
     baseShader.start();
     baseShader.SetCameraPosition(theCam->getPosition());
     glActiveTexture(GL_TEXTURE0);
     NSEngine::toggleCulling(false);
-    if (NSEngine::getInstance()->flags().flags.wireframe)
+    if (NSEngine::getInstance()->flags().flags.wireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    else {
+    } else {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
@@ -163,7 +165,8 @@ void StdFile::Draw()
                 glDisable(GL_DEPTH_TEST);
             else
                 glEnable(GL_DEPTH_TEST);
-            baseShader.SetFog(m < 4 ? 1000000.f : mi, m < 4 ? 1000000.f : ma, col);
+            baseShader.SetFog(m < 4 ? 1000000.f : mi, m < 4
+                              ? 1000000.f : ma, col);
             sprBatch.renderBatch();
             sprBatch.begin();
             l = vm->getLayer();
@@ -198,8 +201,7 @@ void StdFile::Draw()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void StdFile::spawnFace(StdFile::face const& f)
-{
+void StdFile::spawnFace(StdFile::face const& f) {
     const entry& e = entries[f.entry_id];
     for (auto q : e.quads) {
         float x = f.x + q.x;
@@ -215,8 +217,8 @@ void StdFile::spawnFace(StdFile::face const& f)
 }
 
 template <typename T, typename _Predicate>
-size_t insertRemoveNullptr(const T& val, std::vector<T>& vec, _Predicate predicate)
-{
+size_t insertRemoveNullptr(const T& val, std::vector<T>& vec,
+                           _Predicate predicate) {
     size_t i = 0;
     int nullptrcnt = 0;
     while (i < vec.size()) {
@@ -231,7 +233,7 @@ size_t insertRemoveNullptr(const T& val, std::vector<T>& vec, _Predicate predica
     }
     vec.resize(vec.size() - nullptrcnt);
     i = 0;
-    size_t ret = (size_t)-1;
+    size_t ret = static_cast<size_t>(-1);
     T toInsert = val;
     while (i < vec.size()) {
         if (toInsert != val || predicate(val, vec[i])) {
@@ -243,14 +245,13 @@ size_t insertRemoveNullptr(const T& val, std::vector<T>& vec, _Predicate predica
         }
         i++;
     }
-    if (ret == (size_t)-1)
+    if (ret == static_cast<size_t>(-1))
         ret = vec.size();
     vec.push_back(toInsert);
     return ret;
 }
 
-void StdFile::execInstr(StdFile::instruction const& i)
-{
+void StdFile::execInstr(StdFile::instruction const& i) {
     // return;
     if (theCam == nullptr)
         return;
@@ -261,52 +262,53 @@ void StdFile::execInstr(StdFile::instruction const& i)
 #define g(n) ((i.args[n].S >> 8) & 255)
 #define b(n) ((i.args[n].S >> 0) & 255)
     switch (i.type) {
-    case 0: // stop
+    case 0:  // stop
         stopped = true;
         return;
-    case 1: // jmp
+    case 1:  // jmp
         for (uint32_t j = 0; j < script.size(); j++)
             if (script[j].offset == (uint32_t)S(0))
                 instr = j;
         time = S(1);
         return;
-    case 2: // pos
+    case 2:  // pos
         theCam->setPosition(f(0), -f(1), f(2));
         return;
-    case 3: // posTime
+    case 3:  // posTime
         theCam->PositionTime(S(0), S(1), f(2), -f(3), f(4));
         return;
-    case 4: // facing
+    case 4:  // facing
         theCam->setLook(f(0), -f(1), f(2));
         return;
-    case 5: // facingTime
+    case 5:  // facingTime
         theCam->LookTime(S(0), S(1), f(2), -f(3), f(4));
         return;
-    case 6: // up
+    case 6:  // up
         theCam->setUp(f(0), -f(1), f(2));
         return;
-    case 7: // fov
+    case 7:  // fov
         theCam->setFov(f(0));
         return;
-    case 8: // fog
+    case 8:  // fog
         theCam->setFog(r(0), g(0), b(0), a(0), f(1), f(2));
         return;
-    case 9: // fogTime
+    case 9:  // fogTime
         theCam->FogTime(S(0), S(1), r(2), g(2), b(2), a(2), f(3), f(4));
         return;
-    case 10: // posBezier
-        theCam->PositionBezier(S(0), f(2), f(3), f(4), f(5), f(6), f(7), f(8), f(9), f(10));
+    case 10:  // posBezier
+        theCam->PositionBezier(S(0), f(2), f(3), f(4), f(5), f(6), f(7),
+                               f(8), f(9), f(10));
         return;
-    case 11: // facingBezier
-        theCam->LookBezier(S(0), f(2), f(3), f(4), f(5), f(6), f(7), f(8), f(9), f(10));
+    case 11:  // facingBezier
+        theCam->LookBezier(S(0), f(2), f(3), f(4), f(5), f(6), f(7),
+                           f(8), f(9), f(10));
         return;
-    case 12: // rockingMode
-        // TODO
+    case 12:  // rockingMode
         return;
-    case 13: // bgColor
+    case 13:  // bgColor
         theCam->setClearColor(r(0), g(0), b(0));
         return;
-    case 14: { // sprite
+    case 14: {  // sprite
         // std::cout << S(0) << ":" << S(1) << " on " << S(2) << "  ";
         if (anmSlots[S(0)] != -1) {
             delete bgVms[anmSlots[S(0)]];
@@ -316,30 +318,33 @@ void StdFile::execInstr(StdFile::instruction const& i)
         AnmVM* vm = AnmManager::SpawnVMExt(30, S(1));
         vm->update();
         vm->setLayer(S(2));
-        std::cout << "bgVms size : " << bgVms.size() << "  anmSlots[" << S(0) << "] : ";
-        static const auto predicate = [](AnmVM* const& a, AnmVM* const& b) { return a->getLayer() <= b->getLayer(); };
+        std::cout << "bgVms size : " << bgVms.size() <<
+                "  anmSlots[" << S(0) << "] : ";
+        static const auto predicate =
+                [](AnmVM* const& a, AnmVM* const& b) {
+                    return a->getLayer() <= b->getLayer();
+                };
         anmSlots[S(0)] = insertRemoveNullptr(vm, bgVms, predicate);
         std::cout << anmSlots[S(0)] << "\n";
         return;
     }
-    case 15: // nop
+    case 15:  // nop
         return;
-    case 16: // interruptLabel
+    case 16:  // interruptLabel
         return;
-    case 17: // distortion
-        // TODO
+    case 17:  // distortion
         return;
-    case 18: // upTime
+    case 18:  // upTime
         theCam->UpTime(S(0), S(1), f(2), -f(3), f(4));
         return;
-    case 19: // interruptBG
+    case 19:  // interruptBG
         for (auto vm : bgVms)
             vm->interrupt(7 + S(0));
         return;
-    case 20: // drawDistance
+    case 20:  // drawDistance
         // unused
         return;
-    case 21: // fovTime
+    case 21:  // fovTime
         theCam->FovTime(S(0), S(1), f(2));
         return;
     }
@@ -351,4 +356,4 @@ void StdFile::execInstr(StdFile::instruction const& i)
 #undef b
 }
 
-}
+}  // namespace StdOpener

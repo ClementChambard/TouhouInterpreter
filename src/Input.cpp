@@ -1,10 +1,9 @@
-#include "Input.h"
+#include "./Input.h"
 #include <InputManager.h>
 
 InputStruct_t INPUT_STRUCT{};
 
-void InputStruct_t::Update()
-{
+void InputStruct_t::Update() {
     // right left down up X X X shoot
     input = 0;
     if (Inputs::Keyboard().Down(NSK_right )) input |= 0x80;
