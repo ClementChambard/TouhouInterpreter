@@ -31,6 +31,8 @@ struct EnemyManagerData {
     a : (GLOBALS.inner.DIFFICULTY == 1 ? b : \
     (GLOBALS.inner.DIFFICULTY == 2 ? c : d)))
 
+class EnemyManager;
+extern EnemyManager* ENEMY_MANAGER_PTR;
 class EnemyManager {
 public:
     EnemyManager();
@@ -39,6 +41,7 @@ public:
     EnemyManager& operator=(EnemyManager const&) = delete;
     static EnemyManager* GetInstance() {
         static EnemyManager* inst = new EnemyManager();
+        ENEMY_MANAGER_PTR = inst;
         return inst;
     }
     static void Cleanup() { delete GetInstance(); }
@@ -72,7 +75,7 @@ public:
     int killableEnemyCount() { return enemyCount; }
     int32_t enemyCount = 0;
 
-private:
+// private:
     int on_tick();
     int on_draw();
 
@@ -82,13 +85,12 @@ private:
     UpdateFunc* f_on_draw;
 
     EnemyManagerData data;
+    AnmFile* loadedAnms[6];
     // 6 anms slot
     EclFileManager* fileManager = nullptr;
     EnemyList_t* active_enemy_list_head = nullptr;
     EnemyList_t* active_enemy_list_tail = nullptr;
     friend class Enemy;
 };
-
-extern EnemyManager* ENEMY_MANAGER_PTR;
 
 #endif // ENEMYMANAGER_H_

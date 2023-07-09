@@ -26,7 +26,7 @@ public:
     void set_protect_range(float r) { et_protect_range = r; }
     int get_nb_bul() const { return nb_bullets; }
 
-private:
+// private:
     static constexpr size_t max_bullet = 2000;
     void AddBullet(Bullet* b);
     void RemoveBullet(Bullet* b);

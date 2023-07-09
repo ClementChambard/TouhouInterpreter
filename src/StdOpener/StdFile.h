@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-#include "../AnmOpener/AnmVM.h"
+#include "../AnmOpener/AnmFile.h"
 #include <AnimShader.h>
 #include <Camera3D.h>
 #include <SpriteBatch.h>
@@ -58,7 +58,7 @@ private:
     };
 
     std::string anm_file_name;
-
+    AnmFile* anm_file;
     std::vector<entry> entries;
     std::vector<face> faces;
     std::vector<instruction> script;

@@ -220,8 +220,7 @@ int sht_on_tick_1(PlayerBullet_t* bullet)
     return 0;
 }
 
-int sht_on_tick_2(PlayerBullet_t* bullet)
-{
+int sht_on_tick_2(PlayerBullet_t* bullet) {
     auto shooter = PLAYER_PTR->sht_file->shooters[bullet->shter >> 8][bullet->shter & 0xff];
     if (shooter.option > 0)
         bullet->pos.pos = glm::vec3(PLAYER_PTR->inner.options[shooter.option - 1].scaled_cur_pos.x, PLAYER_PTR->inner.options[shooter.option - 1].scaled_cur_pos.y, 0) / 128.f;
@@ -421,7 +420,7 @@ int FUN_00449c80(glm::vec3 const& pos, int param_3, uint32_t param_4, float para
 int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
     nullptr,
     [](PlayerBullet_t* param_1, glm::vec3 const&, float, float, float) {
-        auto vm = AnmManager::getVM(AnmManager::SpawnVM(1, 0x95));
+        auto vm = AnmManager::getVM(AnmManager::SpawnVM(8, 0x95));
         vm->entity_pos = param_1->pos.pos;
         vm->rotation.z = (param_1->pos).angle + Random::Floatm11() * 0.3490658;
         math::angle_normalize(vm->rotation.z);
@@ -549,8 +548,7 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
 
 ShtShooter_t::ShtShooter_t(ShtShooterRaw_t* raw, int nFlags)
     : offset(raw->offset)
-    , hitbox(raw->hitbox)
-{
+    , hitbox(raw->hitbox) {
     fire_rate = raw->fire_rate;
     start_delay = raw->start_delay;
     damage = raw->damage;
@@ -576,8 +574,7 @@ ShtShooter_t::ShtShooter_t(ShtShooterRaw_t* raw, int nFlags)
 
 ShtShooter_t::ShtShooter_t(ShtShooterRaw18_t* raw)
     : offset(raw->offset)
-    , hitbox(raw->hitbox)
-{
+    , hitbox(raw->hitbox) {
     fire_rate = raw->fire_rate;
     start_delay = raw->start_delay;
     damage = raw->damage;

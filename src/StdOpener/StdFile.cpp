@@ -5,6 +5,7 @@
 #include "./stdOpener.h"
 #include <Engine.hpp>
 #include <NSEngine.h>
+#include "../GlobalData.h"
 
 namespace StdOpener {
 
@@ -72,7 +73,8 @@ StdFile::~StdFile() {
 }
 
 void StdFile::Init() {
-    AnmManager::LoadFile(30, anm_file_name);
+    anm_file = AnmManager::LoadFile(
+        GLOBALS.inner.STAGE_NUM % 2 + 3, anm_file_name);
     for (auto f : faces)
         spawnFace(f);
     std::sort(bgVms.begin(), bgVms.end(),
@@ -86,6 +88,7 @@ void StdFile::Clear() {
     for (auto vm : bgVms)
         delete vm;
     bgVms.clear();
+    anm_file->Cleanup();
 }
 
 void StdFile::Update() {
@@ -207,7 +210,8 @@ void StdFile::spawnFace(StdFile::face const& f) {
         float x = f.x + q.x;
         float y = f.y + q.y;
         float z = f.z + q.z;
-        bgVms.push_back(AnmManager::SpawnVMExt(30, q.script_index));
+        bgVms.push_back(AnmManager::SpawnVMExt(anm_file->getSlot(),
+                                               q.script_index));
         bgVms.back()->update();
         bgVms.back()->setEntityPos(x, y, z);
         bgVms.back()->setLayer(e.layer);
@@ -315,7 +319,7 @@ void StdFile::execInstr(StdFile::instruction const& i) {
             bgVms[anmSlots[S(0)]] = nullptr;
             anmSlots[S(0)] = -1;
         }
-        AnmVM* vm = AnmManager::SpawnVMExt(30, S(1));
+        AnmVM* vm = AnmManager::SpawnVMExt(anm_file->getSlot(), S(1));
         vm->update();
         vm->setLayer(S(2));
         std::cout << "bgVms size : " << bgVms.size() <<

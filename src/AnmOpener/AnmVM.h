@@ -58,6 +58,7 @@ public:
   void destroy();
   void interrupt(int i);
   void interruptRec(int i);
+  void reset();
 
   int &check_ref(int i);
   float &check_ref(float f);
@@ -146,7 +147,9 @@ public:
   glm::mat4 __matrix_3 = {}; // scale ?
   int32_t pending_interrupt = 0;
   int32_t __time_of_last_sprite_set__unused = 0;
-  // undefined4[2]
+  // undefined4
+  int16_t script_id_2 = 0;
+  // undefined2
   int32_t int_script_vars[4] = {0, 0, 0, 0};
   float float_script_vars[4] = {0, 0, 0, 0};
   glm::vec3 __script_vars_33_34_35 = {}; /* rotation related vars 33 34 35 */

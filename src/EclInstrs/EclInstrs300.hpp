@@ -28,6 +28,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
         e->parentEnemyId = enemyId;                                            \
         e->enemy.flags |= 0x80000;                                             \
     }
+#define ANM_SLOT(a) ENEMY_MANAGER_PTR->loadedAnms[a]->getSlot()
 
         // ENEMY CREATION AND ANM SCRIPT
     _ins(300, enmCreate) _noprint _z(sub) _f(x) _f(y) _S(hp)
@@ -90,7 +91,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     if (scr < 0) {
         enemy.anmIds[slot].val = 0;
     } else {
-        int id = AnmManager::SpawnVM(enemy.selectedAnmID, scr);
+        int id = AnmManager::SpawnVM(ANM_SLOT(enemy.selectedAnmID), scr);
         if (AnmManager::getVM(id)) {
             // set invisible if intangible enemy,
             // set finalSpriteSize and anmslot0... if slot = 0
@@ -105,7 +106,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     if (scr < 0) {
         enemy.anmIds[slot].val = 0;
     } else {
-        int id = AnmManager::SpawnVM(enemy.selectedAnmID, scr);
+        int id = AnmManager::SpawnVM(ANM_SLOT(enemy.selectedAnmID), scr);
         if (AnmManager::getVM(id)) {
             // set invisible if intangible enemy,
             // set finalSpriteSize and anmslot0... if slot = 0
@@ -123,17 +124,18 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
 
     _ins(307, anmPlay) _S(anm) _S(scr) _args
-    auto vm = AnmManager::getVM(AnmManager::SpawnVM(anm, scr));
+    auto vm = AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr));
     if (vm)
         vm->setEntityPos(enemy.abs_pos.pos.x,
                          enemy.abs_pos.pos.y, enemy.abs_pos.pos.z);
 
     _ins(308, anmPlayAbs) _S(anm) _S(scr) _args
-    AnmManager::SpawnVM(anm == 7 ? 30 : anm, scr);
+    AnmManager::SpawnVM(ANM_SLOT(anm), scr);
 
     _ins(313, anmSelPlay) _S(slot) _args
     AnmManager::deleteVM(enemy.anmIds[slot].val);
-    int id = AnmManager::SpawnVM(enemy.selectedAnmID, enemy.anmSetMain + 5);
+    int id = AnmManager::SpawnVM(ANM_SLOT(enemy.selectedAnmID),
+                                 enemy.anmSetMain + 5);
     if (AnmManager::getVM(id)) {
         // set invisible if intangible enemy,
         // set finalSpriteSize and anmslot0... if slot = 0
@@ -143,13 +145,13 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.anmIds[slot].val = id;
 
     _ins(314, anmPlayHigh) _S(anm) _S(scr) _args
-    auto vm = AnmManager::getVM(AnmManager::SpawnVM(anm, scr));
+    auto vm = AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr));
     if (vm)
         vm->setEntityPos(enemy.abs_pos.pos.x,
                          enemy.abs_pos.pos.y, enemy.abs_pos.pos.z);
 
     _ins(315, anmPlayRotate) _S(anm) _S(scr) _f(rot) _args
-    auto vm = AnmManager::getVM(AnmManager::SpawnVM(anm, scr));
+    auto vm = AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr));
     if (vm)
         vm->setEntityPos(enemy.abs_pos.pos.x,
                          enemy.abs_pos.pos.y, enemy.abs_pos.pos.z);
@@ -159,7 +161,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     if (scr < 0) {
         enemy.anmIds[slot].val = 0;
     } else {
-        int id = AnmManager::SpawnVM(enemy.selectedAnmID,
+        int id = AnmManager::SpawnVM(ANM_SLOT(enemy.selectedAnmID),
                                      scr + enemy.anmSetMain + 5);
         if (AnmManager::getVM(id)) {
             // set invisible if intangible enemy,
@@ -199,7 +201,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(322, enm322) _S(a) _S(b) _args _notImpl;
 
     _ins(323, deathAnm) _S(anm) _S(scr) _args
-    enemy.deathAnm = anm;
+    enemy.deathAnm = ANM_SLOT(anm);
     enemy.deathScr = scr;
 
     _ins(324, enmPos2) _notImpl;
@@ -271,7 +273,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(337, anmBM_16_anmPlayPos)
     if (TOUHOU_VERSION < 16) { _S(anm) _S(scr) _f(x) _f(y) _f(z) _args
-        AnmManager::getVM(AnmManager::SpawnVM(anm, scr))->setPos2(x, y, z);
+        AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr))->setPos2(x, y, z);
     } else { _S(slot) _S(bm) _args
         auto vm = AnmManager::getVM(enemy.anmIds[slot].val);
         if (vm)
@@ -279,10 +281,10 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
 
     _ins(338, anmPlayPos) _S(anm) _S(scr) _f(x) _f(y) _f(z) _args
-    AnmManager::getVM(AnmManager::SpawnVM(anm, scr))->setPos2(x, y, z);
+    AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr))->setPos2(x, y, z);
 
     _ins(339, anm339) _S(a) _S(b) _S(c) _args
-    auto vm = AnmManager::getVM(AnmManager::SpawnVM(a == 7 ? 30 : a, b));
+    auto vm = AnmManager::getVM(AnmManager::SpawnVM(a+7, b));
     if (vm) {
         for (int i = 0; i < c; i++)
             vm->update();

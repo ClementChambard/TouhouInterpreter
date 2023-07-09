@@ -2,8 +2,10 @@
 #include "./GlobalData.h"
 #include "./GoastManager.h"
 #include "./Hardcoded.h"
+#include "./BulletManager.h"
 #include "./Input.h"
 #include "./Player.h"
+#include "./AsciiPopupManager.hpp"
 #include <math/Random.h>
 
 ItemManager* ITEM_MANAGER_PTR = nullptr;
@@ -100,6 +102,96 @@ void ItemManager::reset() {
     return;
 }
 
+void collect_point_item(Item* item) {
+  int poc = 0x80;
+  if (GLOBALS.inner.CHARACTER == 1) {
+    poc = 0x94;
+  }
+  if ((PLAYER_PTR->inner.pos.y <= poc) || (item->state == 3)) {
+    // iVar4 = ((GLOBALS.inner.CURRENT_PIV / 100 -
+        // (GLOBALS.inner.CURRENT_PIV / 100) % 10) / 10) * 10;
+    // if (iVar4 < 1) {
+    //   iVar4 = 10;
+    // }
+    int val = 10000;
+    POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
+                                                  {255, 255, 0, 255});
+    GLOBALS.inner.CURRENT_SCORE += val / 10;
+  } else {
+    // iVar3 = GLOBALS.inner.CURRENT_PIV / 100;
+    // iVar2 = (iVar3 % 10 - iVar3) * 3;
+    // iVar3 = (iVar3 - iVar3 % 10) * 3;
+    // iVar4 = (((((int)((iVar2 >> 0x1f & 3U) + iVar2) >> 2) *
+        // (PLAYER_PTR->inner.pos.y - poc)) / 0x1c2 +
+    //          ((int)(iVar3 + (iVar3 >> 0x1f & 3U)) >> 2)) / 10) * 10;
+    // if (iVar4 < 1) {
+    //   iVar4 = 10;
+    // }
+    int val = 9870;
+    POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
+                                                  {255, 255, 255, 255});
+    GLOBALS.inner.CURRENT_SCORE += val / 10;
+  }
+  GLOBALS.inner.CURRENT_SCORE = fmin(GLOBALS.inner.CURRENT_SCORE, 999999999);
+  // GLOBALS.inner.NUM_POINT_ITEMS_COLLECTED += 1;
+  return;
+}
+
+void collect_p_item(Item* item) {
+  if (GLOBALS.inner.CURRENT_POWER < GLOBALS.inner.MAXIMUM_POWER) {
+    GLOBALS.inner.CURRENT_POWER += 1;
+    if (GLOBALS.inner.MAXIMUM_POWER < GLOBALS.inner.CURRENT_POWER) {
+      GLOBALS.inner.CURRENT_POWER = GLOBALS.inner.MAXIMUM_POWER;
+      // Gui::sub_42f8a0_midScreenInfo(GUI_PTR,0,2);
+    }
+    if ((GLOBALS.inner.CURRENT_POWER + -1) / GLOBALS.inner.POWER_PER_LEVEL !=
+        GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL) {
+      // PlayerInner::sub_449630(&PLAYER_PTR->inner);
+      POPUP_MANAGER_PTR->generate_small_score_popup(item->position, -1,
+                                            {255, 255, 64, 255});
+      // SoundManager::play_sound_at_position(0xd);
+    }
+    GLOBALS.inner.CURRENT_SCORE += 10;
+  } else {
+    int poc = 0x80;
+    if (GLOBALS.inner.CHARACTER == 1) {
+      poc = 0x94;
+    }
+    if ((PLAYER_PTR->inner.pos.y <= poc) || (item->state == 3)) {
+      // int val = ((GLOBALS.inner.CURRENT_PIV / 100 -
+      //   (GLOBALS.inner.CURRENT_PIV / 100) % 10) / 10) * 10 ;
+      // if (val < 1) {
+      //   val = 10;
+      // }
+      int val = 10000;
+      // POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
+      //       {255, 255, 0, 255});
+      POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
+            {255, 255, 255, 255});
+      GLOBALS.inner.CURRENT_SCORE += val / 10;
+    } else {
+      // iVar3 = GLOBALS.inner.CURRENT_PIV / 100;
+      // iVar2 = (iVar3 % 10 - iVar3) * 3;
+      // iVar3 = (iVar3 - iVar3 % 10) * 3;
+      // int val = (((((int)((iVar2 >> 0x1f & 3U) + iVar2) >> 2) *
+      //      ((int)PLAYER_PTR->inner.pos.y; - poc)) / 0x1c2 +
+      //          ((int)(iVar3 + (iVar3 >> 0x1f & 3U)) >> 2)) / 10) * 10;
+      // if (val < 1) {
+      //   val = 10;
+      // }
+      int val = 10000;
+      // POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
+      //      {255, 255, 255, 255});
+      POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
+            {255, 255, 255, 255});
+      GLOBALS.inner.CURRENT_SCORE += val / 10;
+    }
+  }
+  GLOBALS.inner.CURRENT_SCORE = fmin(GLOBALS.inner.CURRENT_SCORE, 999999999);
+  return;
+}
+
+
 int ItemManager::_on_tick() {
     field_0xe4b980 = 0;
     num_items_onscreen = 0;
@@ -115,7 +207,8 @@ int ItemManager::_on_tick() {
                 item->state = 2;
                 // BULLET_MANAGER_PTR->bullet_anm->anm_init_copy_vm_from_loaded(
                 // &item->anm_vm_1, ITEM_ANM_SCRIPT_IDS[item->item_type].id_1);
-                item->anm_vm_1(AnmManager::getLoaded(7)->getPreloaded(
+                item->anm_vm_1(BulletManager::GetInstance()->bullet_anm
+                               ->getPreloaded(
                     ITEM_ANM_SCRIPT_IDS[item->item_type]["id_1"].asInt()));
                 item->anm_vm_1.parent_vm = nullptr;
                 item->anm_vm_1.__root_vm__or_maybe_not = nullptr;
@@ -305,10 +398,10 @@ int ItemManager::_on_tick() {
                 item->position.y <= PLAYER_PTR->item_collect_box.max_pos.y) {
                 switch (item->item_type) {
                 case 1:
-                    // FUN_00434200(item);
+                    collect_p_item(item);
                     break;
                 case 2:
-                    // FUN_00434400(item);
+                    collect_point_item(item);
                     break;
                 case 3:
                     if (GLOBALS.inner.CURRENT_POWER <
@@ -330,12 +423,14 @@ int ItemManager::_on_tick() {
                              GLOBALS.inner.POWER_PER_LEVEL) {
                             // FUN_00449630(&PLAYER_PTR->inner);
                             // SoundManager::play_sound_at_position(0xd);
-                            // PopupManager::generate_small_score_popup(&item->position,-1,-0xc0);
+                            POPUP_MANAGER_PTR->generate_small_score_popup(
+                                    item->position, -1, {255, 255, 64, 255});
                         }
                     } else {
                         GLOBALS.inner.CURRENT_SCORE =
                             fmin(999999999, GLOBALS.inner.CURRENT_SCORE + 4000);
-                        // PopupManager::generate_small_score_popup(&item->position,20000,-0x7f7f80);
+                        POPUP_MANAGER_PTR->generate_small_score_popup(
+                                item->position, 20000, {128, 128, 128, 255});
                         // SoundManager::play_sound_at_position(0xd);
                     }
                     break;
@@ -393,7 +488,8 @@ int ItemManager::_on_tick() {
                         // GLOBALS.inner.CURRENT_PIV =
                         //     fmin(GLOBALS.inner.MAXIMUM_PIV,
                         //          GLOBALS.inner.CURRENT_PIV + 10000);
-                        // PopupManager::generate_small_score_popup(&item->position,100,-0xbf00c0);
+                        POPUP_MANAGER_PTR->generate_small_score_popup(
+                                item->position, 100, {64, 255, 64, 255});
                         // SoundManager::play_sound_at_position(0xd);
                         // if (GLOBALS.inner.MAXIMUM_POWER <=
                         //     GLOBALS.inner.CURRENT_POWER)
@@ -412,7 +508,8 @@ int ItemManager::_on_tick() {
                         GLOBALS.inner.CURRENT_POWER /
                         GLOBALS.inner.POWER_PER_LEVEL) {
                         // FUN_00449630(&PLAYER_PTR->inner);
-                        // PopupManager::generate_small_score_popup(&item->position,-1,-0xc0);
+                        POPUP_MANAGER_PTR->generate_small_score_popup(
+                                item->position, -1, {255, 255, 64, 255});
                         // SoundManager::play_sound_at_position(0xd);
                     }
                     break;
@@ -605,14 +702,16 @@ Item* ItemManager::spawn_item(int type, glm::vec3 const& pos, float angle,
             item->__field_c60__init_to_item_type_but_only_for_piv_items = 0;
             // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,
             // &item->anm_vm_1, ITEM_ANM_SCRIPT_IDS[type].id_1);
-            item->anm_vm_1(AnmManager::getLoaded(7)->getPreloaded(
+            item->anm_vm_1(BulletManager::GetInstance()->bullet_anm
+                           ->getPreloaded(
                 ITEM_ANM_SCRIPT_IDS[type]["id_1"].asInt()));
             item->anm_vm_1.parent_vm = nullptr;
             item->anm_vm_1.__root_vm__or_maybe_not = nullptr;
             item->anm_vm_1.update();
             // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,
             // &item->anm_vm_2, ITEM_ANM_SCRIPT_IDS[type].id_2);
-            item->anm_vm_2(AnmManager::getLoaded(7)->getPreloaded(
+            item->anm_vm_2(BulletManager::GetInstance()->bullet_anm
+                           ->getPreloaded(
                 ITEM_ANM_SCRIPT_IDS[type]["id_2"].asInt()));
             item->anm_vm_2.parent_vm = nullptr;
             item->anm_vm_2.__root_vm__or_maybe_not = nullptr;

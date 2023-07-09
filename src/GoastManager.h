@@ -3,6 +3,7 @@
 
 #include "./UpdateFuncRegistry.h"
 #include <glm/glm.hpp>
+#include "./AnmOpener/AnmFile.h"
 
 struct Token_t;
 struct TokenList_t {
@@ -45,7 +46,7 @@ public:
     int32_t flags = 0;
     UpdateFunc* on_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
-    // anm file
+    AnmFile* anm_file = nullptr;
     int32_t token_count = 0;
     TokenList_t list_head {};
     int32_t field_0x24 = 0;

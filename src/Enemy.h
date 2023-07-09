@@ -151,7 +151,7 @@ public:
     void DebugDraw();
     EnemyData* getData() { return &enemy; }
 
-private:
+// private:
     int die();
     int ecl_run(float speed = 1.f);
     void clear_async_contexts();

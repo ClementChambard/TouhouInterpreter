@@ -40,8 +40,10 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
     if (999 < life)
         e->enemy.flags |= 0x40000000;
     e->enemy.deathSnd = (e->enemyId & 1) + 3;
+    e->update();
     if (e->enemy.deathScr == 0) {
         e->enemy.deathScr = 0x2c;
+        std::cout << e->enemy.anm0anmID << "\n";
         if (e->enemy.anm0anmID == 2) {
             switch (e->enemy.anm0scr) {
             case 5:
@@ -69,7 +71,7 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
                 e->enemy.deathScr = 0x38;
             }
         }
-        e->enemy.deathAnm = 1;
+        e->enemy.deathAnm = loadedAnms[1]->getSlot();
     }
     data.last_enemy_id = data.next_enemy_id;
     data.next_enemy_id++;

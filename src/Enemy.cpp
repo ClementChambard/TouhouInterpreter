@@ -179,7 +179,7 @@ int EnemyData::step_interpolators() {
                 anmIds[0].val = 0;
             }
             vm0 = AnmManager::getVM(
-                AnmManager::SpawnVM(anm0anmID, anm0scr + scr));
+                AnmManager::SpawnVM(ENEMY_MANAGER_PTR->loadedAnms[anm0anmID]->getSlot(), anm0scr + scr));
             vm0->bitflags.randomMode = 1;
             if (anmLayers > -8) {
                 vm0->layer = anmLayers + 7;

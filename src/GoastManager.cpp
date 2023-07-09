@@ -9,9 +9,8 @@ GoastManager* GOAST_MANAGER_PTR = nullptr;
 GoastManager::GoastManager() {
     flags |= 2;
     GOAST_MANAGER_PTR = this;
-    // anm_file = AnmManager::preload_anm(0x1e,"beast.anm");
+    anm_file = AnmManager::LoadFile(30, "beast.anm");
     // if (!anm_file) debug message & exit
-    AnmManager::LoadFile(31, "beast.anm");
 
     on_tick = new UpdateFunc([this]() -> int { return this->_on_tick(); });
     on_tick->flags &= 0xfffffffd;
@@ -149,7 +148,8 @@ int Token_t::update() {
             AnmManager::deleteVM(anm_id);
             // anm_id = GOAST_MANAGER_PTR->anm_loaded->
             // create_effect(nullptr,token_type - 1,-1,NULL);
-            anm_id = AnmManager::SpawnVM(31, token_type - 1);
+            anm_id = AnmManager::SpawnVM(GOAST_MANAGER_PTR->
+                                        anm_file->getSlot(), token_type - 1);
             if (0x1e77 < __timer_30) AnmManager::interrupt_tree(anm_id, 9);
             // SoundManager::play_sound_at_position(0x4e);
         }
@@ -215,13 +215,13 @@ int GoastManager::spawn_token(glm::vec3 const& pos, int type, float param_4) {
     if (type - 15 < 3 && type - 15 >= 0) {
         // token->anm_id = anm_file->create_effect(
         // nullptr,type - 15,-1,nullptr);
-        token->anm_id = AnmManager::SpawnVM(31, type - 15);
+        token->anm_id = AnmManager::SpawnVM(anm_file->getSlot(), type - 15);
         token->token_type = type - 14;
         token->flags = (token->flags & 0xfffffffb) | 2;
         token->__timer_58 = 0xf0;
     } else {
         // token->anm_id = anm_file->create_effect(nullptr,type - 1,-1,nullptr);
-        token->anm_id = AnmManager::SpawnVM(31, type - 1);
+        token->anm_id = AnmManager::SpawnVM(anm_file->getSlot(), type - 1);
         if (type - 1 < 3) AnmManager::interrupt_tree(token->anm_id, 7);
         token->token_type = type;
     }

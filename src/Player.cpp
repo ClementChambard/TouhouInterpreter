@@ -950,7 +950,7 @@ void Player::move()
         spd = (direction > 4) ? speed_unfocus_diag : speed_unfocus;
     } else {
         if (inner.focus_eff_anmId == (unsigned)0)
-            inner.focus_eff_anmId = AnmManager::SpawnVM(1, 26); // EFFECT_MANAGER_PTR->effect_anm->create_effect(nullptr,26,14,nullptr);
+            inner.focus_eff_anmId = AnmManager::SpawnVM(8, 26); // EFFECT_MANAGER_PTR->effect_anm->create_effect(nullptr,26,14,nullptr);
         auto vm_ = AnmManager::getVM(inner.focus_eff_anmId);
         if (!vm_)
             inner.focus_eff_anmId = 0;
@@ -1043,7 +1043,7 @@ void Player::move()
             // EFFECT_MANAGER_PTR->effect_anm->anm_init_copy_vm_from_loaded(some_vm,27);
             // some_vm->mode_of_create_child = 0;
             // AnmManager::insert_in_world_list_back(&inner.__field_187a8__init_0,some_vm);
-            inner.maybe_th15_graze_snowflake = AnmManager::SpawnVM(1, 27);
+            inner.maybe_th15_graze_snowflake = AnmManager::SpawnVM(8, 27);
             some_vm = AnmManager::getVM(inner.maybe_th15_graze_snowflake);
             some_vm->bitflags.randomMode = 0b1;
             some_vm->bitflags.originMode = 0b01;
@@ -1103,7 +1103,7 @@ void Player::die()
     // EffectManager::addEffect(0x1c);
     // <==>
     // if (int effid = EffectManager::get_next_index(); effid != -1) EFFECT_MANAGER_PTR->anm_ids[effid] = EFFECT_MANAGER_PTR->effect_anm->create_4112b0(nullptr,0x1c,inner.pos,0,-1,nullptr);
-    AnmManager::getVM(AnmManager::SpawnVM(1, 0x1c))->pos = inner.pos;
+    AnmManager::getVM(AnmManager::SpawnVM(8, 0x1c))->pos = inner.pos;
 
     // update life & bombs
     // GLOBALS.inner.CURRENT_LIVES += -1;

@@ -44,7 +44,7 @@ int Item::FUN_00434b80() {
         // EFFECT_MANAGER_PTR->effect_anm->__field_134__some_kind_of_counter++;
         // vm = AnmManager::allocate_vm();
         // anm_init_copy_vm_from_loaded(EFFECT_MANAGER_PTR->effect_anm,vm,0x65);
-        auto vm = AnmManager::getVM(AnmManager::SpawnVM(1, 0x65));
+        auto vm = AnmManager::getVM(AnmManager::SpawnVM(8, 0x65));
         vm->bitflags.randomMode = true;
         // TODO(ClementChambard): SHOULD BE ENTITY_POS
         vm->pos = position;
@@ -59,7 +59,7 @@ int Item::FUN_00434b80() {
         // EFFECT_MANAGER_PTR->effect_anm->__field_134__some_kind_of_counter++;
         // vm = AnmManager::allocate_vm();
         // anm_init_copy_vm_from_loaded(EFFECT_MANAGER_PTR->effect_anm,vm,0x65);
-        auto vm = AnmManager::getVM(AnmManager::SpawnVM(1, 0x65));
+        auto vm = AnmManager::getVM(AnmManager::SpawnVM(8, 0x65));
         vm->bitflags.randomMode = true;
         // TODO(ClementChambard): SHOULD BE ENTITY_POS
         vm->pos = position;

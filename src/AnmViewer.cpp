@@ -13,6 +13,7 @@ AnmViewer *ANM_VIEWER_PTR = nullptr;
 
 class ImGuiEventProcessor : public NSEngine::IEventProcessor {
 public:
+  ~ImGuiEventProcessor() override {}
   void ProcessEvent(SDL_Event *e, bool &noKeyboard, bool &noMouse) override {
     ImGui_ImplSDL2_ProcessEvent(e);
 
@@ -21,6 +22,8 @@ public:
     noMouse = io.WantCaptureMouse;
   }
 };
+
+static ImGuiEventProcessor* igep = nullptr;
 
 AnmViewer::AnmViewer() {
   ANM_VIEWER_PTR = this;
@@ -33,11 +36,14 @@ AnmViewer::AnmViewer() {
   ImGuiIO &io = ImGui::GetIO();
   io.IniFilename = "";
   ImGui::StyleColorsDark();
-  NSEngine::engineData::eventProcessors.push_back(new ImGuiEventProcessor());
+  igep = new ImGuiEventProcessor();
+  NSEngine::engineData::eventProcessors.push_back(igep);
   NSEngine::InputManager::SetAsEventProcessor();
 }
 
 AnmViewer::~AnmViewer() {
+  delete igep;
+  igep = nullptr;
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();

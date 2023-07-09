@@ -1,5 +1,7 @@
 #include "./EclFileManager.h"
+#include "./EnemyManager.h"
 #include "./AnmOpener/AnmManager.h"
+#include "./BulletManager.h"
 #include "./EclRaw.h"
 #include "./Hardcoded.h"
 #include <algorithm>
@@ -29,7 +31,10 @@ void EclFileManager::LoadEcl(std::string file) {
     std::string logoFile = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]
         ["stage_logo_anm_filename"].asString();
     if (file_exists(logoFile))
-        AnmManager::LoadFile(8, logoFile);
+        AnmManager::LoadFile(6, logoFile);
+
+    ENEMY_MANAGER_PTR->loadedAnms[0] = BulletManager::GetInstance()->bullet_anm;
+    ENEMY_MANAGER_PTR->loadedAnms[1] = AnmManager::getLoaded(8);
 
     std::string stdFile = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]
         ["std_filename"].asString();
@@ -51,7 +56,8 @@ void EclFileManager::LoadEcli(std::string const& file) {
     for (auto ecli : ecl->ecli_list)
         LoadEcli(ecli);
     for (size_t i = 0; i < ecl->anim_list.size(); i++)
-        AnmManager::LoadFile(i + 2, ecl->anim_list[i]);
+        ENEMY_MANAGER_PTR->loadedAnms[2+i] =
+            AnmManager::LoadFile(i + 10, ecl->anim_list[i]);
 }
 
 void EclFileManager::CloseEcl() {

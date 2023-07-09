@@ -14,7 +14,7 @@ public:
 
     void update();
 
-    void Init(int id, int time, int mode, std::string name, int bossId = 0);
+    void Init(int id, int time, int mode, std::string name);
     void Stop();
     void SetTimeout() { }
 
@@ -32,7 +32,6 @@ private:
 
 public:
     int spell_bg_anm_id = 0;
-    int bossId = 0;
     int flags = 0;
 
     UpdateFunc* f_on_tick;

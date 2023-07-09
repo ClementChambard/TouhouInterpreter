@@ -3,6 +3,7 @@
 #include "AnmManager.h"
 #include <NSEngine.h>
 #include <NSlist.h>
+#include <cstring>
 #include <math/Random.h>
 #include <vertex.h>
 
@@ -643,6 +644,49 @@ int AnmVM::check_interrupt()
     //  pzStack_120 = pzStack_118;
     //  pzStack_11c = pzVar26;
     //} while( true );
+}
+
+void AnmVM::reset() {
+    glm::vec3 old_entity_pos = entity_pos;
+    int old_fast_id = fast_id;
+    int old_layer = layer;
+    // memset(this, 0, sizeof(AnmVM));
+    entity_pos = old_entity_pos;
+    fast_id = old_fast_id;
+    layer = old_layer;
+    bitflags.visible = 1;
+    bitflags.f530_1 = 1;
+    bitflags.rotated = 1;
+    bitflags.f534_14_15 = 1;
+    scale = {1.0, 1.0};
+    scale_2 = {1.0, 1.0};
+    uv_scale = {1.0, 1.0};
+    color_1 = {255, 255, 255, 255};
+    __matrix_1 = glm::mat4(1.0);
+    time_in_script = 0;
+    // time_in_script.previous = -999999;
+    __timer_1c = 0;
+    // __timer_1c.previous = -999999;
+    pos_i.end_time = 0;
+    rgb1_i.end_time = 0;
+    alpha1_i.end_time = 0;
+    rotate_i.end_time = 0;
+    scale_i.end_time = 0;
+    scale_2_i.end_time = 0;
+    uv_scale_i.end_time = 0;
+    rgb2_i.end_time = 0;
+    alpha2_i.end_time = 0;
+    u_vel_i.end_time = 0;
+    v_vel_i.end_time = 0;
+    rand_param_one = 1.0;
+    rand_param_pi = 3.141593;
+    rand_param_int = 0x10000;
+    __root_vm__or_maybe_not = nullptr;
+    parent_vm = nullptr;
+    node_in_global_list = {this, nullptr, nullptr};
+    __node_as_child = {this, nullptr, nullptr};
+    list_of_children = {this, nullptr, nullptr};
+    __wierd_list = {this, nullptr, nullptr};
 }
 
 int AnmVM::run()

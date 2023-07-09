@@ -151,11 +151,16 @@ void AnmManager::Cleanup()
         fastArray[i].vm.destroy();
 
     /* CLEAN PREINIT VM */
-    for (auto f : loadedFiles)
+    for (auto& f : loadedFiles)
         f.Cleanup();
 
     if (vboID)
         glDeleteBuffers(1, &vboID);
+
+    delete world_list_head;
+    delete world_list_tail;
+    delete ui_list_head;
+    delete ui_list_tail;
 }
 
 AnmVM* AnmManager::SpawnVMExt(size_t slot, size_t script)

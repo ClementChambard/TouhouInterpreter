@@ -96,7 +96,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(522, spellEx) _S(i) _S(t) _S(ty) _z(name) _args
     Spellcard::GetInstance()
-        ->Init(i, t, ty, name, EnemyManager::GetInstance()->getBoss(enemyId));
+        ->Init(i, t, ty, name);
     enemy.life.isSpell = 1;
 
     _ins(523, spellEnd) _args
@@ -147,19 +147,19 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(537, spell) _S(i) _S(t) _S(ty) _z(name) _args
     Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
-            t, ty, name, EnemyManager::GetInstance()->getBoss(enemyId));
+            t, ty, name);
     enemy.life.isSpell = 1;
 
     _ins(538, spell2) _S(i) _S(t) _S(ty) _z(name) _args
     i -= 1;
     Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
-            t, ty, name, EnemyManager::GetInstance()->getBoss(enemyId));
+            t, ty, name);
     enemy.life.isSpell = 1;
 
     _ins(539, spell3) _S(i) _S(t) _S(ty) _z(name) _args
     i -= 2;
     Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
-            t, ty, name, EnemyManager::GetInstance()->getBoss(enemyId));
+            t, ty, name);
     enemy.life.isSpell = 1;
 
     _ins(540, stars) _S(n) _args _notImpl
@@ -206,7 +206,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.hitSnd = s;
 
     _ins(554, logo) _args
-    AnmManager::getVM(AnmManager::SpawnVM(8, 0));
+    AnmManager::getVM(AnmManager::SpawnVM(6, 0));
 
     _ins(555, enmAlive) _rS(var) _S(id) _args
     var = EnemyManager::GetInstance()->EnmFind(id) != nullptr;

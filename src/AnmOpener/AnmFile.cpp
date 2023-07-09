@@ -81,48 +81,45 @@ void AnmFile::Open(std::string const& filename, uint32_t slot)
     }
 
     AnmOpener::anm_free(archive);
-    std::cout << "Opened Anm : " << filename << "\n";
+    std::cout << "Opened Anm : " << filename << " on slot" << slot <<"\n";
+    this->slot = slot;
 }
 
 void AnmFile::Cleanup() {
+    if (name == "notLoaded") return;
     AnmManager::delete_of_file(this);
-    for (auto s : scripts)
+    for (auto s : this->scripts)
         delete[] s;
     for (auto vm : preloaded)
         vm.destroy();
     preloaded.clear();
-    scripts.clear();
+    this->scripts.clear();
     sprites.clear();
     name = "notLoaded";
 }
 
-AnmFile::~AnmFile()
-{
+AnmFile::~AnmFile() {
     // for (auto s : scripts) delete s;
 }
 
-int8_t* AnmFile::getScript(size_t id) const
-{
+int8_t* AnmFile::getScript(size_t id) const {
     if (scripts.size() == 0)
         return {};
     return scripts[id % scripts.size()];
 }
-AnmVM AnmFile::getPreloaded(size_t id) const
-{
+AnmVM AnmFile::getPreloaded(size_t id) const {
     if (preloaded.size() == 0)
         return {};
     return preloaded[id % preloaded.size()];
 }
-AnmSprite AnmFile::getSprite(size_t id) const
-{
+AnmSprite AnmFile::getSprite(size_t id) const {
     if (sprites.size() == 0)
         return {};
     return sprites[id % sprites.size()];
 }
 uint32_t AnmFile::getTextureFromName(std::string const& name) const { return textures.at(name); }
 
-void AnmFile::setSprite(AnmVM* vm, size_t sprite_id)
-{
+void AnmFile::setSprite(AnmVM* vm, size_t sprite_id) {
     if (vm->index_of_sprite_mapping_func)
         sprite_id = ANM_ON_SPRITE_SET_FUNCS[vm->index_of_sprite_mapping_func](vm, sprite_id);
     vm->sprite_id = sprite_id;
