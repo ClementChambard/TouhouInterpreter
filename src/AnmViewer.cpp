@@ -23,7 +23,7 @@ public:
   }
 };
 
-static ImGuiEventProcessor* igep = nullptr;
+static ImGuiEventProcessor *igep = nullptr;
 
 AnmViewer::AnmViewer() {
   ANM_VIEWER_PTR = this;
@@ -49,16 +49,18 @@ AnmViewer::~AnmViewer() {
   ImGui::DestroyContext();
 }
 
-bool AnmSlotSelector(const char* label, std::string* strval, int* selected) {
+bool AnmSlotSelector(const char *label, std::string *strval, int *selected) {
   ImGui::PushID("AnmSlotSelector");
   bool changed = false;
   if (ImGui::BeginCombo(label, strval->c_str())) {
     for (int i = 0; i < 31; i++) {
       std::string t = AnmManager::getLoaded(i)->getName();
-      if (t == "notLoaded") t = "-";
+      if (t == "notLoaded")
+        t = "-";
       t = std::to_string(i) + ": " + t;
       if (ImGui::Selectable(t.c_str())) {
-        if (*selected != i) changed = true;
+        if (*selected != i)
+          changed = true;
         *selected = i;
         *strval = t;
       }
@@ -69,7 +71,7 @@ bool AnmSlotSelector(const char* label, std::string* strval, int* selected) {
   return changed;
 }
 
-auto getSpriteRange(AnmFile* f, uint32_t texid) {
+auto getSpriteRange(AnmFile *f, uint32_t texid) {
   struct rge {
     int first = -1;
     int last = -1;
@@ -87,14 +89,15 @@ auto getSpriteRange(AnmFile* f, uint32_t texid) {
     }
     i++;
   }
-  std::cout << r.first << " " << r.last;
+
   if (r.first != -1)
     r.last = f->sprites.size() - 1;
   return r;
 }
 
-void TextureViewerWindow(bool* open) {
-  if (!*open) return;
+void TextureViewerWindow(bool *open) {
+  if (!*open)
+    return;
   ImGui::Begin("Texture viewer", open);
   ImGui::PushID("TextureVwr");
   static int selected = -1;
@@ -103,34 +106,40 @@ void TextureViewerWindow(bool* open) {
   if (AnmSlotSelector("Slot", &anmfilename, &selected)) {
     textureId = 0;
   }
-  if (selected < 0 || selected > 30 || anmfilename[anmfilename.size()-1] == '-') {
+  if (selected < 0 || selected > 30 ||
+      anmfilename[anmfilename.size() - 1] == '-') {
     ImGui::PopID();
     ImGui::End();
     return;
   }
-  AnmFile* f = AnmManager::getLoaded(selected);
+  AnmFile *f = AnmManager::getLoaded(selected);
   ImGui::InputInt("texture num", &textureId);
   if (textureId < 0)
     textureId = 0;
   if ((size_t)textureId >= f->textures.size())
     textureId = f->textures.size() - 1;
-  ImGui::Text("%s, texture %d", anmfilename.c_str(), textureId);
+  ImGui::Text("%s, texture %d/%zd", anmfilename.c_str(), textureId + 1,
+              f->textures.size());
   int tid = std::next(f->textures.begin(), textureId)->second;
   auto tex = NSEngine::TextureManager::GetTexture(tid);
-  ImGui::Image((void*)(int64_t)tex->id, {(float)tex->width, (float)tex->height});
+  ImGui::Image((void *)(int64_t)tex->id,
+               {(float)tex->width, (float)tex->height});
   static int spriteId = 0;
-  //auto r = getSpriteRange(f, textureId);
-  //if (r.first == -1) {
-  //  ImGui::PopID();
-  //  ImGui::End();
-  //  return;
-  //}
+  auto r = getSpriteRange(f, tid);
+  if (r.first == -1) {
+    ImGui::PopID();
+    ImGui::End();
+    return;
+  }
   ImGui::InputInt("sprite id", &spriteId);
-  //if (r.first > spriteId) spriteId = r.first;
-  //if (r.last < spriteId) spriteId = r.last;
+  if (r.first > spriteId)
+    spriteId = r.first;
+  if (r.last < spriteId)
+    spriteId = r.last;
   auto sp = f->sprites[spriteId];
   auto t = NSEngine::TextureManager::GetTextureID(sp.texID);
-  ImGui::Image((void*)(int64_t)t, {sp.w, sp.h}, {sp.u1, sp.v1}, {sp.u2, sp.v2});
+  ImGui::Image((void *)(int64_t)t, {sp.w, sp.h}, {sp.u1, sp.v1},
+               {sp.u2, sp.v2});
   ImGui::PopID();
   ImGui::End();
 }
@@ -183,8 +192,7 @@ void anms_window(bool *open) {
     return;
   }
   auto loaded = AnmManager::getLoaded(slot);
-  ImGui::Text("%s: %zd scripts", slotname.c_str(),
-              loaded->nbScripts());
+  ImGui::Text("%s: %zd scripts", slotname.c_str(), loaded->nbScripts());
   ImGui::InputInt("Script", &script);
   if (script < 0)
     script = 0;
@@ -221,7 +229,8 @@ void anm_view_window(AnmView *v) {
   ImGui::SameLine();
   ImGui::Text("Slot: %d, Script: %d", vm->anm_loaded_index, vm->script_id);
   ImGui::Text("Instr: %d@%d, return: %d@%d", vm->instr_offset,
-    vm->time_in_script, vm->interrupt_return_offset, vm->interrupt_return_time);
+              vm->time_in_script, vm->interrupt_return_offset,
+              vm->interrupt_return_time);
   if (ImGui::Button("Interrupt")) {
     ImGui::OpenPopup("InterruptVM");
   }
@@ -285,34 +294,37 @@ void anm_view_window(AnmView *v) {
 
   if (ImGui::CollapsingHeader("flags")) {
     bool val;
-    const char* selected;
-    #define FLAG_CHECKBOX(flagname) \
-        val = vm->bitflags.flagname; \
-        ImGui::Checkbox(#flagname, &val); \
-        vm->bitflags.flagname = val;
+    const char *selected;
+#define FLAG_CHECKBOX(flagname)                                                \
+  val = vm->bitflags.flagname;                                                 \
+  ImGui::Checkbox(#flagname, &val);                                            \
+  vm->bitflags.flagname = val;
 
-    #define FLAG_COMBOBOX(flagname, ...) \
-      static const char* flagname ## _options[] = { __VA_ARGS__ }; \
-      selected = flagname ## _options[vm->bitflags.flagname]; \
-      if (ImGui::BeginCombo(#flagname, selected)) { \
-        for (int i = 0; i < IM_ARRAYSIZE(flagname ## _options); i++) { \
-          bool isSelected = (selected == flagname ## _options[i]); \
-          if (strlen(flagname ## _options[i]) == 0) continue; \
-          if (ImGui::Selectable(flagname ## _options[i], isSelected)) { \
-            selected = flagname ## _options[i]; \
-            vm->bitflags.flagname = i; \
-          } \
-          if (isSelected) ImGui::SetItemDefaultFocus(); \
-        } \
-        ImGui::EndCombo(); \
-      }
+#define FLAG_COMBOBOX(flagname, ...)                                           \
+  static const char *flagname##_options[] = {__VA_ARGS__};                     \
+  selected = flagname##_options[vm->bitflags.flagname];                        \
+  if (ImGui::BeginCombo(#flagname, selected)) {                                \
+    for (int i = 0; i < IM_ARRAYSIZE(flagname##_options); i++) {               \
+      bool isSelected = (selected == flagname##_options[i]);                   \
+      if (strlen(flagname##_options[i]) == 0)                                  \
+        continue;                                                              \
+      if (ImGui::Selectable(flagname##_options[i], isSelected)) {              \
+        selected = flagname##_options[i];                                      \
+        vm->bitflags.flagname = i;                                             \
+      }                                                                        \
+      if (isSelected)                                                          \
+        ImGui::SetItemDefaultFocus();                                          \
+    }                                                                          \
+    ImGui::EndCombo();                                                         \
+  }
 
     FLAG_CHECKBOX(visible)
     FLAG_CHECKBOX(f530_1)
     FLAG_CHECKBOX(rotated)
     FLAG_CHECKBOX(scaled)
     FLAG_CHECKBOX(zoomed)
-    FLAG_COMBOBOX(blendmode, "Normal", "Add", "Subtract", "Replace", "Screen", "Multiply", "uh", "Behind", "Darken", "Lighten")
+    FLAG_COMBOBOX(blendmode, "Normal", "Add", "Subtract", "Replace", "Screen",
+                  "Multiply", "uh", "Behind", "Darken", "Lighten")
     FLAG_CHECKBOX(f530_9)
     FLAG_CHECKBOX(alt_pos)
     FLAG_CHECKBOX(flip_x)
@@ -327,13 +339,16 @@ void anm_view_window(AnmView *v) {
     FLAG_COMBOBOX(anchorX, "Center", "Left", "Right");
     FLAG_COMBOBOX(anchorY, "Center", "Top", "Bottom");
     FLAG_COMBOBOX(rendermode, "Normal", "RotateZ", "", "", "", "", "", "", "3D",
-                  "Textured circle", "", "", "", "Textured arc even", "Textured arc", "", "Rectangle",
-                  "Polygon", "Polygon outline", "Ring", "Rectangle grad", "Rectangle rot",
-                  "Rectangle rot grad", "", "Cylinder", "3D Textured ring", "Line horiz", "Rectangle outline")
+                  "Textured circle", "", "", "", "Textured arc even",
+                  "Textured arc", "", "Rectangle", "Polygon", "Polygon outline",
+                  "Ring", "Rectangle grad", "Rectangle rot",
+                  "Rectangle rot grad", "", "Cylinder", "3D Textured ring",
+                  "Line horiz", "Rectangle outline")
     FLAG_COMBOBOX(scrollY, "Wrap", "Clamp", "Mirror")
     ImGui::Separator();
     FLAG_COMBOBOX(scrollX, "Wrap", "Clamp", "Mirror")
-    FLAG_COMBOBOX(rotationMode, "000", "001", "010", "011", "100", "101", "110", "111")
+    FLAG_COMBOBOX(rotationMode, "000", "001", "010", "011", "100", "101", "110",
+                  "111")
     FLAG_COMBOBOX(activeFlags, "00", "01", "10", "11")
     FLAG_CHECKBOX(autoRotate)
     FLAG_CHECKBOX(f534_8)
