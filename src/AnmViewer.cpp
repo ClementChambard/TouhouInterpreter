@@ -49,6 +49,92 @@ AnmViewer::~AnmViewer() {
   ImGui::DestroyContext();
 }
 
+bool AnmSlotSelector(const char* label, std::string* strval, int* selected) {
+  ImGui::PushID("AnmSlotSelector");
+  bool changed = false;
+  if (ImGui::BeginCombo(label, strval->c_str())) {
+    for (int i = 0; i < 31; i++) {
+      std::string t = AnmManager::getLoaded(i)->getName();
+      if (t == "notLoaded") t = "-";
+      t = std::to_string(i) + ": " + t;
+      if (ImGui::Selectable(t.c_str())) {
+        if (*selected != i) changed = true;
+        *selected = i;
+        *strval = t;
+      }
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::PopID();
+  return changed;
+}
+
+auto getSpriteRange(AnmFile* f, uint32_t texid) {
+  struct rge {
+    int first = -1;
+    int last = -1;
+  } r = {};
+  int m = 0;
+  int i = 0;
+  for (auto s : f->sprites) {
+    if (m == 0 && s.texID == texid) {
+      r.first = i;
+      m = 1;
+    }
+    if (m == 1 && s.texID != texid) {
+      r.last = i - 1;
+      return r;
+    }
+    i++;
+  }
+  std::cout << r.first << " " << r.last;
+  if (r.first != -1)
+    r.last = f->sprites.size() - 1;
+  return r;
+}
+
+void TextureViewerWindow(bool* open) {
+  if (!*open) return;
+  ImGui::Begin("Texture viewer", open);
+  ImGui::PushID("TextureVwr");
+  static int selected = -1;
+  static int textureId = 0;
+  static std::string anmfilename = "-";
+  if (AnmSlotSelector("Slot", &anmfilename, &selected)) {
+    textureId = 0;
+  }
+  if (selected < 0 || selected > 30 || anmfilename[anmfilename.size()-1] == '-') {
+    ImGui::PopID();
+    ImGui::End();
+    return;
+  }
+  AnmFile* f = AnmManager::getLoaded(selected);
+  ImGui::InputInt("texture num", &textureId);
+  if (textureId < 0)
+    textureId = 0;
+  if ((size_t)textureId >= f->textures.size())
+    textureId = f->textures.size() - 1;
+  ImGui::Text("%s, texture %d", anmfilename.c_str(), textureId);
+  int tid = std::next(f->textures.begin(), textureId)->second;
+  auto tex = NSEngine::TextureManager::GetTexture(tid);
+  ImGui::Image((void*)(int64_t)tex->id, {(float)tex->width, (float)tex->height});
+  static int spriteId = 0;
+  //auto r = getSpriteRange(f, textureId);
+  //if (r.first == -1) {
+  //  ImGui::PopID();
+  //  ImGui::End();
+  //  return;
+  //}
+  ImGui::InputInt("sprite id", &spriteId);
+  //if (r.first > spriteId) spriteId = r.first;
+  //if (r.last < spriteId) spriteId = r.last;
+  auto sp = f->sprites[spriteId];
+  auto t = NSEngine::TextureManager::GetTextureID(sp.texID);
+  ImGui::Image((void*)(int64_t)t, {sp.w, sp.h}, {sp.u1, sp.v1}, {sp.u2, sp.v2});
+  ImGui::PopID();
+  ImGui::End();
+}
+
 void AnmView::renderInList() {
   if (ok)
     ok = AnmManager::isAlive(anmId);
@@ -85,13 +171,29 @@ void anms_window(bool *open) {
   if (!*open)
     return;
   ImGui::Begin("Anm VMs", open);
-  static int slot = 0;
+  ImGui::PushID("AnmSpawn");
+  static int slot = -1;
   static int script = 0;
-  ImGui::InputInt("Slot", &slot);
+  static std::string slotname = "-";
+  if (AnmSlotSelector("Slot", &slotname, &slot))
+    script = 0;
+  if (slot == -1) {
+    ImGui::PopID();
+    ImGui::End();
+    return;
+  }
+  auto loaded = AnmManager::getLoaded(slot);
+  ImGui::Text("%s: %zd scripts", slotname.c_str(),
+              loaded->nbScripts());
   ImGui::InputInt("Script", &script);
+  if (script < 0)
+    script = 0;
+  if (static_cast<size_t>(script) >= loaded->nbScripts())
+    script = loaded->nbScripts() - 1;
   if (ImGui::Button("Create")) {
     ANM_VIEWER_PTR->anim(AnmManager::SpawnVM(slot, script));
   }
+  ImGui::PopID();
   ImGui::End();
 }
 
@@ -345,6 +447,9 @@ void main_menu_window(bool *open) {
   static bool anms_list_window_open = false;
   anms_list_window(&anms_list_window_open);
 
+  static bool texture_vwr_window_open = false;
+  TextureViewerWindow(&texture_vwr_window_open);
+
   ImGui::Begin("Anm viewer main menu", open);
   ImGui::PushID("MainMenu");
   if (ImGui::Button("open files window")) {
@@ -355,6 +460,9 @@ void main_menu_window(bool *open) {
   }
   if (ImGui::Button("anm list window")) {
     anms_list_window_open = !anms_list_window_open;
+  }
+  if (ImGui::Button("texture viewer")) {
+    texture_vwr_window_open = !texture_vwr_window_open;
   }
   ImGui::PopID();
   ImGui::End();

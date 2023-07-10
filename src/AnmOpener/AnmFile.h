@@ -28,7 +28,7 @@ class AnmFile {
 
         uint32_t getSlot() const { return slot; }
 
-    private:
+    // private:
         uint32_t slot = 0;
         std::string name = "notLoaded";
         std::map<std::string, uint32_t> textures;
