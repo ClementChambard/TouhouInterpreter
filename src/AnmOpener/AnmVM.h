@@ -58,6 +58,8 @@ public:
   void destroy();
   void interrupt(int i);
   void interruptRec(int i);
+  void clear_flag_1_rec();
+  void set_flag_1_rec();
   void reset();
 
   int &check_ref(int i);

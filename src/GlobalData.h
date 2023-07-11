@@ -19,12 +19,42 @@ struct GlobalsInner_t {
     int32_t GRAZE_IN_CHAPTER__POSSIBLY_BROKEN = 0;
     int32_t SPELL_ID = 0;
     int32_t MISS_COUNT_GLOBAL = 0;
-    // ...
+    int32_t CONTINUES_USED2 = 0;
+    int32_t NUM_POINT_ITEMS_COLLECTED = 0;
+    int32_t CURRENT_PIV = 0;
+    int32_t MINIMUM_PIV = 0;
+    int32_t MAXIMUM_PIV = 0;
     int32_t CURRENT_POWER = 0;
     int32_t MAXIMUM_POWER = 0;
     int32_t POWER_PER_LEVEL = 0;
-    // ...
+    // undefined4
+    int32_t CURRENT_LIVES = 0;
+    int32_t CURRENT_LIFE_PIECES = 0;
+    int32_t lifepiece_related = 0;
+    int32_t CURRENT_BOMBS = 0;
+    int32_t CURRENT_BOMB_PIECES = 0;
+    int32_t bombpiece_related = 0;
+    // undefined4
+    // undefined4
+    int32_t HYPER_FILL = 0;
+    int32_t TOKENS[5] = {};
+    // undefined4
+    // undefined4
+    // undefined4
+    // undefined4
+    // undefined4
+    // undefined4
+    int32_t __unknown_timer = 0;
+    int32_t HYPER_TIME = 0;
+    // undefined4
+    // undefined4
+    // undefined4
     int32_t HYPER_FLAGS = 0;
+    // undefined4
+    // undefined4
+    // undefined4
+    // undefined4
+    // undefined4
 };
 
 class Globals {

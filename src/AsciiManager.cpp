@@ -312,3 +312,38 @@ void AsciiManager::create_string_f(const glm::vec3 &pos, const char *fmt, ...) {
   vsnprintf(buf, sizeof(buf), fmt, args);
   create_string(pos, buf);
 }
+
+void AsciiManager::comma_separated_number(glm::vec3 const &pos, int number) {
+  char buffer[260] = {};
+
+  if (number < 1000) {
+    snprintf(buffer, sizeof(buffer), "%d", number);
+  } else if (number < 1000000) {
+    snprintf(buffer, sizeof(buffer), "%d,%.3d", number / 1000, number % 1000);
+  } else if (number < 1000000000) {
+    snprintf(buffer, sizeof(buffer), "%d,%.3d,%.3d", number / 1000000,
+             (number / 1000) % 1000, number % 1000);
+  } else {
+    snprintf(buffer, sizeof(buffer), "%d,%.3d,%.3d,%.3d",
+             (number / 1000000000) % 1000, (number / 1000000) % 1000,
+             (number / 1000) % 1000, number % 1000);
+  }
+  create_string(pos, buffer);
+}
+
+void AsciiManager::draw_score(glm::vec3 const &pos, int num, int units) {
+  char buf[260];
+
+  if (num < 100) {
+    snprintf(buf, sizeof(buf), "%d", units + num * 10);
+  } else if (num < 100000) {
+    snprintf(buf, sizeof(buf), "%d,%.2d%d", num / 100, num % 100, units);
+  } else if (num < 100000000) {
+    snprintf(buf, sizeof(buf), "%d,%.3d,%.2d%d", num / 100000,
+             (num / 100) % 1000, num % 100, units);
+  } else {
+    snprintf(buf, sizeof(buf), "%d,%.3d,%.3d,%.2d%d", (num / 100000000) % 1000,
+             (num / 100000) % 1000, (num / 100) % 1000, num % 100, units);
+  }
+  create_string(pos, buf);
+}

@@ -73,20 +73,21 @@ void Spellcard::Init(int /*id*/, int time, int mode, std::string /*name*/) {
       l = l->next;
     }
   }
-  AnmManager::getVM(AnmManager::SpawnVM(8, spellcard_anm_2));
-  spell_bg_anm_id =
-      AnmManager::SpawnVM(ENEMY_MANAGER_PTR->loadedAnms[STAGE_DATA_TABLE
-                          [GLOBALS.inner.STAGE_NUM]["boss_data"]
-                                          [mode]["spell_bg_anim_index"]
-                                              .asInt()]->getSlot(),
-                          STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"]
-                                          [mode]["spell_bg_anm_script"]
-                                              .asInt());
-  AnmManager::SpawnVM(ENEMY_MANAGER_PTR->loadedAnms[STAGE_DATA_TABLE
-                      [GLOBALS.inner.STAGE_NUM]["boss_data"]
-                                      [mode]["spell_portrait_anim_index"]
-                                          .asInt()]->getSlot(),
-                      STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"]
-                                      [mode]["spell_portrait_anm_script"]
-                                          .asInt());
+  AnmManager::SpawnVM(8, spellcard_anm_2);
+  if (mode < 0 || mode > 3)
+    return;
+  auto bossdata = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][mode];
+  if (bossdata["spell_bg_anim_index"] >= 0 &&
+      bossdata["spell_bg_anm_script"] >= 0)
+    spell_bg_anm_id = AnmManager::SpawnVM(
+        ENEMY_MANAGER_PTR->loadedAnms[bossdata["spell_bg_anim_index"].asInt()]
+            ->getSlot(),
+        bossdata["spell_bg_anm_script"].asInt());
+  if (bossdata["spell_portrait_anim_index"] >= 0 &&
+      bossdata["spell_portrait_anm_script"] >= 0)
+    AnmManager::SpawnVM(
+        ENEMY_MANAGER_PTR
+            ->loadedAnms[bossdata["spell_portrait_anim_index"].asInt()]
+            ->getSlot(),
+        bossdata["spell_portrait_anm_script"].asInt());
 }

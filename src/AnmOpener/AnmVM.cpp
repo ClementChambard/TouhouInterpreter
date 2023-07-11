@@ -646,6 +646,22 @@ int AnmVM::check_interrupt()
     //} while( true );
 }
 
+void AnmVM::clear_flag_1_rec() {
+    bitflags.f530_1 = 0;
+    for (auto node = list_of_children.next; node; node = node->next) {
+        if (node->value)
+            node->value->clear_flag_1_rec();
+    }
+}
+
+void AnmVM::set_flag_1_rec() {
+    bitflags.f530_1 = 1;
+    for (auto node = list_of_children.next; node; node = node->next) {
+        if (node->value)
+            node->value->set_flag_1_rec();
+    }
+}
+
 void AnmVM::reset() {
     glm::vec3 old_entity_pos = entity_pos;
     int old_fast_id = fast_id;

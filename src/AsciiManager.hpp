@@ -29,6 +29,8 @@ public:
     void render_string(AsciiStr_t const& s);
     void create_string(glm::vec3 const& pos, std::string const& str);
     void create_string_f(glm::vec3 const& pos, const char* fmt, ...);
+    void comma_separated_number(glm::vec3 const& pos, int number);
+    void draw_score(glm::vec3 const &pos, int num, int units);
 private:
     int f_on_tick();
 public:
