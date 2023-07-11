@@ -1,5 +1,8 @@
 #include "./EclContext.h"
+#include "./EclFileManager.h"
+#include "EclFileManager.h"
 #include <Error.h>
+#include <cstdio>
 
 void eclStackPush(EclStack_t* stack, int32_t val) {
     if (stack->stackOffset >= 199) {
@@ -114,14 +117,53 @@ void eclContextInit(EclRunContext_t *ctx, int32_t sub) {
     ctx->time = 0;
 }
 
+static void print_stack_trace_rec(EclStack_t* st, int bp) {
+    if (bp == 0) {
+        printf("bottom of call stack\n");
+        return;
+    }
+
+    // bp-1: sub_id
+    int sub_id = st->data[bp-1].asInt;
+    // bp-2: offset in sub
+    int offset = st->data[bp-2].asInt;
+    // bp-3: time in sub
+    int time = st->data[bp-3].asInt;
+    // bp-4: old bp
+    int oldBp = st->data[bp-4].asInt;
+
+    auto name = EclFileManager::GetInstance()->getSubName(sub_id);
+
+    printf("%d@%d in sub %s\n", offset, time, name.c_str());
+
+    print_stack_trace_rec(st, oldBp);
+}
+
+void print_stack_trace(EclStack_t* stack) {
+    printf("Stack trace: \n");
+
+    if (stack->baseOffset != 0)
+        print_stack_trace_rec(stack, stack->baseOffset);
+    else
+        printf("...\n");
+}
+
 void drawStackFrame(EclStack_t* stack) {
     int start = 0;
     if (stack->baseOffset > 4) start = stack->baseOffset-4;
     int end = start + 15;
-    for (int i = start; i < end; i++) {
-        if (i == stack->baseOffset) std::cout << "base ";
-        if (i == stack->stackOffset) std::cout << "top ";
-        std::cout << stack->data[i].asInt << " | ";
+    if (end >= 200) end = 199;
+    for (int i = end; i >= start; i--) {
+        if (i == stack->baseOffset)
+            printf("%3d: base  --> %8d %4.4f\n", i, stack->data[i].asInt,
+                   stack->data[i].asFloat);
+        else if (i == stack->stackOffset)
+            printf("%3d: top   --> %8d %4.4f\n", i, stack->data[i].asInt,
+                   stack->data[i].asFloat);
+        else
+            printf("%3d:           %8d %4.4f\n", i, stack->data[i].asInt,
+                   stack->data[i].asFloat);
     }
     std::cout << "\n";
+    print_stack_trace(stack);
 }

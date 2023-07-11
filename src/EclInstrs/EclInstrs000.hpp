@@ -65,7 +65,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
                 std::cout << x;
             args_to_put_on_stack.push_back(x);
         }
-    }
+    } _args
 
     eclPushContext(cont);
     cont->currentLocation.sub_id = fileManager->getSubId(sub);
@@ -76,7 +76,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     // PRINTING
     if (PRINT)
         std::cout << ")\n";
-    _args _ret;
+    _ret;
 
     _ins(12, jump) _S(offset) _f(time) _args /* OK */
         cont->time

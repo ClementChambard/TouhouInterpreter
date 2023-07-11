@@ -39,7 +39,7 @@ public:
         int hyper = 0;
         int graze_recent = 0;
         int hyperdying = 0;
-        int achievement_mode = 0;
+        int achievement_mode = -1;
 
         int32_t HIGH_SCORE = 0;
         int32_t __field_4 = 0;

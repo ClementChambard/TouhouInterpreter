@@ -548,7 +548,7 @@ int32_t& Enemy::checkVarRI(int32_t id) {
     if (id == -9923)
         return EnemyManager::GetInstance()->data.ecl_int_vars[3];
     if (id >= 0)
-        return VAR(id / 4).asInt;
+        return VAR(id / 4).asInt; // Error: user will modify int variant but not float variant.
     return context.currentContext->int_vars[7];
 }
 
@@ -602,6 +602,6 @@ float& Enemy::checkVarRF(float id) {
     if (id == -9915.f)
         return EnemyManager::GetInstance()->data.ecl_float_vars[7];
     if (id >= 0)
-        return VAR((int)id / 4).asFloat;
+        return VAR((int)id / 4).asFloat; // Error: user will modify float variant but not int variant.
     return context.currentContext->float_vars[7];
 }
