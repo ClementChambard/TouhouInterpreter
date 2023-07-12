@@ -43,8 +43,8 @@ void App::on_create() {
       glm::vec3(0.f, -224.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
   cam->setMatStatic(perspS * viewMatrixS);
 
-  GLOBALS.inner.CHARACTER = 1;
-  GLOBALS.inner.SHOTTYPE = 2;
+  GLOBALS.inner.CHARACTER = 0;
+  GLOBALS.inner.SHOTTYPE = 0;
   GLOBALS.inner.CURRENT_POWER = 450;
   GLOBALS.inner.DIFFICULTY = 3;
   GLOBALS.inner.SPELL_ID = -1;

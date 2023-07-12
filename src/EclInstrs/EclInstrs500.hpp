@@ -63,12 +63,20 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.life.curx7 = hp * 7;
 
     _ins(512, setBoss) _S(a) _args
-    if (a < 0)
-        EnemyManager::GetInstance()->boss_ids[0] = 0;
-    if (a >= 0)
-        EnemyManager::GetInstance()->boss_ids[a] = enemyId;
+    ENEMY_MANAGER_PTR->flags &= 0xfffffffe;
+    if (a < 0) {
+      if (enemy.flags & 0x800000) {
+        ENEMY_MANAGER_PTR->boss_ids[enemy.ownBossId] = 0;
+      }
+      enemy.flags &= 0xff7fffff;
+    } else {
+      enemy.flags |= 0x800000;
+      ENEMY_MANAGER_PTR->boss_ids[a] = enemyId;
+      enemy.ownBossId = a;
+    }
 
-    _ins(513, timerReset) _args _notImpl;
+    _ins(513, timerReset) _args
+    enemy.timeInEcl = 0;
 
     _ins(514, setInterrupt) _S(slot) _S(hp) _S(t) _z(sub) _args
     enemy.interrupts[slot].life = hp;
@@ -99,6 +107,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     Spellcard::GetInstance()
         ->Init(i, t, ty, name);
     enemy.life.isSpell = 1;
+    enemy.life.curx7 = enemy.life.current * 7;
 
     _ins(523, spellEnd) _args
     Spellcard::GetInstance()->Stop();
@@ -152,18 +161,21 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
             t, ty, name);
     enemy.life.isSpell = 1;
+    enemy.life.curx7 = enemy.life.current * 7;
 
     _ins(538, spell2) _S(i) _S(t) _S(ty) _z(name) _args
     i -= 1;
     Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
             t, ty, name);
     enemy.life.isSpell = 1;
+    enemy.life.curx7 = enemy.life.current * 7;
 
     _ins(539, spell3) _S(i) _S(t) _S(ty) _z(name) _args
     i -= 2;
     Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
             t, ty, name);
     enemy.life.isSpell = 1;
+    enemy.life.curx7 = enemy.life.current * 7;
 
     _ins(540, stars) _S(n) _args
         GUI_PTR->stars_nb = n;

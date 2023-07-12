@@ -3,23 +3,24 @@
 #include "./AsciiManager.hpp"
 #include "./EnemyManager.h"
 #include "./GlobalData.h"
-#include "./Player.h"
 #include "./Hardcoded.h"
+#include "./Player.h"
 #include "./Spellcard.h"
 
 Gui *GUI_PTR = nullptr;
 
 Gui::Gui() {
   GUI_PTR = this;
-  on_tick = new UpdateFunc([this](){ return this->f_on_tick(); });
+  on_tick = new UpdateFunc([this]() { return this->f_on_tick(); });
   UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 10);
-  on_draw_49 = new UpdateFunc([this](){ return this->f_on_draw(); });
+  on_draw_49 = new UpdateFunc([this]() { return this->f_on_draw(); });
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_49, 49);
-  on_draw_52 = new UpdateFunc([](){ return 1; });
+  on_draw_52 = new UpdateFunc([]() { return 1; });
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_52, 52);
   front_anm = AnmManager::LoadFile(5, "front.anm");
-  std::string stage_logo_filename = STAGE_DATA_TABLE
-    [GLOBALS.inner.STAGE_NUM]["stage_logo_anm_filename"].asString();
+  std::string stage_logo_filename =
+      STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["stage_logo_anm_filename"]
+          .asString();
   stage_logo_anmloaded = AnmManager::LoadFile(6, stage_logo_filename);
   FUN_0042a400();
 }
@@ -254,8 +255,7 @@ int Gui::f_on_tick() {
               math::angle_normalize(bbvm->rotation.z);
               bbvm->entity_pos =
                   boss->getData()->final_pos.pos * 2.f +
-                  glm::vec3(math::lengthdir_vec(112.f, -PI1_2 - pc * PI2)
-                            , 0.f);
+                  glm::vec3(math::lengthdir_vec(112.f, -PI1_2 - pc * PI2), 0.f);
             }
           }
           if (!boss_bars[bbid].vms_hidden_by_player) {
@@ -322,29 +322,7 @@ int Gui::f_on_tick() {
   if (boss0 && (~(boss0->getData()->flags >> 5) & 1) &&
       (~boss0->getData()->flags & 1)) {
     vmBossMarker->set_flag_1_rec();
-    if (!(SPELLCARD_PTR->flags & 1)) {
-      if ((some_flags_1a4 & 6) == 0) {
-        if (boss0->getData()->life.curAtk < 700) {
-          vmBossMarker->interrupt(7);
-          some_flags_1a4 |= 2;
-        }
-      } else if ((some_flags_1a4 & 6) == 2) {
-        if (boss0->getData()->life.curAtk < 400) {
-          vmBossMarker->interrupt(8);
-          some_flags_1a4 = (some_flags_1a4 & 0xfffffffd) | 4;
-        }
-      } else if ((some_flags_1a4 & 6) == 4) {
-        if (boss0->getData()->life.curAtk < 200) {
-          vmBossMarker->interrupt(9);
-          some_flags_1a4 |= 6;
-        }
-      } else if ((some_flags_1a4 & 6) == 6) {
-        if (boss0->getData()->life.curAtk > 200) {
-          vmBossMarker->interrupt(10);
-          some_flags_1a4 &= 0xfffffff9;
-        }
-      }
-    } else {
+    if (SPELLCARD_PTR->flags & 1) {
       if ((some_flags_1a4 & 6) == 0) {
         if (boss0->getData()->life.curAtk < 2000) {
           vmBossMarker->interrupt(7);
@@ -366,15 +344,37 @@ int Gui::f_on_tick() {
           some_flags_1a4 &= 0xfffffff9;
         }
       }
+    } else {
+      if ((some_flags_1a4 & 6) == 0) {
+        if (boss0->getData()->life.curAtk < 700) {
+          vmBossMarker->interrupt(7);
+          some_flags_1a4 |= 2;
+        }
+      } else if ((some_flags_1a4 & 6) == 2) {
+        if (boss0->getData()->life.curAtk < 400) {
+          vmBossMarker->interrupt(8);
+          some_flags_1a4 = (some_flags_1a4 & 0xfffffffd) | 4;
+        }
+      } else if ((some_flags_1a4 & 6) == 4) {
+        if (boss0->getData()->life.curAtk < 200) {
+          vmBossMarker->interrupt(9);
+          some_flags_1a4 |= 6;
+        }
+      } else if ((some_flags_1a4 & 6) == 6) {
+        if (boss0->getData()->life.curAtk > 200) {
+          vmBossMarker->interrupt(10);
+          some_flags_1a4 &= 0xfffffff9;
+        }
+      }
     }
     vmBossMarker->entity_pos.y = 960.0;
     vmBossMarker->entity_pos.x =
         2 * (boss0->getData()->final_pos.pos.x + 32.0 + 192.0);
     vmBossMarker->color_1.a =
-        fmin(fmax(-abs(boss0->getData()->final_pos.pos.x - PLAYER_PTR->inner.pos.x) *
+        fmin(abs(boss0->getData()->final_pos.pos.x - PLAYER_PTR->inner.pos.x) *
                      191.0 / 64.0 +
-                 64+255,
-             0), 255);
+                 64,
+             255);
     if (abs(boss0->getData()->final_pos.pos.x) > 192.0) {
       vmBossMarker->color_1.a = 0;
     }
@@ -452,8 +452,7 @@ int Gui::f_on_draw() {
       ASCII_MANAGER_PTR->alignment_mode_h = 1;
       ASCII_MANAGER_PTR->alignment_mode_v = 1;
       int smthg = 0; // fmni(smth, 999);
-      ASCII_MANAGER_PTR->create_string_f({224.0, 144.0, 0.0}, "%3d.",
-                                         smthg);
+      ASCII_MANAGER_PTR->create_string_f({224.0, 144.0, 0.0}, "%3d.", smthg);
 
       ASCII_MANAGER_PTR->scale = {0.6, 0.6};
       ASCII_MANAGER_PTR->color = {0xff, 0xff, 0xff, pzVar7->color_1.a};
@@ -461,8 +460,7 @@ int Gui::f_on_draw() {
       ASCII_MANAGER_PTR->font_id = 4;
       ASCII_MANAGER_PTR->alignment_mode_h = 1;
       ASCII_MANAGER_PTR->alignment_mode_v = 1;
-      ASCII_MANAGER_PTR->create_string_f(
-          {268.0, 150.0, 0.0}, "%.2ds", smthg);
+      ASCII_MANAGER_PTR->create_string_f({268.0, 150.0, 0.0}, "%.2ds", smthg);
       //     ((SPELLCARD_PTR->field32_0x90 % 0x3c) * 100) / 60);
 
       // iVar10 = (SPELLCARD_PTR->field38_0xa8 % 100 + 67) % 100;
@@ -527,7 +525,7 @@ int Gui::f_on_draw() {
   ASCII_MANAGER_PTR->create_string_f({576.0 - local_58, 120.0, 0.0}, "%3d", 0);
   ASCII_MANAGER_PTR->create_string_f({597.0 - local_58, 120.0, 0.0}, "/%d",
                                      /*(&ITEM_ANM_SCRIPT_IDS[17].id_1)[*/
-                                     3/*GLOBALS.inner.lifepiece_related ]*/);
+                                     3 /*GLOBALS.inner.lifepiece_related ]*/);
   //} else {
   // ASCII_MANAGER_PTR->create_string_f({576.0 - local_58, 120.0, 0.0},
   //"---/---");
@@ -572,7 +570,7 @@ int Gui::f_on_draw() {
   ASCII_MANAGER_PTR->alignment_mode_v = 1;
   ASCII_MANAGER_PTR->create_string_f({574.0, 182.0, 0.0}, "/%d.",
                                      GLOBALS.inner.MAXIMUM_POWER /
-                                     GLOBALS.inner.POWER_PER_LEVEL);
+                                         GLOBALS.inner.POWER_PER_LEVEL);
 
   ASCII_MANAGER_PTR->scale = {0.6, 0.6};
   ASCII_MANAGER_PTR->color = {0xff, 0x80, 0, vm->color_1.a};
@@ -608,7 +606,7 @@ int Gui::f_on_draw() {
   if (!ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]))
     return 1;
   if (ENEMY_MANAGER_PTR->flags & 1)
-     return 1;
+    return 1;
   // if (msg)
   //   return 1;
   // if (GAME_THREAD_PTR->flags & 0x10000U)
@@ -739,23 +737,23 @@ void Gui::FUN_0042a400() {
 
   if (!life_meter_vms[0]) {
     for (int i = 0; i < 8; i++) {
-      life_meter_anmids[i] = AnmManager::SpawnVM(
-        front_anm->getSlot(), i + 0x1e, 1, 0);
+      life_meter_anmids[i] =
+          AnmManager::SpawnVM(front_anm->getSlot(), i + 0x1e, 1, 0);
       life_meter_vms[i] = AnmManager::getVM(life_meter_anmids[i]);
       life_meter_vms[i]->bitflags.originMode = 0;
     }
 
     for (int i = 0; i < 8; i++) {
-      bomb_meter_anmids[i] = AnmManager::SpawnVM(
-        front_anm->getSlot(), i + 0x26, 1, 0);
+      bomb_meter_anmids[i] =
+          AnmManager::SpawnVM(front_anm->getSlot(), i + 0x26, 1, 0);
       bomb_meter_vms[i] = AnmManager::getVM(bomb_meter_anmids[i]);
       bomb_meter_vms[i]->bitflags.originMode = 0;
     }
 
-    timer_digit_hi_anmid = AnmManager::SpawnVM(
-      ASCII_MANAGER_PTR->ascii_anm->getSlot(), 2, 0, 0);
-    timer_digit_lo_anmid = AnmManager::SpawnVM(
-      ASCII_MANAGER_PTR->ascii_anm->getSlot(), 3, 0, 0);
+    timer_digit_hi_anmid =
+        AnmManager::SpawnVM(ASCII_MANAGER_PTR->ascii_anm->getSlot(), 2, 0, 0);
+    timer_digit_lo_anmid =
+        AnmManager::SpawnVM(ASCII_MANAGER_PTR->ascii_anm->getSlot(), 3, 0, 0);
     vm_timer_digit_hi = AnmManager::getVM(timer_digit_hi_anmid);
     vm_timer_digit_lo = AnmManager::getVM(timer_digit_lo_anmid);
     vm_timer_digit_hi->update();
@@ -767,9 +765,9 @@ void Gui::FUN_0042a400() {
   }
 
   set_life_meter(GLOBALS.inner.CURRENT_LIVES,
-          GLOBALS.inner.CURRENT_LIFE_PIECES);
+                 GLOBALS.inner.CURRENT_LIFE_PIECES);
   set_bomb_meter(GLOBALS.inner.CURRENT_BOMBS,
-          GLOBALS.inner.CURRENT_BOMB_PIECES);
+                 GLOBALS.inner.CURRENT_BOMB_PIECES);
 
   if ((/*(SUPERVISOR.gamemode_to_switch_to != 8) &&*/
        ((GLOBALS.FLAGS & 0x40) == 0)) &&
@@ -785,34 +783,34 @@ void Gui::FUN_0042a400() {
   }
 
   if (boss_marker_anmid.val == 0) {
-    boss_marker_anmid = AnmManager::SpawnVM(
-      front_anm->getSlot(), 0x70, 0, 0);
+    boss_marker_anmid = AnmManager::SpawnVM(front_anm->getSlot(), 0x70, 0, 0);
     AnmManager::getVM(boss_marker_anmid)->update();
     AnmManager::getVM(boss_marker_anmid)->bitflags.originMode = 0;
   }
 
   // Item get border line
   if (GLOBALS.inner.STAGE_NUM == 1 &&
-       /* GAME_THREAD_PTR->field18_0xa8 == 0 && */
+      /* GAME_THREAD_PTR->field18_0xa8 == 0 && */
       GLOBALS.inner.CONTINUES_USED == 0) {
     auto vm = AnmManager::getVM(
-      AnmManager::SpawnVM(front_anm->getSlot(), 0x45, 0, 0));
+        AnmManager::SpawnVM(front_anm->getSlot(), 0x45, 0, 0));
     if (vm)
       vm->entity_pos.y = (GLOBALS.inner.CHARACTER == 1) ? 0x94 : 0x80;
   }
 
   // if (SUPERVISOR.field61_0x700) {
-    difficuty_screen_anmid = AnmManager::SpawnVM(front_anm->getSlot(),
-                            GLOBALS.inner.DIFFICULTY + 0x51, 0, 0);
-    AnmManager::getVM(difficuty_screen_anmid)->update();
-    AnmManager::getVM(difficuty_screen_anmid)->bitflags.originMode = 0;
-    AnmManager::interrupt_tree(difficuty_screen_anmid, 3);
+  difficuty_screen_anmid = AnmManager::SpawnVM(
+      front_anm->getSlot(), GLOBALS.inner.DIFFICULTY + 0x51, 0, 0);
+  AnmManager::getVM(difficuty_screen_anmid)->update();
+  AnmManager::getVM(difficuty_screen_anmid)->bitflags.originMode = 0;
+  AnmManager::interrupt_tree(difficuty_screen_anmid, 3);
   // }
 
-  difficuty_side_anmid = AnmManager::SpawnVM(front_anm->getSlot(),
-                            GLOBALS.inner.DIFFICULTY + 0x57, 0, 0);
+  difficuty_side_anmid = AnmManager::SpawnVM(
+      front_anm->getSlot(), GLOBALS.inner.DIFFICULTY + 0x57, 0, 0);
   AnmManager::getVM(difficuty_side_anmid)->bitflags.originMode = 0;
-  player_shottype_anmid = AnmManager::SpawnVM(front_anm->getSlot(),
+  player_shottype_anmid = AnmManager::SpawnVM(
+      front_anm->getSlot(),
       GLOBALS.inner.SHOTTYPE + GLOBALS.inner.CHARACTER * 3 + 0x71, 0, 0);
   AnmManager::getVM(player_shottype_anmid)->bitflags.originMode = 0;
   boss_bars[0].vms_created = 0;

@@ -182,6 +182,32 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb) {
         draw_set_color(c_white);
         return;
     }
+    
+    if (bitflags.rendermode < 4) {
+        glm::vec4 corners[] = {{}, {}, {}, {}};
+        write_sprite_corners_2d(corners);
+
+        if (bitflags.colmode == 1)
+            c1 = c2;
+        NSEngine::Color ctl = c1;
+        NSEngine::Color ctr = c1;
+        NSEngine::Color cbr = c1;
+        NSEngine::Color cbl = c1;
+        if (bitflags.colmode == 2)
+            ctr = cbr = c2;
+        if (bitflags.colmode == 3)
+            cbl = cbr = c2;
+
+        /* DRAW ON LAYER */
+        NSEngine::Vertex tl = { corners[0], ctl, { u1, v1 } };
+        NSEngine::Vertex tr = { corners[1], ctr, { u2, v1 } };
+        NSEngine::Vertex bl = { corners[2], cbl, { u1, v2 } };
+        NSEngine::Vertex br = { corners[3], cbr, { u2, v2 } };
+
+        sb->draw(s.texID, tl, tr, br, bl, bitflags.blendmode);
+        return;
+    }
+
     NSEngine::draw_set_blend(0);
 
     /* CALCULATE POSITION VECTORS */

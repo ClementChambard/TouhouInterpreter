@@ -7,6 +7,7 @@
 #include "./ItemManager.h"
 #include "./Player.h"
 #include "./Spellcard.h"
+#include "./Gui.hpp"
 #include <DrawFuncs.h>
 #include <math/Random.h>
 #include <NSEngine.h>
@@ -337,37 +338,35 @@ int EnemyData::step_game_logic() {
     for (int i = 0; i < 8; i++) {
         if (interrupts[i].life >= 0 && interrupts[i].time > 0) {
             if (flags & 0x800000) {
-                // GUI_PTR->remaining_spell_time_seconds =
-                //   (interrupts[i].time - time_in_ecl) / 0x3c;
-                // GUI_PTR->remaining_spell_time_centiseconds =
-                //   (((interrupts[i].time - time_in_ecl) % 0x3c) * 100) / 0x3c;
-                // if (GUI_PTR->remaining_spell_time_seconds > 99) {
-                //   GUI_PTR->remaining_spell_time_seconds = 99;
-                //   GUI_PTR->remaining_spell_time_centiseconds = 99;
-                // }
+                GUI_PTR->remaining_spell_time_seconds =
+                  (interrupts[i].time - timeInEcl) / 0x3c;
+                GUI_PTR->remaining_spell_time_centiseconds =
+                  (((interrupts[i].time - timeInEcl) % 0x3c) * 100) / 0x3c;
+                if (GUI_PTR->remaining_spell_time_seconds > 99) {
+                  GUI_PTR->remaining_spell_time_seconds = 99;
+                  GUI_PTR->remaining_spell_time_centiseconds = 99;
+                }
             }
             if (interrupts[i].time <= timeInEcl) {
                 life.current = interrupts[i].life;
                 interrupts[i].life = -1;
                 timeInEcl = 0;
                 flags |= 0x1000000;
-                // if ((SPELLCARD_PTR->flags & 8) == 0) {
-                //     SPELLCARD_PTR->flags |= 0x80;
-                //     if (SPELLCARD_PTR->flags & 1) {
-                //         if (SPELLCARD_PTR->_timer_20 >= 60) {
-                //             SPELLCARD_PTR->bonus = 0;
-                //             SPELLCARD_PTR->flags &= 0xffffffdd;
-                //         }
-                //         else if (BOMB_PTR->active == 1) {
-                //             SPELLCARD_PTR->flags |= 0x20;
-                //         }
-                //     }
-                //     ENEMY_MANAGER_PTR->can_still_capture_spell = 0;
-                // }
-                // else if ((SPELLCARD_PTR->flags & 9) == 9) {
-                //     flags &= 0xfeffffff;
-                //     GLOBALS.inner.field32_0x80 += __bool_cleared_by_ecl_570;
-                // }
+                if (!(SPELLCARD_PTR->flags & 8)) {
+                    SPELLCARD_PTR->flags |= 0x80;
+                    if (SPELLCARD_PTR->flags & 1) {
+                        if (SPELLCARD_PTR->__timer_20 >= 60) {
+                            SPELLCARD_PTR->bonus = 0;
+                            SPELLCARD_PTR->flags &= 0xffffffdd;
+                        } /* else if (BOMB_PTR->active == 1) {
+                            SPELLCARD_PTR->flags |= 0x20;
+                        } */
+                    }
+                    ENEMY_MANAGER_PTR->can_still_capture_spell = 0;
+                } else if ((SPELLCARD_PTR->flags & 9) == 9) {
+                    flags &= 0xfeffffff;
+                    // GLOBALS.inner.field32_0x80 += __bool_cleared_by_ecl_570;
+                }
                 __bool_cleared_by_ecl_570 = 0;
 
                 if (interrupts[i].subTimeout != "") {
@@ -426,9 +425,9 @@ int EnemyData::step_game_logic() {
         // }
 
         if (totalDamage != 0) {
-            // if ((SPELLCARD_PTR->flags & 0x21) == 0x21) {
-            // totalDamage /= 0x1e;
-            //}
+            if ((SPELLCARD_PTR->flags & 0x21) == 0x21) {
+                totalDamage /= 0x1e;
+            }
 
             if (!(flags & 0x10) && invFrame <= 0) {
                 life.totalDmgIncIgn += totalDamage;
@@ -539,13 +538,13 @@ int EnemyData::step_game_logic() {
 
     if (!(flags & 0x200000) || (flags & 0x2000)) {
         if (abs(timeInEcl) % 4 == 0) {
-            if ((flags & 0x40800000) /*&& (SPELLCARD_PTR->flags & 9) != 9*/) {
-                // if (!(SPELLCARD_PTR->flags & 1)) {
-                if (life.curAtk >= 500)
+            if ((flags & 0x40800000) && (SPELLCARD_PTR->flags & 9) != 9) {
+                if (!(SPELLCARD_PTR->flags & 1)) {
+                    if (life.curAtk >= 500)
+                        return 0;
+                } else if (life.curAtk >= 100) {
                     return 0;
-                //}
-                else if (life.curAtk >= 100)
-                    return 0;
+                }
                 vm0->color_2 = { 0, 0, 255, 255 };
                 vm0->bitflags.colmode = 0b01;
             }
@@ -562,14 +561,14 @@ int EnemyData::step_game_logic() {
     // hit sound
     if (hitSnd >= 0) {
         // SoundManager::play_sound_at_position(hitSnd);
-    } else if ((flags & 0x408000000) /*&& (SPELLCARD_PTR->flags & 9) != 9*/) {
-        // if (!(SPELLCARD_PTR->flags & 1)) {
-        if (life.curAtk < 900) {
-            // SoundManager::play_sound_at_position(0x23);
-        }
-        // } else if (life.curAtk < 200) {
+    } else if ((flags & 0x408000000) && (SPELLCARD_PTR->flags & 9) != 9) {
+        if (!(SPELLCARD_PTR->flags & 1)) {
+            if (life.curAtk < 900) {
+                // SoundManager::play_sound_at_position(0x23);
+            }
+        } else if (life.curAtk < 200) {
         //     SoundManager::play_sound_at_position(0x23);
-        // }
+        }
     } else {
         // SoundManager::play_sound_at_position(0x22);
     }
