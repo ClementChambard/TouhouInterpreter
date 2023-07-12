@@ -8,8 +8,9 @@
 #include "./Player.h"
 #include "./Spellcard.h"
 #include "./StdOpener/StdFile.h"
-#include "AsciiManager.hpp"
-#include "AsciiPopupManager.hpp"
+#include "./AsciiManager.hpp"
+#include "./AsciiPopupManager.hpp"
+#include "./Gui.hpp"
 #include <NSEngine.h>
 
 void App::on_create() {
@@ -42,8 +43,8 @@ void App::on_create() {
       glm::vec3(0.f, -224.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
   cam->setMatStatic(perspS * viewMatrixS);
 
-  GLOBALS.inner.CHARACTER = 0;
-  GLOBALS.inner.SHOTTYPE = 0;
+  GLOBALS.inner.CHARACTER = 1;
+  GLOBALS.inner.SHOTTYPE = 2;
   GLOBALS.inner.CURRENT_POWER = 450;
   GLOBALS.inner.DIFFICULTY = 3;
   GLOBALS.inner.SPELL_ID = -1;
@@ -51,10 +52,15 @@ void App::on_create() {
   bm = BulletManager::GetInstance();
   em = EnemyManager::GetInstance();
 
+  if (strlen(m_argv[1]) > 3 && m_argv[1][3] >= '0' && m_argv[1][3] < '8')
+      GLOBALS.inner.STAGE_NUM = m_argv[1][3] - '0';
+
   new Player();
   new ItemManager();
   new AsciiManager();
   new AsciiPopupManager();
+  new Gui();
+  new Spellcard();
   em->Start(m_argv[1], m_argc > 2 ? m_argv[2] : "main");
   if (TOUHOU_VERSION == 17)
     new GoastManager();
@@ -97,10 +103,6 @@ void App::on_render() {
     EclFileManager::GetInstance()->stdf->Draw();
   UPDATE_FUNC_REGISTRY->run_all_on_draw();
   AnmManager::draw();
-  ASCII_MANAGER_PTR->font_id = 2;
-  ASCII_MANAGER_PTR->group = 2;
-  ASCII_MANAGER_PTR->create_string_f({360, 35, 0}, "%.2d/99+", 70);
-  ASCII_MANAGER_PTR->create_string({282, 35, 0}, "$");
   ASCII_MANAGER_PTR->render_group(0);
   ASCII_MANAGER_PTR->render_group(1);
   ASCII_MANAGER_PTR->render_group(2);

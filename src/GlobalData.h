@@ -21,9 +21,9 @@ struct GlobalsInner_t {
     int32_t MISS_COUNT_GLOBAL = 0;
     int32_t CONTINUES_USED2 = 0;
     int32_t NUM_POINT_ITEMS_COLLECTED = 0;
-    int32_t CURRENT_PIV = 0;
-    int32_t MINIMUM_PIV = 0;
-    int32_t MAXIMUM_PIV = 0;
+    int32_t CURRENT_PIV = 1000000;
+    int32_t MINIMUM_PIV = 1000000;
+    int32_t MAXIMUM_PIV = 99999999;
     int32_t CURRENT_POWER = 0;
     int32_t MAXIMUM_POWER = 0;
     int32_t POWER_PER_LEVEL = 0;

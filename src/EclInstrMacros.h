@@ -174,11 +174,11 @@
 
 #define INT_ NSEngine::InterpolateManager::Interpolate
 
-#define isBoss_ (EnemyManager::GetInstance()->data.boss_ids[0] > 0 &&          \
+#define isBoss_ (EnemyManager::GetInstance()->boss_ids[0] > 0 &&          \
                  EnemyManager::GetInstance()->                                 \
-                     EnmFind(EnemyManager::GetInstance()->data.boss_ids[0]))
+                     EnmFind(EnemyManager::GetInstance()->boss_ids[0]))
 
 #define BOSS_ EnemyManager::GetInstance()->                                    \
-                EnmFind(EnemyManager::GetInstance()->data.boss_ids[0])         \
+                EnmFind(EnemyManager::GetInstance()->boss_ids[0])         \
 
 #endif // ECLINSTRMACROS_H_

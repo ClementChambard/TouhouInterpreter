@@ -28,11 +28,6 @@ void EclFileManager::LoadEcl(std::string file) {
     std::cout << "DONE     loaded " << loaded_subs.size()
         << " subs in " << loaded_files.size() << " file\n";
 
-    std::string logoFile = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]
-        ["stage_logo_anm_filename"].asString();
-    if (file_exists(logoFile))
-        AnmManager::LoadFile(6, logoFile);
-
     ENEMY_MANAGER_PTR->loadedAnms[0] = BulletManager::GetInstance()->bullet_anm;
     ENEMY_MANAGER_PTR->loadedAnms[1] = AnmManager::getLoaded(8);
 

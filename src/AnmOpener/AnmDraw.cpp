@@ -5,9 +5,7 @@
 #include <NSEngine.h>
 #include <glm/gtx/euler_angles.hpp>
 
-void AnmVM::draw(NSEngine::SpriteBatch* sb)
-{
-
+void AnmVM::draw(NSEngine::SpriteBatch* sb) {
     if (index_of_on_draw)
         ANM_ON_DRAW_FUNCS[index_of_on_draw](this);
 
@@ -45,15 +43,17 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
     if (!sb)
         sb = NSEngine::getLayer(layer);
     auto p = pos + __pos_2;
+    auto s_ent_pos = entity_pos;
     NSEngine::draw_set_blend(bitflags.blendmode);
     // if (layer == 5) { p += glm::vec3(0,-192,0); }
     if (bitflags.resolutionMode == 2) {
         p /= 2;
+        s_ent_pos /= 2;
         XS /= 2;
         YS /= 2;
     }
     if (bitflags.originMode == 0) {
-        p += glm::vec3(-224, 16, 0);
+        p += glm::vec3(-224, -16, 0);
     }
     // if (!(bitflags_hi & ANMVM_BIT_534_8)) { psx *=2; psy *=2; }
     /* MODE 16 : RECTANGLE      MODE 20 : RECTANGLE GRADIENT      MODE 27 : RECTANGLE BORDER*/
@@ -135,20 +135,22 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
 
     /* MODE 9,13,24 : ARCS */
     if (bitflags.rendermode == 9 || bitflags.rendermode == 13 || bitflags.rendermode == 14) {
-        float r1 = scale.y - scale.x / 2.f;
-        float r2 = scale.y + scale.x / 2.f;
+        float r1 = YS - XS / 2.f;
+        float r2 = YS + XS / 2.f;
         float angleStart = -rotation.z, angleEnd = angleStart + PI2;
         if (bitflags.rendermode == 13) {
             angleStart = -rotation.z - rotation.x / 2.f;
             angleEnd = -rotation.z + rotation.x / 2.f;
         } else if (bitflags.rendermode == 14) {
-            angleEnd = angleStart + rotation.x;
+            angleEnd = angleStart - rotation.x;
         }
         NSEngine::draw_circle_set_vertex_count(int_script_vars[0]);
         draw_set_color(c1);
         // math::angle_normalize(angleStart);
         // math::angle_normalize(angleEnd);
-        batch_draw_circle_arc_textured(sb, p.x * psx + px, -p.y * psy + py, r1, r2, angleStart, angleEnd, s.texID, u1, u2, int_script_vars[1]);
+        p.x = p.x * psx + s_ent_pos.x;
+        p.y = p.y * psy + s_ent_pos.y;
+        batch_draw_circle_arc_textured(sb, p.x + px, -p.y + py, r1, r2, angleStart, angleEnd, s.texID, u1, u2, int_script_vars[1]);
         draw_set_color(c_white);
         return;
     }
@@ -190,7 +192,7 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb)
     pos4.y *= -psy;
 
     glm::mat4 rotate;
-    pos4 = glm::vec4(pos4.x + px + entity_pos.x, pos4.y + py - entity_pos.y, pos4.z + pz + entity_pos.z, 0);
+    pos4 = glm::vec4(pos4.x + px + s_ent_pos.x, pos4.y + py - s_ent_pos.y, pos4.z + pz + s_ent_pos.z, 0);
 
     if (bitflags.rendermode < 4) {
         pos4.z = 0;

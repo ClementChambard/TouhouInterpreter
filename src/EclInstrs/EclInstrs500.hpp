@@ -7,6 +7,7 @@
 #include "../EnemyManager.h"
 #include "../GlobalData.h"
 #include "../Laser/LaserManager.h"
+#include "../Gui.hpp"
 #include "../Spellcard.h"
 #include <math/Random.h>
 #define PRINT false
@@ -63,9 +64,9 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(512, setBoss) _S(a) _args
     if (a < 0)
-        EnemyManager::GetInstance()->data.boss_ids[0] = 0;
+        EnemyManager::GetInstance()->boss_ids[0] = 0;
     if (a >= 0)
-        EnemyManager::GetInstance()->data.boss_ids[a] = enemyId;
+        EnemyManager::GetInstance()->boss_ids[a] = enemyId;
 
     _ins(513, timerReset) _args _notImpl;
 
@@ -111,7 +112,9 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(526, etProtectRange) _f(r) _args
     enemy.etProtRange = r * r;
 
-    _ins(527, lifeMarker) _S(slot) _f(hp) _S(col) _args _notImpl;
+    _ins(527, lifeMarker) _S(slot) _f(hp) _S(col) _args
+    GUI_PTR->boss_bars[0].markers[slot*2] = hp/enemy.life.max;
+    GUI_PTR->boss_bars[0].markers[slot*2+1] = col;
 
     _ins(528, spellUnused) _S(i) _S(t) _S(ty) _z(name) _args _notImpl;
 
@@ -162,7 +165,8 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
             t, ty, name);
     enemy.life.isSpell = 1;
 
-    _ins(540, stars) _S(n) _args _notImpl
+    _ins(540, stars) _S(n) _args
+        GUI_PTR->stars_nb = n;
 
     _ins(541, noHbDur) _S(t) _args
     enemy.noHbFrame = t;
@@ -220,7 +224,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.abs_pos.flags = state;
 
     _ins(559, enmLimit) _S(n) _args
-    EnemyManager::GetInstance()->data.enemy_limit = n;
+    EnemyManager::GetInstance()->enemy_limit = n;
 
     _ins(560, unknown560) _f(r) _f(s) _args
     BulletManager::GetInstance()->set_bounce_rect(r, s);

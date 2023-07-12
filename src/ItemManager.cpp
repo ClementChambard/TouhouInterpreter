@@ -6,6 +6,7 @@
 #include "./Input.h"
 #include "./Player.h"
 #include "./AsciiPopupManager.hpp"
+#include "Gui.hpp"
 #include <math/Random.h>
 
 ItemManager* ITEM_MANAGER_PTR = nullptr;
@@ -108,32 +109,30 @@ void collect_point_item(Item* item) {
     poc = 0x94;
   }
   if ((PLAYER_PTR->inner.pos.y <= poc) || (item->state == 3)) {
-    // iVar4 = ((GLOBALS.inner.CURRENT_PIV / 100 -
-        // (GLOBALS.inner.CURRENT_PIV / 100) % 10) / 10) * 10;
-    // if (iVar4 < 1) {
-    //   iVar4 = 10;
-    // }
-    int val = 10000;
+    int val = ((GLOBALS.inner.CURRENT_PIV / 100 -
+        (GLOBALS.inner.CURRENT_PIV / 100) % 10) / 10) * 10;
+    if (val < 1) {
+      val = 10;
+    }
     POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
                                                   {255, 255, 0, 255});
     GLOBALS.inner.CURRENT_SCORE += val / 10;
   } else {
-    // iVar3 = GLOBALS.inner.CURRENT_PIV / 100;
-    // iVar2 = (iVar3 % 10 - iVar3) * 3;
-    // iVar3 = (iVar3 - iVar3 % 10) * 3;
-    // iVar4 = (((((int)((iVar2 >> 0x1f & 3U) + iVar2) >> 2) *
-        // (PLAYER_PTR->inner.pos.y - poc)) / 0x1c2 +
-    //          ((int)(iVar3 + (iVar3 >> 0x1f & 3U)) >> 2)) / 10) * 10;
-    // if (iVar4 < 1) {
-    //   iVar4 = 10;
-    // }
-    int val = 9870;
+    int piv = GLOBALS.inner.CURRENT_PIV;
+    int val = (((((int)(((((piv / 100) % 10 - (piv / 100)) * 3) >> 0x1f & 3U)
+        + (((piv / 100) % 10 - (piv / 100)) * 3)) >> 2) *
+         (PLAYER_PTR->inner.pos.y - poc)) / 0x1c2 +
+            ((int)((((piv / 100) - (piv / 100) % 10) * 3) + ((((piv / 100) -
+            (piv / 100) % 10) * 3) >> 0x1f & 3U)) >> 2)) / 10) * 10;
+    if (val < 1) {
+      val = 10;
+    }
     POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
                                                   {255, 255, 255, 255});
     GLOBALS.inner.CURRENT_SCORE += val / 10;
   }
   GLOBALS.inner.CURRENT_SCORE = fmin(GLOBALS.inner.CURRENT_SCORE, 999999999);
-  // GLOBALS.inner.NUM_POINT_ITEMS_COLLECTED += 1;
+  GLOBALS.inner.NUM_POINT_ITEMS_COLLECTED++;
   return;
 }
 
@@ -142,7 +141,7 @@ void collect_p_item(Item* item) {
     GLOBALS.inner.CURRENT_POWER += 1;
     if (GLOBALS.inner.MAXIMUM_POWER < GLOBALS.inner.CURRENT_POWER) {
       GLOBALS.inner.CURRENT_POWER = GLOBALS.inner.MAXIMUM_POWER;
-      // Gui::sub_42f8a0_midScreenInfo(GUI_PTR,0,2);
+      GUI_PTR->midScreenInfo(0, 2);
     }
     if ((GLOBALS.inner.CURRENT_POWER + -1) / GLOBALS.inner.POWER_PER_LEVEL !=
         GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL) {
@@ -158,12 +157,11 @@ void collect_p_item(Item* item) {
       poc = 0x94;
     }
     if ((PLAYER_PTR->inner.pos.y <= poc) || (item->state == 3)) {
-      // int val = ((GLOBALS.inner.CURRENT_PIV / 100 -
-      //   (GLOBALS.inner.CURRENT_PIV / 100) % 10) / 10) * 10 ;
-      // if (val < 1) {
-      //   val = 10;
-      // }
-      int val = 10000;
+      int val = ((GLOBALS.inner.CURRENT_PIV / 100 -
+        (GLOBALS.inner.CURRENT_PIV / 100) % 10) / 10) * 10;
+      if (val < 1) {
+        val = 10;
+      }
       // POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
       //       {255, 255, 0, 255});
       POPUP_MANAGER_PTR->generate_small_score_popup(item->position, val,
@@ -414,7 +412,7 @@ int ItemManager::_on_tick() {
                                 GLOBALS.inner.CURRENT_POWER) {
                             GLOBALS.inner.CURRENT_POWER =
                                 GLOBALS.inner.MAXIMUM_POWER;
-                            // FUN_0042f8a0(0,2);
+                            GUI_PTR->midScreenInfo(0, 2);
                         }
                         if ((GLOBALS.inner.CURRENT_POWER -
                              GLOBALS.inner.POWER_PER_LEVEL) /
@@ -436,71 +434,73 @@ int ItemManager::_on_tick() {
                     break;
                 case 4:
                     // if (GLOBALS.inner.CURRENT_LIVES < 8) {
-                    // GLOBALS.inner.field26_0x68 += 1;
-                    // if (GLOBALS.inner.DIFFICULTY == 4) {
-                    // iVar7 =
-                    // *(int *)(&DAT_004a0d64 + GLOBALS.inner.field27_0x6c * 4);
-                    //}
-                    // else {
-                    // iVar7 =
-                    // (&ITEM_ANM_SCRIPT_IDS[0x11].id_1)[GLOBALS.inner.field27_0x6c];
-                    //}
-                    // while (iVar7 <= GLOBALS.inner.field26_0x68) {
-                    // GLOBALS.inner.field26_0x68 -= iVar7;
-                    // if (GLOBALS.inner.CURRENT_LIVES < 8) {
-                    // GLOBALS.inner.CURRENT_LIVES =
-                    // fmin(8, GLOBALS.inner.CURRENT_LIVES + 1);
-                    // FUN_0042fc60(GUI_PTR,GLOBALS.inner.CURRENT_LIVES,GLOBALS.inner.field26_0x68);
-                    // SoundManager::play_sound_centered(0x11);
-                    // FUN_0042f8a0(0,4);
-                    //}
-                    // GLOBALS.inner.field27_0x6c += 1;
-                    //}
-                    // FUN_0042fc60(GUI_PTR,GLOBALS.inner.CURRENT_LIVES,GLOBALS.inner.field26_0x68);
-                    //}
-                    // else {
-                    // FUN_00443700(GLOBALS.inner);
-                    // GLOBALS.inner.field26_0x68 = 0;
-                    //}
+                    //     GLOBALS.inner.CURRENT_LIFE_PIECES += 1;
+                    //     if (GLOBALS.inner.DIFFICULTY == 4) {
+                    //         iVar7 = *(int *)(&DAT_004a0d64 + GLOBALS.inner.lifepiece_related * 4);
+                    //     } else {
+                    //         iVar7 = (&ITEM_ANM_SCRIPT_IDS[0x11].id_1)[GLOBALS.lifepiece_related];
+                    //     }
+                    //     while (iVar7 <= GLOBALS.inner.CURRENT_LIFE_PIECES) {
+                    //         GLOBALS.inner.CURRENT_LIFE_PIECES -= iVar7;
+                    //         if (GLOBALS.inner.CURRENT_LIVES < 8) {
+                    //             GLOBALS.inner.CURRENT_LIVES =
+                    //             fmin(8, GLOBALS.inner.CURRENT_LIVES + 1);
+                    //             GUI_PTR->set_life_meter(GLOBALS.inner.CURRENT_LIVES,
+                    //                                 GLOBALS.inner.CURRENT_LIFE_PIECES);
+                    //             // SoundManager::play_sound_centered(0x11);
+                    //             GUI_PTR->midScreenInfo(0, 4);
+                    //         }
+                    //         GLOBALS.inner.field27_0x6c += 1;
+                    //     }
+                    //     GUI_PTR->set_life_meter(GLOBALS.inner.CURRENT_LIVES,
+                    //                         GLOBALS.inner.CURRENT_LIFE_PIECES);
+                    // } else {
+                    //     FUN_00443700(GLOBALS.inner);
+                    //     GLOBALS.inner.CURRENT_LIFE_PIECES = 0;
+                    // }
                     break;
                 case 5:
-                    // if (GLOBALS.inner.CURRENT_LIVES < 8) {
-                    // GLOBALS.inner.CURRENT_LIVES =
-                    // fmin(8, GLOBALS.inner.CURRENT_LIVES + 1);
-                    // FUN_0042fc60(GUI_PTR,GLOBALS.inner.CURRENT_LIVES,GLOBALS.inner.field26_0x68);
-                    // SoundManager::play_sound_centered(0x11);
-                    // FUN_0042f8a0(0,4);
-                    //}
+                    if (GLOBALS.inner.CURRENT_LIVES < 8) {
+                        GLOBALS.inner.CURRENT_LIVES =
+                          fmin(8, GLOBALS.inner.CURRENT_LIVES + 1);
+                        GUI_PTR->set_life_meter(GLOBALS.inner.CURRENT_LIVES,
+                                             GLOBALS.inner.CURRENT_LIFE_PIECES);
+                        // SoundManager::play_sound_centered(0x11);
+                        GUI_PTR->midScreenInfo(0, 4);
+                    }
                     break;
                 case 6:
                     // FUN_00443700(&GLOBALS.inner);
                     break;
                 case 7:
-                    // GLOBALS.inner.CURRENT_BOMBS += 1;
-                    // if (GLOBALS.inner.CURRENT_BOMBS < 9)
-                    //     SoundManager::play_sound_centered(0x2e);
-                    // else GLOBALS.inner.CURRENT_BOMBS = 8;
-                    // FUN_0042fd50(GUI_PTR,GLOBALS.inner.CURRENT_BOMBS,GLOBALS.inner.field29_0x74);
+                    GLOBALS.inner.CURRENT_BOMBS += 1;
+                    if (GLOBALS.inner.CURRENT_BOMBS < 9) {
+                        // SoundManager::play_sound_centered(0x2e);
+                    } else {
+                        GLOBALS.inner.CURRENT_BOMBS = 8;
+                    }
+                    GUI_PTR->set_bomb_meter(GLOBALS.inner.CURRENT_BOMBS,
+                                            GLOBALS.inner.CURRENT_BOMB_PIECES);
                     break;
                 case 8:
                     if (GLOBALS.inner.MAXIMUM_POWER <=
                         GLOBALS.inner.CURRENT_POWER) {
-                        // GLOBALS.inner.CURRENT_PIV =
-                        //     fmin(GLOBALS.inner.MAXIMUM_PIV,
-                        //          GLOBALS.inner.CURRENT_PIV + 10000);
+                        GLOBALS.inner.CURRENT_PIV =
+                            fmin(GLOBALS.inner.MAXIMUM_PIV,
+                                 GLOBALS.inner.CURRENT_PIV + 10000);
                         POPUP_MANAGER_PTR->generate_small_score_popup(
                                 item->position, 100, {64, 255, 64, 255});
                         // SoundManager::play_sound_at_position(0xd);
-                        // if (GLOBALS.inner.MAXIMUM_POWER <=
-                        //     GLOBALS.inner.CURRENT_POWER)
-                        break;
+                        if (GLOBALS.inner.MAXIMUM_POWER <=
+                            GLOBALS.inner.CURRENT_POWER)
+                            break;
                     }
                     GLOBALS.inner.CURRENT_POWER += GLOBALS.inner.MAXIMUM_POWER;
                     if (GLOBALS.inner.MAXIMUM_POWER <
                         GLOBALS.inner.CURRENT_POWER) {
                         GLOBALS.inner.CURRENT_POWER =
                         GLOBALS.inner.MAXIMUM_POWER;
-                        // FUN_0042f8a0(0,2);
+                        GUI_PTR->midScreenInfo(0, 2);
                     }
                     if ((GLOBALS.inner.CURRENT_POWER -
                          GLOBALS.inner.MAXIMUM_POWER) /
@@ -522,17 +522,17 @@ int ItemManager::_on_tick() {
                     break;
                     // GLOBALS.inner.CURRENT_PIV += (int)(*(float *)
                     // (&DAT_004a0d6c + item->item_type * 4) * 100.0);
-                    // if (GLOBALS.inner.MAXIMUM_PIV <
-                    //     GLOBALS.inner.CURRENT_PIV) {
-                    //     GLOBALS.inner.CURRENT_PIV =
-                    //     GLOBALS.inner.MAXIMUM_PIV;
-                    // }
-                    // GLOBALS.inner.CURRENT_SCORE +=
-                    //   (GLOBALS.inner.CURRENT_PIV / 100 -
-                    //   (GLOBALS.inner.CURRENT_PIV / 100) % 10) / 100;
-                    // if (999999999 < (uint)GLOBALS.inner.CURRENT_SCORE) {
-                    //     GLOBALS.inner.CURRENT_SCORE = 999999999;
-                    // }
+                    if (GLOBALS.inner.MAXIMUM_PIV <
+                        GLOBALS.inner.CURRENT_PIV) {
+                        GLOBALS.inner.CURRENT_PIV =
+                        GLOBALS.inner.MAXIMUM_PIV;
+                    }
+                    GLOBALS.inner.CURRENT_SCORE +=
+                      (GLOBALS.inner.CURRENT_PIV / 100 -
+                      (GLOBALS.inner.CURRENT_PIV / 100) % 10) / 100;
+                    if (999999999 < (uint)GLOBALS.inner.CURRENT_SCORE) {
+                        GLOBALS.inner.CURRENT_SCORE = 999999999;
+                    }
                 }
                 // SoundManager::play_sound_at_position(0x25);
                 item->state = 0;

@@ -18,9 +18,12 @@ struct BossBar {
 
 class Gui {
 public:
+  Gui();
+  ~Gui();
   void set_bomb_meter(int bombs, int bomb_pieces);
   void set_life_meter(int lives, int life_pieces);
   void midScreenInfo(int bonus, int type);
+  void FUN_0042a400();
 
   // undefined4
   UpdateFunc *on_tick = nullptr;
@@ -52,10 +55,10 @@ public:
   AnmID th15_chapter_end_anmid = 0;
   int32_t th15_chapter_graze = 0;
   float th15_chapter_kill_pc = 0;
-  // undefined4
-  // undefined4
+  float field_0x130 = 0;
+  int32_t field_0x134 = 0;
   int32_t th15_chapter_total_bonus = 0;
-  // undefined4
+  int32_t field_0x13c = 0;
   int32_t th15_chapter_retry_count = 0;
   int32_t field_0x144_spellcard_related = 0;
   AnmID frame_anmid = 0;

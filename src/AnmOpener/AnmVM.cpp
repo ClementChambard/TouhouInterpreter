@@ -218,6 +218,7 @@ int AnmVM::update(bool /*printInstr*/)
                 instr_offset = offset;
                 time_in_script = instime;
                 bitflags.visible = 1;
+                break;
             }
             offset += inslength;
         }
@@ -253,8 +254,13 @@ int AnmVM::update(bool /*printInstr*/)
                     inslength = *reinterpret_cast<uint16_t*>(&(instructions[instr_offset + 2]));
                     instime = *reinterpret_cast<int16_t*>(&(instructions[instr_offset + 4]));
                 }
-                if (instime <= time_in_script)
-                    exec_instruction(&(instructions[instr_offset]));
+                if (instime <= time_in_script) {
+                    int ret = exec_instruction(&(instructions[instr_offset]));
+                    if (ret == 1)
+                        return 0;
+                    if (ret == 2)
+                        return 0;
+                }
             }
             instr_offset += inslength;
             oldinstr = instr_offset;
@@ -647,7 +653,8 @@ int AnmVM::check_interrupt()
 }
 
 void AnmVM::clear_flag_1_rec() {
-    bitflags.f530_1 = 0;
+    // Should be flag 1, not 0
+    bitflags.visible = 0;
     for (auto node = list_of_children.next; node; node = node->next) {
         if (node->value)
             node->value->clear_flag_1_rec();
@@ -655,7 +662,8 @@ void AnmVM::clear_flag_1_rec() {
 }
 
 void AnmVM::set_flag_1_rec() {
-    bitflags.f530_1 = 1;
+    // Should be flag 1, not 0
+    bitflags.visible = 1;
     for (auto node = list_of_children.next; node; node = node->next) {
         if (node->value)
             node->value->set_flag_1_rec();

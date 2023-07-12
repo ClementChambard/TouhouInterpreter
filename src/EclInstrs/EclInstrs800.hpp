@@ -31,7 +31,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     // check this again just in case
     for (int i = 0; i < 4; i++) {
         auto e = EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->data.boss_ids[i]);
+            EnemyManager::GetInstance()->boss_ids[i]);
         if (e) e->enemy.interrupts[id].time = 1;
     }
 

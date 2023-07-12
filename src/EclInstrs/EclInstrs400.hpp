@@ -218,12 +218,12 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(414, moveBoss) _args
     auto e = EnemyManager::GetInstance()
-        ->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0]);
+        ->EnmFind(EnemyManager::GetInstance()->boss_ids[0]);
     if (e) enemy.abs_pos.pos = e->enemy.final_pos.pos;
 
     _ins(415, moveBossRel) _args
     auto e = EnemyManager::GetInstance()
-        ->EnmFind(EnemyManager::GetInstance()->data.boss_ids[0]);
+        ->EnmFind(EnemyManager::GetInstance()->boss_ids[0]);
     if (e) enemy.rel_pos.pos = e->enemy.final_pos.pos;
 
     _ins(416, movePos3d) _f(x) _f(y) _f(z) _args

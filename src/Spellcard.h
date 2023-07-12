@@ -2,7 +2,9 @@
 #define SPELLCARD_INCLUDED_H
 
 #include "./UpdateFuncRegistry.h"
+#include "AnmOpener/AnmVM.h"
 #include <string>
+#include <glm/glm.hpp>
 
 class Spellcard {
 public:
@@ -22,22 +24,28 @@ private:
     static constexpr int spellcard_anm_1 = 13;
     static constexpr int spellcard_anm_2 = 20;
 
-    int on_tick() {
-        update();
-        return 1;
-    }
-    int on_draw() {
-        return 1;
-    }
+    int on_tick();
+    int on_draw();
 
 public:
-    int spell_bg_anm_id = 0;
-    int flags = 0;
-
     UpdateFunc* f_on_tick;
     UpdateFunc* f_on_draw;
+    AnmID ascii_anmid_10 = 0;
+    AnmID text_anmid_14 = 0;
+    AnmID ascii_anmid_18 = 0;
+
+    int __timer_20 = 0;
+    int duration = 1;
+
+    int spell_bg_anm_id = 0;
+    int flags = 0;
+    int bonus = 0;
+    int bonus_max = 0;
+    int field_0x88 = 0;
+    int field_0x8c = 0;
+
     int spell_circle_anmid = 0;
-    float spell_circle_x, spell_circle_y, spell_circle_z;
+    glm::vec3 boss0_pos = {};
 };
 
 extern Spellcard* SPELLCARD_PTR;

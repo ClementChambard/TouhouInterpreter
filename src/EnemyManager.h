@@ -8,22 +8,6 @@
 #include <Engine.hpp>
 #include <string>
 
-struct EnemyManagerData {
-    int32_t ecl_int_vars[4] = {};
-    float ecl_float_vars[8] = {};
-    int32_t miss_count = 0;
-    int32_t bomb_count = 0;
-    int32_t can_still_capture_spell = 0;
-    int32_t boss_ids[4] = {};
-    int32_t flags = 0;
-    int32_t enemy_limit = 999999;
-    int32_t next_enemy_id = 1;
-    int32_t last_enemy_id = 0;
-    int32_t time_in_stage = 0;
-    int32_t field_0xac = 0;
-    int32_t field_0xb0 = 0;
-};
-
 #define Rank5(a, b, c, d, e) a
 #define Rank3(a, b, c) a
 #define Rank2(a, b) a
@@ -49,7 +33,6 @@ public:
     void Update();
     Enemy* SpawnEnemy(std::string sub, float x, float y, int life, int score,
                       int item);
-    EnemyManagerData* getData() { return &data; }
     int32_t closest_enemy_id(glm::vec2 pos);
     void EnmKillAll(const Enemy* caller = nullptr, bool byDialog = false);
     Enemy* EnmFind(int id) {
@@ -65,7 +48,7 @@ public:
     }
     int getBoss(int id) {
         for (int i = 0; i < 4; i++) {
-            if (data.boss_ids[i] == id)
+            if (boss_ids[i] == id)
                 return i;
         }
         return 3;
@@ -81,15 +64,29 @@ public:
 
     void on_draw_debug();
 
-    UpdateFunc* f_on_tick;
-    UpdateFunc* f_on_draw;
-
-    EnemyManagerData data;
-    AnmFile* loadedAnms[6];
-    // 6 anms slot
+    UpdateFunc* f_on_tick = nullptr;
+    UpdateFunc* f_on_draw = nullptr;
+    int32_t ecl_int_vars[4] = {};
+    float ecl_float_vars[8] = {};
+    int32_t miss_count = 0;
+    int32_t bomb_count = 0;
+    int32_t can_still_capture_spell = 0;
+    int32_t boss_ids[4] = {-1, -1, -1, -1};
+    int32_t flags = 0;
+    int32_t enemy_limit = 999999;
+    int32_t next_enemy_id = 1;
+    int32_t last_enemy_id = 0;
+    int32_t time_in_stage = 0;
+    int32_t field_0xac = 0;
+    int32_t field_0xb0 = 0;
+    // lots of unknown
+    AnmFile* loadedAnms[6] = {};
     EclFileManager* fileManager = nullptr;
     EnemyList_t* active_enemy_list_head = nullptr;
     EnemyList_t* active_enemy_list_tail = nullptr;
+    // undefinde4
+    int32_t enemy_count_real = 0;
+    // undefinde4
     friend class Enemy;
 };
 

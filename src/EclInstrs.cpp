@@ -8,6 +8,7 @@
 #include "./Hardcoded.h"
 #include "./Laser/LaserManager.h"
 #include "./Player.h"
+#include "./Gui.hpp"
 #include "./Spellcard.h"
 #include <math/Random.h>
 

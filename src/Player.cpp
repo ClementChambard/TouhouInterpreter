@@ -1154,8 +1154,8 @@ void Player::die()
     //}
 
     // update globals
-    // ENEMY_MANAGER_PTR->miss_count++;
-    // ENEMY_MANAGER_PTR->can_still_capture_spell = 0;
+    ENEMY_MANAGER_PTR->miss_count++;
+    ENEMY_MANAGER_PTR->can_still_capture_spell = 0;
     // if ((GLOBALS.inner.HYPER_FLAGS & 2) && !(GLOBALS.inner.HYPER_FLAGS & 4)) GLOBALS.inner.HYPER_TIME = 1;
     // if (GLOBALS.inner.MISS_COUNT_GLOBAL < 999999) GLOBALS.inner.MISS_COUNT_GLOBAL++;
 }

@@ -10,9 +10,6 @@ EnemyManager* ENEMY_MANAGER_PTR = nullptr;
 bool dospawn = true;
 
 void EnemyManager::Start(std::string const& eclFile, std::string const& sub) {
-    if (eclFile.size() > 3 && eclFile[3] >= '0' && eclFile[3] < '8')
-        GLOBALS.inner.STAGE_NUM = eclFile[3] - '0';
-
     fileManager->LoadEcl(eclFile);
 
     SpawnEnemy(sub, 0, 0, 40, 1000, 0);
@@ -24,7 +21,7 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
                                 int score, int item) {
     if (!dospawn)
         sub = "";
-    if (enemyCount >= data.enemy_limit) {
+    if (enemyCount >= enemy_limit) {
         std::cout << "Can't spawn " << sub << ": Too much enemies.\n";
         return nullptr;
     }
@@ -35,7 +32,7 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
     e->enemy.scoreReward = score;
     e->enemy.life.max = e->enemy.life.current = life;
     e->enemy.drops.main_type = item;
-    e->enemyId = data.next_enemy_id;
+    e->enemyId = next_enemy_id;
     e->enemy.own_chapter = GLOBALS.inner.CURRENT_CHAPTER;
     if (999 < life)
         e->enemy.flags |= 0x40000000;
@@ -73,8 +70,8 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
         }
         e->enemy.deathAnm = loadedAnms[1]->getSlot();
     }
-    data.last_enemy_id = data.next_enemy_id;
-    data.next_enemy_id++;
+    last_enemy_id = next_enemy_id;
+    next_enemy_id++;
     enemyCount++;
     std::cout << "Spawning " << sub << " at (" << x << ',' << y
               << ") ID=" << e->enemyId << " -> total: " << enemyCount << "\n";
@@ -130,8 +127,8 @@ int EnemyManager::on_tick() {
     //        ((game_thread_flags >> 2 | game_thread_flags) & 1) == 0)) &&
     //      ((game_thread_flags & 0x400) == 0)) &&
     //     ((game_thread_flags & 2) == 0)) {
-    data.field_0xac = 0;
-    data.field_0xb0 = 0;
+    field_0xac = 0;
+    field_0xb0 = 0;
     auto current_node = active_enemy_list_head->next;
     while (current_node->value) {
         auto next_node = current_node->next;
@@ -156,7 +153,7 @@ int EnemyManager::on_tick() {
         PLAYER_PTR->flags |= 0x20;
     }
     PLAYER_PTR->damage_multiplier__used_by_winter_in_th16 = 1.0;
-    data.time_in_stage++;
+    time_in_stage++;
     //}
     return 1;
 }
@@ -193,13 +190,13 @@ void EnemyManager::Update() {
                 node->value->getData()->life.current = 0;
         }
     }
-    data.time_in_stage++;
-    if (data.boss_ids[0] > 0) {
+    time_in_stage++;
+    if (boss_ids[0] > 0) {
         for (EnemyList_t* node = active_enemy_list_head->next;
              node != active_enemy_list_tail; node = node->next)
-            if (node->value && node->value->enemyId == data.boss_ids[0])
+            if (node->value && node->value->enemyId == boss_ids[0])
                 return;
-        data.boss_ids[0] = -1;
+        boss_ids[0] = -1;
     }
 }
 
