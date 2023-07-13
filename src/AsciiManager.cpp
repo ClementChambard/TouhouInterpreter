@@ -23,7 +23,7 @@ AsciiManager::AsciiManager() {
 
   on_draw = new UpdateFunc([this]() { return this->render_group(0); });
   on_draw->flags &= 0xfffffffd;
-  // UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 82);
+  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 82);
 
   on_draw_2 = new UpdateFunc([this]() {
     // SUPERVISOR.set_camera_by_index(0);
@@ -33,7 +33,7 @@ AsciiManager::AsciiManager() {
     return 1;
   });
   on_draw_2->flags &= 0xfffffffd;
-  // UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_2, 54);
+  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_2, 54);
 
   on_draw_3 = new UpdateFunc([this]() {
     // SUPERVISOR.set_camera_by_index(0);
@@ -41,7 +41,7 @@ AsciiManager::AsciiManager() {
     return 1;
   });
   on_draw_3->flags &= 0xfffffffd;
-  // UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_3, 67);
+  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_3, 67);
 
   __vm_1.reset();
   __vm_1.anm_loaded_index = 2;

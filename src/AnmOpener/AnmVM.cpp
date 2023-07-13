@@ -472,6 +472,7 @@ void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
   auto s = scale_2 * scale;
   if (parent_vm && !bitflags.noParent)
     s *= parent_vm->scale_2 * parent_vm->scale;
+  // no rotation ?
   tl.x *= s.x;
   tl.y *= s.y;
   tr.x *= s.x;

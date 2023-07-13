@@ -662,25 +662,25 @@ void AnmManager::drawVM(AnmVM* vm)
         if (vm->color_1.a == 0 && vm->color_2.a == 0)
             break;
         calc_mat_world(vm);
-        auto col [[maybe_unused]] = vm->bitflags.colmode ? vm->color_2 : vm->color_1;
-        for (int i = 0; i < 4; i++) {
-            // glm::vec3 v = __matrix_186017c * glm::vec4(some_positions[2],some_positions[3],some_positions[4],1);
-            // if (math::point_distance(v, SUPERVISOR.current_camera->position) <= SUPERVISOR.current_camera->sky.begin_distance) {
-            // SPRITE_TEMP_BUFFER[i].diffuse_color = col;
-            //}
-            // else {
-            // float coeff = (SUPERVISOR.current_camera->sky.begin_distance - math::point_distance(v, SUPERVISOR.current_camera->position)) / (SUPERVISOR.current_camera->sky.begin_distance - SUPERVISOR.current_camera->sky.end_distance);
-            // if (coeff < 1.0) {
-            // SPRITE_TEMP_BUFFER[i].diffuse_color.b = col.b - ((col.b - SUPERVISOR.current_camera->sky.color_components[0]) * coeff);
-            // SPRITE_TEMP_BUFFER[i].diffuse_color.g = col.g - ((col.g - SUPERVISOR.current_camera->sky.color_components[1]) * coeff);
-            // SPRITE_TEMP_BUFFER[i].diffuse_color.r = col.r - ((col.r - SUPERVISOR.current_camera->sky.color_components[2]) * coeff);
-            // SPRITE_TEMP_BUFFER[i].diffuse_color.a = col.a;
-            //} else {
-            // SPRITE_TEMP_BUFFER[i].diffuse_color = SUPERVISOR.current_camera->sky.color;
-            // SPRITE_TEMP_BUFFER[i].diffuse_color.a = col.a;
-            //}
-            //}
-        }
+        // auto col [[maybe_unused]] = vm->bitflags.colmode ? vm->color_2 : vm->color_1;
+        // for (int i = 0; i < 4; i++) {
+        //     glm::vec3 v = __matrix_186017c * glm::vec4(some_positions[2],some_positions[3],some_positions[4],1);
+        //     // Manual vertex fog ?
+        //     if (math::point_distance(v, SUPERVISOR.current_camera->position) <= SUPERVISOR.current_camera->sky.begin_distance) {
+        //         SPRITE_TEMP_BUFFER[i].diffuse_color = col;
+        //     } else {
+        //         float coeff = (SUPERVISOR.current_camera->sky.begin_distance - math::point_distance(v, SUPERVISOR.current_camera->position)) / (SUPERVISOR.current_camera->sky.begin_distance - SUPERVISOR.current_camera->sky.end_distance);
+        //         if (coeff < 1.0) {
+        //             SPRITE_TEMP_BUFFER[i].diffuse_color.b = col.b - ((col.b - SUPERVISOR.current_camera->sky.color_components[0]) * coeff);
+        //             SPRITE_TEMP_BUFFER[i].diffuse_color.g = col.g - ((col.g - SUPERVISOR.current_camera->sky.color_components[1]) * coeff);
+        //             SPRITE_TEMP_BUFFER[i].diffuse_color.r = col.r - ((col.r - SUPERVISOR.current_camera->sky.color_components[2]) * coeff);
+        //             SPRITE_TEMP_BUFFER[i].diffuse_color.a = col.a;
+        //         } else {
+        //             SPRITE_TEMP_BUFFER[i].diffuse_color = SUPERVISOR.current_camera->sky.color;
+        //             SPRITE_TEMP_BUFFER[i].diffuse_color.a = col.a;
+        //         }
+        //     }
+        // }
         draw_vm__modes_0_1_2_3(vm, 2);
         SPRITE_TEMP_BUFFER[3].transformed_pos.w = 1.0;
         SPRITE_TEMP_BUFFER[2].transformed_pos.w = 1.0;
@@ -716,72 +716,74 @@ void AnmManager::drawVM(AnmVM* vm)
     case 0x15:
     case 0x16:
     case 0x1a:
-    case 0x1b:
-        // local_78 = vm->rotation.z;
-        // local_74 = vm->sprite_size.x * vm->scale.x;
-        // local_70 = vm->sprite_size.y * vm->scale.y;
-        // local_6c = vm->pos + vm->entity_pos + vm->__pos_2;
-        // vm->transform_coordinate(local_6c);
+    case 0x1b: {
+        // float rot = vm->rotation.z;
+        // float xs = vm->sprite_size.x * vm->scale.x;
+        // float ys = vm->sprite_size.y * vm->scale.y;
+        // glm::vec3 pos = vm->pos + vm->entity_pos + vm->__pos_2;
+        // vm->transform_coordinate(pos);
         // if (vm->parent_vm && !vm->bitflags.noParent) {
-        // local_74 *= vm->parent_vm->scale.x;
-        // local_70 *= vm->parent_vm->scale.y;
-        // local_78 += vm->parent_vm->rotation.z;
-        //}
-        setup_render_state_for_vm(vm);
-        // if (vm->bitflags.resolutionMode == 1) DVar5 = RESOLUTION_MULT * local_70;
-        // else if (vm->bitflags.resolutionMode == 2) DVar5 = RESOLUTION_MULT * 0.5 * local_70;
-        // else DVar5 = local_70;
-        switch (vm->bitflags.rendermode) {
-        case 0x10:
-            // draw_vm__ins_603(DVar5, local_78, vm->color_1, vm->color_1, vm->bitflags.anchorX, vm->bitflags.anchorY);
-            return;
-        default:
-            return;
-        case 0x14:
-            // draw_vm__ins_603(DVar5, local_78, vm->color_1, vm->color_2, vm->bitflags.anchorX, vm->bitflags.anchorY);
-            return;
-        case 0x15:
-            // draw_vm__ins_607(DVar5, local_78, vm->color_1, vm->color_1, vm->bitflags.anchorX, vm->bitflags.anchorY);
-            return;
-        case 0x16:
-            // draw_vm__ins_607(DVar5, local_78, vm->color_1, vm->color_2, vm->bitflags.anchorX, vm->bitflags.anchorY);
-            return;
-        case 0x1a:
-            // if (!vm->bitflags.colmode) draw_vm__ins_613(DVar5, local_78, vm->color_1, vm->color_1, vm->bitflags.anchorX, vm->bitflags.anchorY);
-            // else draw_vm__ins_613(DVar5, local_78, vm->color_1, vm->color_2, vm->bitflags.anchorX, vm->bitflags.anchorY);
-            return;
-        case 0x1b:
-            // if (!vm->bitflags.colmode) draw_vm__ins_612(DVar5, local_78, vm->color_1, vm->color_1, vm->bitflags.anchorX, vm->bitflags.anchorY);
-            // else draw_vm__ins_612(DVar5, local_78, vm->color_1, vm->color_2, vm->bitflags.anchorX, vm->bitflags.anchorY);
-            return;
-        }
-    case 0x11:
-    case 0x12:
-    case 0x13:
-        // local_70 = vm->rotation.z;
-        // local_78 = vm->sprite_size.x * vm->scale.x;
-        // local_74 = vm->sprite_size.y * vm->scale.y;
-        // local_6c = vm->pos + vm->entity_pos + vm->__pos_2;
-        // vm->transform_coordinate(local_6c);
-        // if (vm->parent_vm && !vm->bitflags.noParent) {
-        //   local_70 += vm->parent_vm->rotation.z;
-        //   local_78 *= vm->parent_vm->scale.x;
-        //   local_74 *= vm->parent_vm->scale.y;
-        // }
-        // uVar4 = *(uint *)&(vm->prefix).field_0x534 & 0x700000;
-        // if (uVar4 == 0x100000) {
-        //   local_74 = RESOLUTION_MULT * local_74;
-        //   local_78 = RESOLUTION_MULT * local_78;
-        // }
-        // else if (uVar4 == 0x200000) {
-        //   local_74 = RESOLUTION_MULT * 0.5 * local_74;
-        //   local_78 = RESOLUTION_MULT * 0.5 * local_78;
+        //     xs *= vm->parent_vm->scale.x;
+        //     ys *= vm->parent_vm->scale.y;
+        //     rot += vm->parent_vm->rotation.z;
         // }
         // setup_render_state_for_vm(vm);
-        // if (vm->bitflags.rendermode == 0x11) draw_vm__mode_17__drawCircle(local_6c.x, local_6c.y, local_70, local_78, vm->int_script_vars[0], vm->color_1, vm->color_2);
-        // else if (vm->bitflags.rendermode == 0x12) draw_vm__mode_18__drawCircleBorder(local_6c.x, local_6c.y, local_70, local_78, vm->int_script_vars[0], vm->color_1);
-        // else if (vm->bitflags.rendermode == 0x13) draw_vm__mode_18__ins_611(local_6c.x, local_6c.y, local_70, local_78, local_74, vm->int_script_vars[0], vm->color_1);
-        return;
+        // if (vm->bitflags.resolutionMode == 1) ys *= RESOLUTION_MULT;
+        // else if (vm->bitflags.resolutionMode == 2) ys *= RESOLUTION_MULT / 2.0;
+        // switch (vm->bitflags.rendermode) {
+        // case 0x10: // Probably missing params in these functions
+        //     draw_vm__ins_603(ys, rot, vm->color_1, vm->color_1, vm->bitflags.anchorX, vm->bitflags.anchorY);
+        //     return;
+        // default:
+        //     return;
+        // case 0x14:
+        //     draw_vm__ins_603(ys, rot, vm->color_1, vm->color_2, vm->bitflags.anchorX, vm->bitflags.anchorY);
+        //     return;
+        // case 0x15:
+        //     draw_vm__ins_607(ys, rot, vm->color_1, vm->color_1, vm->bitflags.anchorX, vm->bitflags.anchorY);
+        //     return;
+        // case 0x16:
+        //     draw_vm__ins_607(ys, rot, vm->color_1, vm->color_2, vm->bitflags.anchorX, vm->bitflags.anchorY);
+        //     return;
+        // case 0x1a:
+        //     if (!vm->bitflags.colmode) draw_vm__ins_613(ys, rot, vm->color_1, vm->color_1, vm->bitflags.anchorX, vm->bitflags.anchorY);
+        //     else draw_vm__ins_613(ys, rot, vm->color_1, vm->color_2, vm->bitflags.anchorX, vm->bitflags.anchorY);
+        //     return;
+        // case 0x1b:
+        //     if (!vm->bitflags.colmode) draw_vm__ins_612(ys, rot, vm->color_1, vm->color_1, vm->bitflags.anchorX, vm->bitflags.anchorY);
+        //     else draw_vm__ins_612(ys, rot, vm->color_1, vm->color_2, vm->bitflags.anchorX, vm->bitflags.anchorY);
+        //     return;
+        // }
+    }
+    case 0x11:
+    case 0x12:
+    case 0x13: {
+        // float rot = vm->rotation.z;
+        // float xs = vm->sprite_size.x * vm->scale.x;
+        // float ys = vm->sprite_size.y * vm->scale.y;
+        // glm::vec3 pos = vm->pos + vm->entity_pos + vm->__pos_2;
+        // vm->transform_coordinate(pos);
+        // if (vm->parent_vm && !vm->bitflags.noParent) {
+        //   rot += vm->parent_vm->rotation.z;
+        //   xs *= vm->parent_vm->scale.x;
+        //   ys *= vm->parent_vm->scale.y;
+        // }
+        // if (vm->bitflags.resolutionMode == 1) {
+        //   xs *= RESOLUTION_MULT;
+        //   ys *= RESOLUTION_MULT;
+        // } else if (vm->bitflags.resolutionMode == 2) {
+        //   xs *= RESOLUTION_MULT / 2.0;
+        //   ys *= RESOLUTION_MULT / 2.0;
+        // }
+        // setup_render_state_for_vm(vm);
+        // if (vm->bitflags.rendermode == 0x11) {
+        //     draw_vm__mode_17__drawCircle(pos.x, pos.y, rot, xs, vm->int_script_vars[0], vm->color_1, vm->color_2);
+        // } else if (vm->bitflags.rendermode == 0x12) {
+        //     draw_vm__mode_18__drawCircleBorder(pos.x, pos.y, rot, xs, vm->int_script_vars[0], vm->color_1);
+        // } else if (vm->bitflags.rendermode == 0x13) {
+        //     draw_vm__mode_18__ins_611(pos.x, pos.y, rot, xs, ys, vm->int_script_vars[0], vm->color_1);
+        // }
+    } return;
     case 0x18:
     case 0x19:
         // vm_draw_mode_24_25(vm, vm->special_vertex_buffer_data, vm->int_script_vars[0] * 2);

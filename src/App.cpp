@@ -103,9 +103,9 @@ void App::on_render() {
     EclFileManager::GetInstance()->stdf->Draw();
   UPDATE_FUNC_REGISTRY->run_all_on_draw();
   AnmManager::draw();
-  ASCII_MANAGER_PTR->render_group(0);
-  ASCII_MANAGER_PTR->render_group(1);
-  ASCII_MANAGER_PTR->render_group(2);
+  //ASCII_MANAGER_PTR->render_group(0);
+  //ASCII_MANAGER_PTR->render_group(1);
+  //ASCII_MANAGER_PTR->render_group(2);
   anmViewer.on_draw();
 }
 
