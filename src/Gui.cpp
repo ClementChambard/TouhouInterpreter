@@ -661,7 +661,6 @@ void Gui::midScreenInfo(int bonus, int type) {
       auto vm = AnmManager::getVM(spellcard_score_anmids[i]);
       if (vm) {
         vm->update();
-        // vm->run();
         AnmManager::getLoaded(vm->anm_loaded_index)
             ->setSprite(vm, 0xef + curbonus / pow10);
         if (!fstnumfound) {
@@ -740,14 +739,12 @@ void Gui::FUN_0042a400() {
       life_meter_anmids[i] =
           AnmManager::SpawnVM(front_anm->getSlot(), i + 0x1e, 1, 0);
       life_meter_vms[i] = AnmManager::getVM(life_meter_anmids[i]);
-      life_meter_vms[i]->bitflags.originMode = 0;
     }
 
     for (int i = 0; i < 8; i++) {
       bomb_meter_anmids[i] =
           AnmManager::SpawnVM(front_anm->getSlot(), i + 0x26, 1, 0);
       bomb_meter_vms[i] = AnmManager::getVM(bomb_meter_anmids[i]);
-      bomb_meter_vms[i]->bitflags.originMode = 0;
     }
 
     timer_digit_hi_anmid =
@@ -758,8 +755,6 @@ void Gui::FUN_0042a400() {
     vm_timer_digit_lo = AnmManager::getVM(timer_digit_lo_anmid);
     vm_timer_digit_hi->update();
     vm_timer_digit_lo->update();
-    vm_timer_digit_hi->bitflags.originMode = 0;
-    vm_timer_digit_lo->bitflags.originMode = 0;
     vm_timer_digit_hi->clear_flag_1_rec();
     vm_timer_digit_lo->clear_flag_1_rec();
   }
@@ -778,14 +773,12 @@ void Gui::FUN_0042a400() {
 
   if (GLOBALS.FLAGS & 0x40) {
     // Demo play
-    int a = AnmManager::SpawnVM(front_anm->getSlot(), 0x7a, 0, 0);
-    AnmManager::getVM(a)->bitflags.originMode = 0;
+    AnmManager::SpawnVM(front_anm->getSlot(), 0x7a, 0, 0);
   }
 
   if (boss_marker_anmid.val == 0) {
     boss_marker_anmid = AnmManager::SpawnVM(front_anm->getSlot(), 0x70, 0, 0);
     AnmManager::getVM(boss_marker_anmid)->update();
-    AnmManager::getVM(boss_marker_anmid)->bitflags.originMode = 0;
   }
 
   // Item get border line
@@ -802,17 +795,14 @@ void Gui::FUN_0042a400() {
   difficuty_screen_anmid = AnmManager::SpawnVM(
       front_anm->getSlot(), GLOBALS.inner.DIFFICULTY + 0x51, 0, 0);
   AnmManager::getVM(difficuty_screen_anmid)->update();
-  AnmManager::getVM(difficuty_screen_anmid)->bitflags.originMode = 0;
   AnmManager::interrupt_tree(difficuty_screen_anmid, 3);
   // }
 
   difficuty_side_anmid = AnmManager::SpawnVM(
       front_anm->getSlot(), GLOBALS.inner.DIFFICULTY + 0x57, 0, 0);
-  AnmManager::getVM(difficuty_side_anmid)->bitflags.originMode = 0;
   player_shottype_anmid = AnmManager::SpawnVM(
       front_anm->getSlot(),
       GLOBALS.inner.SHOTTYPE + GLOBALS.inner.CHARACTER * 3 + 0x71, 0, 0);
-  AnmManager::getVM(player_shottype_anmid)->bitflags.originMode = 0;
   boss_bars[0].vms_created = 0;
   boss_bars[1].vms_created = 0;
   boss_bars[2].vms_created = 0;

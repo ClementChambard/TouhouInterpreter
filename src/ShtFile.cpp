@@ -280,7 +280,6 @@ int sht_on_tick_2(PlayerBullet_t* bullet) {
             return 0;
         }
         if (bullet->blink == 1) {
-            std::cout << 1;
             AnmManager::interrupt_tree(bullet->anmId, 3);
             bullet->blink = 0;
         }
@@ -435,7 +434,6 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
     [](PlayerBullet_t* param_1, glm::vec3 const& param_2, float param_3, float, float param_5) {
         param_1->hitting = 1;
         if (param_1->blink == 0) {
-            std::cout << 0;
             AnmManager::interrupt_tree(param_1->anmId, 2);
             param_1->blink = 1;
         }

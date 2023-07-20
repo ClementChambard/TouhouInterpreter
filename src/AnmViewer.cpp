@@ -394,6 +394,40 @@ void anm_view_window(AnmView *v) {
   ImGui::End();
 }
 
+void set_camera_window(bool *open) {
+  if (!*open)
+    return;
+  ImGui::Begin("Camera", open);
+  ImGui::PushID("CameraWindow");
+  static bool captureActive = false;
+  ImGui::Checkbox("Capture camera", &captureActive);
+  static glm::vec3 camPos = {0, 0, -2000};
+  static glm::vec3 up = {0, 0, -1};
+  static float yaw = 0.f;
+  static float pitch = 0.1f;
+  static float fov = NSEngine::engineData::cam3d->getFov();
+  ImGui::InputFloat3("position", &camPos[0]);
+  ImGui::InputFloat3("up", &up[0]);
+  ImGui::InputFloat("yaw", &yaw);
+  ImGui::InputFloat("pitch", &pitch);
+  ImGui::InputFloat("fov", &fov);
+  pitch = glm::clamp(pitch, -PI / 2.f + 0.001f, PI / 2.f - 0.001f);
+  fov = glm::clamp(fov, 0.f, PI / 2.f);
+  static const float aspectRatio =
+    (float)NSEngine::getInstance()->window().getWindowData().width /
+    (float)NSEngine::getInstance()->window().getWindowData().height;
+  if (captureActive) {
+    glm::vec3 debugLookat = glm::vec3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
+    glm::vec3 debugRight = glm::normalize(glm::cross(debugLookat, up));
+    glm::mat4 persp = glm::perspective(fov, aspectRatio, 0.1f, 10000.f);
+    glm::vec3 up2 = glm::normalize(glm::cross(debugRight, debugLookat));
+    glm::mat4 viewMatrix = glm::lookAt(camPos, camPos + debugLookat, up2);
+    NSEngine::engineData::cam3d->setMat(persp, viewMatrix);
+  }
+  ImGui::PopID();
+  ImGui::End();
+}
+
 void openedFiles_window(bool *open) {
   if (!*open)
     return;
@@ -465,6 +499,9 @@ void main_menu_window(bool *open) {
   static bool texture_vwr_window_open = false;
   TextureViewerWindow(&texture_vwr_window_open);
 
+  static bool camera_w_open = false;
+  set_camera_window(&camera_w_open);
+
   ImGui::Begin("Anm viewer main menu", open);
   ImGui::PushID("MainMenu");
   if (ImGui::Button("open files window")) {
@@ -478,6 +515,9 @@ void main_menu_window(bool *open) {
   }
   if (ImGui::Button("texture viewer")) {
     texture_vwr_window_open = !texture_vwr_window_open;
+  }
+  if (ImGui::Button("camera")) {
+    camera_w_open = !camera_w_open;
   }
   ImGui::PopID();
   ImGui::End();

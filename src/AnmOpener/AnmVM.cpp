@@ -9,6 +9,23 @@
 
 int AnmVM::cnt = 0;
 
+void AnmVM::setLayer(uint32_t i) {
+  layer = i;
+  if (i < 3) {
+    bitflags.originMode = 0;
+  } else if (i < 20) {
+    bitflags.originMode = 1;
+  } else if (i < 24) {
+    bitflags.originMode = 2;
+  } else {
+    bitflags.originMode = 0;
+  }
+
+  if ((layer > 19 && layer < 32) || (layer > 35 && layer < 43)) {
+    bitflags.resolutionMode = 1;
+  }
+}
+
 void AnmVM::interrupt(int i) { pending_interrupt = i; }
 
 void AnmVM::interruptRec(int i) {

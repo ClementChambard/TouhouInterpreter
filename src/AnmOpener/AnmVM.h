@@ -76,7 +76,7 @@ public:
   void setScale2(float x, float y) { scale_2 = {x, y}; }
   void setI(int i, int v) { int_script_vars[i] = v; }
   void setf(int i, int v) { float_script_vars[i] = v; }
-  void setLayer(uint32_t i) { layer = i; }
+  void setLayer(uint32_t i);
   void setEntity(void *e) { associated_game_entity = e; }
   void setRotz(float z) { rotation.z = z; }
   void setFlags(AnmVM_flags_t const &flags) { bitflags = flags; }
