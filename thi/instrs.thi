@@ -1,0 +1,241 @@
+/***************************
+
+Ecl instructions for lasers
+
+****************************/
+
+/******************************************************************
+    MACROS :
+
+    you define macros with the bang (!) symbole
+    - macro name: identifier
+    - args (optionnal): space separated identifiers
+
+    after the equal sign (=), you can use some optionnal keywords :
+    - stripped: get rid of heading and trailing whitespace
+
+    calling a macro:
+    use the name of the macro and optionnal hash (#) separated list
+    of args in parens. args can be anything that don't contain #
+    exemple: !mac(list) = { ... } -> mac({1, 2, 3}) => ...
+
+    inside code block:
+    macros can call other macros.
+    you can call a macro in the args of a macro call. TODO check
+    use atsign (@) to separate two identifiers (useful to separate
+    arg and text)
+    exemple: !mac(i) = { VAR_NUM_@i } -> mac(1) => VAR_NUM_1
+
+*******************************************************************/
+
+!EBS(i) = stripped { enemy.BSs[i] }
+!EBOR(i) = stripped { enemy.bulletOrigins[i] }
+!EBOF(i) = stripped { enemy.bulletOffsets[i] }
+!EPOS = stripped { enemy.final_pos.pos }
+
+!STARTPOSABS(i) = stripped {
+    {
+        EBOR(etid).x + EBOF(etid).x,
+        EBOR(etid).y + EBOF(etid).y,
+        0.f
+    }
+}
+
+!STARTPOSREL(i) = stripped { EPOS + EBOF(etid) }
+
+!STARTPOS(etid laser) = stripped {
+    if (EBOR(etid).z <= 0.9f) {
+        laser.start_pos = STARTPOSREL(etid);
+    } else {
+        laser.start_pos = STARTPOSABS(etid);
+    }
+}
+
+!COPYEX(etid laser) = stripped {
+    for (int _i_ = 0; _i_ < 20; _i_++)
+        laser.et_ex[_i_] = EBS(etid).ex[_i_];
+}
+
+!LASERBYID(id) = stripped {
+    Laser* _l_ = find_laser_by_id(id);
+    if (_l_) _l_
+}
+
+!LASERBYIDT(id T) = stripped {
+    Laser* _l_ = find_laser_by_id(id);
+    if (dynamic_cast<Laser@T*>(_l_))
+        dynamic_cast<Laser@T*>(_l_)
+}
+
+!LASER_LINE = stripped { 0 }
+!LASER_INFINITE = stripped { 1 }
+!LASER_CURVED = stripped { 2 }
+!LASER_BEAM = stripped { 3 }
+
+!FORALL_LASERSWITHID(id name do) = stripped {
+    Laser* name = find_laser_by_id(id);
+    while (name) {
+        do
+        name = find_laser_by_id(id);
+    }
+}
+
+!FORALL_LASERSWITHIDT(id name T do) = stripped {
+    Laser@T* name = dynamic_cast<Laser@T*>(find_laser_by_id(id));
+    while (name) {
+        do
+        name = dynamic_cast<Laser@T*>(find_laser_by_id(id));
+    }
+}
+
+/******************************************************************
+    INSTRUCTIONS :
+
+    you define an instruction with its name, an atsign (@)
+    and the opcode.
+    you then put the arg list separated by commas inside parens and
+    a code block inside curly braces.
+
+    args     (argtype argname):
+    the types are:
+    - int: a 32bit integer
+    - float: a simple precision float
+    - string: a simple string (size as int32 + data + 4byte padding)
+    - int&: a reference to an int
+    - float&: a reference to a float
+    later for msg, might add other type of strings
+
+*******************************************************************/
+
+laserNew @ 700 (int etid, float i_l, float f_l, float arg3, float w) {
+    EBS(etid).__vec3_8 = {i_l, f_l, arg3};
+    EBS(etid).__laser_new_arg_4 = w;
+}
+
+laserTiming @ 701 (int etid, int start_t, int tr1_t, int dur, int tr2_t, int end_t) {
+    EBS(etid).__laser_timing_end      = end_t;
+    EBS(etid).__laser_timing_duration = dur;
+    EBS(etid).__laser_timing_start    = start_t;
+    EBS(etid).__laser_timing_trans1   = tr1_t;
+    EBS(etid).__laser_timing_trans2   = tr2_t;
+}
+
+laserOn @ 702 (int etid) {
+    LaserLineInner_t inner;
+
+    COPYEX(etid#inner)
+    STARTPOS(etid#inner)
+
+    inner.ang_aim            = EBS(etid).ang_aim;
+    inner.bullet_color       = EBS(etid).__color;
+    inner.bullet_type        = EBS(etid).type;
+    inner.distance           = EBS(etid).distance;
+    inner.flags              = EBS(etid).__laser_timing_end | 1;
+    inner.laser_new_arg_1    = EBS(etid).__vec3_8.x;
+    inner.laser_new_arg_2    = EBS(etid).__vec3_8.y;
+    inner.laser_new_arg_3    = EBS(etid).__vec3_8.z;
+    inner.laser_new_arg_4    = EBS(etid).__laser_new_arg_4;
+    inner.shot_sfx           = EBS(etid).shot_sfx;
+    inner.shot_transform_sfx = EBS(etid).__shot_transform_sfx;
+    inner.spd_1              = EBS(etid).spd1;
+
+    allocate_new_laser(LASER_LINE, &inner);
+}
+
+laserStOn @ 703 (int etid, int& id) {
+    LaserInfiniteInner_t inner;
+
+    COPYEX(etid#inner)
+    STARTPOS(etid#inner)
+
+    inner.type               = EBS(etid).type;
+    inner.ang_aim            = EBS(etid).ang_aim;
+    inner.color              = EBS(etid).__color;
+    inner.distance           = EBS(etid).distance;
+    inner.flags              = EBS(etid).__laser_timing_end | 2;
+    inner.laser_duration     = EBS(etid).__laser_timing_duration;
+    inner.laser_new_arg2     = EBS(etid).__vec3_8.y;
+    inner.laser_new_arg1     = EBS(etid).__vec3_8.x;
+    inner.laser_new_arg4     = EBS(etid).__laser_new_arg_4;
+    inner.laser_st_on_arg1   = id;
+    inner.laser_time_start   = EBS(etid).__laser_timing_start;
+    inner.laser_trans_1      = EBS(etid).__laser_timing_trans1;
+    inner.laser_trans_2      = EBS(etid).__laser_timing_trans2;
+    inner.shot_sfx           = EBS(etid).shot_sfx;
+    inner.shot_transform_sfx = EBS(etid).__shot_transform_sfx;
+    inner.spd_1              = EBS(etid).spd1;
+
+    allocate_new_laser(LASER_INFINITE, &inner);
+}
+
+laserOffset @ 704 (int id, float x, float y) {
+    LASERBYID(id)->set_offset(x, y, 0.f);
+}
+
+laserTrajectory @ 705 (int id, float xs, float ys) {
+    LASERBYID(id)->set_speed(xs, ys, 0.f);
+}
+
+laserStLength @ 706 (int id, float s) {
+    LASERBYID(id)->set_speed(s);
+}
+
+laserStWidth @ 707 (int id, float w) {
+    LASERBYID(id)->set_width(w);
+}
+
+laserStAngle @ 708 (int id, float s) {
+    LASERBYID(id)->set_angle(a);
+}
+
+laserStRotation @ 709 (int id, float avel) {
+    LASERBYIDT(id#Infinite)->getInner().laser_inf_angular_velocity = avel;
+}
+
+laserStEnd @ 710 (int id) {
+    FORALL_LASERSWITHID(id#l#    
+        l->cancel(0, 0);
+        l->set_id(0);
+    )
+}
+
+laserCuOn @ 711 (int etid) {
+    LaserCurveInner_t inner;
+
+    COPYEX(etid#inner)
+    STARTPOS(etid#inner)
+
+    inner.ang_aim            = EBS(etid).ang_aim;
+    inner.color              = EBS(etid).__color;
+    inner.distance           = EBS(etid).distance;
+    inner.init_1             = 1;
+    inner.laser_new_arg4     = EBS(etid).__laser_new_arg_4;
+    inner.laser_time_start   = EBS(etid).__laser_timing_start;
+    inner.shot_sfx           = EBS(etid).shot_sfx;
+    inner.shot_transform_sfx = EBS(etid).__shot_transform_sfx;
+    inner.spd_1              = EBS(etid).spd1;
+    inner.type               = EBS(etid).type;
+
+    allocate_new_laser(LASER_CURVED, &inner);
+}
+
+// get zRotation of anm0
+// BulletManager::cancel_rectangle_as_bomb(z_rot,
+//                  enemy.final_pos.pos, {w, h}, 1); TODO
+etCancelRect @ 712 (float w, float h) {
+    _notImpl
+}
+
+laserBeOn @ 713 (int a, int b) {
+    LaserBeamInner_t inner;
+
+    // TODO(ClementChambard)
+
+    allocate_new_laser(LASER_BEAM, &inner);
+}
+
+laserBeCall @ 714 (int id, int arg) {
+    LASERBYIDT(id#Beam)->method_8(arg);
+}
+
+
