@@ -2,6 +2,7 @@
 #include "./AnmOpener/AnmManager.h"
 #include "./AsciiManager.hpp"
 #include "./Player.h"
+#include "Hardcoded.h"
 
 AsciiPopupManager *POPUP_MANAGER_PTR = nullptr;
 
@@ -94,17 +95,18 @@ int AsciiPopupManager::f_on_draw() {
       vm.color_1.a = 0x80 * ((dist_player_sq - 0x1000) / 0x3000) + 0x80;
     }
 
+    int fst = HARDCODED_DATA["popup_text_sprite"].asInt();
     for (int num = popups[i].nb_nums - 1; num >= 0; num--) {
       // cur_char 10 is FullPower popup
       if (popups[i].time < 48 || popups[i].nums[num] == 10) {
         AnmManager::getLoaded(vm.anm_loaded_index)
-            ->setSprite(&vm, popups[i].nums[num] + 0x103);
+            ->setSprite(&vm, popups[i].nums[num] + fst);
       } else if (popups[i].time < 56) {
         AnmManager::getLoaded(vm.anm_loaded_index)
-            ->setSprite(&vm, popups[i].nums[num] + 0x10e);
+            ->setSprite(&vm, popups[i].nums[num] + 11 + fst);
       } else {
         AnmManager::getLoaded(vm.anm_loaded_index)
-            ->setSprite(&vm, popups[i].nums[num] + 0x118);
+            ->setSprite(&vm, popups[i].nums[num] + 21 + fst);
       }
       // anmvm::write_sprite_corners__without_rot(
       //     &this->vm, (zfloat3 *)sprite_temp_buffer,

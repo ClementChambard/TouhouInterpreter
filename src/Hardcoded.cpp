@@ -9,6 +9,7 @@ Json::Value PLAYERS;
 Json::Value BULLET_TYPE_TABLE;
 Json::Value LASER_DATA;
 Json::Value ITEM_ANM_SCRIPT_IDS;
+Json::Value GUI_ANMS;
 
 int TOUHOU_VERSION = 0;
 
@@ -31,6 +32,9 @@ void prepare_vals() {
     ITEM_ANM_SCRIPT_IDS = HARDCODED_DATA["item_anm_script_ids"].empty()
         ? HARDCODED_DATA_BASE["item_anm_script_ids"]
         : HARDCODED_DATA["item_anm_script_ids"];
+    GUI_ANMS = HARDCODED_DATA["gui"].empty()
+        ? HARDCODED_DATA_BASE["gui"]
+        : HARDCODED_DATA["gui"];
 }
 
 void Hardcoded_Load() {

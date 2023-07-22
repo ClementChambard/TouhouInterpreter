@@ -262,6 +262,7 @@ void Spellcard::Init(int /*id*/, int time, int mode, std::string name) {
   flags &= 0xffffff9f;
   ascii_anmid_10 = AnmManager::SpawnVM(
     ASCII_MANAGER_PTR->ascii_anm->getSlot(), 0);
+  AnmManager::getVM(ascii_anmid_10)->bitflags.originMode = 0;
   // text_anmid_14 = SUPERVISOR.text_anm->create_effect(2);
   ascii_anmid_18 = AnmManager::SpawnVM(
     ASCII_MANAGER_PTR->ascii_anm->getSlot(), 1);
