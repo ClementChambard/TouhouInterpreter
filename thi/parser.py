@@ -1,3 +1,6 @@
+from typing import List
+import codegen
+import codeUtil
 import lexer
 import sys
 
@@ -15,6 +18,28 @@ class GrammarRule:
 logLevel = 0
 
 
+class Instr:
+    def __init__(self, name, i, args, code, modifiers):
+        self.id = i
+        self.name = name
+        self.args = args
+        self.code = code
+        self.noprint = "noprint" in modifiers or "notimpl" in modifiers
+        self.fallthrough = "fallthrough" in modifiers
+        self.notimpl = "notimpl" in modifiers
+        self.alert = "alert" in modifiers
+        self.nobreak = self.fallthrough
+
+    def __repr__(self):
+        modifiers = "[" + ["", "noprint"][self.noprint] + "]"
+        string = f"Instr({self.id}, {self.name}, {self.args.__repr__()}, \
+            {self.code}, {modifiers})"
+        return string
+
+    def has_variable_size(self):
+        return "_z" in [a[0] for a in self.args]
+
+
 def readDotGram(filename):
     text = ""
     with open(filename, "r") as f:
@@ -22,7 +47,7 @@ def readDotGram(filename):
     return eval(text)
 
 
-def parse(rules, stateTable, lexfunc, text):
+def parse(rules, stateTable, lexfunc, text) -> List[Instr]:
     tokens = [[t.parseStr(), t] for t in lexfunc(text)]
 
     stack = [0]
@@ -60,7 +85,7 @@ def parse(rules, stateTable, lexfunc, text):
             )
             if action[0] != "S":
                 print("ERROR")
-                return
+                return []
             stack.append(action[1])
 
         if action[0] == "OK":
@@ -79,10 +104,10 @@ with open(sys.argv[1], "r") as f:
     filecontent = f.read()
 ast = parse(rules, stateTable, lexer.lexAll, filecontent)
 
+code = codegen.switchStart(Instr("nop", 0, [], "", []))
 for ins in ast:
-    print(f"_ins({ins[1]}, {ins[0]})", end=" ")
-    if len(ins[2]) != 0:
-        for arg in ins[2]:
-            print(f"{arg[0]}({arg[1]}) ", end="")
-        print("_args", end=" ")
-    print(ins[3])
+    codeUtil.checkInsForBuiltinVars(ins)
+    code += codegen.nextInstr(ins)
+
+code += codegen.switchEnd()
+print(code)

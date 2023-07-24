@@ -222,9 +222,7 @@ laserCuOn @ 711 (int etid) {
 // get zRotation of anm0
 // BulletManager::cancel_rectangle_as_bomb(z_rot,
 //                  enemy.final_pos.pos, {w, h}, 1); TODO
-etCancelRect @ 712 (float w, float h) {
-    _notImpl
-}
+etCancelRect @ 712 (float w, float h) notimpl {}
 
 laserBeOn @ 713 (int a, int b) {
     LaserBeamInner_t inner;

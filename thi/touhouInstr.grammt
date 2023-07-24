@@ -20,7 +20,7 @@ $$$$
 InstrDefs := InstrDef InstrDefs { [$0] + $1 }
            | <empty> { [] }
 
-InstrDef := id '@' int '(' ParamListOpt ')' cppcodeblock { [$0.val, $2.val, $4, $6.val] }
+InstrDef := id '@' int '(' ParamListOpt ')' Modifiers cppcodeblock { Instr($0.val, $2.val, $4, $7.val, $6) }
 
 ParamListOpt := ParamList { $0 }
               | <empty> { [] }
@@ -35,3 +35,6 @@ Typename := INT { "_S" }
           | INT '&' { "_rS" }
           | FLOAT '&' { "_rf" }
           | STRING { "_z" }
+
+Modifiers := id Modifiers { [$0.val] + $1 }
+           | <empty> { [] }

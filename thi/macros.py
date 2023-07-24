@@ -1,5 +1,6 @@
 from typing import List, Tuple
-
+import codeUtil
+import parseUtil
 
 macro1 = """
 !e = stripped {
@@ -20,77 +21,16 @@ macro3 = """
 }
 """
 
-
-def cheq(c):
-    def inner(d):
-        return d == c
-
-    return inner
-
-
-def chne(c):
-    def inner(d):
-        return d != c
-
-    return inner
-
-
-def notfn(f):
-    def inner(d):
-        return not f(d)
-
-    return inner
-
-
-def chany(c):
-    return True
-
-
-def nextCharIs(s, p):
-    if len(s) < 1:
-        return False
-    if type(p) == str:
-        return s[0] == p
-    return p(s[0])
-
-
-def identChar(start):
-    def identCharSt(c):
-        return c == "_" or c.isalpha()
-
-    def identChar(c):
-        return c == "_" or c.isalnum()
-
-    return [identChar, identCharSt][start]
-
-
-def parseWhile(s, p, p0=None):
-    parsed = ""
-    if p0 is not None:
-        if not nextCharIs(s, p0):
-            return "", s
-        parsed += s[0]
-        s = s[1:]
-    while nextCharIs(s, p):
-        parsed += s[0]
-        s = s[1:]
-    return parsed, s
-
-
-def parseIdent(s):
-    return parseWhile(s, identChar(False), identChar(True))
-
-
 def parseArgList(s):
     sini = s
-    if not nextCharIs(s, "("):
+    if not parseUtil.nextCharIs(s, "("):
         return [], s
     s = s[1:].strip()
     args = []
     while True:
-        if nextCharIs(s, ")"):
+        if parseUtil.nextCharIs(s, ")"):
             return args, s[1:]
-        i, s = parseIdent(s)
+        i, s = parseUtil.parseIdent(s)
         if i == "":
             return [], sini
         args.append(i)
@@ -139,17 +79,11 @@ def getCallArgs(txt):
 
 
 def processBloc(bloc, args: List[str], macros: List):
+    if bloc == "":
+        return []
     # pass 1: separate idents from other chars to identify macro calls & args. Also no @
     macronames: List[str] = [m["name"] for m in macros]
-    splittedBloc: List[str] = []
-    while len(bloc) > 0:
-        id, bloc = parseIdent(bloc)
-        if id != "":
-            splittedBloc.append(id)
-        else:
-            if bloc[0] != "@":
-                splittedBloc.append(bloc[0])
-            bloc = bloc[1:]
+    splittedBloc = codeUtil.splitForMacro(bloc)
     # pass 2: call macros and paste args
     curstr: str = ""
     splittedBloc2: List = []
@@ -203,30 +137,30 @@ macroList: List = []
 
 def parseMacro(mStr):
     mStr = mStr.strip()
-    if not nextCharIs(mStr, "!"):
+    if not parseUtil.nextCharIs(mStr, "!"):
         return None
     mStr = mStr[1:]
-    name, mStr = parseIdent(mStr)
+    name, mStr = parseUtil.parseIdent(mStr)
     mStr = mStr.strip()
     args, mStr = parseArgList(mStr)
     mStr = mStr.strip()
-    if not nextCharIs(mStr, "="):
+    if not parseUtil.nextCharIs(mStr, "="):
         return None
     mStr = mStr[1:].strip()
-    kw, mStr = parseIdent(mStr)
+    kw, mStr = parseUtil.parseIdent(mStr)
     stripped = kw == "stripped"
     mStr = mStr.strip()
-    if not nextCharIs(mStr, "{"):
+    if not parseUtil.nextCharIs(mStr, "{"):
         return None
     body = ""
     mStr = mStr[1:]
     parens = 1
     while True:
-        if nextCharIs(mStr, "{"):
+        if parseUtil.nextCharIs(mStr, "{"):
             parens += 1
-        elif nextCharIs(mStr, "}"):
+        elif parseUtil.nextCharIs(mStr, "}"):
             parens -= 1
-        elif not nextCharIs(mStr, chany):
+        elif not parseUtil.nextCharIs(mStr, parseUtil.chany):
             return None
         if parens == 0:
             break
@@ -240,6 +174,8 @@ def parseMacro(mStr):
 
 
 def processBlocFinal(b):
+    if b == "":
+        return ""
     d = processBloc(b, [], macroList)
     return d[0]["val"]
 
