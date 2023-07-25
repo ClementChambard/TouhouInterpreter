@@ -29,15 +29,14 @@ class Instr:
         self.notimpl = "notimpl" in modifiers
         self.alert = "alert" in modifiers
         self.nobreak = self.fallthrough
+        self.vararg = "vararg" in modifiers
+        self.varsiz = self.vararg or "_z" in [a[0] for a in self.args]
 
     def __repr__(self):
         modifiers = "[" + ["", "noprint"][self.noprint] + "]"
         string = f"Instr({self.id}, {self.name}, {self.args.__repr__()}, \
             {self.code}, {modifiers})"
         return string
-
-    def has_variable_size(self):
-        return "_z" in [a[0] for a in self.args]
 
 
 def readDotGram(filename):

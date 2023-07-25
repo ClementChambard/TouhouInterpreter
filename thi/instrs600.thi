@@ -1,0 +1,273 @@
+!BH(i) = stripped { enemy.BSs[i] }
+!BOR(i) = stripped { enemy.bulletOrigins[i] }
+!BOF(i) = stripped { enemy.bulletOffsets[i] }
+!EX(i, j) = stripped { BH(i).ex[j] }
+
+
+etNew @ 600 (int id) {
+    BM_reset(&BH(id));
+    enemy.et_ex_id[id] = 0;
+    BOF(id) = {};
+    BOR(id) = {};
+}
+
+etOn @ 601 (int id) {
+    if (BOR(id).z <= 0.9f) {
+        BH(id).__vec3_8 = enemy.final_pos.pos + BOF(id);
+    } else {
+        BH(id).__vec3_8 = {
+            BOR(id).x + BOF(id).x,
+            BOR(id).y + BOF(id).y,
+            0.f
+        };
+    }
+    BulletManager::GetInstance()->set_protect_range(enemy.etProtRange);
+    BulletManager::GetInstance()->Shoot(&BH(id));
+    BulletManager::GetInstance()->set_protect_range(0.f);
+}
+
+etSprite @ 602 (int id, int t, int c) {
+    BH(id).type = t;
+    BH(id).__color = c;
+}
+
+etOffset @ 603 (int id, float x, float y) {
+    BOF(id) = {x, y, 0};
+}
+
+etAngle @ 604 (int id, float a1, float a2) {
+    BH(id).ang_aim = a1;
+    BH(id).ang_bullet_dist = a2;
+}
+
+etSpeed @ 605 (int id, float s1, float s2) {
+    BH(id).spd1 = s1;
+    BH(id).spd2 = s2;
+}
+
+etCount @ 606 (int id, int c1, int c2) {
+    BH(id).cnt_count = c1;
+    BH(id).cnt_layers = c2;
+}
+
+etAim @ 607 (int id, int aim) {
+    BH(id).aim_type = aim;
+}
+
+etSound @ 608 (int id, int s1, int s2) {
+    BH(id).shot_sfx = s1;
+    BH(id).__shot_transform_sfx = s2;
+}
+
+etExSet @ 609 (int id, int i, int as, int t, int a, int b, float r, float s) {
+    if (i > 19) {
+        _warn("et_ex > 19");
+        return;
+    }
+    if (id > 17 || id < 0)
+        id = 0;
+    EX(id, i).slot = as;
+    EX(id, i).type = t;
+    EX(id, i).a = a;
+    EX(id, i).b = b;
+    EX(id, i).r = r;
+    EX(id, i).s = s;
+    enemy.et_ex_id[id] = i + 1;
+}
+
+etExSet2 @ 610 (int id, int i, int as, int t, int a, int b, int c, int d,
+                        float r,  float s,  float m,  float n) {
+    if (i > 19) {
+        WARN(et_ex > 19)
+        return;
+    }
+    if (id > 17 || id < 0)
+        id = 0;
+    EX(id, i).slot = as;
+    EX(id, i).type = t;
+    EX(id, i).a = a;
+    EX(id, i).b = b;
+    EX(id, i).c = c;
+    EX(id, i).d = d;
+    EX(id, i).r = r;
+    EX(id, i).s = s;
+    EX(id, i).m = m;
+    EX(id, i).n = n;
+    enemy.et_ex_id[id] = i + 1;
+}
+
+etEx @ 611 (int id, int as, int t, int a, int b, float r, float s) {
+    if (id > 17 || id < 0)
+        id = 0;
+    int ex_id = enemy.et_ex_id[id];
+    if (ex_id > 19) {
+        WARN(et_ex > 19)
+        return;
+    }
+    EX(id, ex_id).slot = as;
+    EX(id, ex_id).type = t;
+    EX(id, ex_id).a = a;
+    EX(id, ex_id).b = b;
+    EX(id, ex_id).r = r;
+    EX(id, ex_id).s = s;
+    enemy.et_ex_id[id]++;
+}
+
+etEx2 @ 612 (int id, int as, int t, int a, int b, int c, int d,
+                     float r, float s, float m, float n) {
+    if (id > 17 || id < 0) id = 0;
+    int ex_id = enemy.et_ex_id[id];
+    if (ex_id > 19) { 
+        WARN(et_ex > 19)
+        return;
+    }
+    EX(id, ex_id).slot = as;
+    EX(id, ex_id).type = t;
+    EX(id, ex_id).a = a;
+    EX(id, ex_id).b = b;
+    EX(id, ex_id).c = c;
+    EX(id, ex_id).d = d;
+    EX(id, ex_id).r = r;
+    EX(id, ex_id).s = s;
+    EX(id, ex_id).m = m;
+    EX(id, ex_id).n = n;
+    enemy.et_ex_id[id]++;
+}
+
+etClearAll @ 613 () {
+    // TODO(ClementChambard): better
+    BulletManager::GetInstance()->ClearScreen(0);
+    LASER_MANAGER_PTR->cancel_all(true);
+}
+
+etCopy @ 614 (int dst, int src) {
+    BH(dst) = BH(src);
+    BOF(dst) = BOF(src);
+    BOR(dst) = BOR(src);
+}
+
+etCancel @ 615 (float r) {
+    // TODO(ClementChambard): better
+    BulletManager::GetInstance()
+        ->ClearScreen(1, r, enemy.final_pos.pos.x, enemy.final_pos.pos.y);
+    LASER_MANAGER_PTR->cancel_in_radius(enemy.final_pos.pos, 1, 1, r);
+}
+
+etClear @ 616 (float r) {
+    // TODO(ClementChambard): better
+    BulletManager::GetInstance()
+        ->ClearScreen(0, r, enemy.final_pos.pos.x, enemy.final_pos.pos.y);
+    LASER_MANAGER_PTR->cancel_in_radius(enemy.final_pos.pos, 0, 1, r);
+}
+
+etSpeedR3 @ 617 (int id, float a1, float b1, float c1, float a2, float b2, float c2) {
+    // TODO(ClementChambard): check that Rank3, Rank5 and Rank2 work properly
+    BH(id).spd1 = Rank3(a1, b1, c1);
+    BH(id).spd2 = Rank3(a2, b2, c2);
+}
+
+etSpeedR5 @ 618 (int id,  float a1, float b1, float c1, float d1, float e1,
+                         float a2, float b2, float c2, float d2, float e2) {
+    BH(id).spd1 = Rank5(a1, b1, c1, d1, e1);
+    BH(id).spd2 = Rank5(a2, b2, c2, d2, e2);
+}
+
+etSpeedR2 @ 619 (int id, float a1, float b1, float a2, float b2) {
+    BH(id).spd1 = Rank2(a1, b1);
+    BH(id).spd2 = Rank2(a2, b2);
+}
+
+etCountR3 @ 620 (int id, int a1, int b1, int c1, int a2, int b2, int c2) {
+    BH(id).cnt_count  = Rank3(a1, b1, c1);
+    BH(id).cnt_layers = Rank3(a2, b2, c2);
+}
+
+etCountR5 @ 621 (int id, int a1, int b1, int c1, int d1, int e1, int a2,
+                         int b2, int c2, int d2, int e2) {
+    BH(id).cnt_count  = Rank5(a1, b1, c1, d1, e1);
+    BH(id).cnt_layers = Rank5(a2, b2, c2, d2, e2);
+}
+
+etCountR2 @ 622 (int id, int a1, int b1, int a2, int b2) {
+    BH(id).cnt_count  = Rank2(a1, b1);
+    BH(id).cnt_layers = Rank2(a2, b2);
+}
+
+angleToPlayer @ 623 (_rf(va) float x, float y) {
+    va = math::point_direction(x, y,
+            PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+}
+
+etSpeedD @ 624 (int id, float a1, float b1, float c1, float d1, float a2,
+                        float b2, float c2, float d2) {
+    BH(id).spd1 = Diff(a1, b1, c1, d1);
+    BH(id).spd2 = Diff(a2, b2, c2, d2);
+}
+
+etCountD @ 625 (int id, int a1, int b1, int c1, int d1, int a2,
+                        int b2, int c2, int d2) {
+    BH(id).cnt_count = Diff(a1, b1, c1, d1);
+    BH(id).cnt_layers = Diff(a2, b2, c2, d2);
+}
+
+etOffsetRad @ 626 (int id, float a, float r) {
+    BOF(id) = {r*cos(a), r*sin(a), 0};
+}
+
+etDist @ 627 (int id, float d) {
+    BH(id).distance = d;
+}
+
+etOrigin @ 628 (int id, float x, float y) {
+    BOR(id) = {x, y, 1.f};
+    if (x < -990.f) BOR(id).z = 0.f;
+}
+
+fog @ 629 (float r, int c) notimpl {}
+
+callStd @ 630 (int s) {
+    fileManager->stdf->interrupt(s);
+}
+
+lifeHide @ 631 (int t) notimpl {}
+
+// is_func_set_2 = 0;
+// func_from_ecl_func_set = ...
+funcSet @ 632 (int id) notimpl {}
+
+// func_from_ecl_flag_extra_damage = ...
+flagExtDmg @ 633 (int state) notimpl {}
+
+// hitbox_func = ...
+setHitboxFunc @ 634 (int id) notimpl {}
+
+etCancel2 @ 635 (float r) {
+    BulletManager::GetInstance()
+        ->ClearScreen(3, r, enemy.final_pos.pos.x, enemy.final_pos.pos.y);
+    // TODO(ClementChambard): change clearScreen
+    LASER_MANAGER_PTR->cancel_in_radius(enemy.final_pos.pos, 1, 1, r);
+}
+
+etClear2 @ 636 (float r) {
+    BulletManager::GetInstance()
+        ->ClearScreen(2, r, enemy.final_pos.pos.x, enemy.final_pos.pos.y);
+    LASER_MANAGER_PTR->cancel_in_radius(enemy.final_pos.pos, 0, 1, r);
+}
+
+// immediately call the function
+funcCall @ 637 (int id) notimpl {}
+
+// add score in globals and generate small popup
+scoreAdd @ 638 (int amt) notimpl {}
+
+// is_func_set_2 = 1;
+// func_from_ecl_func_set = ...
+funcSet2 @ 639 (int id) notimpl {}
+
+etExSub @ 640 (int id, int i, _z(s)) {
+    EX(id, i).string = s.c_str();
+}
+
+etExSubtract @ 641 (int id) {
+    if (--enemy.et_ex_id[id] < 0) enemy.et_ex_id[id] = 0;
+}

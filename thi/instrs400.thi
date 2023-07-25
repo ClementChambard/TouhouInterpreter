@@ -1,0 +1,607 @@
+
+movePos @ 400 (float x, float y) {
+    enemy.abs_pos.pos.x = x > -999999.f ? x : enemy.abs_pos.pos.x;
+    enemy.abs_pos.pos.y = y > -999999.f ? y : enemy.abs_pos.pos.y;
+    enemy.final_pos.pos = enemy.abs_pos.pos + enemy.rel_pos.pos;
+    enemy.calc_final_pos();
+}
+
+movePosTime @ 401 (int t, int m, float x, float y) {
+    if (t < 1) {
+        enemy.abs_pos_i.end_time = 0;
+    } else {
+        if (y <= -999999.0) y = enemy.abs_pos.pos.y;
+        if (x <= -999999.0) x = enemy.abs_pos.pos.x;
+        enemy.abs_pos_i.start(enemy.abs_pos.pos, {x, y, 0}, t, m);
+        enemy.abs_pos.flags &= 0xfffffff0;
+    }
+}
+
+movePosRel @ 402 (float x, float y) {
+    enemy.rel_pos.pos.x = x > -999999.f ? x : enemy.rel_pos.pos.x;
+    enemy.rel_pos.pos.y = y > -999999.f ? y : enemy.rel_pos.pos.y;
+    enemy.final_pos.pos = enemy.abs_pos.pos + enemy.rel_pos.pos;
+    enemy.calc_final_pos();
+}
+
+movePosRelTime @ 403 (int t, int m, float x, float y) {
+    if (t < 1) {
+        enemy.rel_pos_i.end_time = 0;
+    } else {
+        if (y <= -999999.0) y = enemy.rel_pos.pos.y;
+        if (x <= -999999.0) x = enemy.rel_pos.pos.x;
+        enemy.rel_pos_i.start(enemy.rel_pos.pos, {x, y, 0}, t, m);
+        enemy.rel_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveVel @ 404 (float r, float s) {
+    if (-999999.0 < r) {
+        if (enemy.flags & 0x80000) {
+            r = PI - r;
+            math::angle_normalize(r);
+        }
+        enemy.abs_pos.angle = r;
+    }
+    if (s > -999999.0) enemy.abs_pos.speed = s;
+    enemy.abs_pos.flags &= 0xfffffff0;
+}
+
+moveVelTime @ 405 (int t, int m, float r, float s) {
+    if (t < 1) {
+        enemy.abs_angle_i.end_time = 0;
+        enemy.abs_speed_i.end_time = 0;
+    } else {
+        if (m == 7) {
+            if (r <= -999999.0) r = 0;
+            else if (enemy.flags & 0x80000) r = -r;
+            if (s <= -999999.0) s = 0;
+        } else {
+            if (r <= -999999.0) r = enemy.abs_pos.angle;
+            else if (enemy.flags & 0x80000) r = PI - r;
+            if (s <= -999999.0) s = enemy.abs_pos.speed;
+        }
+        enemy.abs_angle_i.start(enemy.abs_pos.angle, r, t, m);
+// do some wierd thing with angle, same each time play with angle interpolation
+        enemy.abs_speed_i.start(enemy.abs_pos.speed, s, t, m);
+        enemy.abs_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveVelRel @ 406 (float r, float s) {
+    if (-999999.0 < r) {
+        if (enemy.flags & 0x80000) {
+            r = PI - r;
+            math::angle_normalize(r);
+        }
+        enemy.rel_pos.angle = r;
+    }
+    if (s > -999999.0) enemy.rel_pos.speed = s;
+    enemy.rel_pos.flags &= 0xfffffff0;
+}
+
+moveVelRelTime @ 407 (int t, int m, float r, float s) {
+    if (t < 1) {
+        enemy.rel_angle_i.end_time = 0;
+        enemy.rel_speed_i.end_time = 0;
+    } else {
+        if (m == 7) {
+            if (r <= -999999.0) r = 0;
+            else if (enemy.flags & 0x80000) r = -r;
+            if (s <= -999999.0) s = 0;
+        } else {
+            if (r <= -999999.0) r = enemy.rel_pos.angle;
+            else if (enemy.flags & 0x80000) r = PI - r;
+            if (s <= -999999.0) s = enemy.rel_pos.speed;
+        }
+        enemy.rel_angle_i.start(enemy.rel_pos.angle, r, t, m);
+        enemy.rel_speed_i.start(enemy.rel_pos.speed, s, t, m);
+        enemy.rel_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveCirc @ 408 (float t, float s, float r, float ri) {
+    if ((enemy.abs_pos.flags & 0xf) != 2)
+        enemy.abs_pos.velocity = enemy.abs_pos.pos;
+    if (-999999.0 < t) enemy.abs_pos.angle = t;
+    if (-999999.0 < s) enemy.abs_pos.speed = s;
+    if (-999999.0 < r) enemy.abs_pos.circle_radius = r;
+    if (-999999.0 < ri) enemy.abs_pos.circle_radial_speed = ri;
+    enemy.abs_pos.flags = (enemy.abs_pos.flags & 0xfffffff0) | 2;
+    enemy.abs_pos.update_position();
+    enemy.calc_final_pos();
+}
+
+moveCircTime @ 409 (int t, int m, float s, float r, float ri) {
+    if (s <= -999999.0) s = enemy.abs_pos.speed;
+    if (ri <= -999999.0) ri = enemy.abs_pos.circle_radial_speed;
+    if (r <= -999999.0) r = enemy.abs_pos.circle_radius;
+    if (t < 1) {
+        enemy.abs_speed_i.end_time = 0;
+        enemy.abs_radial_dist_i.end_time = 0;
+    } else {
+        enemy.abs_speed_i.start(enemy.abs_pos.speed, s, t, m);
+        enemy.abs_radial_dist_i.start({enemy.abs_pos.circle_radius,
+            enemy.abs_pos.circle_radial_speed}, {r, ri}, t, m);
+        enemy.abs_pos.flags = (enemy.abs_pos.flags & 0xfffffff0) | 2;
+        enemy.abs_pos.update_position();
+        enemy.calc_final_pos();
+    }
+}
+
+moveCircRel @ 410 (float t, float s, float r, float ri) {
+    if ((enemy.rel_pos.flags & 0xf) != 2)
+        enemy.rel_pos.velocity = enemy.rel_pos.pos;
+    if (-999999.0 < t) enemy.rel_pos.angle = t;
+    if (-999999.0 < s) enemy.rel_pos.speed = s;
+    if (-999999.0 < r) enemy.rel_pos.circle_radius = r;
+    if (-999999.0 < ri) enemy.rel_pos.circle_radial_speed = ri;
+    enemy.rel_pos.flags = (enemy.rel_pos.flags & 0xfffffff0) | 2;
+    enemy.rel_pos.update_position();
+    enemy.calc_final_pos();
+}
+
+moveCircRelTime @ 411 (int t, int m, float s, float r, float ri) {
+    if (s <= -999999.0) s = enemy.rel_pos.speed;
+    if (ri <= -999999.0) ri = enemy.rel_pos.circle_radial_speed;
+    if (r <= -999999.0) r = enemy.rel_pos.circle_radius;
+    if (t < 1) {
+        enemy.rel_speed_i.end_time = 0;
+        enemy.rel_radial_dist_i.end_time = 0;
+    } else {
+        enemy.rel_speed_i.start(enemy.rel_pos.speed, s, t, m);
+        enemy.rel_radial_dist_i.start({enemy.rel_pos.circle_radius,
+            enemy.rel_pos.circle_radial_speed}, {r, ri}, t, m);
+        enemy.rel_pos.flags = (enemy.rel_pos.flags & 0xfffffff0) | 2;
+        enemy.rel_pos.update_position();
+        enemy.calc_final_pos();
+    }
+}
+
+moveRand @ 412 (int t, int m, float s) {
+    float a;
+    if (enemy.final_pos.pos.x < enemy.moveLimitPos.x -
+        enemy.moveLimitSize.x / 4.0) {
+        a = Random::Angle() / 3.f;
+    } else if (enemy.final_pos.pos.x > enemy.moveLimitPos.x +
+               enemy.moveLimitSize.x / 4.0) {
+        a = Random::Angle() / 3.f + PI;
+        math::angle_normalize(a);
+    } else if (PLAYER_PTR->inner.pos.x <= enemy.final_pos.pos.x) {
+        a = Random::Angle() * 0.25f;
+        if (rand() % 3 != 0) a += PI;
+    } else {
+        a = Random::Angle() * 0.25f;
+        if (rand() % 3 == 0) a += PI;
+    }
+    if (enemy.final_pos.pos.y < enemy.moveLimitPos.y -
+        enemy.moveLimitSize.y / 4.0) a = fabs(a);
+    if (enemy.final_pos.pos.y > enemy.moveLimitPos.y +
+        enemy.moveLimitSize.y / 4.0) a = -fabs(a);
+    if (0.05 > fabs(a + PI1_2))
+        a = (a <= -PI1_2) ? -1.6207963 : -1.5207964;
+    if (0.05 < fabs(a - PI1_2))
+        a = (a >= PI1_2) ? 1.6207963 : 1.5207964;
+    enemy.abs_angle_i.start(a, a, t, m);
+    enemy.abs_speed_i.start(s, 0, t, m);
+    enemy.abs_pos.flags &= 0xfffffff0;
+}
+
+moveRandRel @ 413 (int t, int m, float s) {
+    float a;
+    if (enemy.final_pos.pos.x < enemy.moveLimitPos.x -
+        enemy.moveLimitSize.x / 4.0) {
+        a = Random::Angle() / 3.0;
+    } else if (enemy.final_pos.pos.x > enemy.moveLimitPos.x +
+               enemy.moveLimitSize.x / 4.0) {
+        a = Random::Angle() / 3.0 + PI;
+        math::angle_normalize(a);
+    } else if (PLAYER_PTR->inner.pos.x <= enemy.final_pos.pos.x) {
+        a = Random::Angle() * 0.25;
+        if (rand() % 3 != 0) a += PI;
+    } else {
+        a = Random::Angle() * 0.25;
+        if (rand() % 3 == 0) a += PI;
+    }
+    if (enemy.final_pos.pos.y < enemy.moveLimitPos.y -
+        enemy.moveLimitSize.y / 4.0) a = fabs(a);
+    if (enemy.final_pos.pos.y > enemy.moveLimitPos.y +
+        enemy.moveLimitSize.y / 4.0) a = -fabs(a);
+    if (0.05 > fabs(a + PI1_2))
+        a = (a <= -PI1_2) ? -1.6207963 : -1.5207964;
+    if (0.05 < fabs(a - PI1_2))
+        a = (a >= PI1_2) ? 1.6207963 : 1.5207964;
+    enemy.rel_angle_i.start(a, a, t, m);
+    enemy.rel_speed_i.start(s, 0, t, m);
+    enemy.rel_pos.flags &= 0xfffffff0;
+}
+
+moveBoss @ 414 () {
+    auto e = EnemyManager::GetInstance()
+        ->EnmFind(EnemyManager::GetInstance()->boss_ids[0]);
+    if (e) enemy.abs_pos.pos = e->enemy.final_pos.pos;
+}
+
+moveBossRel @ 415 () {
+    auto e = EnemyManager::GetInstance()
+        ->EnmFind(EnemyManager::GetInstance()->boss_ids[0]);
+    if (e) enemy.rel_pos.pos = e->enemy.final_pos.pos;
+}
+
+movePos3d @ 416 (float x, float y, float z) {
+    enemy.abs_pos.pos += glm::vec3{x, y, z};
+    enemy.calc_final_pos();
+}
+
+movePos3dRel @ 417 (float x, float y, float z) {
+    enemy.rel_pos.pos += glm::vec3{x, y, z};
+    enemy.calc_final_pos();
+}
+
+moveAdd @ 418 (float x, float y) {
+    if (x > -999999.0) enemy.abs_pos.velocity.x = x;
+    if (y > -999999.0) enemy.abs_pos.velocity.y = y;
+    enemy.abs_pos.update_position();
+    enemy.calc_final_pos();
+}
+
+moveAddRel @ 419 (float x, float y) {
+    if (x > -999999.0) enemy.rel_pos.velocity.x = x;
+    if (y > -999999.0) enemy.rel_pos.velocity.y = y;
+    enemy.rel_pos.update_position();
+    enemy.calc_final_pos();
+}
+
+moveEll @ 420 (float t, float s, float r, float ri, float d, float q) {
+    if ((enemy.abs_pos.flags & 0xf) != 2)
+        enemy.abs_pos.velocity = enemy.abs_pos.pos;
+    if (-999999.0 < t) enemy.abs_pos.angle = t;
+    if (-999999.0 < s) enemy.abs_pos.speed = s;
+    if (-999999.0 < r) enemy.abs_pos.circle_radius = r;
+    if (-999999.0 < ri) enemy.abs_pos.circle_radial_speed = ri;
+    if (-999999.0 < d) enemy.abs_pos.some_angle1 = d;
+    if (-999999.0 < q) enemy.abs_pos.some_value = q;
+    enemy.abs_pos.flags = (enemy.abs_pos.flags & 0xfffffff0) | 3;
+    enemy.abs_pos.update_position();
+    enemy.calc_final_pos();
+}
+
+moveEllTime @ 421 (int t, int m, float s, float r, float ri, float d, float q) {
+    if (s <= -999999.0) s = enemy.abs_pos.speed;
+    if (r <= -999999.0) r = enemy.abs_pos.circle_radius;
+    if (ri <= -999999.0) ri = enemy.abs_pos.circle_radial_speed;
+    if (q <= -999999.0) q = enemy.abs_pos.some_value;
+    if (d <= -999999.0) d = enemy.abs_pos.some_angle1;
+    if (t < 1) {
+        enemy.abs_speed_i.end_time = 0;
+        enemy.abs_radial_dist_i.end_time = 0;
+        enemy.abs_ellipse_i.end_time = 0;
+    } else {
+        enemy.abs_speed_i.start(enemy.abs_pos.speed, s, t, m);
+        enemy.abs_radial_dist_i.start({enemy.abs_pos.circle_radius,
+            enemy.abs_pos.circle_radial_speed}, {r, ri}, t, m);
+        enemy.abs_ellipse_i.start({enemy.abs_pos.some_angle1,
+            enemy.abs_pos.some_value}, {q, d}, t, m);
+        enemy.abs_pos.velocity = enemy.abs_pos.pos;
+        enemy.rel_pos.flags = (enemy.rel_pos.flags & 0xfffffff0) | 3;
+        enemy.abs_pos.update_position();
+    }
+}
+
+moveEllRel @ 422 (float t, float s, float r, float ri, float d, float q) {
+    if ((enemy.rel_pos.flags & 0xf) != 2)
+        enemy.rel_pos.velocity = enemy.rel_pos.pos;
+    if (-999999.0 < t) enemy.rel_pos.angle = t;
+    if (-999999.0 < s) enemy.rel_pos.speed = s;
+    if (-999999.0 < r) enemy.rel_pos.circle_radius = r;
+    if (-999999.0 < ri) enemy.rel_pos.circle_radial_speed = ri;
+    if (-999999.0 < d) enemy.rel_pos.some_angle1 = d;
+    if (-999999.0 < q) enemy.rel_pos.some_value = q;
+    enemy.rel_pos.flags = (enemy.rel_pos.flags & 0xfffffff0) | 3;
+    enemy.rel_pos.update_position();
+    enemy.calc_final_pos();
+}
+
+moveEllRelTime @ 423 (int t, int m, float s, float r, float ri, float d, float q) {
+    if (s <= -999999.0) s = enemy.rel_pos.speed;
+    if (r <= -999999.0) r = enemy.rel_pos.circle_radius;
+    if (ri <= -999999.0) ri = enemy.rel_pos.circle_radial_speed;
+    if (q <= -999999.0) q = enemy.rel_pos.some_value;
+    if (d <= -999999.0) d = enemy.rel_pos.some_angle1;
+    if (t < 1) {
+        enemy.rel_speed_i.end_time = 0;
+        enemy.rel_radial_dist_i.end_time = 0;
+        enemy.rel_ellipse_i.end_time = 0;
+    } else {
+        enemy.rel_speed_i.start(enemy.rel_pos.speed, s, t, m);
+        enemy.rel_radial_dist_i.start({enemy.rel_pos.circle_radius,
+            enemy.rel_pos.circle_radial_speed}, {r, ri}, t, m);
+        enemy.rel_ellipse_i.start({enemy.rel_pos.some_angle1,
+            enemy.rel_pos.some_value}, {q, d}, t, m);
+        enemy.rel_pos.velocity = enemy.rel_pos.pos;
+        enemy.rel_pos.flags = (enemy.rel_pos.flags & 0xfffffff0) | 3;
+        enemy.rel_pos.update_position();
+    }
+}
+
+moveMirror @ 424 (int state) {
+    enemy.flags = enemy.flags ^ (((state << 13) ^ enemy.flags) & 0x80000);
+}
+
+moveBezier @ 425 (int t, float x, float y, float x2, float y2, float x3, float y3) {
+    if (y2 <= -999999.0) y2 = enemy.abs_pos.pos.y;
+    if (x2 <= -999999.0) x2 = enemy.abs_pos.pos.x;
+    enemy.abs_pos_i.start_bezier(enemy.abs_pos.pos, {x2, y2, 0.f},
+                                 {x, y, 0.f}, {x3, y3, 0.f}, t);
+    enemy.abs_pos.flags &= 0xfffffff0;
+}
+
+moveBezierRel @ 426 (int t, float x, float y, float x2, float y2, float x3, float y3) {
+    if (y2 <= -999999.0) y2 = enemy.rel_pos.pos.y;
+    if (x2 <= -999999.0) x2 = enemy.rel_pos.pos.x;
+    enemy.rel_pos_i.start_bezier(enemy.rel_pos.pos, {x2, y2, 0.f},
+                                 {x, y, 0.f}, {x3, y3, 0.f}, t);
+    enemy.rel_pos.flags &= 0xfffffff0;
+}
+
+moveReset @ 427 () {
+    enemy.abs_pos.pos = enemy.rel_pos.pos + enemy.abs_pos.pos;
+    enemy.rel_pos.pos = {0, 0, 0};
+    enemy.rel_pos.speed = 0.f;
+    enemy.abs_pos.speed = 0.f;
+    enemy.rel_pos.velocity = {0, 0, 0};
+    enemy.abs_pos.velocity = {0, 0, 0};
+    enemy.rel_pos.flags &= 0xfffffff0;
+    enemy.abs_pos.flags &= 0xfffffff0;
+    enemy.abs_pos_i.end_time = 0;
+    enemy.rel_pos_i.end_time = 0;
+    enemy.abs_angle_i.end_time = 0;
+    enemy.rel_angle_i.end_time = 0;
+    enemy.abs_speed_i.end_time = 0;
+    enemy.rel_speed_i.end_time = 0;
+    enemy.abs_radial_dist_i.end_time = 0;
+    enemy.rel_radial_dist_i.end_time = 0;
+    enemy.abs_ellipse_i.end_time = 0;
+    enemy.rel_ellipse_i.end_time = 0;
+}
+
+moveVelNM @ 428 (float r, float s) {
+    if (-999999.0 < r) enemy.abs_pos.angle = r;
+    if (s > -999999.0) enemy.abs_pos.speed = s;
+    enemy.abs_pos.flags &= 0xfffffff0;
+}
+
+moveVelTimeNM @ 429 (int t, int m, float r, float s) {
+    if (t < 1) {
+        enemy.rel_angle_i.end_time = 0;
+        enemy.rel_speed_i.end_time = 0;
+    } else {
+        if (m == 7) {
+            if (r <= -999999.0) r = 0;
+            if (s <= -999999.0) s = 0;
+        } else {
+            if (r <= -999999.0) r = enemy.rel_pos.angle;
+            if (s <= -999999.0) s = enemy.rel_pos.speed;
+        }
+        enemy.rel_angle_i.start(enemy.rel_pos.angle, r, t, m);
+        enemy.rel_speed_i.start(enemy.rel_pos.speed, s, t, m);
+        enemy.rel_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveVelRelNM @ 430 (float r, float s) {
+    if (-999999.0 < r) enemy.rel_pos.angle = r;
+    if (s > -999999.0) enemy.rel_pos.speed = s;
+    enemy.rel_pos.flags &= 0xfffffff0;
+}
+
+moveVelRelTimeNM @ 431 (int t, int m, float r, float s) {
+    if (t < 1) {
+        enemy.rel_angle_i.end_time = 0;
+        enemy.rel_speed_i.end_time = 0;
+    } else {
+        if (m == 7) {
+            if (r <= -999999.0) r = 0;
+            if (s <= -999999.0) s = 0;
+        } else {
+            if (r <= -999999.0) r = enemy.rel_pos.angle;
+            if (s <= -999999.0) s = enemy.rel_pos.speed;
+        }
+        enemy.rel_angle_i.start(enemy.rel_pos.angle, r, t, m);
+        enemy.rel_speed_i.start(enemy.rel_pos.speed, s, t, m);
+        enemy.rel_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveEnm @ 432 (int id) {
+    auto e = EnemyManager::GetInstance()->EnmFind(id);
+    if (e) enemy.abs_pos.pos = e->enemy.final_pos.pos;
+}
+
+moveEnmRel @ 433 (int id) {
+    auto e = EnemyManager::GetInstance()->EnmFind(id);
+    if (e) enemy.rel_pos.pos = e->enemy.final_pos.pos;
+}
+
+moveCurve @ 434 (int t, int mx, int my, float x, float y) {
+    if (t < 1) {
+        enemy.abs_pos_i.end_time = 0;
+    } else {
+        if (x <= -999999.0) x = enemy.abs_pos.pos.x;
+        if (y <= -999999.0) y = enemy.abs_pos.pos.y;
+        enemy.abs_pos_i.start_curve(enemy.abs_pos.pos, {x, y, 0.f},
+                                    t, mx, my, 0);
+        enemy.abs_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveCurveRel @ 435 (int t, int mx, int my, float x, float y) {
+    if (t < 1) {
+        enemy.rel_pos_i.end_time = 0;
+    } else {
+        if (x <= -999999.0) x = enemy.rel_pos.pos.x;
+        if (y <= -999999.0) y = enemy.rel_pos.pos.y;
+        enemy.rel_pos_i.start_curve(enemy.rel_pos.pos, {x, y, 0.f},
+                                    t, mx, my, 0);
+        enemy.rel_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveAddTime @ 436 (int t, int m, float x, float y) {
+    if (t < 1) {
+        enemy.abs_pos_i.end_time = 0;
+    } else {
+        if (enemy.flags & 0x80000) {
+            x = enemy.abs_pos.pos.x - x;
+        } else {
+            x += enemy.abs_pos.pos.x;
+        }
+        y += enemy.abs_pos.pos.y;
+        if (y <= -999999.0) y = enemy.abs_pos.pos.y;
+        if (x <= -999999.0) x = enemy.abs_pos.pos.x;
+        enemy.abs_pos_i.start(enemy.abs_pos.pos, {x, y, 0}, t, m);
+        enemy.abs_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveAddRelTime @ 437 (int t, int m, float x, float y) {
+    if (t < 1) {
+        enemy.rel_pos_i.end_time = 0;
+    } else {
+        if (enemy.flags & 0x80000) {
+            x = enemy.rel_pos.pos.x - x;
+        } else {
+            x += enemy.rel_pos.pos.x;
+        }
+        y += enemy.rel_pos.pos.y;
+        if (y <= -999999.0) y = enemy.rel_pos.pos.y;
+        if (x <= -999999.0) x = enemy.rel_pos.pos.x;
+        enemy.rel_pos_i.start(enemy.rel_pos.pos, {x, y, 0}, t, m);
+        enemy.rel_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveCurveAdd @ 438 (int t, int mx, int my, float x, float y) {
+    if (t < 1) {
+        enemy.abs_pos_i.end_time = 0;
+    } else {
+        if (enemy.flags & 0x80000) {
+            x = enemy.abs_pos.pos.x - x;
+        } else {
+            x += enemy.abs_pos.pos.x;
+        }
+        y += enemy.abs_pos.pos.y;
+        if (x <= -999999.0) x = enemy.abs_pos.pos.x;
+        if (y <= -999999.0) y = enemy.abs_pos.pos.y;
+        enemy.abs_pos_i.start_curve(enemy.abs_pos.pos, {x, y, 0.f},
+                                    t, mx, my, 0);
+        enemy.abs_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveCurveAddRel @ 439 (int t, int mx, int my, float x, float y) {
+    if (t < 1) {
+        enemy.rel_pos_i.end_time = 0;
+    } else {
+        if (enemy.flags & 0x80000) {
+            x = enemy.rel_pos.pos.x - x;
+        } else {
+            x += enemy.rel_pos.pos.x;
+        }
+        y += enemy.rel_pos.pos.y;
+        if (x <= -999999.0) x = enemy.rel_pos.pos.x;
+        if (y <= -999999.0) y = enemy.rel_pos.pos.y;
+        enemy.rel_pos_i.start_curve(enemy.rel_pos.pos, {x, y, 0.f},
+                                    t, mx, my, 0);
+        enemy.rel_pos.flags &= 0xfffffff0;
+    }
+}
+
+moveAngle @ 440 (float a) {
+    if (enemy.flags & 0x80000) {
+        a = PI - a;
+        math::angle_normalize(a);
+    }
+    enemy.abs_pos.angle = a;
+    enemy.abs_pos.flags &= 0xfffffff0;
+}
+
+moveAngleTime @ 441 (int t, int m, float a) {
+    if (0 < t) {
+        if (m == 7) {
+            if (a <= -999999.0) a = 0.f;
+            else if (enemy.flags & 0x80000) a = -a;
+        } else if (a <= -999999.0) {
+            a = enemy.abs_pos.angle;
+        } else if (enemy.flags & 0x80000) {
+            a = PI - a;
+        }
+        enemy.abs_angle_i.start(enemy.abs_pos.angle, a, t, m);
+        enemy.abs_pos.flags &= 0xfffffff0;
+    } else {
+        enemy.abs_angle_i.end_time = 0;
+    }
+}
+
+moveAngleRel @ 442 (float a) {
+    if (enemy.flags & 0x80000) {
+        a = PI - a;
+        math::angle_normalize(a);
+    }
+    enemy.rel_pos.angle = a;
+    enemy.rel_pos.flags &= 0xfffffff0;
+}
+
+moveAngleRelTime @ 443 (int t, int m, float a) {
+    if (0 < t) {
+        if (m == 7) {
+            if (a <= -999999.0) a = 0.f;
+            else if (enemy.flags & 0x80000) a = -a;
+        } else if (a <= -999999.0) {
+            a = enemy.rel_pos.angle;
+        } else if (enemy.flags & 0x80000) {
+            a = PI - a;
+        }
+        enemy.rel_angle_i.start(enemy.rel_pos.angle, a, t, m);
+        enemy.rel_pos.flags &= 0xfffffff0;
+    } else {
+        enemy.rel_angle_i.end_time = 0;
+    }
+}
+
+moveSpeed @ 444 (float s) {
+    if (s > -999999.0) enemy.abs_pos.speed = s;
+    enemy.abs_pos.flags &= 0xfffffff0;
+}
+
+moveSpeedTime @ 445 (int t, int m, float s) {
+    if (0 < t) {
+        if (m == 7) {
+            if (-999999.0 > s) s = 0;
+        } else if (-999999.0 > s) {
+            s = enemy.abs_pos.speed;
+        }
+        enemy.abs_speed_i.start(enemy.abs_pos.speed, s, t, m);
+    } else {
+        enemy.abs_speed_i.end_time = 0;
+    }
+}
+
+moveSpeedRel @ 446 (float s) {
+    if (s > -999999.0) enemy.rel_pos.speed = s;
+    enemy.rel_pos.flags &= 0xfffffff0;
+}
+
+moveSpeedRelTime @ 447 (int t, int m, float s) {
+    if (0 < t) {
+        if (m == 7) {
+            if (-999999.0 > s) s = 0;
+        } else if (-999999.0 > s) {
+            s = enemy.rel_pos.speed;
+        }
+        enemy.rel_speed_i.start(enemy.rel_pos.speed, s, t, m);
+    } else {
+        enemy.rel_speed_i.end_time = 0;
+    }
+}
+
