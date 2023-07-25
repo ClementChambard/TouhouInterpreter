@@ -56,18 +56,37 @@ def identifierLex(fileContent: str) -> str:
     return ident
 
 
-def tryLexCpp(fileContent):
+def tryLexCpp(fileContent: str):
     astin = ""
     nbbrace = 1
+    commentSize = 0
     while True:
         if len(fileContent) < 1:
             return None
+        if fileContent.startswith("//"):
+            while len(fileContent) > 0 and fileContent[0] != '\n':
+                fileContent = fileContent[1:]
+                commentSize += 1
+            if len(fileContent) == 0:
+                return None
+            fileContent = fileContent[1:]
+            commentSize += 1
+            continue
+        if fileContent.startswith("/*"):
+            while len(fileContent) > 0 and fileContent.startswith("*/"):
+                fileContent = fileContent[1:]
+                commentSize += 1
+            if len(fileContent) == 0:
+                return None
+            commentSize += 2
+            fileContent = fileContent[2:]
+            continue
         if fileContent[0] == "{":
             nbbrace += 1
         if fileContent[0] == "}":
             nbbrace -= 1
             if nbbrace == 0:
-                le = len(astin)
+                le = len(astin) + commentSize
                 return processBlocFinal(astin), le + 2
         astin += fileContent[0]
         fileContent = fileContent[1:]

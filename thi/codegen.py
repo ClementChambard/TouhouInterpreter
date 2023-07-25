@@ -99,28 +99,28 @@ def print_arg(i, name):
 
 
 def arg_S(instr, i, name):
-    string = get_arg(i, "int32_t", name, instr.has_variable_size()) + "\n"
+    string = get_arg(i, "int32_t", name, instr.varsiz) + "\n"
     if PRINT and not instr.noprint:
         string += print_arg(i, name)
     return string
 
 
 def arg_f(instr, i, name):
-    string = get_arg(i, "float", name, instr.has_variable_size()) + "\n"
+    string = get_arg(i, "float", name, instr.varsiz) + "\n"
     if PRINT and not instr.noprint:
         string += print_arg(i, name)
     return string
 
 
 def arg_rS(instr, i, name):
-    string = get_arg_ref(i, "int32_t", name, instr.has_variable_size()) + "\n"
+    string = get_arg_ref(i, "int32_t", name, instr.varsiz) + "\n"
     if PRINT and not instr.noprint:
         string += print_arg(i, name)
     return string
 
 
 def arg_rf(instr, i, name):
-    string = get_arg_ref(i, "float", name, instr.has_variable_size()) + "\n"
+    string = get_arg_ref(i, "float", name, instr.varsiz) + "\n"
     if PRINT and not instr.noprint:
         string += print_arg(i, name)
     return string
@@ -140,7 +140,7 @@ def ins_header(instr) -> str:
     global g_instr
     g_instr = instr
     string = ""
-    if instr.has_variable_size():
+    if instr.varsiz:
         string += (
             "        unsigned char* __arg = const_cast<unsigned char*>(instr->data);\n"
         )

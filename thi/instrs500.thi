@@ -1,0 +1,316 @@
+/*
+    Enemy Properties management
+*/
+
+setHurtbox @ 500 (float w, float h) {
+    enemy.hurtbox_size = { w, h };
+    // sets some vars and call a func, see at th17.exe::423af2
+}
+
+setHitbox @ 501 (float w, float h) {
+    enemy.hitbox_size = { w, h };
+}
+
+flagSet @ 502 (int n) {
+    enemy.flags |= n;
+    // do some wierd thing : investigate
+}
+
+flagClear @ 503 (int n) {
+    enemy.flags &= (~n);
+    // same as above
+}
+
+moveLimit @ 504 (float x, float y, float w, float h) {
+    enemy.moveLimitPos = { x, y };
+    enemy.moveLimitSize = { w, h };
+    enemy.flags |= 0x20000;
+}
+
+moveLimitReset @ 505 () {
+    enemy.flags &= 0xfffffffffffdffff;
+}
+
+dropClear @ 506 () {
+    for (int i = 0; i < 17; i++)
+        enemy.drops.extra_counts[i] = 0;
+    // check function th17.exe::FUN_41da60
+}
+
+dropExtra @ 507 (int t, int a) {
+    enemy.drops.extra_counts[t - 1] = a;
+}
+
+dropArea @ 508 (float w, float h) {
+    enemy.drops.area = { w, h };
+}
+
+dropItems @ 509 () {
+    if (GLOBALS.inner.SPELL_ID < 0)
+        enemy.drops.eject_all_drops(enemy.final_pos.pos);
+    // check if in spell practice first
+}
+
+dropMain @ 510 (int t) {
+    enemy.drops.main_type = t;
+}
+
+lifeSet @ 511 (int hp) {
+    enemy.life.current = enemy.life.max = hp;
+    enemy.life.curx7 = hp * 7;
+}
+
+setBoss @ 512 (int a) {
+    ENEMY_MANAGER_PTR->flags &= 0xfffffffe;
+    if (a < 0) {
+      if (enemy.flags & 0x800000) {
+        ENEMY_MANAGER_PTR->boss_ids[enemy.ownBossId] = 0;
+      }
+      enemy.flags &= 0xff7fffff;
+    } else {
+      enemy.flags |= 0x800000;
+      ENEMY_MANAGER_PTR->boss_ids[a] = enemyId;
+      enemy.ownBossId = a;
+    }
+}
+
+timerReset @ 513 () {
+    enemy.timeInEcl = 0;
+}
+
+setInterrupt @ 514 (int slot, int hp, int t, _z(sub)) {
+    enemy.interrupts[slot].life = hp;
+    enemy.interrupts[slot].time = t;
+    enemy.interrupts[slot].subNext = enemy.interrupts[slot].subTimeout = sub;
+}
+
+setInvuln @ 515 (int t) {
+    enemy.invFrame = t;
+}
+
+playSound @ 516 (int id) notimpl {}
+
+setScreenShake @ 517 (int t, int s, int e) notimpl {}
+
+dialogueRead @ 518 (int i) notimpl {}
+
+dialogueWait @ 519 () notimpl {}
+
+bossWait @ 520 () {
+    if (isBoss_) {
+        cont->time--;
+        exit;
+    }
+}
+
+setTimeout @ 521 (int slot, _z(sub)) {
+    enemy.interrupts[slot].subTimeout = sub;
+}
+
+spellEx @ 522 (int i, int t, int ty, _z(name)) {
+    Spellcard::GetInstance()
+        ->Init(i, t, ty, name);
+    enemy.life.isSpell = 1;
+    enemy.life.curx7 = enemy.life.current * 7;
+}
+
+spellEnd @ 523 () {
+    Spellcard::GetInstance()->Stop();
+    enemy.life.isSpell = 0;
+}
+
+setChapter @ 524 (int i) notimpl {}
+
+enmKillAll @ 525 () {
+    EnemyManager::GetInstance()->EnmKillAll(this);
+}
+
+etProtectRange @ 526 (float r) {
+    enemy.etProtRange = r * r;
+}
+
+lifeMarker @ 527 (int slot, float hp, int col) {
+    GUI_PTR->boss_bars[0].markers[slot*2] = hp/enemy.life.max;
+    GUI_PTR->boss_bars[0].markers[slot*2+1] = col;
+}
+
+spellUnused @ 528 (int i, int t, int ty, _z(name)) notimpl {}
+
+rankF3 @ 529 (_rf(var) float a, float b, float c) {
+    // TODO(ClementChambard): real
+    var = a;
+}
+
+rankF5 @ 530 (_rf(var) float a, float b, float c, float d, float e) {
+    // TODO(ClementChambard): real
+    var = a;
+}
+
+rankF2 @ 531 (_rf(var) float a, float b) {
+    // TODO(ClementChambard): real
+    var = a;
+}
+
+rankI3 @ 532 (_rS(var) int a, int b, int c) {
+    // TODO(ClementChambard): real
+    var = a;
+}
+
+rankI5 @ 533 (_rS(var) int a, int b, int c, int d, int e) {
+    // TODO(ClementChambard): real
+    var = a;
+}
+
+rankI2 @ 534 (_rS(var) int a, int b) {
+    // TODO(ClementChambard): real
+    var = a;
+}
+
+diffI @ 535 (_rS(v) int E, int N, int H, int L) {
+    v = Diff(E, N, H, L);
+}
+
+diffF @ 536 (_rf(v) float E, float N, float H, float L) {
+    v = Diff(E, N, H, L);
+}
+
+spell @ 537 (int i, int t, int ty, _z(name)) {
+    Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
+            t, ty, name);
+    enemy.life.isSpell = 1;
+    enemy.life.curx7 = enemy.life.current * 7;
+}
+
+spell2 @ 538 (int i, int t, int ty, _z(name)) {
+    i -= 1;
+    Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
+            t, ty, name);
+    enemy.life.isSpell = 1;
+    enemy.life.curx7 = enemy.life.current * 7;
+}
+
+spell3 @ 539 (int i, int t, int ty, _z(name)) {
+    i -= 2;
+    Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
+            t, ty, name);
+    enemy.life.isSpell = 1;
+    enemy.life.curx7 = enemy.life.current * 7;
+}
+
+stars @ 540 (int n) {
+    GUI_PTR->stars_nb = n;
+}
+
+noHbDur @ 541 (int t) {
+    enemy.noHbFrame = t;
+}
+
+spellTimeout @ 542 () {
+    Spellcard::GetInstance()->SetTimeout();
+    enemy.life.isSpell = 1;
+}
+
+unknown543 @ 543 () alert {
+    // call th17.exe::FUN_41dff0
+
+unknown544 @ 544 (int a) alert {
+    enemy.flags = (enemy.flags ^ (enemy.flags ^ (a << 0x1b))) & 0x8000000;
+}
+
+laserCancel @ 545 () {
+    LASER_MANAGER_PTR->cancel_all(0);
+}
+
+bombShield @ 546 (int s, int scr) {
+    enemy.bombShieldOnAnmMain = scr;
+    enemy.bombShieldOffAnmMain = enemy.anm0scr;
+    enemy.flags &= 0xffffffffdffffffe;
+    enemy.flags = (enemy.flags ^ (enemy.flags ^ (s << 0x1c))) & 0x10000000;
+}
+
+gameSpeed @ 547 (float s) alert {}
+
+diffWait @ 548 (int e, int n, int h, int l) {
+    context.currentContext->time -= Diff(e, n, h, l);
+}
+
+unknown549 @ 549 (int a) alert {
+    enemy.flags = 0x80000000 | (enemy.flags & 0xffffffff7fffffff);
+}
+
+unknown550 @ 550 (int a) alert {
+    enemy.ecl550 = a;
+}
+
+unknown551 @ 551 (int a) notimpl {}
+
+zIndex @ 552 (int l) {
+    enemy.anmLayers = l;
+}
+
+hitSound @ 553 (int s) {
+    enemy.hitSnd = s;
+}
+
+logo @ 554 () {
+    AnmManager::getVM(AnmManager::SpawnVM(6, 0));
+}
+
+enmAlive @ 555 (_rS(var) int id) {
+    var = EnemyManager::GetInstance()->EnmFind(id) != nullptr;
+}
+
+setDeath @ 556 (_z(sub)) {
+    enemy.setDeath = sub;
+}
+
+fogTime @ 557 (int t, int m, int c, float s, float e) notimpl {}
+
+flagMirror @ 558 (int state) {
+    enemy.abs_pos.flags = state;
+}
+
+enmLimit @ 559 (int n) {
+    EnemyManager::GetInstance()->enemy_limit = n;
+}
+
+unknown560 @ 560 (float r, float s) {
+    BulletManager::GetInstance()->set_bounce_rect(r, s);
+}
+
+die @ 561 () {
+    Die();
+}
+
+dropItemsSp @ 562 () {
+    enemy.drops.eject_all_drops(enemy.final_pos.pos);
+    // spawn item even in spell practice
+}
+
+hbRect @ 563 (int state) {
+    enemy.flags &= ~(1 << 12);
+    enemy.flags |= state << 12;
+}
+
+hitboxRotate @ 564 (float a) notimpl {}
+
+bombInv @ 565 (float mul) {
+    enemy.bombDmgMul = mul;
+}
+
+unknown566 @ 566 () notimpl {}
+
+unknown567 @ 567 (int a) notimpl {}
+
+spellMode @ 568 (int state) notimpl {}
+
+unknown569 @ 569 (int a) notimpl {}
+
+unknown570 @ 570 () notimpl {}
+
+unknown571 @ 571 () notimpl {}
+
+lifeNow @ 572 (int hp) {
+    enemy.life.current = hp;
+    enemy.life.curx7 = hp * 7;
+}

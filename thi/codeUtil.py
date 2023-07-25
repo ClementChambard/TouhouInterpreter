@@ -86,10 +86,21 @@ def checkInsForBuiltinVars(ins):
                 continue
             start = i + 2
             end = start
+            nparens = 1
+            inquote = ""
             for ii in range(start, len(blocs)):
-                if blocs[ii] == ")":
-                    end = ii
-                    break
+                if blocs[ii] == ")" and inquote == "":
+                    nparens -= 1
+                    if nparens == 0:
+                        end = ii
+                        break
+                elif blocs[ii] == "(" and inquote == "":
+                    nparens += 1
+                elif blocs[ii] == inquote:
+                    inquote = ""
+                elif blocs[ii] in "'\"":
+                    inquote = blocs[ii]
+
             else:
                 continue
             skip = end - start + 2
@@ -99,7 +110,40 @@ def checkInsForBuiltinVars(ins):
                 f'std::cout << "\\e[32m/!\\\\ warning at {ins.name}'
                 + f' (ins_{ins.id}) : \\e[0m {string}\\n";'
             )
+        elif b == "ON_PRINT":
+            if blocs[i + 1] != "(":
+                continue
+            start = i + 2
+            end = start
+            nparens = 1
+            inquote = ""
+            for ii in range(start, len(blocs)):
+                if blocs[ii] == ")" and inquote == "":
+                    nparens -= 1
+                    if nparens == 0:
+                        end = ii
+                        break
+                elif blocs[ii] == "(" and inquote == "":
+                    nparens += 1
+                elif blocs[ii] == inquote:
+                    inquote = ""
+                elif blocs[ii] in "'\"":
+                    inquote = blocs[ii]
+            else:
+                continue
+            skip = end - start + 2
+            data = blocs[start:end]
+            string = "".join(data)
+            if PRINT:
+                blocs[i] = string
+            else:
+                blocs[i] = ""
+
         elif b == "return":
+            blocs[i] = "        break"
+        elif b == "delete_self":
+            blocs[i] = "        return -1"
+        elif b == "exit":
             blocs[i] = "        return 0"
             if PRINT and not ins.noprint:
                 blocs[i] = 'std::cout << ")\\n"\n' + blocs[i]
