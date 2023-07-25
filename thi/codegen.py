@@ -127,10 +127,12 @@ def arg_rf(instr, i, name):
 
 
 def arg_z(instr, i, name):
-    string = f"int32_t __{name}_size= *reinterpret_cast<int32_t*>(__arg);"
-    string += f'__arg += 4;std::string {name}="";'
-    string += f"for(int i=0;i<__{name}_size;i++)if(__arg[i]!=0)x+=__arg[i];"
-    string += f"__arg+=__{name}_size;\n"
+    string = f"        int32_t __{name}_size = *reinterpret_cast<int32_t*>(__arg);\n"
+    string += "        __arg += 4;\n"
+    string += f'        std::string {name} = "";\n'
+    string += f"        for (int i = 0; i < __{name}_size; i++)\n"
+    string += f"            if(__arg[i] != 0) {name} += __arg[i];\n"
+    string += f"        __arg += __{name}_size;\n"
     if PRINT and not instr.noprint:
         string += print_arg(i, name)
     return string
@@ -143,6 +145,11 @@ def ins_header(instr) -> str:
     if instr.varsiz:
         string += (
             "        unsigned char* __arg = const_cast<unsigned char*>(instr->data);\n"
+        )
+    if instr.vararg:
+        string += (
+            f"        unsigned int __argnum = {len(instr.args)};\n"
+          + "        const unsigned int __va_count = instr->param_count - __argnum;\n"
         )
     if PRINT and not instr.noprint:
         string += print_header(instr.name)
@@ -157,7 +164,7 @@ def ins_header(instr) -> str:
             string += arg_rf(instr, i, a[1])
         if a[0] == "_z":
             string += arg_z(instr, i, a[1])
-    if len(instr.args) > 0:
+    if len(instr.args) > 0 and not instr.vararg:
         string += after_args()
     return string
 

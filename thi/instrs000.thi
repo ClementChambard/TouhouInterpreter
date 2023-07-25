@@ -57,7 +57,7 @@ return @ 10 () {
     eclStackPop(&cont->stack, cont->stack.stackOffset, true);
 }
 
-call @ 11 (string sub) noprint varargs {
+call @ 11 (string sub) noprint vararg {
     cont->currentLocation.offset += instr->size;
     // Should be ok
     // if (EclRunContext::init_context_from_args(cont,cont,0)) {
@@ -72,24 +72,21 @@ call @ 11 (string sub) noprint varargs {
     ON_PRINT(
         std::cout << "@" << sub << "(";
     )
-    for (int i = 1; i < instr->param_count; i++) {
+    for (int i = 0; i < VA_COUNT; i++) {
         ON_PRINT(
-            if (i > 1) std::cout << ", ";
+            if (i > 0) std::cout << ", ";
         )
-        if (*reinterpret_cast<const char*>(__arg) == 'i') {
-            __arg += 4;
-            int x = *reinterpret_cast<const int32_t*>(__arg);
-            __arg += 4;
+        if (VA_INT) {
+            VA_GET_S(x)
             ON_PRINT(std::cout << x;)
             args_to_put_on_stack.push_back(x);
-        } else if (*reinterpret_cast<const char*>(__arg) == 'f') {
-            __arg += 4;
-            float x = *reinterpret_cast<const float*>(__arg);
-            __arg += 4;
+        } else if (VA_FLOAT) {
+            VA_GET_F(x)
             ON_PRINT(std::cout << x;)
             args_to_put_on_stack.push_back(x);
         }
-    } _args
+    }
+    VA_END
 
     eclPushContext(cont);
     cont->currentLocation.sub_id = fileManager->getSubId(sub);
@@ -128,7 +125,7 @@ jumpNeq @ 14 (int offset, float time) { /* OK */
     }
 }
 
-callAsync @ 15 (string sub) noprint varargs {
+callAsync @ 15 (string sub) noprint vararg {
     EclRunContext_t* c = new EclRunContext_t();
     c->currentLocation.sub_id = fileManager->getSubId(sub);
     c->difficultyMask = context.primaryContext.difficultyMask;
@@ -143,33 +140,29 @@ callAsync @ 15 (string sub) noprint varargs {
     ON_PRINT(
         std::cout << "@" << sub << "(";
     )
-    for (int i = 1; i < instr->param_count; i++) {
+    for (int i = 0; i < VA_COUNT; i++) {
         ON_PRINT(
-            if (i > 1) std::cout << ", ";
+            if (i > 0) std::cout << ", ";
         )
-        if (*reinterpret_cast<const char*>(__arg) == 'i') {
-            __arg += 4;
-            int x = *reinterpret_cast<const int32_t*>(__arg);
-            __arg += 4;
+        if (VA_INT) {
+            VA_GET_S(x)
             ON_PRINT(std::cout << x;)
             c->stack.data[c->stack.stackOffset + i - 1].asInt = x;
             c->stack.data[c->stack.stackOffset + i - 1].asFloat = x;
-        } else if (*reinterpret_cast<const char*>(__arg) == 'f') {
-            __arg += 4;
-            float x = *reinterpret_cast<const float*>(__arg);
-            __arg += 4;
+        } else if (VA_FLOAT) {
+            VA_GET_F(x)
             ON_PRINT(std::cout << x;)
             c->stack.data[c->stack.stackOffset + i - 1].asInt = x;
             c->stack.data[c->stack.stackOffset + i - 1].asFloat = x;
         }
     }
+    VA_END
     ON_PRINT(
         std::cout << ") async\n";
     )
-   _args;
 }
 
-callAsyncId @ 16 (string sub, int id) noprint varargs {
+callAsyncId @ 16 (string sub, int id) noprint vararg {
     EclRunContext_t* c = new EclRunContext_t();
     c->currentLocation.sub_id = fileManager->getSubId(sub);
     c->difficultyMask = context.primaryContext.difficultyMask;
@@ -185,30 +178,26 @@ callAsyncId @ 16 (string sub, int id) noprint varargs {
     ON_PRINT(
         std::cout << "@" << sub << "(";
     )
-    for (int i = 1; i < instr->param_count; i++) {
+    for (int i = 0; i < VA_COUNT; i++) {
         ON_PRINT(
-            if (i > 1) std::cout << ", ";
+            if (i > 0) std::cout << ", ";
         )
-        if (*reinterpret_cast<const char*>(__arg) == 'i') {
-            __arg += 4;
-            int x = *reinterpret_cast<const int32_t*>(__arg);
-            __arg += 4;
+        if (VA_INT) {
+            VA_GET_S(x)
             ON_PRINT(std::cout << x;)
             c->stack.data[c->stack.stackOffset + i - 1].asInt = x;
             c->stack.data[c->stack.stackOffset + i - 1].asFloat = x;
-        } else if (*reinterpret_cast<const char*>(__arg) == 'f') {
-            __arg += 4;
-            float x = *reinterpret_cast<const float*>(__arg);
-            __arg += 4;
+        } else if (VA_FLOAT) {
+            VA_GET_F(x)
             ON_PRINT(std::cout << x;)
             c->stack.data[c->stack.stackOffset + i - 1].asInt = x;
             c->stack.data[c->stack.stackOffset + i - 1].asFloat = x;
         }
     }
+    VA_END
     ON_PRINT(
         std::cout << ") async " << id << "\n";
     )
-   _args;
 }
 
 /////// OK FROM HERE /////////

@@ -4,6 +4,25 @@ import parseUtil
 PRINT = False
 
 
+def after_args():
+    return (
+        "        cont->stack.stackOffset -= stackToRemove;\n"
+        + "        stackToRemove = 0;"
+    )
+
+
+def get_arg_vararg(t, name):
+    iorf = ["I", "F"][t == "float"]
+    __arg = "__arg"
+    end = "        __arg+=4;\n"
+    end += "        __argnum++;"
+    return (
+        f"        {t} {name} = *reinterpret_cast<{t}*>({__arg});\n"
+        + "        if (1<<__argnum) "
+        + f"{name} = checkVar{iorf}({name});\n{end}"
+    )
+
+
 def splitForMacro(bloc: str) -> List[str]:
     splittedBloc: List[str] = []
     while len(bloc) > 0:
@@ -68,6 +87,23 @@ def formatBloc(bloc: str, indent: int, startlevel: int) -> str:
 # "GetInstance()->EnmFind(EnemyManager::GetInstance()->boss_ids[0]))"
 
 
+def long_one_arg_macro(b, start):
+    nparens = 1
+    inquote = ""
+    for i in range(start, len(b)):
+        if b[i] == ")" and inquote == "":
+            nparens -= 1
+            if nparens == 0:
+                return i
+        elif b[i] == "(" and inquote == "":
+            nparens += 1
+        elif b[i] == inquote:
+            inquote = ""
+        elif b[i] in "'\"":
+            inquote = b[i]
+    return -1
+
+
 def checkInsForBuiltinVars(ins):
     blocs = splitForMacro(ins.code)
 
@@ -85,23 +121,8 @@ def checkInsForBuiltinVars(ins):
             if blocs[i + 1] != "(":
                 continue
             start = i + 2
-            end = start
-            nparens = 1
-            inquote = ""
-            for ii in range(start, len(blocs)):
-                if blocs[ii] == ")" and inquote == "":
-                    nparens -= 1
-                    if nparens == 0:
-                        end = ii
-                        break
-                elif blocs[ii] == "(" and inquote == "":
-                    nparens += 1
-                elif blocs[ii] == inquote:
-                    inquote = ""
-                elif blocs[ii] in "'\"":
-                    inquote = blocs[ii]
-
-            else:
+            end = long_one_arg_macro(blocs, start)
+            if end < 0:
                 continue
             skip = end - start + 2
             data = blocs[start:end]
@@ -110,26 +131,64 @@ def checkInsForBuiltinVars(ins):
                 f'std::cout << "\\e[32m/!\\\\ warning at {ins.name}'
                 + f' (ins_{ins.id}) : \\e[0m {string}\\n";'
             )
+        elif b == "VA_FLOAT":
+            blocs[i] = "*reinterpret_cast<const char*>(__arg) == 'f'"
+        elif b == "VA_INT":
+            blocs[i] = "*reinterpret_cast<const char*>(__arg) == 'f'"
+        elif b == "VA_GET_S":
+            if blocs[i + 1] != "(":
+                continue
+            sskip = 1
+            leng = 0
+            for ii in range(i + 2, len(blocs)):
+                if (
+                    not blocs[ii].isspace()
+                    and blocs[ii][0] != "_"
+                    and not blocs[ii][0].isalpha()
+                ):
+                    break
+                leng += 1
+            sskip += leng
+            name = blocs[i + 2 : i + 2 + leng]
+            name = "".join(name).strip()
+            if name == "" or blocs[i + 2 + leng] != ")":
+                continue
+            skip = sskip + 1
+            string = "__arg += 4;\n"
+            string += get_arg_vararg("int32_t", name)
+            blocs[i] = string
+        elif b == "VA_GET_F":
+            if blocs[i + 1] != "(":
+                continue
+            sskip = 1
+            leng = 0
+            for ii in range(i + 2, len(blocs)):
+                if (
+                    not blocs[ii].isspace()
+                    and blocs[ii][0] != "_"
+                    and not blocs[ii][0].isalpha()
+                ):
+                    break
+                leng += 1
+            sskip += leng
+            name = blocs[i + 2 : i + 2 + leng]
+            name = "".join(name).strip()
+            if name == "" or blocs[i + 2 + leng] != ")":
+                continue
+            skip = sskip + 1
+            string = "__arg += 4;\n"
+            string += get_arg_vararg("float", name)
+            blocs[i] = string
+        elif b == "VA_END":
+            blocs[i] = after_args()
+        elif b == "VA_COUNT":
+            blocs[i] = "__va_count"
         elif b == "ON_PRINT":
             if blocs[i + 1] != "(":
                 continue
             start = i + 2
-            end = start
-            nparens = 1
-            inquote = ""
-            for ii in range(start, len(blocs)):
-                if blocs[ii] == ")" and inquote == "":
-                    nparens -= 1
-                    if nparens == 0:
-                        end = ii
-                        break
-                elif blocs[ii] == "(" and inquote == "":
-                    nparens += 1
-                elif blocs[ii] == inquote:
-                    inquote = ""
-                elif blocs[ii] in "'\"":
-                    inquote = blocs[ii]
-            else:
+            end = long_one_arg_macro(blocs, start)
+            if end < 0:
                 continue
             skip = end - start + 2
             data = blocs[start:end]
