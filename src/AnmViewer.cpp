@@ -2,8 +2,7 @@
 #include "./AnmOpener/AnmManager.h"
 #include "./Player.h"
 #include <imgui.h>
-#include <imgui_impl_opengl3.h>
-#include <imgui_impl_sdl.h>
+#include <imguiW.hpp>
 
 #include <Engine.hpp>
 #include <NSEngine.h>
@@ -95,17 +94,84 @@ auto getSpriteRange(AnmFile *f, uint32_t texid) {
   return r;
 }
 
+
+void ImageWithUVRepresentedOnIt(ImTextureID tex, ImVec2 imgSize,
+                                ImVec2 imgUvStart, ImVec2 imgUvEnd,
+                                ImVec2 sprUvStart, ImVec2 sprUvEnd,
+                                ImU32 outline) {
+    ImVec2 sprFractStart = (sprUvStart - imgUvStart) / (imgUvEnd - imgUvStart);
+    ImVec2 sprFractEnd = (sprUvEnd - imgUvStart) / (imgUvEnd - imgUvStart);
+
+    bool cullAll = sprFractEnd.x < 0 || sprFractEnd.y < 0 ||
+                   sprFractStart.x > 1 || sprFractStart.y > 1;
+    bool cullLeft = sprFractStart.x < 0;
+    if (cullLeft) sprFractStart.x = 0;
+    bool cullTop = sprFractStart.y < 0;
+    if (cullTop) sprFractStart.y = 0;
+    bool cullRight = sprFractEnd.x > 1;
+    if (cullRight) sprFractEnd.x = 1;
+    bool cullBottom = sprFractEnd.y > 1;
+    if (cullBottom) sprFractEnd.y = 1;
+
+    ImU32 outlineColorU32 = outline;
+
+    auto Window = ImGui::GetCurrentWindow();
+    auto p1 = Window->DC.CursorPos;
+    auto p2 = p1 + imgSize;
+
+    auto imgP1 = p1;
+    auto imgP2 = p2;
+
+    auto sprP1 = (sprFractStart * imgSize) + p1;
+    auto sprP2 = (sprFractEnd * imgSize) + p1;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    ImGui::ItemSize(imgSize, style.FramePadding.y);
+    ImGui::ItemAdd(ImRect(p1, p2), ImGui::GetID("image"));
+    auto const dl = ImGui::GetWindowDrawList();
+    dl->AddImage(tex, imgP1, imgP2, imgUvStart, imgUvEnd);
+
+    if (!cullAll) {
+        if (!cullLeft)
+            dl->AddLine(sprP1, {sprP1.x, sprP2.y}, outlineColorU32, 2);
+        if (!cullTop)
+            dl->AddLine(sprP1, {sprP2.x, sprP1.y}, outlineColorU32, 2);
+        if (!cullRight)
+            dl->AddLine(sprP2, {sprP2.x, sprP1.y}, outlineColorU32, 2);
+        if (!cullBottom)
+            dl->AddLine(sprP2, {sprP1.x, sprP2.y}, outlineColorU32, 2);
+    }
+
+    dl->AddQuad(p1, {p1.x, p2.y}, p2, {p2.x, p1.y}, 0xFFFFFFFF);
+}
+
+void ImageViewerSprite(ImTextureID tex, ImVec2 imgSize,
+                         ImVec2* pos, float* zoom, bool UseCtrls,
+                        ImVec2 sprUvStart, ImVec2 sprUvEnd,
+                        ImU32 outline) {
+    if (UseCtrls) {
+        ImGui::SliderFloat("Zoom", zoom, 1, 10);
+        ImGui::SliderFloat("X", &pos->x, 0, 1);
+        ImGui::SliderFloat("Y", &pos->y, 0, 1);
+    }
+    ImVec2 posT = (*pos) * (1-1/(*zoom));
+    ImVec2 imgUvStart = {posT.x, posT.y};
+    ImVec2 imgUvEnd = {posT.x + 1 / (*zoom), posT.y + 1 / (*zoom)};
+
+    ImageWithUVRepresentedOnIt(tex, imgSize, imgUvStart, imgUvEnd,
+                               sprUvStart, sprUvEnd, outline);
+}
+
+
 void TextureViewerWindow(bool *open) {
   if (!*open)
     return;
   ImGui::Begin("Texture viewer", open);
   ImGui::PushID("TextureVwr");
   static int selected = -1;
-  static int textureId = 0;
   static std::string anmfilename = "-";
-  if (AnmSlotSelector("Slot", &anmfilename, &selected)) {
-    textureId = 0;
-  }
+  AnmSlotSelector("Slot", &anmfilename, &selected);
   if (selected < 0 || selected > 30 ||
       anmfilename[anmfilename.size() - 1] == '-') {
     ImGui::PopID();
@@ -113,33 +179,19 @@ void TextureViewerWindow(bool *open) {
     return;
   }
   AnmFile *f = AnmManager::getLoaded(selected);
-  ImGui::InputInt("texture num", &textureId);
-  if (textureId < 0)
-    textureId = 0;
-  if ((size_t)textureId >= f->textures.size())
-    textureId = f->textures.size() - 1;
-  ImGui::Text("%s, texture %d/%zd", anmfilename.c_str(), textureId + 1,
-              f->textures.size());
-  int tid = std::next(f->textures.begin(), textureId)->second;
-  auto tex = NSEngine::TextureManager::GetTexture(tid);
-  ImGui::Image((void *)(int64_t)tex->id,
-               {(float)tex->width, (float)tex->height});
   static int spriteId = 0;
-  auto r = getSpriteRange(f, tid);
-  if (r.first == -1) {
-    ImGui::PopID();
-    ImGui::End();
-    return;
-  }
   ImGui::InputInt("sprite id", &spriteId);
-  if (r.first > spriteId)
-    spriteId = r.first;
-  if (r.last < spriteId)
-    spriteId = r.last;
+  if (spriteId < 0) spriteId = 0;
+  if (static_cast<size_t>(spriteId) >= f->sprites.size())
+    spriteId = f->sprites.size() - 1;
   auto sp = f->sprites[spriteId];
   auto t = NSEngine::TextureManager::GetTextureID(sp.texID);
-  ImGui::Image((void *)(int64_t)t, {sp.w, sp.h}, {sp.u1, sp.v1},
-               {sp.u2, sp.v2});
+  int w, h; NSEngine::TextureManager::GetTextureSize(sp.texID, w, h);
+  static ImVec2 pos = {0.5, 0.5};
+  static float zoom = 1;
+  ImageViewerSprite(reinterpret_cast<ImTextureID>(t), ImVec2(w, h), &pos,
+                    &zoom, true, {sp.u1, sp.v1},
+                    {sp.u2, sp.v2}, 0xFF0000FF);
   ImGui::PopID();
   ImGui::End();
 }
@@ -155,7 +207,12 @@ void AnmView::renderInList() {
     return;
   }
   ImGui::PushID(("AnmId" + std::to_string(anmId)).c_str());
-  ImGui::Text("%d", anmId);
+  auto vm = AnmManager::getVM(anmId);
+  auto name = AnmManager::getLoaded(vm->anm_loaded_index)->name.c_str();
+  if (parentId != 0)
+    ImGui::Text("%s: script %d (%d->%d)", name, vm->script_id, anmId, parentId);
+  else
+    ImGui::Text("%s: script %d (%d)", name, vm->script_id, anmId);
   if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     windowOpen = !windowOpen;
   }
@@ -255,6 +312,10 @@ void anm_view_window(AnmView *v) {
 
   ImGui::Checkbox("Follow player", &v->followPlayer);
   int spid = vm->sprite_id;
+  if (ImGui::Button("show sprite")) {
+    v->spriteShowOpen = !v->spriteShowOpen;
+  }
+  ImGui::SameLine();
   ImGui::InputInt("sprite_id", &spid);
   if (spid != vm->sprite_id)
     AnmManager::getLoaded(vm->anm_loaded_index)->setSprite(vm, spid);
@@ -369,6 +430,21 @@ void anm_view_window(AnmView *v) {
     ImGui::Text("unknown flags 27-31: %d", vm->bitflags.f534_27_31);
   }
 
+  if (vm->list_of_children.next && ImGui::CollapsingHeader("children")) {
+    for (auto l = vm->list_of_children.next; l; l = l->next) {
+      ImGui::PushID(std::to_string(l->value->id.val).c_str());
+      ImGui::Text("%s: script %d (%d)",
+                  AnmManager::getLoaded(l->value->anm_loaded_index)->
+                    name.c_str(),
+                  l->value->script_id, l->value->id.val);
+      ImGui::SameLine();
+      if (ImGui::Button("see")) {
+        ANM_VIEWER_PTR->animP(l->value->id.val, vm->id.val);
+      }
+      ImGui::PopID();
+    }
+  }
+
   if (ImGui_BeginPopupCenter("InterruptVM")) {
     static bool interrupt_recursive = false;
     static int interrupt_value = 0;
@@ -390,6 +466,17 @@ void anm_view_window(AnmView *v) {
     ImGui::PopID();
     ImGui::EndPopup();
   }
+  ImGui::PopID();
+  ImGui::End();
+
+  if (!v->spriteShowOpen) return;
+
+  ImGui::Begin(("SpriteOf(" + std::to_string(v->anmId) + ")").c_str(),
+               &v->windowOpen);
+  ImGui::PushID(("spriteWin" + std::to_string(v->anmId)).c_str());
+  auto sp = vm->getSprite();
+  ImTextureID tex = reinterpret_cast<ImTextureID>(NSEngine::TextureManager::GetTextureID(sp.texID));
+  ImGui::Image(tex, {sp.w, sp.h}, {sp.u1, sp.v1}, {sp.u2, sp.v2});
   ImGui::PopID();
   ImGui::End();
 }

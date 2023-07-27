@@ -99,13 +99,19 @@ void App::on_render() {
   // c = {  0,   0, 255, 255};
   // __MONITOR(EnemyManager::GetInstance()->enemyCount/300.f, c);
 
-  if (EclFileManager::GetInstance()->stdf)
-    EclFileManager::GetInstance()->stdf->Draw();
-  UPDATE_FUNC_REGISTRY->run_all_on_draw();
-  AnmManager::draw();
-  //ASCII_MANAGER_PTR->render_group(0);
-  //ASCII_MANAGER_PTR->render_group(1);
-  //ASCII_MANAGER_PTR->render_group(2);
+  static bool renderStage = true;
+  static bool renderUpdFunc = true;
+  static bool renderAnmManager = true;
+  if (Inputs::Keyboard().Pressed(NSK_a)) renderAnmManager = !renderAnmManager;
+  if (Inputs::Keyboard().Pressed(NSK_s)) renderStage = !renderStage;
+  if (Inputs::Keyboard().Pressed(NSK_u)) renderUpdFunc = !renderUpdFunc;
+  if (renderStage)
+    if (EclFileManager::GetInstance()->stdf)
+      EclFileManager::GetInstance()->stdf->Draw();
+  if (renderUpdFunc)
+    UPDATE_FUNC_REGISTRY->run_all_on_draw();
+  if (renderAnmManager)
+    AnmManager::draw();
   anmViewer.on_draw();
 }
 
