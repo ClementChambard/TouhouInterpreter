@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "./AnmOpener/AnmVM.h"
 
 struct AnmView {
     int anmId;
@@ -12,6 +13,7 @@ struct AnmView {
     int pauseInstr = -1;
     int parentId = 0;
     bool spriteShowOpen = false;
+    AnmVM* vm = nullptr;
 
     void renderInList();
 };
@@ -27,7 +29,9 @@ public:
     std::vector<AnmView> &views() { return m_anmviews; }
     void anim(int id) { m_anmviews.push_back({id, true, false, false, -1, 0, false}); }
     void animP(int id, int pid) { m_anmviews.push_back({id, true, false, false, -1, pid, false}); }
-
+    void animPtr(AnmVM* vm) {
+        m_anmviews.push_back({0, true, false, false, -1, 0, false, vm});
+    }
 private:
     void check_anmviews();
 

@@ -22,7 +22,6 @@ AsciiPopupManager::AsciiPopupManager() {
 
   // NO
   vm.layer = 28;
-  vm.bitflags.activeFlags = 2;
 }
 
 AsciiPopupManager::~AsciiPopupManager() {

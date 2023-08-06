@@ -122,7 +122,7 @@ void quad_dump(const std_object_t* object) {
     std::cout << "        Scr_id: " << object->script_index << '\n';
     std::cout << "        Position: " << object->x << ' '
         << object->y << ' ' << object->z << '\n';
-    std::cout << "        Padding: " << object->_padding << '\n';
+    std::cout << "        Padding: " << object->vmid << '\n';
     std::cout << "        Width: " << object->width << '\n';
     std::cout << "        Height: " << object->height << '\n';
 }
@@ -130,7 +130,7 @@ void quad_dump(const std_object_t* object) {
 void entry_dump(const std_entry_t* entry, uint16_t& objID) {
     std_entry_header_t* header = entry->header;
     std::cout << "\nENTRY " << objID++ << ":\n";
-    std::cout << "    Unknown: " << header->unknown << '\n';
+    std::cout << "    Unknown: " << header->layer << '\n';
     std::cout << "    Position: " << header->x << ' ' <<
         header->y << ' ' << header->z << '\n';
     std::cout << "    Depth: " << header->depth << '\n';

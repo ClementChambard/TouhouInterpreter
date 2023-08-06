@@ -2,6 +2,7 @@
 #define ECLINSTRMACROS_H_
 
 #include <string>
+#include "./shiftjis.h"
 
 #define __doprint PRINT && !__noprint
 
@@ -136,6 +137,26 @@
     for (int i = 0; i < __##x##_size; i++)                                     \
         if (__arg[i] != 0)                                                     \
             x += __arg[i];                                                     \
+    __arg += __##x##_size;                                                     \
+    __argmask *= 2;                                                            \
+    if (__doprint) {                                                           \
+        if (__narg > 0)                                                        \
+            std::cout << ", ";                                                 \
+        else                                                                   \
+            std::cout << __name << "(";                                        \
+        std::cout << x;                                                        \
+    }                                                                          \
+    __narg++;
+
+#define _zc(x)                                                                 \
+    int32_t __##x##_size = *reinterpret_cast<int32_t*>(__arg);                 \
+    __arg += 4;                                                                \
+    std::string x = "";                                                        \
+    unsigned char* data = new unsigned char[__##x##_size]; \
+    memcpy(data, __arg, __##x##_size); \
+    util_xor(data, __##x##_size, 0x77, 7, 16); \
+    x = reinterpret_cast<char*>(data); \
+    delete[] data; \
     __arg += __##x##_size;                                                     \
     __argmask *= 2;                                                            \
     if (__doprint) {                                                           \

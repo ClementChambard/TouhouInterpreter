@@ -12,6 +12,7 @@ extern Json::Value ITEM_ANM_SCRIPT_IDS;
 extern Json::Value LASER_DATA;
 extern Json::Value PLAYERS;
 extern Json::Value GUI_ANMS;
+extern Json::Value EFFECT;
 extern int TOUHOU_VERSION;
 
 void Hardcoded_Load();

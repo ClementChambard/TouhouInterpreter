@@ -1,7 +1,7 @@
 #ifndef PLAYER_H_
 #define PLAYER_H_
 
-#include "./AnmOpener/AnmVM.h"
+#include "./AnmOpener/AnmFile.h"
 #include "./Interp.h"
 #include "./PosVel.h"
 #include "./ShtFile.h"
@@ -127,9 +127,8 @@ private:
     // undefined4
     UpdateFunc* on_game_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
-    // AnmLoaded* playerAnm
-
 public:
+    AnmFile* playerAnm =  nullptr;
     AnmVM vm {};
     PlayerInner_t inner {};
     int32_t flags = 0;

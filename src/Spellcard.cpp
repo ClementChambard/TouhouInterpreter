@@ -1,9 +1,11 @@
+#include "./shiftjis.h"
 #include "./Spellcard.h"
 #include "./AnmOpener/AnmManager.h"
-#include "./Player.h"
-#include "./EnemyManager.h"
 #include "./AsciiManager.hpp"
+#include "./EnemyManager.h"
 #include "./Gui.hpp"
+#include "./Player.h"
+#include "./Supervisor.h"
 
 Spellcard *SPELLCARD_PTR = nullptr;
 
@@ -49,7 +51,7 @@ int Spellcard::on_tick() {
   if (vm) {
     vm->entity_pos = boss0_pos;
   }
-  if ((flags & 0x20) && false/*BOMB_PTR->active != 1*/) {
+  if ((flags & 0x20) && false /*BOMB_PTR->active != 1*/) {
     flags &= 0xffffffdf;
   }
 
@@ -206,7 +208,6 @@ void Spellcard::Stop() {
 }
 
 #include "Hardcoded.h"
-
 void Spellcard::Init(int /*id*/, int time, int mode, std::string name) {
   __timer_20 = 0;
   // field25_0x74 = param_2;
@@ -260,12 +261,9 @@ void Spellcard::Init(int /*id*/, int time, int mode, std::string name) {
   GUI_PTR->vm_timer_digit_lo->interrupt(2);
   field_0x8c = 1;
   flags &= 0xffffff9f;
-  ascii_anmid_10 = AnmManager::SpawnVM(
-    ASCII_MANAGER_PTR->ascii_anm->getSlot(), 0);
-  AnmManager::getVM(ascii_anmid_10)->bitflags.originMode = 0;
-  // text_anmid_14 = SUPERVISOR.text_anm->create_effect(2);
-  ascii_anmid_18 = AnmManager::SpawnVM(
-    ASCII_MANAGER_PTR->ascii_anm->getSlot(), 1);
+  ascii_anmid_10 = ASCII_MANAGER_PTR->ascii_anm->createEffect(0);
+  // text_anmid_14 = SUPERVISOR.text_anm->createEffect(2);
+  ascii_anmid_18 = ASCII_MANAGER_PTR->ascii_anm->createEffect(1);
 
   // vm = ANM_MANAGER_PTR->get_vm_with_id(this->_text_anmid_14.value);
   // if (!vm) {
@@ -275,7 +273,7 @@ void Spellcard::Init(int /*id*/, int time, int mode, std::string name) {
 
   // SoundManager::play_sound_centered(0x21);
 
-  spell_circle_anmid = AnmManager::SpawnVM(8, 0xd);
+  spell_circle_anmid = AnmManager::getLoaded(8)->createEffect(13);
   auto boss_0 = ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]);
   boss0_pos = boss_0->getData()->final_pos.pos;
   auto spell_circle = AnmManager::getVM(spell_circle_anmid);
@@ -283,45 +281,30 @@ void Spellcard::Init(int /*id*/, int time, int mode, std::string name) {
     spell_circle_anmid = 0;
   } else {
     spell_circle->entity_pos = boss0_pos;
-    // spell_circle->search_children(11, 0)->prefix.int_script_vars[2] = duration;
-    // spell_circle->search_children(12, 0)->prefix.int_script_vars[2] = duration;
-    spell_circle->update();
-    auto l = spell_circle->getChild();
-    while (l) {
-      if (l->value)
-        l->value->setI(2, time);
-      l = l->next;
-    }
+    spell_circle->search_children(11, 0)->int_script_vars[2] = time;
+    spell_circle->search_children(12, 0)->int_script_vars[2] = time;
   }
   duration = time;
   int bonuses[] = {500000, 1000000, 1500000, 2000000, 1000000};
   bonus = bonuses[GLOBALS.inner.DIFFICULTY] * GLOBALS.inner.STAGE_NUM;
   bonus_max = fmin(this->bonus, 999999999);
-  AnmManager::SpawnVM(8, 20);
+  AnmManager::getLoaded(8)->createEffect(20);
   if (mode < 0 || mode > 3)
     return;
   auto bossdata = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][mode];
   if (bossdata["spell_bg_anim_index"] >= 0 &&
       bossdata["spell_bg_anm_script"] >= 0)
-    spell_bg_anm_id = AnmManager::SpawnVM(
+    spell_bg_anm_id =
         ENEMY_MANAGER_PTR->loadedAnms[bossdata["spell_bg_anim_index"].asInt()]
-            ->getSlot(),
-        bossdata["spell_bg_anm_script"].asInt());
+            ->createEffect(bossdata["spell_bg_anm_script"].asInt());
   if (bossdata["spell_portrait_anim_index"] >= 0 &&
       bossdata["spell_portrait_anm_script"] >= 0)
-    AnmManager::SpawnVM(
-        ENEMY_MANAGER_PTR
-            ->loadedAnms[bossdata["spell_portrait_anim_index"].asInt()]
-            ->getSlot(),
-        bossdata["spell_portrait_anm_script"].asInt());
-  flags =
-      (flags ^
-      ((bossdata["stage_bg_visible_during_spell"].asInt()
-           << 9) ^
-       flags)) &
+    ENEMY_MANAGER_PTR->loadedAnms[bossdata["spell_portrait_anim_index"].asInt()]
+        ->createEffect(bossdata["spell_portrait_anm_script"].asInt());
+  flags = (flags ^
+           ((bossdata["stage_bg_visible_during_spell"].asInt() << 9) ^ flags)) &
           0x200;
   GLOBALS.inner.HYPER_FLAGS &= 0xfffff7ff;
-  std::cout << "Spell card " << name
-            << "  -> " << time << "\n";
+  std::cout << "Spell card " << sj2utf8(name) << "  -> " << time << "\n";
   flags |= 3;
 }

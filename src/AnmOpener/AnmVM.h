@@ -26,6 +26,9 @@ struct AnmID {
   void setDiscriminator(int32_t discr) {
     val = (val & fastIdMask) | (discr << disctOffset);
   }
+  void setFastId(int32_t fast) {
+    val = (val & ~fastIdMask) | (fast & fastIdMask);
+  }
   uint32_t getFastId() { return val & fastIdMask; }
   bool operator==(uint32_t other) { return val == other; }
   bool operator!=(uint32_t other) { return val != other; }
@@ -47,8 +50,8 @@ class AnmVM {
 
 public:
   AnmVM() {}
-  AnmVM(AnmVM const &toCopy);
-  void operator()(AnmVM const &other);
+  //AnmVM(AnmVM const &toCopy);
+  //void operator()(AnmVM const &other);
   AnmVM(uint32_t script_id, uint32_t anim_slot);
 
   ~AnmVM();
@@ -68,6 +71,7 @@ public:
   float check_val(float f);
   int exec_instruction(int8_t *ins);
   int check_interrupt();
+  AnmVM* search_children(int a, int b);
 
   void setPos(float x, float y, float z) { pos = {x, y, z}; }
   void setEntityPos(float x, float y, float z) { entity_pos = {x, y, z}; }
@@ -96,19 +100,29 @@ public:
   void update_variables_growth();
 
   void alloc_special_vertex_buffer(int size) {
+    if (special_vertex_buffer_data)
+      delete[] reinterpret_cast<uint8_t*>(special_vertex_buffer_data);
     special_vertex_buffer_size = size;
     special_vertex_buffer_data = new uint8_t[size];
   }
   AnmID add_child(int i, int mode);
   void transform_coordinate(glm::vec3 &pos);
+  void transform_coordinate_o(glm::vec3 &p);
   glm::vec3 get_own_transformed_pos();
+  glm::vec3 get_own_transformed_pos_o();
+void write_sprite_corners__without_rot_o(glm::vec4 &tl, glm::vec4 &tr,
+                                              glm::vec4 &bl, glm::vec4 &br);
+void write_sprite_corners__with_z_rot_o(glm::vec4 &tl, glm::vec4 &tr,
+                                             glm::vec4 &bl, glm::vec4 &br);
   void write_sprite_corners_2d(glm::vec4 *corners);
   void write_sprite_corners__without_rot(glm::vec4 &v1, glm::vec4 &v2,
                                          glm::vec4 &v3, glm::vec4 &v4);
   void write_sprite_corners__with_z_rot(glm::vec4 &v1, glm::vec4 &v2,
                                         glm::vec4 &v3, glm::vec4 &v4);
   int write_sprite_corners__mode_4();
+  int write_sprite_corners__mode_4_o();
 
+  void write_texture_circle_vertices();
   static int cnt;
 
   // PREFIX
@@ -179,8 +193,8 @@ public:
   AnmVMList_t __node_as_child = {this, nullptr, nullptr};
   AnmVMList_t list_of_children = {};
   AnmVMList_t __wierd_list = {this, nullptr, nullptr};
-  // next in layer : disused
-  int32_t new_field_added_in_1_00b__looks_completely_unused__i_shit_you_not = 0;
+  AnmVM *next_in_layer__disused = nullptr;
+  int32_t new_field_added_in_1_00b = 0;
   AnmVM *__root_vm__or_maybe_not = nullptr;
   AnmVM *parent_vm = nullptr;
   float slowdown = 0.f;

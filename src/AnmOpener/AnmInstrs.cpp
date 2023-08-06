@@ -21,7 +21,8 @@ int AnmVM::exec_instruction(int8_t* ins)
         case   0: // nop
             return 0;
         case   1: // destroy
-            bitflags.activeFlags = ANMVM_DELETE;
+            AnmManager::deleteVM(this);
+            // bitflags.activeFlags = ANMVM_DELETE;
             return 0;
         case   2: // freeze
             instr_offset = -1;
@@ -405,44 +406,34 @@ int AnmVM::exec_instruction(int8_t* ins)
             return 0;
 
         case 500: // scriptNew
-            add_child(S(0), 0);
+            AnmManager::getLoaded(anm_loaded_index)
+                ->create_child_vm(S(0), this, 0);
             return 0;
         case 501: // scriptNewUI
-            add_child(S(0), 4);
+            AnmManager::getLoaded(anm_loaded_index)
+                ->create_child_vm(S(0), this, 4);
             return 0;
         case 502: // scriptNewFront
-            add_child(S(0), 2);
+            AnmManager::getLoaded(anm_loaded_index)
+                ->create_child_vm(S(0), this, 2);
             return 0;
         case 503: // scriptNewFrontUI
-            add_child(S(0), 6);
+            AnmManager::getLoaded(anm_loaded_index)
+                ->create_child_vm(S(0), this, 6);
             return 0;
         case 504: {// scriptNewRoot
-            //__field_134__some_kind_of_counter++;
-            auto vm = AnmManager::getVM(AnmManager::SpawnVM(anm_loaded_index, S(0)));
-            vm->bitflags.randomMode = 0b1;
-            vm->bitflags.colorizeChildren = bitflags.colorizeChildren;
-            vm->entity_pos = entity_pos;
-            vm->rotation = rotation;
-            vm->__pos_2 = pos;
-            if (!vm->layer) vm->layer = layer;
-            vm->update();
-            vm->mode_of_create_child = 0;
+            AnmManager::getLoaded(anm_loaded_index)->new_root(S(0), this);
             return 0;}
         case 505: {// scriptNewPos
-            auto vm = AnmManager::getVM(add_child(S(0), 0));
+            auto id = AnmManager::getLoaded(anm_loaded_index)
+                ->create_child_vm(S(0), this, 0);
+            auto vm = AnmManager::getVM(id);
             vm->__pos_2 = { f(1), f(2), 0.f };
             return 0; }
         case 506: {// scriptNewPosRoot
-            //__field_134__some_kind_of_counter++;
-            auto vm = AnmManager::getVM(AnmManager::SpawnVM(anm_loaded_index, S(0)));
-            vm->bitflags.randomMode = 0b1;
-            vm->bitflags.colorizeChildren = bitflags.colorizeChildren;
-            vm->entity_pos = entity_pos;
-            vm->rotation = rotation;
-            vm->__pos_2 = pos;
-            if (!vm->layer) vm->layer = layer;
-            vm->update();
-            vm->mode_of_create_child = 0;
+            auto id = AnmManager::getLoaded(anm_loaded_index)
+                ->new_root(S(0), this);
+            auto vm = AnmManager::getVM(id);
             vm->__pos_2 = { f(1), f(2), 0.f };
             return 0;}
         case 507: // ins_507 (ignore parent)
@@ -468,15 +459,15 @@ int AnmVM::exec_instruction(int8_t* ins)
 
         case 600: // texCircle
             bitflags.rendermode = 9;
-            alloc_special_vertex_buffer(S(0) * 56);
+            alloc_special_vertex_buffer(S(0) * 2 * sizeof(RenderVertex_t));
             return 0;
         case 601: // texArcEven
             bitflags.rendermode = 13;
-            alloc_special_vertex_buffer(S(0) * 56);
+            alloc_special_vertex_buffer(S(0) * 2 * sizeof(RenderVertex_t));
             return 0;
         case 602: // texArc
             bitflags.rendermode = 14;
-            alloc_special_vertex_buffer(S(0) * 56);
+            alloc_special_vertex_buffer(S(0) * 2 * sizeof(RenderVertex_t));
             return 0;
         case 603: // drawRect
             bitflags.rendermode = 16;
@@ -510,11 +501,13 @@ int AnmVM::exec_instruction(int8_t* ins)
             return 0;
         case 609: // texCylinder3D
             bitflags.rendermode = 24;
-            alloc_special_vertex_buffer(S(0) * 48);
+            // actually, it uses special vertex without w component
+            alloc_special_vertex_buffer(S(0) * 2 * sizeof(RenderVertex_t));
             return 0;
         case 610: // texRing3D
             bitflags.rendermode = 25;
-            alloc_special_vertex_buffer(S(0) * 48);
+            // actually, it uses special vertex without w component
+            alloc_special_vertex_buffer(S(0) * 2 * sizeof(RenderVertex_t));
             return 0;
         case 611: // drawRing
             bitflags.rendermode = 19;

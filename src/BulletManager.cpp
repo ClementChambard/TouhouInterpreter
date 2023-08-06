@@ -3,7 +3,15 @@
 #include <NSEngine.h>
 #include <math/Random.h>
 
+int BULLET_ADDITIONAL_CANCEL_SCR[18] = {
+    0x4, 0x8, 0xC, 0x10, 0x14, 0x18, 0x1C, 0x22, 0x0,
+    0x1, 0x2, 0x3,   -1,  0x4,  0x5,  0x6,  0x7, -1
+};
+
+BulletManager* BULLET_MANAGER_PTR = nullptr;
+
 BulletManager::BulletManager() {
+    BULLET_MANAGER_PTR = this;
     BulletList_t* pred = &freelist_head;
     BulletList_t* current = nullptr;
     for (size_t i = 0; i < max_bullet; i++) {
@@ -22,6 +30,7 @@ BulletManager::BulletManager() {
 }
 
 BulletManager::~BulletManager() {
+    BULLET_MANAGER_PTR = nullptr;
     UPDATE_FUNC_REGISTRY->unregister(f_on_tick);
     UPDATE_FUNC_REGISTRY->unregister(f_on_draw);
 }
@@ -286,19 +295,19 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t* bh,
         b->et_ex[i] = bh->ex[i];
 
     // init vm
-    b->vm(AnmManager::getLoaded(7)->getPreloaded(
-        b->sprite_data["script"].asInt()));
-    b->vm.setEntity(static_cast<void*>(b));
-    b->vm.setLayer(15);
+    b->vm.reset();
     b->vm.index_of_sprite_mapping_func = 1;
-    AnmManager::getLoaded(7)->setSprite(&b->vm, b->vm.sprite_id);
-    b->vm.update();
+    b->vm.associated_game_entity = b;
+    bullet_anm->load_external_vm(&b->vm, b->sprite_data["script"].asInt());
+    // TODO: no
+    b->vm.setLayer(15);
     b->vm.bitflags.originMode = 0b01;
 
     // Spawn anim wierd and cancel id
-    /*if (b->sprite_data["__field_114"].asInt() != 0) {
-      b->anmExtraId = BULLET_MANAGER_PTR->bullet_anm->create(&bul_mgr2, b->sprite_data["__field_114"].asInt(), &bullet->pos,0,-1,nullptr);
-    }*/
+    if (b->sprite_data["__field_114"].asInt() != 0) {
+        b->anm_extra_id = BULLET_MANAGER_PTR->bullet_anm->createEffectPos(
+            b->sprite_data["__field_114"].asInt(), 0, b->pos);
+    }
 
     // Set cancel_sprite_id ... TODO investigate
     switch (b->sprite_data["__field_10c"].asInt()) {
@@ -306,8 +315,7 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t* bh,
         b->cancel_sprite_id = bh->__color * 2 + 4;
         break;
     case 1:
-        b->cancel_sprite_id = -1;
-        // BULLET_ADDITIONAL_CANCEL_SCR[color];
+        b->cancel_sprite_id = BULLET_ADDITIONAL_CANCEL_SCR[bh->__color];
         break;
     case 2:
         b->cancel_sprite_id = -1;

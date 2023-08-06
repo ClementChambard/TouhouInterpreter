@@ -2,6 +2,7 @@
 #define GLOBALDATA_H_
 
 #include <cstdint>
+#include <glm/glm.hpp>
 
 struct GlobalsInner_t {
     int32_t STAGE_NUM = 0;
@@ -28,10 +29,10 @@ struct GlobalsInner_t {
     int32_t MAXIMUM_POWER = 0;
     int32_t POWER_PER_LEVEL = 0;
     // undefined4
-    int32_t CURRENT_LIVES = 0;
+    int32_t CURRENT_LIVES = 2;
     int32_t CURRENT_LIFE_PIECES = 0;
     int32_t lifepiece_related = 0;
-    int32_t CURRENT_BOMBS = 0;
+    int32_t CURRENT_BOMBS = 2;
     int32_t CURRENT_BOMB_PIECES = 0;
     int32_t bombpiece_related = 0;
     // undefined4
@@ -83,5 +84,6 @@ public:
 
 extern Globals GLOBALS;
 extern float GAME_SPEED;
+extern glm::vec2 BACK_BUFFER_SIZE;
 
 #endif // GLOBALDATA_H_

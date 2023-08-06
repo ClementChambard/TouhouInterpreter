@@ -234,8 +234,8 @@ struct AnmVM_flags_t {
     }
 #define ANMVM_GET_ACTIVE ((bitflags_hi >> 5) & 3)
 #define ANMVM_DELETE 0b01
-#define ANMVM_INACTIVE 0b00
-#define ANMVM_ACTIVE 0b10
+#define ANMVM_DELETING 0b10
+#define ANMVM_ACTIVE 0b00
 #define ANMVM_FROZEN 0b11
 
 #define ANMVM_SET_ORIGIN(v)              \

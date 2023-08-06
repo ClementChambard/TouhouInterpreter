@@ -5,6 +5,7 @@
 #include "AnmShader.h"
 #include "AnmVM.h"
 #include <array>
+#include <string>
 
 struct RenderVertex_t {
     glm::vec4 transformed_pos {};
@@ -38,6 +39,14 @@ public:
     static AnmVM* getVM(uint32_t id);
     static AnmVM* getVM(AnmID id) { return getVM(id.val); }
 
+    static AnmVM* allocate_vm();
+    static AnmID insert_in_world_list_back(AnmVM* vm);
+    static AnmID insert_in_world_list_front(AnmVM* vm);
+    static AnmID insert_in_ui_list_back(AnmVM* vm);
+    static AnmID insert_in_ui_list_front(AnmVM* vm);
+    static void prepare_vm_for_delete(AnmVM* vm, AnmVMList_t* list);
+    static int destroy_possibly_managed_vm(AnmVM* vm);
+
     static void deleteVM(uint32_t id);
     static void deleteVM(AnmVM* vm);
     static void delete_of_file(AnmFile* f);
@@ -52,15 +61,45 @@ public:
     static void calc_mat_world(AnmVM* vm);
     static void drawVM(AnmVM* vm);
     static void draw_vm__modes_0_1_2_3(AnmVM* vm, int i);
+    static int  draw_vm__mode_6(AnmVM *vm);
+    static void draw_vm__mode_8_15(AnmVM *vm);
+    static void draw_vm_triangle_fan(AnmVM *vm, RenderVertex_t *vertexData,
+                                 int nVert);
+    static void draw_vm_triangle_strip(AnmVM *vm, RenderVertex_t *vertexData,
+                                 int nVert);
+    static int  draw_vm__ins_603(float x, float y, float width, float height,
+                                 float rot_z, NSEngine::Color col1,
+                                 NSEngine::Color col2,
+                                 int anchorX, int anchorY);
+    static int  draw_vm__ins_607(float x, float y, float width, float height,
+                                 float rot_z, NSEngine::Color col1,
+                                 NSEngine::Color col2,
+                                 int anchorX, int anchorY);
+    static int  draw_vm__ins_612(float x, float y, float width, float height,
+                                 float rot_z, NSEngine::Color col1,
+                                 NSEngine::Color col2,
+                                 int anchorX, int anchorY);
+    static int  draw_vm__ins_613(float x, float y, float width, float rot_z,
+                                 NSEngine::Color col1,
+                                 NSEngine::Color col2, int anchor);
+    static int  draw_vm__mode_19__drawRing(float x, float y, float angle_0,
+                                 float radius, float thickness,
+                                 int vertex_count, NSEngine::Color col);
+    static int  draw_vm__mode_18__drawCircleBorder(float x, float y,
+                                 float angle_0, float radius,
+                                 int nb_vertex, NSEngine::Color col);
+    static int  draw_vm__mode_17__drawCircle(float x, float y, float angle_0,
+                                 float radius, int vertex_count,
+                                 NSEngine::Color color_1,
+                                 NSEngine::Color color_2);
+    static void draw_vm_mode_24_25(AnmVM *vm, void *buff, int cnt);
 
     static void update(bool printInstr = false);
     static void draw();
-    static void on_tick_world();
-    static void on_tick_ui();
+    static int render_layer(uint32_t layer);
+    static int on_tick_world();
+    static int on_tick_ui();
     static void on_draw(uint32_t layer);
-
-    static void drawSprite(size_t slot, size_t& spriteID);
-    static void drawTexture(size_t slot, size_t& texID);
 
     static int getFreeAnm();
 
@@ -73,7 +112,7 @@ public:
             vm->interruptRec(interrupt);
     }
 
-private:
+// private:
     // zThread
     // zAnmSaveRelated[4] pause_related
     // undefined4[2]
@@ -97,7 +136,7 @@ private:
     static glm::mat4 __matrix_186017c;
     static AnmVM __anm_vm_18601bc;
     static int32_t field_0x18607bc;
-    static int32_t field_0x18607c0;
+    static NSEngine::Color field_0x18607c0;
     static uint32_t last_used_texture;
     static uint8_t last_used_blendmode;
     static uint8_t field_0x18607c9;
@@ -118,14 +157,11 @@ private:
     static int32_t use_custom_color_1c90a4c;
 
     static bool initialized;
-    static bool zwriteEnabled;
-    static bool fogEnabled;
     static GLuint vboID;
-    // static AnmShader shader;
+    static NSEngine::SpriteBatch* batch;
+    static AnmShader* shader;
     friend class AnmVM;
 
-    static void setZwrite(bool active);
-    static void setFog(bool active);
     static void bindBuffer();
     static void drawBuffer(RenderVertex_t* start, uint32_t count);
     static void unbindBuffer();

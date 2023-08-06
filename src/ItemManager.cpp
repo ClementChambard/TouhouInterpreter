@@ -203,11 +203,8 @@ int ItemManager::_on_tick() {
             item->intangibility_frames--;
             if (item->intangibility_frames < 0) {
                 item->state = 2;
-                // BULLET_MANAGER_PTR->bullet_anm->anm_init_copy_vm_from_loaded(
-                // &item->anm_vm_1, ITEM_ANM_SCRIPT_IDS[item->item_type].id_1);
-                item->anm_vm_1(BulletManager::GetInstance()->bullet_anm
-                               ->getPreloaded(
-                    ITEM_ANM_SCRIPT_IDS[item->item_type]["id_1"].asInt()));
+                BULLET_MANAGER_PTR->bullet_anm->copyFromLoaded(&item->anm_vm_1,
+                     ITEM_ANM_SCRIPT_IDS[item->item_type]["id_1"].asInt());
                 item->anm_vm_1.parent_vm = nullptr;
                 item->anm_vm_1.__root_vm__or_maybe_not = nullptr;
                 item->anm_vm_1.update();
@@ -700,19 +697,13 @@ Item* ItemManager::spawn_item(int type, glm::vec3 const& pos, float angle,
             if (!iframe)
                 item->FUN_00434b80();
             item->__field_c60__init_to_item_type_but_only_for_piv_items = 0;
-            // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,
-            // &item->anm_vm_1, ITEM_ANM_SCRIPT_IDS[type].id_1);
-            item->anm_vm_1(BulletManager::GetInstance()->bullet_anm
-                           ->getPreloaded(
-                ITEM_ANM_SCRIPT_IDS[type]["id_1"].asInt()));
+            BULLET_MANAGER_PTR->bullet_anm->copyFromLoaded(&item->anm_vm_1,
+                                    ITEM_ANM_SCRIPT_IDS[type]["id_1"].asInt());
             item->anm_vm_1.parent_vm = nullptr;
             item->anm_vm_1.__root_vm__or_maybe_not = nullptr;
             item->anm_vm_1.update();
-            // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,
-            // &item->anm_vm_2, ITEM_ANM_SCRIPT_IDS[type].id_2);
-            item->anm_vm_2(BulletManager::GetInstance()->bullet_anm
-                           ->getPreloaded(
-                ITEM_ANM_SCRIPT_IDS[type]["id_2"].asInt()));
+            BULLET_MANAGER_PTR->bullet_anm->copyFromLoaded(&item->anm_vm_2,
+                                    ITEM_ANM_SCRIPT_IDS[type]["id_2"].asInt());
             item->anm_vm_2.parent_vm = nullptr;
             item->anm_vm_2.__root_vm__or_maybe_not = nullptr;
             item->anm_vm_2.update();

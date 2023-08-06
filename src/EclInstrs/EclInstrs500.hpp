@@ -113,7 +113,9 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     Spellcard::GetInstance()->Stop();
     enemy.life.isSpell = 0;
 
-    _ins(524, setChapter) _S(i) _args _notImpl;
+    _ins(524, setChapter) _S(i) _args 
+    GLOBALS.inner.CURRENT_CHAPTER = i;
+    _notImpl;
 
     _ins(525, enmKillAll) _args
     EnemyManager::GetInstance()->EnmKillAll(this);
@@ -125,31 +127,25 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     GUI_PTR->boss_bars[0].markers[slot*2] = hp/enemy.life.max;
     GUI_PTR->boss_bars[0].markers[slot*2+1] = col;
 
-    _ins(528, spellUnused) _S(i) _S(t) _S(ty) _z(name) _args _notImpl;
+    _ins(528, spellUnused) _S(i) _S(t) _S(ty) _zc(name) _args _notImpl;
 
     _ins(529, rankF3) _rf(var) _f(a) _f(b) _f(c) _args
-    // TODO(ClementChambard): real
-    var = a;
+    var = Rank3(a, b, c); // TODO check this macro
 
     _ins(530, rankF5) _rf(var) _f(a) _f(b) _f(c) _f(d) _f(e) _args
-    // TODO(ClementChambard): real
-    var = a;
+    var = Rank5(a, b, c, d, e);
 
     _ins(531, rankF2) _rf(var) _f(a) _f(b) _args
-    // TODO(ClementChambard): real
-    var = a;
+    var = Rank2(a, b);
 
     _ins(532, rankI3) _rS(var) _S(a) _S(b) _S(c) _args
-    // TODO(ClementChambard): real
-    var = a;
+    var = Rank3(a, b, c);
 
     _ins(533, rankI5) _rS(var) _S(a) _S(b) _S(c) _S(d) _S(e) _args
-    // TODO(ClementChambard): real
-    var = a;
+    var = Rank5(a, b, c, d, e);
 
     _ins(534, rankI2) _rS(var) _S(a) _S(b) _args
-    // TODO(ClementChambard): real
-    var = a;
+    var = Rank2(a, b);
 
     _ins(535, diffI) _rS(v) _S(E) _S(N) _S(H) _S(L) _args
     v = Diff(E, N, H, L);
@@ -157,20 +153,20 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(536, diffF) _rf(v) _f(E) _f(N) _f(H) _f(L) _args
     v = Diff(E, N, H, L);
 
-    _ins(537, spell) _S(i) _S(t) _S(ty) _z(name) _args
+    _ins(537, spell) _S(i) _S(t) _S(ty) _zc(name) _args
     Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
             t, ty, name);
     enemy.life.isSpell = 1;
     enemy.life.curx7 = enemy.life.current * 7;
 
-    _ins(538, spell2) _S(i) _S(t) _S(ty) _z(name) _args
+    _ins(538, spell2) _S(i) _S(t) _S(ty) _zc(name) _args
     i -= 1;
     Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
             t, ty, name);
     enemy.life.isSpell = 1;
     enemy.life.curx7 = enemy.life.current * 7;
 
-    _ins(539, spell3) _S(i) _S(t) _S(ty) _z(name) _args
+    _ins(539, spell3) _S(i) _S(t) _S(ty) _zc(name) _args
     i -= 2;
     Spellcard::GetInstance()->Init(i + GLOBALS.inner.DIFFICULTY,
             t, ty, name);

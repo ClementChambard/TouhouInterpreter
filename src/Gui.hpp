@@ -24,6 +24,7 @@ public:
   void set_life_meter(int lives, int life_pieces);
   void midScreenInfo(int bonus, int type);
   void FUN_0042a400();
+  void create_boss_name();
 
   // undefined4
   UpdateFunc *on_tick = nullptr;

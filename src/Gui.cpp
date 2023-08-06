@@ -129,18 +129,21 @@ int Gui::f_on_tick() {
         if (!(SPELLCARD_PTR->flags & 1)) {
           vm_timer_digit_hi->interrupt(3);
           vm_timer_digit_lo->interrupt(3);
-          vm_timer_digit_hi->run();
-          vm_timer_digit_lo->run();
+          // run
+          vm_timer_digit_hi->update();
+          vm_timer_digit_lo->update();
         } else {
           vm_timer_digit_hi->interrupt(2);
           vm_timer_digit_lo->interrupt(2);
-          vm_timer_digit_hi->run();
-          vm_timer_digit_lo->run();
+          // run
+          vm_timer_digit_hi->update();
+          vm_timer_digit_lo->update();
         }
         vm_timer_digit_hi->interrupt(4);
         vm_timer_digit_lo->interrupt(4);
-        vm_timer_digit_hi->run();
-        vm_timer_digit_lo->run();
+        // run
+        vm_timer_digit_hi->update();
+        vm_timer_digit_lo->update();
         some_flags_1a4 &= 0xfffff9ff;
       }
     }
@@ -208,22 +211,22 @@ int Gui::f_on_tick() {
           if (!boss_bars[bbid].vms_created) {
             int bbf = GUI_ANMS["boss_bar_first"].asInt();
             boss_bars[bbid].anm_ids[0] =
-                AnmManager::SpawnVM(front_anm->getSlot(), bbf);
+                front_anm->createEffect(bbf);
             boss_bars[bbid].anm_ids[1] =
-                AnmManager::SpawnVM(front_anm->getSlot(), bbf + 1);
+                front_anm->createEffect(bbf + 1);
             boss_bars[bbid].anm_ids[2] =
-                AnmManager::SpawnVM(front_anm->getSlot(), bbf + 2);
+                front_anm->createEffect(bbf + 2);
             boss_bars[bbid].anm_ids[3] =
-                AnmManager::SpawnVM(front_anm->getSlot(), bbf + 3);
+                front_anm->createEffect(bbf + 3);
             boss_bars[bbid].anm_ids[4] =
-                AnmManager::SpawnVM(front_anm->getSlot(), bbf + 3);
+                front_anm->createEffect(bbf + 3);
             boss_bars[bbid].anm_ids[5] =
-                AnmManager::SpawnVM(front_anm->getSlot(), bbf + 3);
+                front_anm->createEffect(bbf + 3);
             boss_bars[bbid].anm_ids[6] =
-                AnmManager::SpawnVM(front_anm->getSlot(), bbf + 3);
+                front_anm->createEffect(bbf + 3);
             boss_bars[bbid].vms_created = true;
           }
-          // sub_42fe40_front_ename(this);
+          create_boss_name();
           AnmVM *bbvm = AnmManager::getVM(boss_bars[bbid].anm_ids[0]);
           if (!bbvm) {
             boss_bars[bbid].anm_ids[0] = 0;
@@ -295,7 +298,7 @@ int Gui::f_on_tick() {
     if (i < stars_nb) {
       if (stars_anmids[i].val == 0) {
         stars_anmids[i] =
-            AnmManager::SpawnVM(front_anm->getSlot(), i + starfirst);
+            front_anm->createEffect(i + starfirst);
       }
     } else {
       if (stars_anmids[i].val != 0) {
@@ -647,30 +650,27 @@ void Gui::midScreenInfo(int bonus, int type) {
   switch (type) {
   case 0: {
     AnmManager::deleteVM(some_anmid_0xc8);
-    some_anmid_0xc8 = AnmManager::SpawnVM(
-        front_anm->getSlot(), GUI_ANMS["get_spell_card_bonus"].asInt());
+    some_anmid_0xc8 =
+        front_anm->createEffect(GUI_ANMS["get_spell_card_bonus"].asInt());
     bool fstnumfound = false;
     int pow10 = 10000000;
     int curbonus = bonus;
+    AnmVM *vm;
     for (int i = 0; i < 8; i++) {
       AnmManager::deleteVM(spellcard_score_anmids[i]);
 
       spellcard_score_anmids[i] =
-          AnmManager::SpawnVM(ASCII_MANAGER_PTR->ascii_anm->getSlot(), i + 4);
+          ASCII_MANAGER_PTR->ascii_anm->createEffect(i + 4, -1, &vm);
       if (curbonus / pow10 != 0) {
         fstnumfound = true;
       }
 
-      auto vm = AnmManager::getVM(spellcard_score_anmids[i]);
-      if (vm) {
-        vm->update();
-        AnmManager::getLoaded(vm->anm_loaded_index)
-            ->setSprite(vm, 0xef + curbonus / pow10);
-        if (!fstnumfound) {
-          vm->clear_flag_1_rec();
-        } else {
-          vm->set_flag_1_rec();
-        }
+      AnmManager::getLoaded(vm->anm_loaded_index)
+          ->setSprite(vm, 0xef + curbonus / pow10);
+      if (!fstnumfound) {
+        vm->clear_flag_1_rec();
+      } else {
+        vm->set_flag_1_rec();
       }
       curbonus %= pow10;
       pow10 /= 10;
@@ -680,53 +680,43 @@ void Gui::midScreenInfo(int bonus, int type) {
     spellcard_score_anmids[8] = 0;
     if (999999 < bonus) {
       spellcard_score_anmids[8] =
-          AnmManager::SpawnVM(ASCII_MANAGER_PTR->ascii_anm->getSlot(), 0xc);
-      if (auto vm = AnmManager::getVM(spellcard_score_anmids[8]); vm) {
-        vm->update();
-        AnmManager::getLoaded(vm->anm_loaded_index)->setSprite(vm, 0xfd);
-      }
+          ASCII_MANAGER_PTR->ascii_anm->createEffect(0xc, -1, &vm);
+      AnmManager::getLoaded(vm->anm_loaded_index)->setSprite(vm, 0xfd);
     }
     AnmManager::deleteVM(spellcard_score_anmids[9]);
     spellcard_score_anmids[9] = 0;
     if (999 < bonus) {
       spellcard_score_anmids[9] =
-          AnmManager::SpawnVM(ASCII_MANAGER_PTR->ascii_anm->getSlot(), 0xd);
-      if (auto vm = AnmManager::getVM(spellcard_score_anmids[9]); vm) {
-        vm->update();
-        AnmManager::getLoaded(vm->anm_loaded_index)->setSprite(vm, 0xfd);
-      }
+          ASCII_MANAGER_PTR->ascii_anm->createEffect(0xd, -1, &vm);
+      AnmManager::getLoaded(vm->anm_loaded_index)->setSprite(vm, 0xfd);
     }
     field_0x144_spellcard_related = 1;
-    anmid_0x120_spellTimeShowEnd = AnmManager::SpawnVM(
-        front_anm->getSlot(), GUI_ANMS["spellcard_endtime"].asInt());
+    anmid_0x120_spellTimeShowEnd =
+        front_anm->createEffect(GUI_ANMS["spellcard_endtime"].asInt());
   } break;
   case 1:
     AnmManager::deleteVM(some_anmid_0xc8);
-    some_anmid_0xc8 = AnmManager::SpawnVM(front_anm->getSlot(),
-                                          GUI_ANMS["bonus_failed"].asInt());
+    some_anmid_0xc8 = front_anm->createEffect(GUI_ANMS["bonus_failed"].asInt());
     field_0x144_spellcard_related = 1;
-    anmid_0x120_spellTimeShowEnd = AnmManager::SpawnVM(
-        front_anm->getSlot(), GUI_ANMS["spellcard_endtime"].asInt());
+    anmid_0x120_spellTimeShowEnd =
+        front_anm->createEffect(GUI_ANMS["spellcard_endtime"].asInt());
     break;
   case 2:
     AnmManager::deleteVM(some_anmid_0xcc);
-    some_anmid_0xcc = AnmManager::SpawnVM(front_anm->getSlot(),
-                                          GUI_ANMS["full_power"].asInt());
+    some_anmid_0xcc = front_anm->createEffect(GUI_ANMS["full_power"].asInt());
     break;
   case 3:
     AnmManager::deleteVM(some_anmid_0xcc);
-    some_anmid_0xcc = AnmManager::SpawnVM(front_anm->getSlot(),
-                                          GUI_ANMS["high_score"].asInt());
+    some_anmid_0xcc = front_anm->createEffect(GUI_ANMS["high_score"].asInt());
     break;
   case 4:
     AnmManager::deleteVM(some_anmid_0xcc);
-    some_anmid_0xcc =
-        AnmManager::SpawnVM(front_anm->getSlot(), GUI_ANMS["extend"].asInt());
+    some_anmid_0xcc = front_anm->createEffect(GUI_ANMS["extend"].asInt());
     break;
   case 6:
     AnmManager::deleteVM(some_anmid_0xc8);
-    some_anmid_0xc8 = AnmManager::SpawnVM(
-        front_anm->getSlot(), GUI_ANMS["challenge_next_stage"].asInt());
+    some_anmid_0xc8 =
+        front_anm->createEffect(GUI_ANMS["challenge_next_stage"].asInt());
     break;
   }
 }
@@ -739,30 +729,21 @@ void Gui::FUN_0042a400() {
   if (on_draw_49)
     on_draw_49->flags |= 2;
   if (frame_anmid.val == 0) {
-    frame_anmid = AnmManager::SpawnVM(front_anm->getSlot(), 0, 1, 0);
+    frame_anmid = front_anm->new_vm_ui_back(0);
   }
 
   if (!life_meter_vms[0]) {
     for (int i = 0; i < 8; i++) {
       life_meter_anmids[i] =
-          AnmManager::SpawnVM(front_anm->getSlot(), i + 0x1e, 1, 0);
-      life_meter_vms[i] = AnmManager::getVM(life_meter_anmids[i]);
-    }
-
-    for (int i = 0; i < 8; i++) {
+          front_anm->new_vm_ui_back(i + 0x1e, &life_meter_vms[i]);
       bomb_meter_anmids[i] =
-          AnmManager::SpawnVM(front_anm->getSlot(), i + 0x26, 1, 0);
-      bomb_meter_vms[i] = AnmManager::getVM(bomb_meter_anmids[i]);
+          front_anm->new_vm_ui_back(i + 0x26, &bomb_meter_vms[i]);
     }
 
     timer_digit_hi_anmid =
-        AnmManager::SpawnVM(ASCII_MANAGER_PTR->ascii_anm->getSlot(), 2, 0, 0);
+        ASCII_MANAGER_PTR->ascii_anm->createEffect(2, -1, &vm_timer_digit_hi);
     timer_digit_lo_anmid =
-        AnmManager::SpawnVM(ASCII_MANAGER_PTR->ascii_anm->getSlot(), 3, 0, 0);
-    vm_timer_digit_hi = AnmManager::getVM(timer_digit_hi_anmid);
-    vm_timer_digit_lo = AnmManager::getVM(timer_digit_lo_anmid);
-    vm_timer_digit_hi->update();
-    vm_timer_digit_lo->update();
+        ASCII_MANAGER_PTR->ascii_anm->createEffect(3, -1, &vm_timer_digit_lo);
     vm_timer_digit_hi->clear_flag_1_rec();
     vm_timer_digit_lo->clear_flag_1_rec();
   }
@@ -776,52 +757,43 @@ void Gui::FUN_0042a400() {
        ((GLOBALS.FLAGS & 0x40) == 0)) &&
       ((GLOBALS.FLAGS & 0x30) != 0x20)) {
     // Stage bgm anm
-    AnmManager::SpawnVM(stage_logo_anmloaded->getSlot(), 1, 0, 0);
+    stage_logo_anmloaded->createEffect(1);
   }
 
   if (GLOBALS.FLAGS & 0x40) {
     // Demo play
-    AnmManager::SpawnVM(front_anm->getSlot(), GUI_ANMS["demo_play"].asInt(), 0,
-                        0);
+    front_anm->createEffect(GUI_ANMS["demo_play"].asInt());
   }
 
   if (boss_marker_anmid.val == 0) {
-    boss_marker_anmid = AnmManager::SpawnVM(
-        front_anm->getSlot(), GUI_ANMS["boss_indicator"].asInt(), 0, 0);
-    AnmManager::getVM(boss_marker_anmid)->update();
+    boss_marker_anmid =
+        front_anm->createEffect(GUI_ANMS["boss_indicator"].asInt());
   }
 
   // Item get border line
   if (GLOBALS.inner.STAGE_NUM == 1 &&
       /* GAME_THREAD_PTR->field18_0xa8 == 0 && */
       GLOBALS.inner.CONTINUES_USED == 0) {
-    auto vm = AnmManager::getVM(AnmManager::SpawnVM(
-        front_anm->getSlot(), GUI_ANMS["item_get_border_line"].asInt(), 0, 0));
+    AnmVM *vm;
+    front_anm->createEffect(GUI_ANMS["item_get_border_line"].asInt(), -1, &vm);
     if (vm)
       vm->entity_pos.y = (GLOBALS.inner.CHARACTER == 1) ? 0x94 : 0x80;
     // /\ not Hardcoded
   }
 
   // if (SUPERVISOR.field61_0x700) {
-  difficuty_screen_anmid = AnmManager::SpawnVM(
-      front_anm->getSlot(),
-      GLOBALS.inner.DIFFICULTY + GUI_ANMS["difficulty_top_first"].asInt(), 0,
-      0);
-  AnmManager::getVM(difficuty_screen_anmid)->update();
+  difficuty_screen_anmid = front_anm->createEffect(
+      GLOBALS.inner.DIFFICULTY + GUI_ANMS["difficulty_top_first"].asInt());
   AnmManager::interrupt_tree(difficuty_screen_anmid, 3);
   // }
 
-  difficuty_side_anmid = AnmManager::SpawnVM(
-      front_anm->getSlot(),
-      GLOBALS.inner.DIFFICULTY + GUI_ANMS["difficulty_side_first"].asInt(), 0,
-      0);
+  difficuty_side_anmid = front_anm->createEffect(
+      GLOBALS.inner.DIFFICULTY + GUI_ANMS["difficulty_side_first"].asInt());
   int shottype_side_fst = GUI_ANMS["shottype_side_first"].asInt();
   if (shottype_side_fst > 0)
-    player_shottype_anmid =
-        AnmManager::SpawnVM(front_anm->getSlot(),
-                            GLOBALS.inner.SHOTTYPE +
-                                GLOBALS.inner.CHARACTER * 3 + shottype_side_fst,
-                            0, 0);
+    player_shottype_anmid = front_anm->createEffect(
+        GLOBALS.inner.SHOTTYPE + GLOBALS.inner.CHARACTER * 3 +
+        shottype_side_fst);
   boss_bars[0].vms_created = 0;
   boss_bars[1].vms_created = 0;
   boss_bars[2].vms_created = 0;
@@ -877,4 +849,22 @@ void Gui::set_life_meter(int lives, int life_pieces) {
   for (int i = lives + 1; i < 8; i++)
     this->life_meter_vms[i]->interrupt(3);
   return;
+}
+
+void Gui::create_boss_name() {
+  auto vm = AnmManager::getVM(boss_name_anmid);
+  if (!vm) {
+    boss_name_anmid = 0;
+    int id;
+    if (GLOBALS.inner.CURRENT_CHAPTER < 41) {
+      id = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][1]
+        ["front_ename_anm_script"].asInt();
+    } else {
+      id = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][0]
+        ["front_ename_anm_script"].asInt();
+    }
+    if (id >= 0 && (-1 < id + 167)) {
+      boss_name_anmid = front_anm->createEffect(id + 167);
+    }
+  }
 }

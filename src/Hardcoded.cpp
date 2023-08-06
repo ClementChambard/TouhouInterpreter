@@ -10,6 +10,7 @@ Json::Value BULLET_TYPE_TABLE;
 Json::Value LASER_DATA;
 Json::Value ITEM_ANM_SCRIPT_IDS;
 Json::Value GUI_ANMS;
+Json::Value EFFECT;
 
 int TOUHOU_VERSION = 0;
 
@@ -35,6 +36,9 @@ void prepare_vals() {
     GUI_ANMS = HARDCODED_DATA["gui"].empty()
         ? HARDCODED_DATA_BASE["gui"]
         : HARDCODED_DATA["gui"];
+    EFFECT = HARDCODED_DATA["effect"].empty()
+        ? HARDCODED_DATA_BASE["effect"]
+        : HARDCODED_DATA["effect"];
 }
 
 void Hardcoded_Load() {

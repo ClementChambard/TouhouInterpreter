@@ -30,6 +30,18 @@ struct std_header_06_t {
     char song4_path[128];
 };
 
+struct std_object_t {
+    uint16_t unknown;
+    uint16_t size;
+    uint16_t script_index;
+    uint16_t vmid;
+    float x;
+    float y;
+    float z;
+    float width;
+    float height;
+};
+
 struct std_header_10_t {
     uint16_t nb_objects;
     uint16_t nb_faces;
@@ -37,6 +49,7 @@ struct std_header_10_t {
     uint32_t script_offset;
     uint32_t unknown;
     char anm_name[128];
+    uint32_t offsets[];
 };
 
 struct std_object_instance_t {
@@ -49,25 +62,15 @@ struct std_object_instance_t {
 
 struct std_entry_header_t {
     uint16_t id;
-    uint16_t unknown;
+    uint8_t layer;
+    uint8_t vmAliveBits;
     float x;
     float y;
     float z;
     float width;
     float height;
     float depth;
-};
-
-struct std_object_t {
-    uint16_t unknown;
-    uint16_t size;
-    uint16_t script_index;
-    uint16_t _padding;
-    float x;
-    float y;
-    float z;
-    float width;
-    float height;
+    std_object_t quads[];
 };
 
 struct std_entry_t {
@@ -79,6 +82,7 @@ struct std_instr_t {
     uint32_t time;
     uint16_t type;
     uint16_t size;
+    uint8_t args[];
 };
 
 struct thstd_t {

@@ -1,4 +1,5 @@
 #include "LaserCurve.h"
+#include "LaserManager.h"
 #include "../BulletManager.h"
 #include "../Hardcoded.h"
 #include "../Player.h"
@@ -97,15 +98,15 @@ int LaserCurve::initialize(void* arg)
     kind = 2;
     __field_10__set_to_3_by_ex_delete = 2;
 
-    vm1.destroy();
+    vm1.reset();
     if (bullet_type == 1) {
-        // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, LASER_DATA["laser_curve"]["anm_type_0"].asInt());
-        vm1(AnmManager::getLoaded(7)->getPreloaded(LASER_DATA["laser_curve"]["anm_type_0"].asInt()));
+        LASER_MANAGER_PTR->bullet_anm->load_external_vm(&vm1,
+                LASER_DATA["laser_curve"]["anm_type_0"].asInt());
     } else {
-        // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt());
-        vm1(AnmManager::getLoaded(7)->getPreloaded(bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt()));
         vm1.index_of_sprite_mapping_func = 3;
         vm1.associated_game_entity = this;
+        LASER_MANAGER_PTR->bullet_anm->load_external_vm(&vm1,
+                bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt());
     }
     vm1.interrupt(2);
     vm1.update();
@@ -115,10 +116,10 @@ int LaserCurve::initialize(void* arg)
     vm1.bitflags.anchorX = 0b00;
     vm1.bitflags.originMode = 1;
 
-    // anm_init_copy_vm_from_loaded(LASER_MANAGER_PTR->bullet_anm, vm2, inner.color + 0x38);
-    vm2(AnmManager::getLoaded(7)->getPreloaded(inner.color + LASER_DATA["spawn_anm_first"].asInt()));
+    LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm2,
+            inner.color + LASER_DATA["spawn_anm_first"].asInt());
     vm2.parent_vm = nullptr;
-    // vm2.__root_vm__or_maybe_not = nullptr;
+    vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();
     vm2.interrupt(2);
     vm2.update();
@@ -475,9 +476,11 @@ void LaserCurve::run_ex()
         }
 
         if (inner.ex[et_ex_index].type == 0x200) {
-            vm1(AnmManager::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[inner.ex[et_ex_index].a]["script"].asInt() + inner.ex[et_ex_index].b));
+            LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm1,
+                    BULLET_TYPE_TABLE[inner.ex[et_ex_index].a]["script"].asInt()
+                                                    + inner.ex[et_ex_index].b);
             vm1.parent_vm = nullptr;
-            // vm1.__root_vm__or_maybe_not = nullptr;
+            vm1.__root_vm__or_maybe_not = nullptr;
             vm1.update();
         }
 

@@ -18,10 +18,9 @@ Player* PLAYER_PTR = nullptr;
 Player::Player() {
     PLAYER_PTR = this;
     // load player anm file
-    AnmManager::LoadFile(9, PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
+    playerAnm = AnmManager::LoadFile(9,
+                    PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
                          [GLOBALS.inner.SHOTTYPE]["anm"].asString());
-    // playerAnm = AnmManager::preload_anm(9,
-    // plAnmfilenames[GLOBALS.inner.CHARACTER]);
     // if (!playerAnm) ; // log info
 
     // load sht file
@@ -42,8 +41,7 @@ Player::Player() {
     UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 29);
 
     // init vm
-    // playerAnm->anm_init_copy_vm_from_loaded(&vm,0);
-    vm(AnmManager::getLoaded(9)->getPreloaded(0));
+    playerAnm->copyFromLoaded(&vm, 0);
     vm.parent_vm = nullptr;
     vm.__root_vm__or_maybe_not = nullptr;
     vm.update();
@@ -134,27 +132,11 @@ void FUN_00449630(PlayerInner_t* inner) {
             for (int i = 0; i < pow; i++) {
                 if (auto vm = AnmManager::getVM(inner->options[i].anmId2);
                     vm && !vm->bitflags.f534_27_31) {
-                    vm->bitflags.activeFlags = 0b01;
-                    // auto child = vm->childrens->next;
-                    // while (child) {
-                    // if (child->value) child->value->destroy();
-                    // child = child->next;
-                    //}
+                    AnmManager::deleteVM(vm);
                 }
-                inner->options[i].anmId2 = AnmManager::SpawnVM(9,
-                    PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
-                auto vm = AnmManager::getVM(inner->options[i].anmId2);
-                // PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
-                // auto vm = AnmManager::allocate_vm();
-                // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm,
-                // PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
-                // vm->mode_of_create_child = 2;
-                // inner->options[i].anmId2 =
-                // AnmManager::insert_in_world_list_front(&zStack_1c,vm);
-                vm->bitflags.randomMode = 0b1;
-                vm->entity_pos = { 0, -32, 0 };
-                vm->rotation.z = 0.f;
-                vm->update();
+                inner->options[i].anmId2 = PLAYER_PTR->playerAnm->spawnVMExt(
+                    PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt(),
+                    0, {0, -32, 0}, 2);
             }
         }
     }
@@ -199,24 +181,9 @@ void FUN_00449630(PlayerInner_t* inner) {
             inner->options[i].scaled_cur_pos = inner->integer_pos +
                 inner->options[i].scaled_prefered_pos_rel_to_player
                 [inner->focusing];
-            // inner->options[i].anmId1 = AnmManager::SpawnVM(9,
-            // PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
-            inner->options[i].anmId1 = AnmManager::SpawnVM(9,
-                PLAYERS[GLOBALS.inner.CHARACTER]["option"].asInt());
-            AnmVM* vm = AnmManager::getVM(inner->options[i].anmId1);
-            // PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
-            // auto vm = AnmManager::allocate_vm();
-            // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm,
-            // PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt());
-            // vm->mode_of_create_child = 0;
-            // AnmManager::insert_in_world_list_back(piVar18[0x14],vm);
-            vm->bitflags.randomMode = 0b1;
-            vm->bitflags.originMode = 0b01;
-            vm->layer = 14;
-            vm->entity_pos = { 0, -32, 0 };
-            vm->rotation.z = 0.f;
-            vm->update();
-
+            inner->options[i].anmId1 = PLAYER_PTR->playerAnm->spawnVMExt(
+                PLAYERS[GLOBALS.inner.CHARACTER]["option"].asInt(),
+                0, {0, -32, 0}, 0, 14);
             inner->options[i].flags = 2;
 
             if (TOUHOU_VERSION == 17 && GLOBALS.inner.CHARACTER == 2) {
@@ -571,9 +538,9 @@ void Player::check_shoot()
                     if (field_0x19080 == 0) {
                         //                    SoundManager::play_sound_at_position(31);
                         if (GLOBALS.inner.SHOTTYPE == 0)
-                            extra_anm_id = AnmManager::SpawnVM(9, 20); // PLAYER_PTR->playerAnm->create_4112b0(nullptr, 20, inner.pos, 0, -1, nullptr);
+                            extra_anm_id = PLAYER_PTR->playerAnm->createEffectPos(20, 0, inner.pos);
                         else
-                            extra_anm_id = AnmManager::SpawnVM(9, 19); // PLAYER_PTR->playerAnm->create_4112b0(nullptr, 19, inner.pos, 0, -1, nullptr);
+                            extra_anm_id = PLAYER_PTR->playerAnm->createEffectPos(19, 0, inner.pos);
                     }
                     field_0x19080++;
                     //                FUN_004655a0(31, inner.pos.x);
@@ -767,17 +734,8 @@ void PlayerBullet_t::init(int shter, int tmer [[maybe_unused]], PlayerInner_t& i
     pos.pos.y += shooter.offset.y - pos.velocity.y;
 
     // spawn bullet vm
-    // PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
-    // pzVar5 = AnmManager::allocate_vm();
-    // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(pzVar5,&shooter.anm + 5);
-    // pzVar5->mode_of_create_child = 0;
-    // AnmManager::insert_in_world_list_back(local_30,pzVar5);
-    // anmId = pzVar5 ? local_30->value : 0;
-    anmId = AnmManager::SpawnVM(9, shooter.anm + 5);
+    anmId = PLAYER_PTR->playerAnm->spawnVMExt(shooter.anm + 5, 0, pos.pos, 0);
     auto vm = AnmManager::getVM(anmId);
-    vm->bitflags.randomMode = 0b1;
-    vm->entity_pos = pos.pos;
-    vm->update();
     if (vm->bitflags.autoRotate) {
         vm->bitflags.rotated = 0b1;
         vm->rotation.z = shooter.angle;
@@ -792,7 +750,7 @@ void PlayerBullet_t::init(int shter, int tmer [[maybe_unused]], PlayerInner_t& i
     // call special init func
     if (shooter.on_init && shooter.on_init(this)) {
         active = 0;
-        vm->destroy();
+        AnmManager::deleteVM(anmId);
         inner.damage_sources[damageSourceId - 1].flags &= 0xfffffffe;
     }
 
@@ -950,7 +908,8 @@ void Player::move()
         spd = (direction > 4) ? speed_unfocus_diag : speed_unfocus;
     } else {
         if (inner.focus_eff_anmId == (unsigned)0)
-            inner.focus_eff_anmId = AnmManager::SpawnVM(8, 26); // EFFECT_MANAGER_PTR->effect_anm->create_effect(nullptr,26,14,nullptr);
+            inner.focus_eff_anmId =
+                AnmManager::getLoaded(8)->createEffect(26, 14);
         auto vm_ = AnmManager::getVM(inner.focus_eff_anmId);
         if (!vm_)
             inner.focus_eff_anmId = 0;
@@ -971,16 +930,16 @@ void Player::move()
     // update player vm script
     bool fst_update = false;
     if (xspd < 0 && speed.x > -1) {
-        vm(AnmManager::getLoaded(9)->getPreloaded(1));
+        playerAnm->copyFromLoaded(&vm, 1);
         fst_update = true;
     } else if (xspd == 0 && speed.x > 0) {
-        vm(AnmManager::getLoaded(9)->getPreloaded(4));
+        playerAnm->copyFromLoaded(&vm, 4);
         fst_update = true;
     } else if (xspd > 0 && speed.x < 1) {
-        vm(AnmManager::getLoaded(9)->getPreloaded(3));
+        playerAnm->copyFromLoaded(&vm, 3);
         fst_update = true;
     } else if (xspd == 0 && speed.x < 0) {
-        vm(AnmManager::getLoaded(9)->getPreloaded(2));
+        playerAnm->copyFromLoaded(&vm, 2);
         fst_update = true;
     }
     if (fst_update) {
@@ -1038,21 +997,11 @@ void Player::move()
     if (inner.__timer_187ac > 0) {
         auto some_vm = AnmManager::getVM(inner.maybe_th15_graze_snowflake);
         if (!some_vm) {
-            // EFFECT_MANAGER_PTR->effect_anm->__field_134__some_kind_of_counter++;
-            // some_vm = AnmManager::allocate_vm();
-            // EFFECT_MANAGER_PTR->effect_anm->anm_init_copy_vm_from_loaded(some_vm,27);
-            // some_vm->mode_of_create_child = 0;
-            // AnmManager::insert_in_world_list_back(&inner.__field_187a8__init_0,some_vm);
-            inner.maybe_th15_graze_snowflake = AnmManager::SpawnVM(8, 27);
-            some_vm = AnmManager::getVM(inner.maybe_th15_graze_snowflake);
-            some_vm->bitflags.randomMode = 0b1;
-            some_vm->bitflags.originMode = 0b01;
-            some_vm->layer = 14;
+            inner.maybe_th15_graze_snowflake =
+                AnmManager::getLoaded(8)->createEffectPos(27, 0, inner.pos, 14);
+        } else {
             some_vm->entity_pos = inner.pos;
-            some_vm->rotation.z = 0.0;
-            some_vm->update();
-        } else
-            some_vm->entity_pos = inner.pos;
+        }
 
         inner.__timer_187ac--;
         if (inner.__timer_187ac <= 0) {
@@ -1090,8 +1039,7 @@ void Player::try_kill()
     inner.time_in_state = 0;
     inner.state = 4;
     inner.iframes = 6;
-    // playerAnm->anm_init_copy_vm_from_loaded(&player->vm,0);
-    vm(AnmManager::getLoaded(9)->getPreloaded(0));
+    playerAnm->copyFromLoaded(&vm, 0);
     vm.parent_vm = nullptr;
     vm.__root_vm__or_maybe_not = nullptr;
     vm.update();
@@ -1130,7 +1078,7 @@ void Player::die()
     inner.iframes = 180;
     inner.power = 0;
 
-    vm(AnmManager::getLoaded(9)->getPreloaded(0)); // playerAnm->anm_init_copy_vm_from_loaded(&vm,0);
+    playerAnm->copyFromLoaded(&vm, 0);
     vm.parent_vm = nullptr;
     vm.__root_vm__or_maybe_not = nullptr;
     vm.update();

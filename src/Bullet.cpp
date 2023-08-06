@@ -15,7 +15,7 @@ void Bullet::Update() {
 }
 
 void Bullet::Reset() {
-    vm.destroy();
+    vm.reset();
     flags = 0;
     ex_invuln__remaining_frames = 0;
     pos = {0, 0, 0};
@@ -86,15 +86,11 @@ int Bullet::cancel(bool item) {
     if ((flags & 0x200) == 0) {
         if (-1 < cancel_sprite_id) {
             auto VM = AnmManager::getVM(
-                AnmManager::SpawnVM(7, cancel_sprite_id));
-            VM->setEntityPos(pos.x, pos.y, pos.z);
+                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(
+                    cancel_sprite_id, 0, pos));
             VM->setScale2(scale, scale);
             VM->setLayer(10);
-            // pzVar3 = AnmLoaded::create_4112b0
-            //                   (BULLET_MANAGER_PTR->bullet_anm,this,cancel_script,&pos,0,
-            //                    -1,(zAnmId)0x0);
-            // BULLET_MANAGER_PTR->anm_ids[index_in_bullet_array].value =
-            //                    pzVar3->value;
+            // set it in BULLET_MANAGER_PTR->anm_ids[index_in_bullet_array]
         }
         // SoundManager::play_sound_at_position(0x47);
         gen_items_from_et_cancel(pos, item);

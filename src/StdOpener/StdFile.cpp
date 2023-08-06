@@ -16,7 +16,7 @@ StdFile::StdFile(std::string const& filename) {
 
     for (auto e : std->entries) {
         entries.push_back({});
-        entries.back().layer = e->header->unknown;
+        entries.back().layer = e->header->layer;
         entries.back().x = e->header->x;
         entries.back().y = e->header->y;
         entries.back().z = e->header->z;
@@ -196,7 +196,7 @@ void StdFile::Draw() {
     sprBatch.renderBatch();
 
     glDisable(GL_DEPTH_TEST);
-    NSEngine::toggleCulling(true);
+    // NSEngine::toggleCulling(true);
     baseShader.stop();
     NSEngine::TextureManager::ResetTexture();
     glDisable(GL_BLEND);

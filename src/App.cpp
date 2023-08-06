@@ -11,7 +11,18 @@
 #include "./AsciiManager.hpp"
 #include "./AsciiPopupManager.hpp"
 #include "./Gui.hpp"
+#include "StdOpener/Stage.hpp"
 #include <NSEngine.h>
+
+int layerOrder[] = {
+  0, 32, 33,
+  1, 2, 3, 4, 5, 34,
+  6, 7, 8, 9, 10, 11,
+  12, 13, 14, 15, 16, 17, 18, 19,
+  20, 21, 22, 23, 36, 24, 25, 37,
+  26, 27, 38, 28, 39, 29, 40, 30,
+  41, 31, 42, 35, 0, 0
+};
 
 void App::on_create() {
   Hardcoded_Load();
@@ -24,6 +35,8 @@ void App::on_create() {
   NSEngine::addGameLayer(false, false);
   for (int i = 0; i < 40; i++)
     NSEngine::addGameLayer(false, true);
+  NSEngine::engineData::layerDrawOrder = layerOrder;
+
 
   AnmManager::Init();
   AnmManager::LoadFile(8, "effect.anm");
@@ -61,6 +74,7 @@ void App::on_create() {
   new AsciiPopupManager();
   new Gui();
   new Spellcard();
+  // new Stage();
   em->Start(m_argv[1], m_argc > 2 ? m_argv[2] : "main");
   if (TOUHOU_VERSION == 17)
     new GoastManager();
@@ -75,16 +89,6 @@ void App::on_update() {
 
   anmViewer.on_tick();
 
-  // if (Inputs::Keyboard().Pressed(NSK_n)) {
-  //   AnmManager::killAll();
-  //   AnmManager::LoadFile(1, "effect.anm");
-  //   AnmManager::LoadFile(7, "bullet.anm");
-  //   lm.destroy_all();
-  //   bm->ClearScreen(0);
-  //   em->EnmKillAll();
-  //   GLOBALS.inner.STAGE_NUM++;
-  //   em->Start("", m_argc > 2 ? m_argv[2] : "main");
-  // }
 }
 
 void App::on_render() {

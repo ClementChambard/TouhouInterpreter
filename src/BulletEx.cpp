@@ -6,6 +6,8 @@
 #include "./math/Random.h"
 #include "./math/math.h"
 
+extern int BULLET_ADDITIONAL_CANCEL_SCR[18];
+
 inline float get_angle_to_player(glm::vec3 from) {
     return math::point_direction(from.x, from.y,
             PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
@@ -539,43 +541,37 @@ int Bullet::run_et_ex() {
             hitbox_diameter = __hitbox_diameter_copy;
             layer = sprite_data["default_layer"].asInt();
             flags = flags | 0x10;
-            vm(AnmManager::getLoaded(7)->getPreloaded(
-                sprite_data["script"].asInt()));
-            vm.setEntity(static_cast<void*>(this));
-            vm.setLayer(15);
-            vm.index_of_sprite_mapping_func = 1;
-            AnmManager::getLoaded(7)->setSprite(&vm, vm.sprite_id);
-            vm.update();
-            vm.bitflags.originMode = 0b01;
+            vm.reset();
 
-            // zAnmVM__delete_by_id(anmExtraId);
-            //  Spawn anim wierd and cancel id
-            // anmExtraId = 0;
-            // if (sprite_data["__field_114"].asInt() != 0) {
-            // zAnmId* id = zAnmLoaded__create_4112b0
-            // (BULLET_MANAGER_PTR->bullet_anm,nullptr,
-            // sprite_data["__field_114"].asInt(),
-            // &pos,0,-1,nullptr);
-            // anmExtraId = id->value;
-            //}
+            vm.index_of_sprite_mapping_func = 1;
+            vm.associated_game_entity = this;
+            BULLET_MANAGER_PTR->bullet_anm->load_external_vm(
+                &vm, sprite_data["script"].asInt());
+            vm.bitflags.originMode = 1;
+            AnmManager::deleteVM(anm_extra_id);
+            anm_extra_id = 0;
+            if (sprite_data["__field_114"].asInt() != 0) {
+                anm_extra_id = BULLET_MANAGER_PTR->bullet_anm->createEffectPos(
+                    sprite_data["__field_114"].asInt(), 0, pos);
+            }
             switch (sprite_data["__field_10c"].asInt()) {
             case 0:
                 cancel_sprite_id = color * 2 + 4;
                 break;
             case 1:
-                cancel_sprite_id = -1; // BULLET_ADDITIONAL_CANCEL_SCR[color];
+                cancel_sprite_id = BULLET_ADDITIONAL_CANCEL_SCR[color];
                 break;
             case 2:
                 cancel_sprite_id = -1;
                 break;
             case 3:
-                cancel_sprite_id = 0x10;
+                cancel_sprite_id = 16;
                 break;
             case 4:
                 cancel_sprite_id = 6;
                 break;
             case 5:
-                cancel_sprite_id = 0xc;
+                cancel_sprite_id = 12;
                 break;
             case 6:
                 cancel_sprite_id = sprite_data["colors"]
@@ -592,9 +588,11 @@ int Bullet::run_et_ex() {
                 break;
             case 10:
                 cancel_sprite_id = 0x113;
+                break;
             }
-            if (cur_et_ex->b & 0x8000)
+            if (cur_et_ex->b & 0x8000) {
                 vm.interrupt(2);
+            }
         }
 
         if (ex_type == 0x400) {

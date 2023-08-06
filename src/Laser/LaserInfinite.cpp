@@ -21,29 +21,30 @@ int LaserInfinite::initialize(void* arg)
     kind = 1;
     __field_10__set_to_3_by_ex_delete = 3;
 
-    vm1.destroy();
-    // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, BULLET_TYPE_TABLE[bullet_type]["script"].asInt());
-    vm1(AnmManager::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[bullet_type]["script"].asInt()));
+    vm1.reset();
     vm1.index_of_sprite_mapping_func = 2;
     vm1.associated_game_entity = this;
+    LASER_MANAGER_PTR->bullet_anm->load_external_vm(&vm1, BULLET_TYPE_TABLE[bullet_type]["script"].asInt());
     vm1.interrupt(2);
     vm1.update();
     vm1.bitflags.originMode = 1;
     vm1.bitflags.rendermode = 1;
     vm1.bitflags.anchorY = 2;
     vm1.bitflags.blendmode = 1;
-    vm1.layer = 14;
 
-    // anm_init_copy_vm_from_loaded(LASER_MANAGER_PTR->bullet_anm, vm2, inner.__bmgr_004__color + LASER_DATA["spawn_anm_first"].asInt());
-    vm2(AnmManager::getLoaded(7)->getPreloaded(inner.color + LASER_DATA["spawn_anm_first"].asInt()));
+    LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm2,
+                                        inner.color + LASER_DATA["spawn_anm_first"].asInt());
     vm2.parent_vm = nullptr;
-    // vm2.__root_vm__or_maybe_not = nullptr;
+    vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();
     vm2.interrupt(2);
     vm2.update();
     vm2.bitflags.originMode = 1;
     vm2.bitflags.rendermode = 1;
     vm2.bitflags.blendmode = 1;
+
+    // TODO: no
+    vm1.layer = 14;
     vm2.layer = 14;
 
     if (inner.shot_sfx >= 0) { /*SoundManager::play_sound_at_position(inner.shot_sfx);*/

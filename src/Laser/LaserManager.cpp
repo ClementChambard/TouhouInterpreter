@@ -8,7 +8,7 @@ LaserManager::LaserManager() {
     current_id = 0x10000;
     LASER_MANAGER_PTR = this;
 
-    // this->bullet_anm = AnmManager::preload_anm(7,"bullet.anm");
+    bullet_anm = AnmManager::LoadFile(7, "bullet.anm");
     // if (bullet_anm == NULL) {
     // sub_4025a0_logs_debug_message(this_00,(int)&OUTPUT_BUF_FOR_STRINGS,&DAT_004a145c);
     // delete this;

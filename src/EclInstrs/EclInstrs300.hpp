@@ -87,104 +87,122 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(302, anmSelect) _S(anmID) _args enemy.selectedAnmID = anmID;
 
     _ins(303, anmSetSpr) _S(slot) _S(scr) _args
-        AnmManager::deleteVM(enemy.anmIds[slot].val);
-    if (scr < 0) {
-        enemy.anmIds[slot].val = 0;
-    } else {
-        int id = AnmManager::SpawnVM(ANM_SLOT(enemy.selectedAnmID), scr);
-        if (AnmManager::getVM(id)) {
-            // set invisible if intangible enemy,
-            // set finalSpriteSize and anmslot0... if slot = 0
-        } else {
-            id = 0;
+    AnmManager::deleteVM(enemy.anmIds[slot]);
+    enemy.anmIds[slot] = 0;
+    if (-1 < scr) {
+        enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
+            ->createEffectFront(scr, enemy.anmLayers + 7);
+        auto vm = AnmManager::getVM(enemy.anmIds[slot]);
+        if (slot == 0) {
+            enemy.anm0scr = scr;
+            enemy.anm0anmID = enemy.selectedAnmID;
+            enemy.finalSpriteSize = vm->sprite_size * vm->scale;
         }
-        enemy.anmIds[slot].val = id;
+        if (enemy.flags & 0x20) {
+            vm->bitflags.f530_1 = 0;
+        }
     }
 
     _ins(306, anmSetMain) _S(slot) _S(scr) _args
-        AnmManager::deleteVM(enemy.anmIds[slot].val);
-    if (scr < 0) {
-        enemy.anmIds[slot].val = 0;
-    } else {
-        int id = AnmManager::SpawnVM(ANM_SLOT(enemy.selectedAnmID), scr);
-        if (AnmManager::getVM(id)) {
-            // set invisible if intangible enemy,
-            // set finalSpriteSize and anmslot0... if slot = 0
-        } else {
-            id = 0;
-        }
-        enemy.anmIds[slot].val = id;
+    AnmManager::deleteVM(enemy.anmIds[slot]);
+    enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
+        ->createEffectFront(scr, enemy.anmLayers + 7);
+    auto vm = AnmManager::getVM(enemy.anmIds[slot]);
+    if (!vm) {
+        enemy.anmIds[slot] = 0;
+        break;
+    }
+    if (enemy.flags & 0x20) {
+        vm->bitflags.f530_1 = 0;
     }
     if (slot == 0) {
+        enemy.finalSpriteSize = vm->sprite_size * vm->scale;
         enemy.flags |= 0x100000;
-        enemy.anm0anmID = enemy.selectedAnmID;
         enemy.anm0scr = scr;
+        enemy.anm0anmID = enemy.selectedAnmID;
         enemy.anmSetMain = scr;
         enemy.anmMainSubscr = 0;
     }
 
     _ins(307, anmPlay) _S(anm) _S(scr) _args
-    auto vm = AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr));
-    if (vm)
-        vm->setEntityPos(enemy.abs_pos.pos.x,
-                         enemy.abs_pos.pos.y, enemy.abs_pos.pos.z);
+    ENEMY_MANAGER_PTR->loadedAnms[anm]->spawnVMExt(
+        scr, 0, enemy.final_pos.pos, 2);
+    // add it to effectmanager
+    // if (auto nid = EFFECT_MANAGER_PTR->get_next_index(); nid != -1) {
+    //   EFFECT_MANAGER_PTR->anm_ids[nid] = retval;
+    // }
 
     _ins(308, anmPlayAbs) _S(anm) _S(scr) _args
-    AnmManager::SpawnVM(ANM_SLOT(anm), scr);
+    ENEMY_MANAGER_PTR->loadedAnms[anm]->spawnVMExt(scr, 0, {}, 2);
+    // add it to effectmanager
+    // if (auto nid = EFFECT_MANAGER_PTR->get_next_index(); nid != -1) {
+    //   EFFECT_MANAGER_PTR->anm_ids[nid] = retval;
+    // }
 
     _ins(313, anmSelPlay) _S(slot) _args
-    AnmManager::deleteVM(enemy.anmIds[slot].val);
-    int id = AnmManager::SpawnVM(ANM_SLOT(enemy.selectedAnmID),
-                                 enemy.anmSetMain + 5);
-    if (AnmManager::getVM(id)) {
-        // set invisible if intangible enemy,
-        // set finalSpriteSize and anmslot0... if slot = 0
-    } else {
-        id = 0;
+    AnmManager::deleteVM(enemy.anmIds[slot]);
+    enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
+        ->createEffectFront(enemy.anmSetMain + 5, enemy.anmLayers + 7);
+    auto vm = AnmManager::getVM(enemy.anmIds[slot]);
+    if (!vm) enemy.anmIds[slot] = 0;
+    if (slot == 0) {
+        enemy.finalSpriteSize = vm->sprite_size * vm->scale;
     }
-    enemy.anmIds[slot].val = id;
+    if (enemy.flags & 0x20) {
+        vm->bitflags.f530_1 = 0;
+    }
 
     _ins(314, anmPlayHigh) _S(anm) _S(scr) _args
-    auto vm = AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr));
-    if (vm)
-        vm->setEntityPos(enemy.abs_pos.pos.x,
-                         enemy.abs_pos.pos.y, enemy.abs_pos.pos.z);
+    ENEMY_MANAGER_PTR->loadedAnms[anm]->spawnVMExt(scr,
+              0, enemy.final_pos.pos, 0);
+    // add it to effectmanager
+    // if (auto nid = EFFECT_MANAGER_PTR->get_next_index(); nid != -1) {
+    //   EFFECT_MANAGER_PTR->anm_ids[nid] = zVar36;
+    // }
 
     _ins(315, anmPlayRotate) _S(anm) _S(scr) _f(rot) _args
-    auto vm = AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr));
-    if (vm)
-        vm->setEntityPos(enemy.abs_pos.pos.x,
-                         enemy.abs_pos.pos.y, enemy.abs_pos.pos.z);
+    auto id = ENEMY_MANAGER_PTR->loadedAnms[anm]->spawnVMExt(
+            scr, 0, enemy.final_pos.pos, 2);
+    auto vm = AnmManager::getVM(id);
+    if (vm) {
+        vm->entity_pos = enemy.final_pos.pos;
+        vm->rotation.z = rot;
+        vm->bitflags.rotated = true;
+    }
+    // add it to effectmanager
+    // if (auto nid = EFFECT_MANAGER_PTR->get_next_index(); nid != -1) {
+    //   EFFECT_MANAGER_PTR->anm_ids[nid] = if;
+    // }
+
 
     _ins(316, anm316) _S(slot) _S(scr) _args
-        AnmManager::deleteVM(enemy.anmIds[slot].val);
-    if (scr < 0) {
-        enemy.anmIds[slot].val = 0;
-    } else {
-        int id = AnmManager::SpawnVM(ANM_SLOT(enemy.selectedAnmID),
-                                     scr + enemy.anmSetMain + 5);
-        if (AnmManager::getVM(id)) {
-            // set invisible if intangible enemy,
-            // set finalSpriteSize and anmslot0... if slot = 0
-        } else {
-            id = 0;
-        }
-        enemy.anmIds[slot].val = id;
+    AnmManager::deleteVM(enemy.anmIds[slot]);
+    enemy.anmIds[slot] = 0;
+    scr = (scr < 0) ? enemy.anmSetMain : scr + 5 + enemy.anmSetMain;
+    enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
+        ->createEffectFront(scr, enemy.anmLayers + 7);
+    auto vm = AnmManager::getVM(enemy.anmIds[slot]);
+    if (!vm) enemy.anmIds[slot] = 0;
+    if (slot == 0) {
+        enemy.finalSpriteSize = vm->sprite_size * vm->scale;
+    }
+    if (enemy.flags & 0x20) {
+        vm->bitflags.f530_1 = 0;
     }
 
     _ins(317, anmSwitch) _S(slot) _S(switc) _args
-    auto vm = AnmManager::getVM(enemy.anmIds[slot].val);
-    if (vm)
-        vm->interrupt(switc);
+    AnmManager::interrupt_tree(enemy.anmIds[slot], switc);
 
     _ins(318, anmReset)
-        AnmManager::deleteVM(enemy.anmIds[0].val);
-    enemy.anmIds[0].val = AnmManager::SpawnVM(0, enemy.anmSetMain);
+    AnmManager::deleteVM(enemy.anmIds[0]);
+    enemy.anmIds[0] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
+        ->createEffectFront(enemy.anmSetMain, enemy.anmLayers + 7);
     enemy.flags &= 0xffffffffffefffff;
     enemy.anm0scr = enemy.anmSetMain;
     enemy.anmMainSubscr = 0;
     enemy.anm0anmID = enemy.selectedAnmID;
 
+    ///// TODO: Check from here
     _ins(319, anmRotate) _S(slot) _f(angle) _args
     auto vm = AnmManager::getVM(enemy.anmIds[slot].val);
     if (vm)
@@ -258,6 +276,8 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(334, anm334) _S(a) _args _notImpl;
     // effect and anm 508 related, seiga lightning ?
+    // AnmManager::createVM508(a, ??);
+    // set result to effectmanager
 
     _ins(335, anmScale2) _S(slot) _f(x) _f(y) _args
     auto vm = AnmManager::getVM(enemy.anmIds[slot].val);
@@ -273,26 +293,32 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(337, anmBM_16_anmPlayPos)
     if (TOUHOU_VERSION < 16) { _S(anm) _S(scr) _f(x) _f(y) _f(z) _args
+        // TODO!!!!!
         AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr))->setPos2(x, y, z);
     } else { _S(slot) _S(bm) _args
         auto vm = AnmManager::getVM(enemy.anmIds[slot].val);
         if (vm)
             vm->bitflags.blendmode = bm;
     }
+    ////// OK
 
-    _ins(338, anmPlayPos) _S(anm) _S(scr) _f(x) _f(y) _f(z) _args
-    AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr))->setPos2(x, y, z);
+    _ins(338, anmPlayPos) _S(anm) _S(scr) _f(x) _f(y) _f(a) _args
+    ENEMY_MANAGER_PTR->loadedAnms[anm]->spawnVMExt(
+        scr, a, enemy.final_pos.pos + glm::vec3(x, y, 0), 2);
+    // set to effectmanager
+
 
     _ins(339, anm339) _S(a) _S(b) _S(c) _args
-    auto vm = AnmManager::getVM(AnmManager::SpawnVM(a+7, b));
-    if (vm) {
-        for (int i = 0; i < c; i++)
-            vm->update();
+    auto id = ENEMY_MANAGER_PTR->loadedAnms[a]->spawnVMExt(b, 0, {}, 2);
+    // set it to effectmanager
+    auto vm = AnmManager::getVM(id);
+    for (int i = 0; i < c; i++) {
+        vm->update();
     }
 
     _ins(340, enmDelete) _S(id) _args
     Enemy* e = EnemyManager::GetInstance()->EnmFind(id);
-    // should set the delete flag instead and be deleted by the enmMgr
+    // TODO should set the delete flag instead and be deleted by the enmMgr
     if (e)
         e->Die();
 

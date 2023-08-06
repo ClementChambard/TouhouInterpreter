@@ -23,11 +23,11 @@ int LaserLine::initialize(void* arg) {
     bullet_color = inner.bullet_color;
     __field_10__set_to_3_by_ex_delete = 2;
 
-    vm1.destroy();
-    // AnmLoaded::load_external_vm(LASER_MANAGER_PTR->bullet_anm, vm1, BULLET_TYPE_Table()[bullet_type]["script"].asInt());
-    vm1(AnmManager::getLoaded(7)->getPreloaded(BULLET_TYPE_TABLE[bullet_type]["script"].asInt()));
+    vm1.reset();
     vm1.index_of_sprite_mapping_func = 2;
     vm1.associated_game_entity = this;
+    LASER_MANAGER_PTR->bullet_anm->load_external_vm(
+        &vm1, BULLET_TYPE_TABLE[bullet_type]["script"].asInt());
     vm1.interrupt(2);
     vm1.update();
     vm1.bitflags.originMode = 1;
@@ -35,34 +35,36 @@ int LaserLine::initialize(void* arg) {
     vm1.bitflags.rendermode = 1;
     vm1.bitflags.anchorY = 2;
 
-    vm1.layer = 14;
-
-    vm2.destroy();
-    vm2(AnmManager::getLoaded(7)->getPreloaded(bullet_color + LASER_DATA["spawn_anm_first"].asInt()));
+    LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm2,
+                inner.bullet_color + LASER_DATA["spawn_anm_first"].asInt());
     vm2.parent_vm = nullptr;
-    // vm2.__root_vm__or_maybe_not = nullptr;
+    vm2.__root_vm__or_maybe_not = nullptr;
     vm2.update();
     vm2.interrupt(2);
     vm2.update();
     vm2.bitflags.originMode = 1;
     vm2.bitflags.blendmode = 1;
     vm2.bitflags.rendermode = 1;
-    vm2.layer = 14;
 
-    vm3.destroy();
     if ((bullet_type < 18) || (bullet_type == 38)) {
-        vm3(AnmManager::getLoaded(7)->getPreloaded(bullet_color + 0x5b));
+        LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm3,
+                                                      bullet_color + 0x5b);
         vm3.parent_vm = nullptr;
-        // vm3.__root_vm__or_maybe_not = nullptr;
+        vm3.__root_vm__or_maybe_not = nullptr;
         vm3.update();
         vm3.bitflags.blendmode = 1;
     } else {
-        vm3(AnmManager::getLoaded(7)->getPreloaded(bullet_color + 0x53));
+        LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm3,
+                                                      bullet_color + 0x53);
         vm3.parent_vm = nullptr;
-        // vm3.__root_vm__or_maybe_not = nullptr;
+        vm3.__root_vm__or_maybe_not = nullptr;
         vm3.update();
     }
     vm3.bitflags.originMode = 1;
+
+    // TODO: no
+    vm1.layer = 14;
+    vm2.layer = 14;
     vm3.layer = 14;
 
     // if (-1 < inner.shot_sfx) SoundManager::play_sound_at_position(inner.shot_sfx);
@@ -83,7 +85,7 @@ int LaserLine::initialize(void* arg) {
     laser_inf_current_length = inner.laser_new_arg_1;
     laser_st_width = inner.laser_new_arg_4;
 
-    __field_7c__sometimes_0p01_or_0f = (inner.laser_new_arg_2 <= inner.laser_new_arg_1 && inner.laser_new_arg_1 != inner.laser_new_arg_2) ? 0.01f : 0.f;
+    __field_7c__sometimes_0p01_or_0f = (inner.laser_new_arg_2 < inner.laser_new_arg_1) ? 0.01f : 0.f;
 
     laser_speed = { math::lengthdir_vec(speed, angle), 0.f };
 
@@ -291,11 +293,11 @@ void LaserLine::run_ex() {
         }
 
         if (inner.et_ex[et_ex_index].type == 0x200) {
-            vm1(AnmManager::getLoaded(7)->getPreloaded(
+            LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm1,
                 BULLET_TYPE_TABLE[inner.et_ex[et_ex_index].a]["script"].asInt()
-                + inner.et_ex[et_ex_index].b));
+                + inner.et_ex[et_ex_index].b);
             vm1.parent_vm = nullptr;
-            // vm1.__root_vm__or_maybe_not = nullptr;
+            vm1.__root_vm__or_maybe_not = nullptr;
             vm1.update();
         }
 

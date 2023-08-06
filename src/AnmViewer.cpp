@@ -1,6 +1,8 @@
 #include "./AnmViewer.hpp"
 #include "./AnmOpener/AnmManager.h"
 #include "./Player.h"
+#include "./Supervisor.h"
+#include "GlobalData.h"
 #include <imgui.h>
 #include <imguiW.hpp>
 
@@ -9,6 +11,12 @@
 #include <string>
 
 AnmViewer *ANM_VIEWER_PTR = nullptr;
+
+float c = 640.f;
+float top = 256.f;
+float w = 200.f;
+float bottom = 600.f;
+int cam = 3;
 
 class ImGuiEventProcessor : public NSEngine::IEventProcessor {
 public:
@@ -24,7 +32,20 @@ public:
 
 static ImGuiEventProcessor *igep = nullptr;
 
+// AnmVM vm1;
+// AnmVM vm2;
 AnmViewer::AnmViewer() {
+  // RESOLUTION_MULT = 2.f;
+  // BACK_BUFFER_SIZE.x = 1280;
+  // BACK_BUFFER_SIZE.y = 960;
+  // SUPERVISOR.init_cameras();
+  // RESOLUTION_MULT = 1.f;
+  // AnmManager::LoadFile(8, "effect.anm");
+  // AnmManager::LoadFile(5, "front.anm");
+  // AnmManager::getLoaded(8)->copyFromLoaded(&vm1, 105);
+  // AnmManager::getLoaded(5)->copyFromLoaded(&vm2, 391);
+  // animPtr(&vm1);
+  // animPtr(&vm2);
   ANM_VIEWER_PTR = this;
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -94,75 +115,76 @@ auto getSpriteRange(AnmFile *f, uint32_t texid) {
   return r;
 }
 
-
 void ImageWithUVRepresentedOnIt(ImTextureID tex, ImVec2 imgSize,
                                 ImVec2 imgUvStart, ImVec2 imgUvEnd,
                                 ImVec2 sprUvStart, ImVec2 sprUvEnd,
                                 ImU32 outline) {
-    ImVec2 sprFractStart = (sprUvStart - imgUvStart) / (imgUvEnd - imgUvStart);
-    ImVec2 sprFractEnd = (sprUvEnd - imgUvStart) / (imgUvEnd - imgUvStart);
+  ImVec2 sprFractStart = (sprUvStart - imgUvStart) / (imgUvEnd - imgUvStart);
+  ImVec2 sprFractEnd = (sprUvEnd - imgUvStart) / (imgUvEnd - imgUvStart);
 
-    bool cullAll = sprFractEnd.x < 0 || sprFractEnd.y < 0 ||
-                   sprFractStart.x > 1 || sprFractStart.y > 1;
-    bool cullLeft = sprFractStart.x < 0;
-    if (cullLeft) sprFractStart.x = 0;
-    bool cullTop = sprFractStart.y < 0;
-    if (cullTop) sprFractStart.y = 0;
-    bool cullRight = sprFractEnd.x > 1;
-    if (cullRight) sprFractEnd.x = 1;
-    bool cullBottom = sprFractEnd.y > 1;
-    if (cullBottom) sprFractEnd.y = 1;
+  bool cullAll = sprFractEnd.x < 0 || sprFractEnd.y < 0 ||
+                 sprFractStart.x > 1 || sprFractStart.y > 1;
+  bool cullLeft = sprFractStart.x < 0;
+  if (cullLeft)
+    sprFractStart.x = 0;
+  bool cullTop = sprFractStart.y < 0;
+  if (cullTop)
+    sprFractStart.y = 0;
+  bool cullRight = sprFractEnd.x > 1;
+  if (cullRight)
+    sprFractEnd.x = 1;
+  bool cullBottom = sprFractEnd.y > 1;
+  if (cullBottom)
+    sprFractEnd.y = 1;
 
-    ImU32 outlineColorU32 = outline;
+  ImU32 outlineColorU32 = outline;
 
-    auto Window = ImGui::GetCurrentWindow();
-    auto p1 = Window->DC.CursorPos;
-    auto p2 = p1 + imgSize;
+  auto Window = ImGui::GetCurrentWindow();
+  auto p1 = Window->DC.CursorPos;
+  auto p2 = p1 + imgSize;
 
-    auto imgP1 = p1;
-    auto imgP2 = p2;
+  auto imgP1 = p1;
+  auto imgP2 = p2;
 
-    auto sprP1 = (sprFractStart * imgSize) + p1;
-    auto sprP2 = (sprFractEnd * imgSize) + p1;
+  auto sprP1 = (sprFractStart * imgSize) + p1;
+  auto sprP2 = (sprFractEnd * imgSize) + p1;
 
-    ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    ImGui::ItemSize(imgSize, style.FramePadding.y);
-    ImGui::ItemAdd(ImRect(p1, p2), ImGui::GetID("image"));
-    auto const dl = ImGui::GetWindowDrawList();
-    dl->AddImage(tex, imgP1, imgP2, imgUvStart, imgUvEnd);
+  ImGuiContext &g = *GImGui;
+  const ImGuiStyle &style = g.Style;
+  ImGui::ItemSize(imgSize, style.FramePadding.y);
+  ImGui::ItemAdd(ImRect(p1, p2), ImGui::GetID("image"));
+  auto const dl = ImGui::GetWindowDrawList();
+  dl->AddImage(tex, imgP1, imgP2, imgUvStart, imgUvEnd);
 
-    if (!cullAll) {
-        if (!cullLeft)
-            dl->AddLine(sprP1, {sprP1.x, sprP2.y}, outlineColorU32, 2);
-        if (!cullTop)
-            dl->AddLine(sprP1, {sprP2.x, sprP1.y}, outlineColorU32, 2);
-        if (!cullRight)
-            dl->AddLine(sprP2, {sprP2.x, sprP1.y}, outlineColorU32, 2);
-        if (!cullBottom)
-            dl->AddLine(sprP2, {sprP1.x, sprP2.y}, outlineColorU32, 2);
-    }
+  if (!cullAll) {
+    if (!cullLeft)
+      dl->AddLine(sprP1, {sprP1.x, sprP2.y}, outlineColorU32, 2);
+    if (!cullTop)
+      dl->AddLine(sprP1, {sprP2.x, sprP1.y}, outlineColorU32, 2);
+    if (!cullRight)
+      dl->AddLine(sprP2, {sprP2.x, sprP1.y}, outlineColorU32, 2);
+    if (!cullBottom)
+      dl->AddLine(sprP2, {sprP1.x, sprP2.y}, outlineColorU32, 2);
+  }
 
-    dl->AddQuad(p1, {p1.x, p2.y}, p2, {p2.x, p1.y}, 0xFFFFFFFF);
+  dl->AddQuad(p1, {p1.x, p2.y}, p2, {p2.x, p1.y}, 0xFFFFFFFF);
 }
 
-void ImageViewerSprite(ImTextureID tex, ImVec2 imgSize,
-                         ImVec2* pos, float* zoom, bool UseCtrls,
-                        ImVec2 sprUvStart, ImVec2 sprUvEnd,
-                        ImU32 outline) {
-    if (UseCtrls) {
-        ImGui::SliderFloat("Zoom", zoom, 1, 10);
-        ImGui::SliderFloat("X", &pos->x, 0, 1);
-        ImGui::SliderFloat("Y", &pos->y, 0, 1);
-    }
-    ImVec2 posT = (*pos) * (1-1/(*zoom));
-    ImVec2 imgUvStart = {posT.x, posT.y};
-    ImVec2 imgUvEnd = {posT.x + 1 / (*zoom), posT.y + 1 / (*zoom)};
+void ImageViewerSprite(ImTextureID tex, ImVec2 imgSize, ImVec2 *pos,
+                       float *zoom, bool UseCtrls, ImVec2 sprUvStart,
+                       ImVec2 sprUvEnd, ImU32 outline) {
+  if (UseCtrls) {
+    ImGui::SliderFloat("Zoom", zoom, 1, 10);
+    ImGui::SliderFloat("X", &pos->x, 0, 1);
+    ImGui::SliderFloat("Y", &pos->y, 0, 1);
+  }
+  ImVec2 posT = (*pos) * (1 - 1 / (*zoom));
+  ImVec2 imgUvStart = {posT.x, posT.y};
+  ImVec2 imgUvEnd = {posT.x + 1 / (*zoom), posT.y + 1 / (*zoom)};
 
-    ImageWithUVRepresentedOnIt(tex, imgSize, imgUvStart, imgUvEnd,
-                               sprUvStart, sprUvEnd, outline);
+  ImageWithUVRepresentedOnIt(tex, imgSize, imgUvStart, imgUvEnd, sprUvStart,
+                             sprUvEnd, outline);
 }
-
 
 void TextureViewerWindow(bool *open) {
   if (!*open)
@@ -181,24 +203,25 @@ void TextureViewerWindow(bool *open) {
   AnmFile *f = AnmManager::getLoaded(selected);
   static int spriteId = 0;
   ImGui::InputInt("sprite id", &spriteId);
-  if (spriteId < 0) spriteId = 0;
+  if (spriteId < 0)
+    spriteId = 0;
   if (static_cast<size_t>(spriteId) >= f->sprites.size())
     spriteId = f->sprites.size() - 1;
   auto sp = f->sprites[spriteId];
   auto t = NSEngine::TextureManager::GetTextureID(sp.texID);
-  int w, h; NSEngine::TextureManager::GetTextureSize(sp.texID, w, h);
+  int w, h;
+  NSEngine::TextureManager::GetTextureSize(sp.texID, w, h);
   static ImVec2 pos = {0.5, 0.5};
   static float zoom = 1;
-  ImageViewerSprite(reinterpret_cast<ImTextureID>(t), ImVec2(w, h), &pos,
-                    &zoom, true, {sp.u1, sp.v1},
-                    {sp.u2, sp.v2}, 0xFF0000FF);
+  ImageViewerSprite(reinterpret_cast<ImTextureID>(t), ImVec2(w, h), &pos, &zoom,
+                    true, {sp.u1, sp.v1}, {sp.u2, sp.v2}, 0xFF0000FF);
   ImGui::PopID();
   ImGui::End();
 }
 
 void AnmView::renderInList() {
   if (ok)
-    ok = AnmManager::isAlive(anmId);
+    ok = AnmManager::isAlive(anmId) || vm;
   if (!ok) {
     windowOpen = false;
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 0, 0, 1.0));
@@ -207,7 +230,7 @@ void AnmView::renderInList() {
     return;
   }
   ImGui::PushID(("AnmId" + std::to_string(anmId)).c_str());
-  auto vm = AnmManager::getVM(anmId);
+  auto vm = this->vm ? this->vm : AnmManager::getVM(anmId);
   auto name = AnmManager::getLoaded(vm->anm_loaded_index)->name.c_str();
   if (parentId != 0)
     ImGui::Text("%s: script %d (%d->%d)", name, vm->script_id, anmId, parentId);
@@ -217,7 +240,7 @@ void AnmView::renderInList() {
     windowOpen = !windowOpen;
   }
   ImGui::SameLine();
-  if (ImGui::Button("X")) {
+  if (!this->vm && ImGui::Button("X")) {
     AnmManager::deleteVM(anmId);
   }
   ImGui::PopID();
@@ -238,8 +261,18 @@ void anms_window(bool *open) {
     return;
   ImGui::Begin("Anm VMs", open);
   ImGui::PushID("AnmSpawn");
+  static int id = 0;
+  ImGui::InputInt("##capture", &id);
+  ImGui::SameLine();
+  if (ImGui::Button("Capture")) {
+    ANM_VIEWER_PTR->anim(id);
+  }
   static int slot = -1;
   static int script = 0;
+  static bool ui = false;
+  static bool front = false;
+  static float init_rot = 0;
+  static glm::vec3 init_pos = {};
   static std::string slotname = "-";
   if (AnmSlotSelector("Slot", &slotname, &slot))
     script = 0;
@@ -255,8 +288,16 @@ void anms_window(bool *open) {
     script = 0;
   if (static_cast<size_t>(script) >= loaded->nbScripts())
     script = loaded->nbScripts() - 1;
+  ImGui::InputFloat3("pos", &init_pos[0]);
+  ImGui::InputFloat("rot", &init_rot);
+  ImGui::Checkbox("ui", &ui);
+  ImGui::SameLine();
+  ImGui::Checkbox("front", &front);
   if (ImGui::Button("Create")) {
-    ANM_VIEWER_PTR->anim(AnmManager::SpawnVM(slot, script));
+    int mode = ui << 2 | front << 1;
+    int id = AnmManager::getLoaded(slot)->spawnVMExt(script, init_rot, init_pos,
+                                                     mode);
+    ANM_VIEWER_PTR->anim(id);
   }
   ImGui::PopID();
   ImGui::End();
@@ -278,6 +319,7 @@ void anm_view_window(AnmView *v) {
 
   ImGui::Text("Id: %d", v->anmId);
   auto vm = AnmManager::getVM(v->anmId);
+  if (v->anmId == 0) vm = v->vm;
   if (!vm) {
     ImGui::PopID();
     ImGui::End();
@@ -293,8 +335,9 @@ void anm_view_window(AnmView *v) {
   }
   ImGui::SameLine();
   if (ImGui::Button("Reset")) {
-    (*vm)(AnmManager::getLoaded(vm->anm_loaded_index)
-              ->getPreloaded(vm->script_id));
+    int id = vm->script_id;
+    vm->reset();
+    AnmManager::getLoaded(vm->anm_loaded_index)->copyFromLoaded(vm, id);
     v->pauseInstr = -1;
   }
   ImGui::SameLine();
@@ -399,12 +442,12 @@ void anm_view_window(AnmView *v) {
     FLAG_CHECKBOX(f530_20)
     FLAG_COMBOBOX(anchorX, "Center", "Left", "Right");
     FLAG_COMBOBOX(anchorY, "Center", "Top", "Bottom");
-    FLAG_COMBOBOX(rendermode, "Normal", "RotateZ", "", "", "", "", "", "", "3D",
-                  "Textured circle", "", "", "", "Textured arc even",
-                  "Textured arc", "", "Rectangle", "Polygon", "Polygon outline",
-                  "Ring", "Rectangle grad", "Rectangle rot",
-                  "Rectangle rot grad", "", "Cylinder", "3D Textured ring",
-                  "Line horiz", "Rectangle outline")
+    FLAG_COMBOBOX(rendermode, "Normal", "RotateZ", "2", "3", "billboard", "5",
+                  "billboard fog", "5 fog", "3D", "Textured circle", "", "", "",
+                  "Textured arc even", "Textured arc", "", "Rectangle",
+                  "Polygon", "Polygon outline", "Ring", "Rectangle grad",
+                  "Rectangle rot", "Rectangle rot grad", "", "Cylinder",
+                  "3D Textured ring", "Line horiz", "Rectangle outline")
     FLAG_COMBOBOX(scrollY, "Wrap", "Clamp", "Mirror")
     ImGui::Separator();
     FLAG_COMBOBOX(scrollX, "Wrap", "Clamp", "Mirror")
@@ -433,10 +476,10 @@ void anm_view_window(AnmView *v) {
   if (vm->list_of_children.next && ImGui::CollapsingHeader("children")) {
     for (auto l = vm->list_of_children.next; l; l = l->next) {
       ImGui::PushID(std::to_string(l->value->id.val).c_str());
-      ImGui::Text("%s: script %d (%d)",
-                  AnmManager::getLoaded(l->value->anm_loaded_index)->
-                    name.c_str(),
-                  l->value->script_id, l->value->id.val);
+      ImGui::Text(
+          "%s: script %d (%d)",
+          AnmManager::getLoaded(l->value->anm_loaded_index)->name.c_str(),
+          l->value->script_id, l->value->id.val);
       ImGui::SameLine();
       if (ImGui::Button("see")) {
         ANM_VIEWER_PTR->animP(l->value->id.val, vm->id.val);
@@ -469,13 +512,15 @@ void anm_view_window(AnmView *v) {
   ImGui::PopID();
   ImGui::End();
 
-  if (!v->spriteShowOpen) return;
+  if (!v->spriteShowOpen)
+    return;
 
   ImGui::Begin(("SpriteOf(" + std::to_string(v->anmId) + ")").c_str(),
                &v->windowOpen);
   ImGui::PushID(("spriteWin" + std::to_string(v->anmId)).c_str());
   auto sp = vm->getSprite();
-  ImTextureID tex = reinterpret_cast<ImTextureID>(NSEngine::TextureManager::GetTextureID(sp.texID));
+  ImTextureID tex = reinterpret_cast<ImTextureID>(
+      NSEngine::TextureManager::GetTextureID(sp.texID));
   ImGui::Image(tex, {sp.w, sp.h}, {sp.u1, sp.v1}, {sp.u2, sp.v2});
   ImGui::PopID();
   ImGui::End();
@@ -501,10 +546,11 @@ void set_camera_window(bool *open) {
   pitch = glm::clamp(pitch, -PI / 2.f + 0.001f, PI / 2.f - 0.001f);
   fov = glm::clamp(fov, 0.f, PI / 2.f);
   static const float aspectRatio =
-    (float)NSEngine::getInstance()->window().getWindowData().width /
-    (float)NSEngine::getInstance()->window().getWindowData().height;
+      (float)NSEngine::getInstance()->window().getWindowData().width /
+      (float)NSEngine::getInstance()->window().getWindowData().height;
   if (captureActive) {
-    glm::vec3 debugLookat = glm::vec3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
+    glm::vec3 debugLookat =
+        glm::vec3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
     glm::vec3 debugRight = glm::normalize(glm::cross(debugLookat, up));
     glm::mat4 persp = glm::perspective(fov, aspectRatio, 0.1f, 10000.f);
     glm::vec3 up2 = glm::normalize(glm::cross(debugRight, debugLookat));
@@ -569,7 +615,10 @@ void openedFiles_window(bool *open) {
   ImGui::PopID();
   ImGui::End();
 }
-
+extern float SURF_ORIGIN_ECL_X;
+extern float SURF_ORIGIN_ECL_Y;
+extern float SURF_ORIGIN_ECL_FULL_X;
+extern float SURF_ORIGIN_ECL_FULL_Y;
 void main_menu_window(bool *open) {
   if (!*open)
     return;
@@ -606,6 +655,16 @@ void main_menu_window(bool *open) {
   if (ImGui::Button("camera")) {
     camera_w_open = !camera_w_open;
   }
+
+  ImGui::InputFloat("RESOLUTION_MULT", &RESOLUTION_MULT);
+  glm::vec2 ecl_origin = {SURF_ORIGIN_ECL_X, SURF_ORIGIN_ECL_Y};
+  glm::vec2 ecl_origin_full = {SURF_ORIGIN_ECL_FULL_X, SURF_ORIGIN_ECL_FULL_Y};
+  ImGui::InputFloat2("SURF_ORIGIN_ECL", &ecl_origin.x);
+  ImGui::InputFloat2("SURF_ORIGIN_ECL_FULL", &ecl_origin_full.x);
+  SURF_ORIGIN_ECL_X = ecl_origin.x;
+  SURF_ORIGIN_ECL_Y = ecl_origin.y;
+  SURF_ORIGIN_ECL_FULL_X = ecl_origin_full.x;
+  SURF_ORIGIN_ECL_FULL_Y = ecl_origin_full.y;
   ImGui::PopID();
   ImGui::End();
 }
@@ -636,11 +695,44 @@ void AnmViewer::on_tick() {
         vm->entity_pos = PLAYER_PTR->inner.pos;
     }
   }
+
+  ImGui::Begin("test");
+  ImGui::InputFloat("top", &top);
+  ImGui::InputFloat("bottom", &bottom);
+  ImGui::InputFloat("width", &w);
+  ImGui::InputFloat("center", &c);
+  ImGui::InputInt("cam", &cam);
+  ImGui::End();
 }
 
+extern float SURF_ORIGIN_ECL_X;
+extern float SURF_ORIGIN_ECL_Y;
 void AnmViewer::on_draw() {
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  // vm1.update();
+  // vm2.update();
+  // vm1.entity_pos = PLAYER_PTR->inner.pos;
+  // vm2.entity_pos = PLAYER_PTR->inner.pos*2.f;
+  // // SUPERVISOR.cameras[3].as_2d_matrix();
+  // SUPERVISOR.cameras[2].as_2d_matrix();
+  // SUPERVISOR.set_camera_by_index(cam, true);
+  // glEnable(GL_BLEND);
+  // AnmManager::drawVM(&vm2);
+  // AnmManager::drawVM(&vm1);
+  // SUPERVISOR.disable_ztest();
+  // SUPERVISOR.disable_zwrite(true);
+  // SUPERVISOR.disable_d3d_fog(true);
+  // // AnmManager::batch->draw(1, {{c, top, 0}, {255, 0, 0, 255}, {0, 0}},
+  // //                         {{c - w / 2, bottom, 0}, {0, 255, 0, 255}, {0, 0}},
+  // //                         {{c + w / 2, bottom, 0}, {0, 0, 255, 255}, {0, 0}},
+  // //                         {{c, top, 0}, {255, 0, 0, 255}, {0, 0}});
+  // AnmManager::batch->end();
+  // // AnmManager::shader->start();
+  // AnmManager::batch->renderBatch();
+  // // AnmManager::shader->stop();
+  // AnmManager::batch->begin();
+  // glDisable(GL_BLEND);
 }
 
 void AnmViewer::check_anmviews() {

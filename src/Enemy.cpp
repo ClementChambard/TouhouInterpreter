@@ -23,10 +23,13 @@ Enemy::Enemy() {
 }
 
 Enemy::~Enemy() {
-    /* Clear async list */
-    clear_async_contexts();
+    if (enemy.flags & 0x800000) {
+      ENEMY_MANAGER_PTR->boss_ids[enemy.ownBossId] = 0;
+    }
     for (int i = 0; i < 16; i++)
         AnmManager::deleteVM(enemy.anmIds[i].val);
+    /* Clear async list */
+    clear_async_contexts();
 }
 
 void Enemy::Init(std::string const& sub) {
@@ -231,20 +234,10 @@ int Enemy::die() {
                                         enemy.final_pos.pos.y,
                                         enemy.lastDmgPos.x,
                                         enemy.lastDmgPos.y);
-
     // ENEMY_MANAGER_PTR->field78_0x190 = rot_z;
     if (enemy.deathScr >= 0) {
-        // if (int e_m_id = EffectManager::get_next_index(); e_m_id != -1) {
-        // EFFECT_MANAGER_PTR->anm_ids[e_m_id].value =
-        // ENEMY_MANAGER_PTR->anms_in_anim_list[enemy.deathAnm]->create_4112b0(
-        // nullptr, enemy.deathScr, enemy.final_pos.pos, rot_z, 3, nullptr);
-        //}
-        auto vm = AnmManager::getVM(
-            AnmManager::SpawnVM(enemy.deathAnm, enemy.deathScr));
-        if (vm)
-            vm->rotation.z = rot_z;
-        if (vm)
-            vm->entity_pos = enemy.final_pos.pos;
+        AnmManager::getLoaded(enemy.deathAnm)
+            ->createEffectPos(enemy.deathScr, rot_z, enemy.final_pos.pos, 3);
     }
 
     enemy.drops.eject_all_drops(enemy.final_pos.pos);
@@ -944,6 +937,6 @@ void Enemy::Die() {
     context.primaryContext.currentLocation.offset = -1;
     for (int i = 0; i < 16; i++) {
         AnmManager::deleteVM(enemy.anmIds[i].val);
-        enemy.anmIds[i].val = -1;
+        enemy.anmIds[i].val = 0;
     }
 }

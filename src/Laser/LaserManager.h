@@ -33,7 +33,7 @@ private:
     int32_t current_id = 0;
     glm::vec3 __field_5ec = {};
     glm::vec3 __field_5f8 = {};
-    // AnmLoaded
+    AnmFile* bullet_anm = nullptr;
     // undefined4
     // undefined4
 

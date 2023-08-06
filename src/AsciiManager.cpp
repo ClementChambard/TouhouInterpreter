@@ -45,12 +45,10 @@ AsciiManager::AsciiManager() {
 
   __vm_1.reset();
   __vm_1.anm_loaded_index = 2;
-  __vm_1.bitflags.activeFlags = 2;
   ascii_anm->setSprite(&__vm_1, 0);
 
   __vm_2.reset();
   __vm_2.anm_loaded_index = 2;
-  __vm_2.bitflags.activeFlags = 2;
   ascii_anm->setSprite(&__vm_2, 0x62);
 }
 
@@ -104,7 +102,9 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
   __vm_1.color_1 = str.color;
 
   // TODO: NO
-  __vm_1.layer = 29;
+  if (str.render_group == 0) __vm_1.layer = 42;
+  if (str.render_group == 1) __vm_1.layer = 23;
+  if (str.render_group == 2) __vm_1.layer = 29;
 
   float font_width = 0.0;
   float font_height = 0.0;

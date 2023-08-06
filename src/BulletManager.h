@@ -76,4 +76,6 @@ public:
     friend class Bullet;
 };
 
+extern BulletManager* BULLET_MANAGER_PTR;
+
 #endif // BULLETMANAGER_H_
