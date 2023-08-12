@@ -10,6 +10,8 @@
 #include "./Player.h"
 #include "./Gui.hpp"
 #include "./Spellcard.h"
+#include "./EclInstrs/EclFuncs.hpp"
+#include "./AsciiPopupManager.hpp"
 #include <math/Random.h>
 
 #define PRINT false

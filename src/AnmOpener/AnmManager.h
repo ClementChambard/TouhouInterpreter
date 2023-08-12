@@ -112,6 +112,13 @@ public:
             vm->interruptRec(interrupt);
     }
 
+    static void interrupt_tree_run(AnmID id, int interrupt)
+    {
+        auto vm = getVM(id.val);
+        if (vm)
+            vm->interruptRecRun(interrupt);
+    }
+
 // private:
     // zThread
     // zAnmSaveRelated[4] pause_related

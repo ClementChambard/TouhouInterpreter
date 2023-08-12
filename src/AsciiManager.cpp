@@ -91,6 +91,7 @@ int AsciiManager::f_on_tick() {
   return 1;
 }
 
+#define CHRP2INT(c) static_cast<int>(*reinterpret_cast<const unsigned char*>(c))
 void AsciiManager::render_string(AsciiStr_t const &str) {
   __vm_1.bitflags.resolutionMode = 0;
   __vm_1.bitflags.visible = true;
@@ -184,11 +185,11 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
     switch (str.font_id) {
     case 0:
       AnmManager::getLoaded(__vm_1.anm_loaded_index)
-          ->setSprite(&__vm_1, (*c - 0x20));
+          ->setSprite(&__vm_1, CHRP2INT(c) - 0x20);
       break;
     case 1:
       AnmManager::getLoaded(__vm_1.anm_loaded_index)
-          ->setSprite(&__vm_1, (*c + 0x42));
+          ->setSprite(&__vm_1, CHRP2INT(c) + 0x42);
       break;
     case 2:
     case 3:
@@ -221,11 +222,11 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
             ->setSprite(&__vm_1, 0xd4);
       } else if (*c >= 'a' && *c <= 'z') {
         AnmManager::getLoaded(__vm_1.anm_loaded_index)
-            ->setSprite(&__vm_1, (*c + 0x74));
+            ->setSprite(&__vm_1, CHRP2INT(c) + 0x74);
       } else {
         // Only numbers
         AnmManager::getLoaded(__vm_1.anm_loaded_index)
-            ->setSprite(&__vm_1, *c + 0x94);
+            ->setSprite(&__vm_1, CHRP2INT(c) + 0x94);
       }
       break;
     case 4:
@@ -252,7 +253,7 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
       } else {
         // Only numbers
         AnmManager::getLoaded(__vm_1.anm_loaded_index)
-            ->setSprite(&__vm_1, *c + 0xbf);
+            ->setSprite(&__vm_1, CHRP2INT(c) + 0xbf);
       }
       break;
     }
@@ -287,11 +288,12 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
     c++;
   }
 }
+#undef CHRP2INT
 
-void AsciiManager::create_string(glm::vec3 const &pos, std::string const &str) {
+void AsciiManager::create_string(glm::vec3 const &pos, const char* str) {
   if (num_strings >= 320)
     return;
-  strncpy(strings[num_strings].text, str.c_str(), 256);
+  memcpy(strings[num_strings].text, str, 256);
   strings[num_strings].pos = pos * RESOLUTION_MULT;
   strings[num_strings].render_group = group;
   strings[num_strings].color = color;

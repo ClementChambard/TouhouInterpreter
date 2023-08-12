@@ -6,6 +6,10 @@
 #include <Engine.hpp>
 #include <NSEngine.h>
 #include "../GlobalData.h"
+#include "../Supervisor.h"
+
+extern float SURF_ORIGIN_FULL_X_;
+extern float SURF_ORIGIN_FULL_Y_;
 
 namespace StdOpener {
 
@@ -133,6 +137,10 @@ void StdFile::Draw() {
     if (bgVms.size() == 0)
         return;
     baseShader.start();
+    float savedPosx = SURF_ORIGIN_FULL_X_;
+    float savedPosy = SURF_ORIGIN_FULL_Y_;
+    SURF_ORIGIN_FULL_X_ = 0;
+    SURF_ORIGIN_FULL_Y_ = 0;
     baseShader.SetCameraPosition(theCam->getPosition());
     glActiveTexture(GL_TEXTURE0);
     NSEngine::toggleCulling(false);
@@ -202,6 +210,8 @@ void StdFile::Draw() {
     glDisable(GL_BLEND);
     if (NSEngine::getInstance()->flags().flags.wireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    SURF_ORIGIN_FULL_X_ = savedPosx;
+    SURF_ORIGIN_FULL_Y_ = savedPosy;
 }
 
 void StdFile::spawnFace(StdFile::face const& f) {

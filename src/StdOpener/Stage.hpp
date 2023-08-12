@@ -6,6 +6,7 @@
 #include "../Timer.hpp"
 #include "../UpdateFuncRegistry.h"
 #include "./stdOpener.h"
+#include "../Fog.hpp"
 
 struct CameraSkyInterp_t {
   Interp<float> begin_dist;
@@ -19,8 +20,6 @@ struct CameraSkyInterp_t {
 };
 
 class Stage;
-
-struct Fog_t;
 
 struct StageDistortion_t {
   Fog_t *fog_ptr = nullptr;

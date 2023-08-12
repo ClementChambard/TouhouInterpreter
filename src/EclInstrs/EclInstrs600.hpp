@@ -1,6 +1,7 @@
 #ifndef __INCLUDE_PARTS__
 #include <cstdint>
 #include "../EclInstrMacros.h"
+#include "../AsciiPopupManager.hpp"
 #include "../EclContext.h"
 #include "../Enemy.h"
 #include "../EnemyManager.h"
@@ -11,6 +12,7 @@
 #include <math/Random.h>
 #include <string>
 #include "../BulletManager.h"
+#include "./EclFuncs.hpp"
 #define PRINT false
 inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _insNop
@@ -206,22 +208,37 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.bulletOrigins[id] = {x, y, 1.f};
     if (x < -990.f) enemy.bulletOrigins[id].z = 0.f;
 
-    _ins(629, fog) _f(r) _S(c) _args _notImpl
+    _ins(629, fog) _f(r) _S(c) _args
+    if (enemy.fog.fog_ptr) {
+        delete enemy.fog.fog_ptr;
+    }
+    enemy.fog.fog_ptr = nullptr;
+    enemy.fog.fog_radius = r;
+    enemy.fog.__fog_field_c__init_16f = 16.0;
+    enemy.fog.fog_color = c;
+    enemy.fog.__fog_angle_44d0 = 0.0;
+    enemy.fog.__fog_angle_44d4 = 0.0;
+    if (r > 0) {
+        enemy.fog.fog_ptr = new Fog_t(0x11);
+    }
 
     _ins(630, callStd) _S(s) _args
     fileManager->stdf->interrupt(s);
+    // TODO: new stage
 
-    _ins(631, lifeHide) _S(t) _args _notImpl
+    _ins(631, lifeHide) _S(t) _args
+    if (t) ENEMY_MANAGER_PTR->flags &= 0xfffffffe;
+    else   ENEMY_MANAGER_PTR->flags |= 0x00000001;
 
-    _ins(632, funcSet) _S(id) _args _notImpl
-    // is_func_set_2 = 0;
-    // func_from_ecl_func_set = ...
+    _ins(632, funcSet) _S(id) _args
+    enemy.is_func_set_2 = 0;
+    enemy.func_from_ecl_func_set = ECL_SET_FUNC[id];
 
-    _ins(633, flagExtDmg) _S(state) _args _notImpl
-    // func_from_ecl_flag_extra_damage = ...
+    _ins(633, flagExtDmg) _S(state) _args
+    enemy.func_from_ecl_flag_ext_dmg = ECL_EXTDMG_FUNC[state];
 
-    _ins(634, setHitboxFunc) _S(id) _args _notImpl
-    // hitbox_func = ...
+    _ins(634, setHitboxFunc) _S(id) _args
+    enemy.hitbox_func = ECL_HITBOX_FUNC[id];
 
     _ins(635, etCancel2) _f(r) _args
     BulletManager::GetInstance()
@@ -234,15 +251,21 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
         ->ClearScreen(2, r, enemy.final_pos.pos.x, enemy.final_pos.pos.y);
     LASER_MANAGER_PTR->cancel_in_radius(enemy.final_pos.pos, 0, 1, r);
 
-    _ins(637, funcCall) _S(id) _args _notImpl
-    // immediately call the function
+    _ins(637, funcCall) _S(id) _args
+    if (ECL_SET_FUNC[id])
+        ECL_SET_FUNC[id](&enemy);
 
-    _ins(638, scoreAdd) _S(amt) _args _notImpl
-    // add score in globals and generate small popup
+    _ins(638, scoreAdd) _S(amt) _args
+    GLOBALS.inner.CURRENT_SCORE += amt / 10;
+    if (999999999 < (uint)GLOBALS.inner.CURRENT_SCORE) {
+      GLOBALS.inner.CURRENT_SCORE = 999999999;
+    }
+    POPUP_MANAGER_PTR->
+        generate_small_score_popup(enemy.final_pos.pos, amt, c_white);
 
-    _ins(639, funcSet2) _S(id) _args _notImpl
-    // is_func_set_2 = 1;
-    // func_from_ecl_func_set = ...
+    _ins(639, funcSet2) _S(id) _args
+    enemy.is_func_set_2 = 1;
+    enemy.func_from_ecl_func_set = ECL_SET_FUNC[id];
 
     _ins(640, etExSub) _S(id) _S(i) _z(s) _args
     EX(id, i).string = s.c_str();

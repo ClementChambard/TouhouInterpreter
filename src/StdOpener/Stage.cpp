@@ -262,14 +262,13 @@ void Stage::run_std() {
         inner.rocking_timer.set(0);
       break;
     case 13: /* BG COLOR */
-      // SUPERVISOR.background_color = instr->args[0];
       {
         NSEngine::Color c;
         c.b = (IARG(0) >> 0) & 0xff;
         c.g = (IARG(0) >> 8) & 0xff;
         c.r = (IARG(0) >> 16) & 0xff;
         c.a = (IARG(0) >> 24) & 0xff;
-        NSEngine::engineData::cam3d->setClearColor(c.r, c.g, c.b);
+        SUPERVISOR.background_color = c;
       }
       break;
     case 14: /* SPRITE */
@@ -287,8 +286,8 @@ void Stage::run_std() {
       inner.anm_layers[IARG(0)] = IARG(2);
       break;
     case 17: /* DISTORTION */
-      // if (inner.distortion.fog_ptr)
-      //   delete inner.distortion.fog_ptr;
+      if (inner.distortion.fog_ptr)
+        delete inner.distortion.fog_ptr;
       inner.distortion.fog_ptr = NULL;
       inner.distortion.field_0x04 = 112.0;
       inner.distortion.field_0x08 = 192.0;
@@ -297,8 +296,8 @@ void Stage::run_std() {
       inner.distortion.field_0x28 = 0.0;
       inner.distortion.timer_0x10 = 0;
       inner.distortion.mode = IARG(0);
-      // inner->distortion.fog_ptr =
-      //     new zFog(inner.distortion.mode != 1 ? 17 : 7);
+      inner.distortion.fog_ptr =
+        new Fog_t(inner.distortion.mode != 1 ? 17 : 7);
       break;
     case 18: /* UP TIME */
       inner.camera_up_i.start(inner.camera.up, {FARG(2), FARG(3), FARG(4)},
@@ -341,13 +340,6 @@ update_rest:
     inner.camera.up = inner.camera_up_i.step();
   if (inner.camera_fov_i.end_time != 0)
     (inner.camera).fov_y = inner.camera_fov_i.step();
-
-  // XXX
-  NSEngine::engineData::cam3d->setFog(inner.camera.sky.color.r,
-                                      inner.camera.sky.color.g,
-                                      inner.camera.sky.color.b,
-                                      inner.camera.sky.color.a,
-                                      9999999, 9999999);
 
   float intensity;
   switch (inner.rocking_mode) {
@@ -494,7 +486,123 @@ CameraSky_t CameraSkyInterp_t::step() {
   return out;
 }
 
-void StageInner_t::update_distortion() {}
+void StageInner_t::update_distortion() {
+  /*
+  bool bVar1;
+  int iVar3;
+  int iVar4;
+  zFloat3 *pfVar5;
+  zFloat3 *pzVar6;
+  float fVar99;
+  float fvar100;
+  float fVar9;
+  zFloat3 *local_40;
+  float local_3c;
+  float local_38;
+  float local_30;
+  float local_28;
+  float local_24;
+  float local_1c;
+  float local_18;
+  float local_14;
+  float local_10;
+  uint local_c;
+  zFloat3 *pfVar4;
+  zFloat3 *temp_3f29d2ac03;
+  void *pvVar6;
+  
+  if (!distortion.fog_ptr) return;
+  if (distortion.mode == 1) {
+    if (SPELLCARD_PTR && (SPELLCARD_PTR->flags & 1)) {
+      distortion.timer_0x10++;
+      return;
+    }
+    FUN_0041bb80(distortion.fog_ptr, 128.0, -192.0, 320.0, 384.0);
+    if (60.0 <= distortion.timer_0x10) {
+      local_28 = 6.0;
+    } else {
+      local_28 = (distortion.timer_0x10.current_f * 6.0) / 60.0;
+    }
+    pfVar5 = distortion.fog_ptr->field5_0x14_malloced_to_0x1dc_x_field_0x4;
+    local_38 = distortion.field_0x28;
+    local_3c = distortion.field_0x24;
+    local_40 = distortion.fog_ptr->field6_0x18_malloced_to_0xcc_x_field_0x4;
+    for (int j = 0; j < distortion.fog_ptr->field0_0x0_set_to_17; j++) {
+      for (int i = 0; i < distortion.fog_ptr->field1_0x4_some_count; i++) {
+        *(undefined *)((int)&pfVar5[1].y + 3) = 0x80;
+        local_24 = i * local_28 / (float)(distortion.fog_ptr->field1_0x4_some_count - 1);
+        if (j != 0 && i != 0 &&
+            j != distortion.fog_ptr->field0_0x0_set_to_17 - 1 &&
+            i != distortion.fog_ptr->field1_0x4_some_count - 1) {
+          pfVar5->x += sin(local_3c) * local_24;
+          pfVar5->y += sin(local_38) * local_24;
+          pfVar5->z += 0.0;
+          local_40->z = 0.0;
+        }
+        local_3c += 0.668424;
+        math::angle_normalize(local_3c);
+        local_40++;
+        pfVar5 = (zFloat3 *)&pfVar5[2].y;
+      }
+      local_38 -= 1.495997;
+      math::angle_normalize(local_38);
+    }
+    distortion.field5_0x24 += 0.04908739;
+    math::angle_normalize(distortion.field5_0x24);
+    distortion.field6_0x28 += 0.03926991;
+    math::angle_normalize(distortion.field6_0x28);
+  } else if (distortion.mode == 2) {
+    FUN_0041bb80(distortion.fog_ptr,
+        2 * distortion.field2_0x8, -distortion.field2_0x8, 224.0 -
+        distortion.field2_0x8, 2 * distortion.field2_0x8);
+    if (distortion.field1_0x4 < distortion.field2_0x8) {
+      distortion.field2_0x8 -= 2.0;
+    }
+    pfVar4 = distortion.fog_ptr->field6_0x18_malloced_to_0xcc_x_field_0x4;
+    pzVar6 = distortion.fog_ptr->field5_0x14_malloced_to_0x1dc_x_field_0x4;
+    local_3c = distortion.field_0x24;
+    local_40 = distortion.field_0x28;
+    for (int j = 0; j < distortion.fog_ptr->field0_0x0_set_to_17; j++) {
+      for (int i = 0; i < distortion.fog_ptr->field1_0x4_some_count; i++) {
+        local_18 = pfVar4->x - 224.0;
+        local_14 = pfVar4->y - 240.0;
+        local_10 = pfVar4->z - local_1c * local_1c;
+        fVar9 = local_1c * local_1c - local_18 * local_18 - local_14 * local_14;
+        if (fVar9 < 0.0) {
+          *(undefined *)((int)&pzVar6[1].y + 3) = 0;
+        } else {
+          local_30 = fVar9 / local_1c * local_1c;
+          pzVar6[1].y = -NAN;
+          *(undefined *)((int)&pzVar6[1].y + 3) = 0x60;
+          *(char *)((int)&pzVar6[1].y + 2) = (char)(int)(255.0 - local_30 * 0.0);
+          *(char *)((int)&pzVar6[1].y + 1) =
+               (char)(int)(255.0 - (float)(0xff - (uint)*(byte *)((int)&pzVar6[1].y + 1)) *
+                                   local_30);
+          *(char *)&pzVar6[1].y =
+               (char)(int)(255.0 - (float)(0xff - (uint)*(byte *)&pzVar6[1].y) * local_30);
+          D3DXVec3Normalize(&local_18,&local_18);
+          local_10 *= local_30 * 32.0;
+          pzVar6->x += sin(local_3c) * local_30 * 8.0 + local_30 * 32.0 * local_18;
+          pzVar6->y += sin(local_40) * local_30 * 8.0 + local_30 * 32.0 * local_14;
+          pzVar6->z += 0.0;
+          pfVar4->z = 0.0;
+        }
+        local_3c += PI1_2;
+        math::angle_normalize(local_3c);
+        local_40 -= 0.6981317;
+        math::angle_normalize(local_40);
+        pfVar4++;
+        pzVar6 = &pzVar6[2].y;
+      }
+    }
+    distortion.field5_0x24 = distortion.field5_0x24 + 0.04908739;
+    math::angle_normalize(distortion.field5_0x24);
+    distortion.field6_0x28 += (Random::Float01() * PI) / 40.0 + 0.03926991;
+    math::angle_normalize(distortion.field6_0x28);
+  }
+  distortion.time++;
+  */
+}
 
 int Stage::f_on_draw_1() {
   glm::vec4 viewport_rect;

@@ -60,7 +60,9 @@ public:
   void draw(NSEngine::SpriteBatch *sb = nullptr);
   void destroy();
   void interrupt(int i);
+  void interruptRun(int i);
   void interruptRec(int i);
+  void interruptRecRun(int i);
   void clear_flag_1_rec();
   void set_flag_1_rec();
   void reset();

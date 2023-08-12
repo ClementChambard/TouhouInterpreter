@@ -11,6 +11,7 @@
 #include "./AsciiManager.hpp"
 #include "./AsciiPopupManager.hpp"
 #include "./Gui.hpp"
+#include "PauseMenu.hpp"
 #include "StdOpener/Stage.hpp"
 #include <NSEngine.h>
 
@@ -24,6 +25,7 @@ int layerOrder[] = {
   41, 31, 42, 35, 0, 0
 };
 
+bool pause = false;
 void App::on_create() {
   Hardcoded_Load();
 
@@ -78,17 +80,24 @@ void App::on_create() {
   em->Start(m_argv[1], m_argc > 2 ? m_argv[2] : "main");
   if (TOUHOU_VERSION == 17)
     new GoastManager();
+
+  new PauseMenu();
+
+  UPDATE_FUNC_REGISTRY->register_on_tick(new UpdateFunc([this](){this->anmViewer.on_tick(); return 1;}), 3);
+  UPDATE_FUNC_REGISTRY->register_on_tick(new UpdateFunc(AnmManager::on_tick_ui), 10);
+  UPDATE_FUNC_REGISTRY->register_on_tick(new UpdateFunc(AnmManager::on_tick_world), 35);
+  UPDATE_FUNC_REGISTRY->register_on_tick(new UpdateFunc([](){return GAME_PAUSED ? 3 : 1;}), 16);
+  UPDATE_FUNC_REGISTRY->register_on_tick(new UpdateFunc([](){
+    if (EclFileManager::GetInstance()->stdf)
+      EclFileManager::GetInstance()->stdf->Update();
+    return 1;
+  }), 18);
 }
 
 void App::on_update() {
-  if (EclFileManager::GetInstance()->stdf)
-    EclFileManager::GetInstance()->stdf->Update();
   UPDATE_FUNC_REGISTRY->run_all_on_tick();
 
-  AnmManager::update();
-
-  anmViewer.on_tick();
-
+  if (Inputs::Keyboard().Pressed(NSK_y)) PAUSE_MENU_PTR->open_submenu3();
 }
 
 void App::on_render() {
@@ -117,6 +126,7 @@ void App::on_render() {
   if (renderAnmManager)
     AnmManager::draw();
   anmViewer.on_draw();
+
 }
 
 void App::on_destroy() {

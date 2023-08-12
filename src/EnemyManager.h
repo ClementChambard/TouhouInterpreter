@@ -8,7 +8,9 @@
 #include <Engine.hpp>
 #include <string>
 
+// XXX -600 XXX -200 XXX 200 XXX 600 XXX
 #define Rank5(a, b, c, d, e) a
+// XXX -200 XXX 200 XXX 
 #define Rank3(a, b, c) a
 #define Rank2(a, b) a
 #define Diff(a, b, c, d) (GLOBALS.inner.DIFFICULTY == 0 ?\

@@ -35,11 +35,11 @@ static ImGuiEventProcessor *igep = nullptr;
 // AnmVM vm1;
 // AnmVM vm2;
 AnmViewer::AnmViewer() {
-  // RESOLUTION_MULT = 2.f;
-  // BACK_BUFFER_SIZE.x = 1280;
-  // BACK_BUFFER_SIZE.y = 960;
-  // SUPERVISOR.init_cameras();
-  // RESOLUTION_MULT = 1.f;
+  RESOLUTION_MULT = 1.f;
+  BACK_BUFFER_SIZE.x = 1280/2.f;
+  BACK_BUFFER_SIZE.y = 960/2.f;
+  SUPERVISOR.init_cameras();
+  RESOLUTION_MULT = 1.f;
   // AnmManager::LoadFile(8, "effect.anm");
   // AnmManager::LoadFile(5, "front.anm");
   // AnmManager::getLoaded(8)->copyFromLoaded(&vm1, 105);

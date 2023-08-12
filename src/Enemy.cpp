@@ -390,7 +390,7 @@ int EnemyData::step_game_logic() {
                 ->damage_multiplier__used_by_winter_in_th16;
         }
         if (func_from_ecl_flag_ext_dmg)
-            totalDamage += func_from_ecl_flag_ext_dmg();
+            totalDamage += func_from_ecl_flag_ext_dmg(this, totalDamage);
         if (extra_dmg > 0)
             totalDamage += extra_dmg, extra_dmg = 0;
 
@@ -501,7 +501,7 @@ int EnemyData::step_game_logic() {
             //     timeInEcl % 6 == 0)
             //     Player::do_graze(&(PLAYER_PTR->inner).pos);
         } else {
-            hitbox_func();
+            hitbox_func(this);
         }
     }
 
@@ -720,7 +720,7 @@ int EnemyData::update() {
         // param: (float *)(&PTR_GAME_SPEED)
         // [(int)(enemy->time_in_ecl).__game_speed__disused]
         if (step_interpolators() || enemy->ecl_run() ||
-            (func_from_ecl_func_set && func_from_ecl_func_set()) ||
+            (func_from_ecl_func_set && func_from_ecl_func_set(this)) ||
             step_game_logic()) {
             enemy->Die();
             return -1;

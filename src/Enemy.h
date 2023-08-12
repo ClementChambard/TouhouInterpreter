@@ -6,6 +6,7 @@
 #include "./EclFileManager.h"
 #include "./Interp.h"
 #include "./PosVel.h"
+#include "Fog.hpp"
 #include <iostream>
 #include <string>
 
@@ -33,12 +34,12 @@ struct EnemyDropSeason_t {
 };
 
 struct EnemyFog_t {
-    // fog ptr
+    Fog_t* fog_ptr = nullptr;
     float fog_radius = 0.f;
-    float fog__a = 0.f;
+    float __fog_field_c__init_16f = 0.0;
     int32_t fog_color = 0;
-    float fog_angle__a = 0.f;
-    float fog_angle__b = 0.f;
+    float __fog_angle_44d0 = 0.f;
+    float __fog_angle_44d4 = 0.f;
 };
 
 struct EnemyInterrupt_t {
@@ -124,10 +125,10 @@ struct EnemyData {
     Enemy* enemy = nullptr;
     EnemyFog_t fog;
     std::string setDeath = "";
-    std::function<int(void)> func_from_ecl_func_set = nullptr;
+    std::function<int(EnemyData*)> func_from_ecl_func_set = nullptr;
     uint32_t is_func_set_2 = 0;
-    std::function<int(void)> func_from_ecl_flag_ext_dmg = nullptr;
-    std::function<void(void)> hitbox_func = nullptr;
+    std::function<int(EnemyData*, int)> func_from_ecl_flag_ext_dmg = nullptr;
+    std::function<int(EnemyData*)> hitbox_func = nullptr;
     int32_t own_chapter = 0;
     int32_t __bool_cleared_by_ecl_570 = 0;
 

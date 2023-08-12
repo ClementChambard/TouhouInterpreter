@@ -36,12 +36,30 @@ void AnmVM::interrupt(int i) {
   pending_interrupt = i;
 }
 
+void AnmVM::interruptRun(int i) {
+  if (index_of_on_interrupt &&
+      ANM_ON_SWITCH_FUNCS[index_of_on_interrupt]) {
+    ANM_ON_SWITCH_FUNCS[index_of_on_interrupt](this, i);
+  }
+  pending_interrupt = i;
+  update(); // run
+}
+
 void AnmVM::interruptRec(int i) {
   interrupt(i);
   for (AnmVMList_t *child = list_of_children.next; child != nullptr;
        child = child->next) {
     if (child->value)
       child->value->interruptRec(i);
+  }
+}
+
+void AnmVM::interruptRecRun(int i) {
+  interruptRun(i);
+  for (AnmVMList_t *child = list_of_children.next; child != nullptr;
+       child = child->next) {
+    if (child->value)
+      child->value->interruptRecRun(i);
   }
 }
 
@@ -143,6 +161,9 @@ int AnmVM::update(bool /*printInstr*/) {
     return 1;
 
   /* CHECK FOR INTERRUPTIONS */
+  int offset_of_interrupt_m1 = -1;
+  int time_of_interrupt_m1 = 0;
+  bool interrupt_found = false;
   if (pending_interrupt != 0) {
     // find label
     int32_t offset = 0;
@@ -153,15 +174,28 @@ int AnmVM::update(bool /*printInstr*/) {
       int16_t instime =
           *reinterpret_cast<int16_t *>(&(instructions[offset + 4]));
       if (instype == 5 && *reinterpret_cast<int32_t *>(&(
+                              instructions[offset + 8])) == -1) {
+        offset_of_interrupt_m1 = offset;
+        time_of_interrupt_m1 = instime;
+      }
+      if (instype == 5 && *reinterpret_cast<int32_t *>(&(
                               instructions[offset + 8])) == pending_interrupt) {
         interrupt_return_offset = instr_offset;
         interrupt_return_time = time_in_script;
         instr_offset = offset;
         time_in_script = instime;
         bitflags.visible = 1;
+        interrupt_found = true;
         break;
       }
       offset += inslength;
+    }
+    if (!interrupt_found && offset_of_interrupt_m1 >= 0) {
+        interrupt_return_offset = instr_offset;
+        interrupt_return_time = time_in_script;
+        instr_offset = offset_of_interrupt_m1;
+        time_in_script = time_of_interrupt_m1;
+        bitflags.visible = 1;
     }
     pending_interrupt = 0;
   }
@@ -171,17 +205,10 @@ int AnmVM::update(bool /*printInstr*/) {
     return 0;
 
   /* RUN INSTRUCTIONS */
-  int32_t oldinstr = instr_offset;
   if (instr_offset >= 0) {
-    uint16_t inslength;
-    int16_t instime;
     if (instructions[instr_offset] == -1)
       return 1;
-    else {
-      inslength =
-          *reinterpret_cast<uint16_t *>(&(instructions[instr_offset + 2]));
-      instime = *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
-    }
+    int16_t instime = *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
     while (instime <= time_in_script &&
            (bitflags.activeFlags == ANMVM_ACTIVE || time_in_script == -1)) {
       int ret = exec_instruction(&(instructions[instr_offset]));
@@ -190,35 +217,9 @@ int AnmVM::update(bool /*printInstr*/) {
       if (ret == 2)
         return 0;
 
-      if (oldinstr != instr_offset) {
-        if (instructions[instr_offset] == -1)
-          return 1;
-        else {
-          inslength =
-              *reinterpret_cast<uint16_t *>(&(instructions[instr_offset + 2]));
-          instime =
-              *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
-        }
-        if (instime <= time_in_script) {
-          int ret = exec_instruction(&(instructions[instr_offset]));
-          if (ret == 1)
-            return 0;
-          if (ret == 2)
-            return 0;
-        } else {
-          break;
-        }
-      }
-      instr_offset += inslength;
-      oldinstr = instr_offset;
       if (instructions[instr_offset] == -1)
         return 1;
-      else {
-        inslength =
-            *reinterpret_cast<uint16_t *>(&(instructions[instr_offset + 2]));
-        instime =
-            *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
-      }
+      instime = *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
     }
     time_in_script++;
   }
@@ -708,12 +709,12 @@ int AnmVM::write_sprite_corners__mode_4() {
 }
 
 // TODO: set this
-const float SURF_ORIGIN_ECL_FULL_X_ = 0;
-const float SURF_ORIGIN_ECL_FULL_Y_ = 0;
-const float SURF_ORIGIN_ECL_X_ = 0;
-const float SURF_ORIGIN_ECL_Y_ = 0;
-const float SURF_ORIGIN_FULL_X_ = -224;
-const float SURF_ORIGIN_FULL_Y_ = -16;
+float SURF_ORIGIN_ECL_FULL_X_ = 0;
+float SURF_ORIGIN_ECL_FULL_Y_ = 0;
+float SURF_ORIGIN_ECL_X_ = 0;
+float SURF_ORIGIN_ECL_Y_ = 0;
+float SURF_ORIGIN_FULL_X_ = -224;
+float SURF_ORIGIN_FULL_Y_ = -16;
 extern float SURF_ORIGIN_ECL_X;
 extern float SURF_ORIGIN_ECL_Y;
 extern float SURF_ORIGIN_ECL_FULL_X;

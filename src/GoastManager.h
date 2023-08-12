@@ -4,6 +4,7 @@
 #include "./UpdateFuncRegistry.h"
 #include <glm/glm.hpp>
 #include "./AnmOpener/AnmFile.h"
+#include "AnmOpener/AnmVM.h"
 
 struct Token_t;
 struct TokenList_t {
@@ -43,23 +44,33 @@ public:
 
     int _on_tick();
 
+    int FUN_0040e920();
+    void FUN_0040ee70();
+    void create_otter_hyper_anms();
+    void hyper_die(bool param_1);
+    void update_gui(int tid);
+    void hyper_end_spawn_items();
+    void hyper_spawn_item(int i, glm::vec3 const& pos);
+    int get_token(int typ);
+    int hyper_start();
+    void update_hyper_bar();
+    void reset();
+
     int32_t flags = 0;
     UpdateFunc* on_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
     AnmFile* anm_file = nullptr;
     int32_t token_count = 0;
     TokenList_t list_head {};
-    int32_t field_0x24 = 0;
-    int32_t field_0x28 = 0;
-    int32_t field_0x2c = 0;
-    int32_t field_0x30 = 0;
+    AnmID gui_anmid = 0;
+    AnmID hyper_time_bar_anmid1 = 0;
+    AnmID hyper_time_bar_anmid2 = 0;
+    AnmID hyper_bg_anmid = 0;
     int32_t field_0x34 = 0;
-    int32_t field_0x38 = 0;
-    int32_t field_0x3c = 0;
+    AnmID hyper_aura_anmid = 0;
+    AnmID extra_beast_anmid = 0;
     int32_t field_0x40 = 0;
-    int32_t field_0x44 = 0;
-    int32_t field_0x48 = 0;
-    int32_t field_0x4c = 0;
+    AnmID otter_hyper_anms[3] = {};
     int32_t field_0x50 = 0;
 };
 

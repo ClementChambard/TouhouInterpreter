@@ -1,6 +1,8 @@
 #include "./Player.h"
+#include "./Spellcard.h"
 #include "./AnmOpener/AnmManager.h"
 #include "./BulletManager.h"
+#include "./Gui.hpp"
 #include "./EnemyManager.h"
 #include "./Hardcoded.h"
 #include "./Input.h"
@@ -270,10 +272,12 @@ int Player::_on_tick() {
         if (inner.time_in_state > 7) {
             die();
         } else {
-            // if ((GLOBALS.inner.HYPER_FLAGS & 2U) && !(GLOBALS.inner.HYPER_FLAGS & 4U)) {
-            //     FUN_0040f6d0(GOAST_MANAGER_PTR,1);
-            //     inner.time_in_state = 60;
-            // }
+            if ((GLOBALS.inner.HYPER_FLAGS & 2U) &&
+                !(GLOBALS.inner.HYPER_FLAGS & 4U)) {
+                if (GOAST_MANAGER_PTR)
+                    GOAST_MANAGER_PTR->hyper_die(true);
+                inner.time_in_state = 60;
+            }
             // if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ((byte)INPUT_STRUCT.rising_edge & 2)) {
             //     do_bomb();
             //     inner.time_in_state = 60;
@@ -529,9 +533,11 @@ void Player::check_shoot()
     }
 
     // youmu shoot code
-    if (GLOBALS.inner.CHARACTER /*GLOBALS.inner.CHARACTER*/ == 2 && TOUHOU_VERSION == 17) {
-        if (true) { //(((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) == 0) || (GLOBALS.inner.field44_0xe0 != 3)) {
-            if (true) { // (((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) == 0) || (GLOBALS.inner.field44_0xe0 != 1)) {
+    if (GLOBALS.inner.CHARACTER == 2 && TOUHOU_VERSION == 17) {
+        if (!((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) ||
+             (GLOBALS.inner.HYPER_TYPE != 3)) {
+            if (!((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) ||
+                (GLOBALS.inner.HYPER_TYPE != 1)) {
                 if (!inner.focusing)
                     goto LAB_0044ab18;
                 if ((INPUT_STRUCT.input & 1) && field_0x19080 >= 0) {
@@ -641,20 +647,26 @@ void Player::check_shoot()
         inner.shoot_key_long_timer++;
 }
 
-void Player::shoot(int short_tmr, int long_tmr)
-{
+void Player::shoot(int short_tmr, int long_tmr) {
     // get shooterset
-    size_t shooter_set = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL;
+    size_t shooter_set = GLOBALS.inner.CURRENT_POWER /
+                         GLOBALS.inner.POWER_PER_LEVEL;
     if (inner.focusing)
         shooter_set += sht_file->header.pwr_lvl_cnt + 1;
 
     // special shooterset for hyper
-    if ((((GLOBALS.inner.HYPER_FLAGS >> 1 & 1) == 0) /*|| (GLOBALS.inner.field44_0xe0 != 1)*/) || ((GLOBALS.inner.HYPER_FLAGS & 4U) != 0)) {
-        if ((((GLOBALS.inner.HYPER_FLAGS >> 1 & 1) != 0) /*&& (GLOBALS.inner.field44_0xe0 == 3)*/) && ((GLOBALS.inner.HYPER_FLAGS & 4U) == 0)) {
-            shooter_set = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL + 15;
+    if ((((GLOBALS.inner.HYPER_FLAGS >> 1 & 1) == 0) ||
+        (GLOBALS.inner.HYPER_TYPE != 1)) ||
+        ((GLOBALS.inner.HYPER_FLAGS & 4U) != 0)) {
+        if ((((GLOBALS.inner.HYPER_FLAGS >> 1 & 1) != 0) &&
+            (GLOBALS.inner.HYPER_TYPE == 3)) &&
+            ((GLOBALS.inner.HYPER_FLAGS & 4U) == 0)) {
+            shooter_set = GLOBALS.inner.CURRENT_POWER /
+                          GLOBALS.inner.POWER_PER_LEVEL + 15;
         }
     } else {
-        shooter_set = GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL + 10;
+        shooter_set = GLOBALS.inner.CURRENT_POWER /
+                      GLOBALS.inner.POWER_PER_LEVEL + 10;
     }
 
     if (shooter_set >= sht_file->shooters.size())
@@ -664,16 +676,21 @@ void Player::shoot(int short_tmr, int long_tmr)
     // shoot all shooters in set
     for (size_t i = 0; i < shooters.size(); i++) {
         // check time
-        if ((shooters[i].long_fire_rate == 0) ? (short_tmr % shooters[i].fire_rate) == shooters[i].start_delay : (long_tmr % shooters[i].long_fire_rate) == shooters[i].long_start_delay) {
+        if ((shooters[i].long_fire_rate == 0) ?
+            (short_tmr % shooters[i].fire_rate) == shooters[i].start_delay :
+            (long_tmr % shooters[i].long_fire_rate) ==
+              shooters[i].long_start_delay) {
             // idk
             if (shooters[i].__unknown_21__2_is_unique_bullet == 2)
-                if (inner.unique_bullets[(shooters[i].option < 0x10) ? shooters[i].option & 0xf : shooters[i].option >> 4])
+                if (inner.unique_bullets[(shooters[i].option < 0x10) ?
+                    shooters[i].option & 0xf : shooters[i].option >> 4])
                     continue;
 
             // spawn using first free bullet
             for (int j = 0; j < 0x100; j++) {
                 if (inner.bullets[j].active == 0) {
-                    inner.bullets[j].init((shooter_set << 8 | i), short_tmr, inner);
+                    inner.bullets[j].init((shooter_set << 8 | i),
+                                           short_tmr, inner);
                     break;
                 }
             }
@@ -681,8 +698,7 @@ void Player::shoot(int short_tmr, int long_tmr)
     }
 }
 
-void PlayerBullet_t::init(int shter, int tmer [[maybe_unused]], PlayerInner_t& inner)
-{
+void PlayerBullet_t::init(int shter, int tmer [[maybe_unused]], PlayerInner_t& inner) {
     // get shooter that shooted this bullet
     auto shooter = PLAYER_PTR->sht_file->shooters[shter >> 8][shter & 0xff];
     this->shter = shter;
@@ -1045,32 +1061,26 @@ void Player::try_kill()
     vm.update();
 }
 
-void Player::die()
-{
-    // death effect
-    // EffectManager::addEffect(0x1c);
-    // <==>
-    // if (int effid = EffectManager::get_next_index(); effid != -1) EFFECT_MANAGER_PTR->anm_ids[effid] = EFFECT_MANAGER_PTR->effect_anm->create_4112b0(nullptr,0x1c,inner.pos,0,-1,nullptr);
-    AnmManager::getVM(AnmManager::SpawnVM(8, 0x1c))->pos = inner.pos;
+void Player::die() {
+    // add it to effectmanager
+    AnmManager::getLoaded(8)->createEffectPos(0x1c, 0, inner.pos);
 
     // update life & bombs
-    // GLOBALS.inner.CURRENT_LIVES += -1;
-    // if ((int)GLOBALS.inner.field30_0x78 < 0) {
-    //    GLOBALS.inner.CURRENT_BOMBS = 0;
-    //}
-    // else {
-    //    GLOBALS.inner.CURRENT_BOMBS = GLOBALS.inner.field30_0x78;
-    //    if (8 < (int)GLOBALS.inner.field30_0x78) {
-    //    GLOBALS.inner.CURRENT_BOMBS = 8;
-    //    }
-    //}
-    // if (GUI_PTR != NULL) {
-    //    FUN_0042fd50(GUI_PTR,GLOBALS.inner.CURRENT_BOMBS,GLOBALS.inner.field29_0x74);
-    //}
-    // if (-1 < GLOBALS.inner.CURRENT_LIVES) {
-    //    FUN_0042fc60(GUI_PTR,GLOBALS.inner.CURRENT_LIVES,GLOBALS.inner.field26_0x68);
-    //}
-    // FUN_0042fd50(GUI_PTR,GLOBALS.inner.CURRENT_BOMBS,GLOBALS.inner.field29_0x74);
+    GLOBALS.inner.CURRENT_LIVES--;
+    if (GLOBALS.inner.bombpiece_related < 0) {
+        GLOBALS.inner.CURRENT_BOMBS = 0;
+    } else {
+        GLOBALS.inner.CURRENT_BOMBS = GLOBALS.inner.bombpiece_related;
+        if (8 < GLOBALS.inner.bombpiece_related) {
+            GLOBALS.inner.CURRENT_BOMBS = 8;
+        }
+    }
+    if (GLOBALS.inner.CURRENT_LIVES >= 0) {
+        GUI_PTR->set_life_meter(GLOBALS.inner.CURRENT_LIVES,
+                                GLOBALS.inner.CURRENT_LIFE_PIECES);
+    }
+    GUI_PTR->set_bomb_meter(GLOBALS.inner.CURRENT_BOMBS,
+                            GLOBALS.inner.CURRENT_BOMB_PIECES);
 
     // update inner
     inner.state = 2;
@@ -1090,26 +1100,26 @@ void Player::die()
     }
 
     // update spell capture
-    // if ((SPELLCARD_PTR->flags & 1) != 0) {
-    //    if ((SPELLCARD_PTR->_timer_20).current < 0x3c) {
-    //        if (BOMB_PTR->active == 1)
-    //            SPELLCARD_PTR->flags |= 0x20;
-    //    }
-    //    else {
-    //        SPELLCARD_PTR->bonus = 0;
-    //        SPELLCARD_PTR->flags &= 0xffffffdd;
-    //    }
-    //}
+    if ((SPELLCARD_PTR->flags & 1) != 0) {
+        if (SPELLCARD_PTR->__timer_20 < 0x3c) {
+            // if (BOMB_PTR->active == 1)
+            //     SPELLCARD_PTR->flags |= 0x20;
+        } else {
+            SPELLCARD_PTR->bonus = 0;
+            SPELLCARD_PTR->flags &= 0xffffffdd;
+        }
+    }
 
     // update globals
     ENEMY_MANAGER_PTR->miss_count++;
     ENEMY_MANAGER_PTR->can_still_capture_spell = 0;
-    // if ((GLOBALS.inner.HYPER_FLAGS & 2) && !(GLOBALS.inner.HYPER_FLAGS & 4)) GLOBALS.inner.HYPER_TIME = 1;
-    // if (GLOBALS.inner.MISS_COUNT_GLOBAL < 999999) GLOBALS.inner.MISS_COUNT_GLOBAL++;
+    if ((GLOBALS.inner.HYPER_FLAGS & 2) &&
+        !(GLOBALS.inner.HYPER_FLAGS & 4)) GLOBALS.inner.HYPER_TIME = 1;
+    if (GLOBALS.inner.MISS_COUNT_GLOBAL < 999999)
+        GLOBALS.inner.MISS_COUNT_GLOBAL++;
 }
 
-int Player::_on_draw()
-{
+int Player::_on_draw() {
     if (inner.state != 2) {
         vm.entity_pos = inner.pos;
         vm.bitflags.originMode = 0b01;

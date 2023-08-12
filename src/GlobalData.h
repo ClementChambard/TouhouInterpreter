@@ -34,22 +34,18 @@ struct GlobalsInner_t {
     int32_t lifepiece_related = 0;
     int32_t CURRENT_BOMBS = 2;
     int32_t CURRENT_BOMB_PIECES = 0;
-    int32_t bombpiece_related = 0;
+    int32_t bombpiece_related = 2;
     // undefined4
     // undefined4
     int32_t HYPER_FILL = 0;
     int32_t TOKENS[5] = {};
-    // undefined4
-    // undefined4
-    // undefined4
-    // undefined4
-    // undefined4
-    // undefined4
+    int32_t HYPER_FILL2 = 0;
+    int32_t TOKENS2[5] = {};
     int32_t __unknown_timer = 0;
     int32_t HYPER_TIME = 0;
-    // undefined4
-    // undefined4
-    // undefined4
+    int32_t MAX_HYPER_TIME = 0;
+    int32_t HYPER_TYPE = 0;
+    int32_t HYPER_REFILL = 0;
     int32_t HYPER_FLAGS = 0;
     // undefined4
     // undefined4
@@ -76,11 +72,14 @@ public:
         int32_t __field_4 = 0;
         int32_t FLAGS = 0;
         int32_t __field_c = 0;
-        int32_t __field_10 = 0;
+        int32_t CREDIT = 0;
         int32_t DEMOPLAY_TIMER = 0;
         int32_t __field_18 = 0;
         GlobalsInner_t inner{};
 };
+
+// TEMPORARY
+extern bool GAME_PAUSED;
 
 extern Globals GLOBALS;
 extern float GAME_SPEED;
