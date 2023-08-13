@@ -1,4 +1,5 @@
 #include "./AnmOpener/AnmManager.h"
+#include "./Supervisor.h"
 #include "./Enemy.h"
 #include "./EclContext.h"
 #include "./EclFileManager.h"
@@ -20,6 +21,7 @@ Enemy::Enemy() {
     context.primaryContext.difficultyMask = 1 << GLOBALS.inner.DIFFICULTY;
     for (int i = 0; i < 16; i++)
         enemy.anmIds[i] = 0;
+    ENEMY_MANAGER_PTR->enemy_count_real++;
 }
 
 Enemy::~Enemy() {
@@ -30,6 +32,7 @@ Enemy::~Enemy() {
         AnmManager::deleteVM(enemy.anmIds[i].val);
     /* Clear async list */
     clear_async_contexts();
+    ENEMY_MANAGER_PTR->enemy_count_real--;
 }
 
 void Enemy::Init(std::string const& sub) {
@@ -148,7 +151,7 @@ int EnemyData::step_interpolators() {
     }
     abs_pos.update_position();
     if (flags & 0x4000000) {
-        // rel_pos.pos += SUPERVISOR.cameras[0].__vec3_104;
+        rel_pos.pos += SUPERVISOR.cameras[0].__vec3_104;
     }
     rel_pos.update_position();
 
@@ -182,19 +185,7 @@ int EnemyData::step_interpolators() {
                 AnmManager::deleteVM(anmIds[0].val);
                 anmIds[0].val = 0;
             }
-            vm0 = AnmManager::getVM(
-                AnmManager::SpawnVM(ENEMY_MANAGER_PTR->loadedAnms[anm0anmID]->getSlot(), anm0scr + scr));
-            vm0->bitflags.randomMode = 1;
-            if (anmLayers > -8) {
-                vm0->layer = anmLayers + 7;
-                if (anmLayers < 17)
-                    vm0->bitflags.originMode = 0b01;
-            }
-            vm0->entity_pos = pos;
-            vm0->rotation.z = 0.0;
-            vm0->update();
-            // vm0->mode_of_create_child = 8;
-            anmIds[0].val = vm0->id.val;
+            anmIds[0] = ENEMY_MANAGER_PTR->loadedAnms[anm0anmID]->spawnVMExt(anm0scr + scr, 0, pos, 8, anmLayers + 7);
             anmMainSubscr = dir;
         }
     }
@@ -234,7 +225,7 @@ int Enemy::die() {
                                         enemy.final_pos.pos.y,
                                         enemy.lastDmgPos.x,
                                         enemy.lastDmgPos.y);
-    // ENEMY_MANAGER_PTR->field78_0x190 = rot_z;
+    // ENEMY_MANAGER_PTR->field_0x190 = rot_z;
     if (enemy.deathScr >= 0) {
         AnmManager::getLoaded(enemy.deathAnm)
             ->createEffectPos(enemy.deathScr, rot_z, enemy.final_pos.pos, 3);
@@ -299,21 +290,21 @@ int EnemyData::step_game_logic() {
     // bomb shield logic
     if (!(flags & 0x10000000)) {
         if (/*(BOMB_PTR->active != 1) && */ (flags & 0x20000000)) {
-            // anm_main = bombshield_off_anm_main;
-            // anmIds[0] = sub_476910_creates_anm(bombshield_off_anm_main);
+            anmSetMain = bombShieldOffAnmMain;
+            AnmManager::recreate_vm(anmIds[0], bombShieldOffAnmMain);
             flags &= 0xdffffffe;
         }
     } else {
         // if (BOMB_PTR->active == 1) // below
         if (false) {
             if (!((flags >> 0x1d) & 1)) {
-                // anm_main = bombshield_on_anm_main;
-                // anmIds[0] = sub_476910_creates_anm(bombshield_on_anm_main);
+                anmSetMain = bombShieldOnAnmMain;
+                AnmManager::recreate_vm(anmIds[0], bombShieldOnAnmMain);
                 flags |= 0x20000001;
             }
         } else if (((flags >> 0x1d) & 1)) {
-            // anm_main = bombshield_off_anm_main;
-            // anmIds[0] = sub_476910_creates_anm(bombshield_off_anm_main);
+            anmSetMain = bombShieldOffAnmMain;
+            AnmManager::recreate_vm(anmIds[0], bombShieldOffAnmMain);
             flags &= 0xdffffffe;
         }
     }
@@ -400,15 +391,15 @@ int EnemyData::step_game_logic() {
         // if (GUI_PTR->msg) totalDamage = 0;
 
         if (totalDamage > 0) {
-            // if (!ret) ENEMY_MANAGER_PTR->field27_0xb0 += totalDamage;
-            // else {
-            //     if (totalDamage < life.current)
-            //         ENEMY_MANAGER_PTR->field26_0xac += totalDamage;
-            //     else
-            //         ENEMY_MANAGER_PTR->field26_0xac += ((int)(((totalDamage -
-            //         life.current) >> 0x1f & 3U) + (totalDamage - life.current
-            //         )) >> 2) + totalDamage;
-            // }
+            if (!ret) ENEMY_MANAGER_PTR->field_0xb0 += totalDamage;
+            else {
+                if (totalDamage < life.current)
+                    ENEMY_MANAGER_PTR->field_0xac += totalDamage;
+                else
+                    ENEMY_MANAGER_PTR->field_0xac += ((int)(((totalDamage -
+                    life.current) >> 0x1f & 3U) + (totalDamage - life.current
+                    )) >> 2) + totalDamage;
+            }
         }
 
         // if ((BOMB_PTR->active == 1) && bombDmgMul < 1.0) {
@@ -478,7 +469,7 @@ int EnemyData::step_game_logic() {
 
     if (!(flags & 0x22) && noHbFrame <= 0 && !(flags & 0x4000000)) {
         if (!hitbox_func) {
-            // int a = 0;
+            int a = 0;
             if (!(flags & 0x1000)) {
                 // a = Bullet::try_kill_player(final_pos.pos,
                 //      0, hitbox_size.x * 0.5);
@@ -497,9 +488,9 @@ int EnemyData::step_game_logic() {
                 // a = enemy_collide_player_rectangle(pvVar10, &zStack_14,
                 //  rotation, 0, hitbox_size.x, hitbox_size.y);
             }
-            // if (((flags & 0x200) && a == 2) &&
-            //     timeInEcl % 6 == 0)
-            //     Player::do_graze(&(PLAYER_PTR->inner).pos);
+            if (((flags & 0x200) && a == 2) &&
+                timeInEcl % 6 == 0)
+                PLAYER_PTR->do_graze(PLAYER_PTR->inner.pos);
         } else {
             hitbox_func(this);
         }

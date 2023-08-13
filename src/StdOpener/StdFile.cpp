@@ -220,13 +220,14 @@ void StdFile::spawnFace(StdFile::face const& f) {
         float x = f.x + q.x;
         float y = f.y + q.y;
         float z = f.z + q.z;
-        bgVms.push_back(AnmManager::SpawnVMExt(anm_file->getSlot(),
-                                               q.script_index));
-        bgVms.back()->update();
-        bgVms.back()->setEntityPos(x, y, z);
-        bgVms.back()->setLayer(e.layer);
-        auto s = bgVms.back()->getSprite();
-        bgVms.back()->setScale2(q.width / s.w, q.height / s.h);
+        auto vm = new AnmVM();
+        anm_file->copyFromLoaded(vm, q.script_index);
+        vm->update();
+        vm->setEntityPos(x, y, z);
+        vm->setLayer(e.layer);
+        auto s = vm->getSprite();
+        vm->setScale2(q.width / s.w, q.height / s.h);
+        bgVms.push_back(vm);
     }
 }
 
@@ -329,7 +330,8 @@ void StdFile::execInstr(StdFile::instruction const& i) {
             bgVms[anmSlots[S(0)]] = nullptr;
             anmSlots[S(0)] = -1;
         }
-        AnmVM* vm = AnmManager::SpawnVMExt(anm_file->getSlot(), S(1));
+        AnmVM* vm = new AnmVM();
+        anm_file->copyFromLoaded(vm, S(1));
         vm->update();
         vm->setLayer(S(2));
         std::cout << "bgVms size : " << bgVms.size() <<

@@ -107,7 +107,6 @@ public:
     special_vertex_buffer_size = size;
     special_vertex_buffer_data = new uint8_t[size];
   }
-  AnmID add_child(int i, int mode);
   void transform_coordinate(glm::vec3 &pos);
   void transform_coordinate_o(glm::vec3 &p);
   glm::vec3 get_own_transformed_pos();

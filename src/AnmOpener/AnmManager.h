@@ -33,8 +33,7 @@ public:
     static void Init();
     static void Cleanup();
 
-    static uint32_t SpawnVM(size_t slot, size_t script, bool ui = false, bool front = false);
-    static AnmVM* SpawnVMExt(size_t slot, size_t script);
+    static void recreate_vm(AnmID& id, int new_script);
 
     static AnmVM* getVM(uint32_t id);
     static AnmVM* getVM(AnmID id) { return getVM(id.val); }

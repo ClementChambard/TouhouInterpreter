@@ -218,7 +218,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.hitSnd = s;
 
     _ins(554, logo) _args
-    AnmManager::getVM(AnmManager::SpawnVM(6, 0));
+    AnmManager::getLoaded(6)->createEffect(0);
 
     _ins(555, enmAlive) _rS(var) _S(id) _args
     var = EnemyManager::GetInstance()->EnmFind(id) != nullptr;

@@ -293,8 +293,9 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(337, anmBM_16_anmPlayPos)
     if (TOUHOU_VERSION < 16) { _S(anm) _S(scr) _f(x) _f(y) _f(z) _args
-        // TODO!!!!!
-        AnmManager::getVM(AnmManager::SpawnVM(ANM_SLOT(anm), scr))->setPos2(x, y, z);
+        AnmVM* vm;
+        ENEMY_MANAGER_PTR->loadedAnms[anm]->createEffect(scr, -1, &vm);
+        vm->setPos2(x, y, z);
     } else { _S(slot) _S(bm) _args
         auto vm = AnmManager::getVM(enemy.anmIds[slot].val);
         if (vm)

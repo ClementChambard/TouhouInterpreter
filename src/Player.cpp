@@ -13,6 +13,7 @@
 #include <Engine.hpp>
 #include <NSEngine.h>
 #include "./GoastManager.h"
+#include "AsciiPopupManager.hpp"
 
 Player* PLAYER_PTR = nullptr;
 
@@ -150,12 +151,7 @@ void FUN_00449630(PlayerInner_t* inner) {
         for (; i < pow; i++) {
             if (auto vm = AnmManager::getVM(inner->options[i].anmId1);
                 vm && !vm->bitflags.f534_27_31) {
-                vm->bitflags.activeFlags = 0b01;
-                // auto child = vm->childrens->next;
-                // while (child) {
-                // if (child->value) child->value->destroy();
-                // child = child->next;
-                //}
+                AnmManager::deleteVM(inner->options[i].anmId1);
             }
             inner->options[i].id = i;
             inner->options[i].scaled_prefered_pos_rel_to_player[0].x =
@@ -249,9 +245,9 @@ int Player::_on_tick() {
             LASER_MANAGER_PTR->cancel_in_radius(death_pos, 0, 1, ((float)inner.time_in_state * 512.0) / 30.0 + 64.0);
             LASER_MANAGER_PTR->cancel_in_radius(death_pos, 0, 0, ((float)inner.time_in_state * 512.0) / 120.0 + 16.0);
         } else {
-            if (false) { // if ((((uint8_t)SPELLCARD_PTR->flags & 1) != 0) && (SPELLCARD_PTR->field25_0x74 == 100)) {
-                // BulletManager::GetInstance()->cancel_radius(&inner.pos,0,128.0);
-            }
+            // if ((SPELLCARD_PTR->flags & 1) && (SPELLCARD_PTR->field_0x74 == 100)) {
+            //     BulletManager::GetInstance()->cancel_radius(&inner.pos,0,128.0);
+            // }
             // BulletManager::GetInstance()->cancel_radius_as_bomb(inner.pos,0,640.0);
             LASER_MANAGER_PTR->cancel_in_radius(inner.pos, 0, 0, 640.0);
         }
@@ -259,8 +255,9 @@ int Player::_on_tick() {
         if (inner.time_in_state >= 60) {
             inner.state = 1;
             inner.time_in_state = 0;
-        } else
+        } else {
             break;
+        }
         [[fallthrough]];
     case 1: // Normal
         if (false) { // if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ((byte)INPUT_STRUCT.rising_edge & 2)) {
@@ -301,7 +298,7 @@ int Player::_on_tick() {
             FUN_00449630(&inner);
         }
         if (inner.time_in_state > 30) {
-            if (false) { // if (GLOBALS.inner.CURRENT_LIVES < 0 && inner.time_in_state == 31) {
+            if (GLOBALS.inner.CURRENT_LIVES < 0 && inner.time_in_state == 31) {
                 // if (REPLAY_MANAGER_PTR->field3_0xc != 1) FUN_004447e0();
                 inner.time_in_state++;
             } else {
@@ -346,6 +343,7 @@ int Player::_on_tick() {
     }
 
     // speed boost anim ?
+    static const int SOME_SCRIPT_ID[] = {17, 19, 21, 17, 17};
     if (inner.iframes <= 0) {
         vm.bitflags.colmode = 0b00;
         if (!(flags & 0x20)) {
@@ -354,20 +352,23 @@ int Player::_on_tick() {
                     vm.color_2 = { 255, 255, 0, 255 };
                     vm.bitflags.colmode = 0b01;
                 }
-                // playerAnm->create_4112b0(&got, {17, 19, 21}[GLOBALS.inner.CHARACTER],inner.pos,0,-1,0);
-                // playerAnm->set_sprite(AnmManager::get_vm_with_id(got),vm.sprite_id);
+                AnmVM* vm;
+                playerAnm->createEffectPos(SOME_SCRIPT_ID[GLOBALS.inner.CHARACTER], 0, inner.pos, -1, &vm);
+                playerAnm->setSprite(vm, this->vm.sprite_id);
             }
         } else {
             if (abs(inner.time_in_state) % 8 < 4) {
                 vm.color_2 = { 255, 0, 0, 255 };
                 vm.bitflags.colmode = 0b01;
             }
-            // playerAnm->create_4112b0(&got,{17, 19, 21}[GLOBALS.inner.CHARACTER],inner.pos,0,-1,0);
-            // playerAnm->set_sprite(AnmManager::get_vm_with_id(got),vm.sprite_id);
-            // AnmManager::get_vm_with_id(got).color1 = {255,0,0,255};
+            AnmVM* vm;
+            playerAnm->createEffectPos(SOME_SCRIPT_ID[GLOBALS.inner.CHARACTER], 0, inner.pos, -1, &vm);
+            playerAnm->setSprite(vm, this->vm.sprite_id);
+            vm->color_1 = {255, 0, 0, 255};
         }
-    } else
+    } else {
         inner.iframes--;
+    }
 
     // reset some values
     speed_multiplier = 1.0;
@@ -413,7 +414,10 @@ int Player::_on_tick() {
     inner.time_in_stage++;
     inner.__time_in_stage__copy_3c++;
 
-    if (true) { // if (!GUI_PTR->msg && ENEMY_MANAGER_PTR && ENEMY_MANAGER_PTR->enemy_count_real && !(GAME_THREAD_PTR->flags & 0x4000U) && inner.time_in_stage >= 20 && (~(flags >> 2) & 1) != 0 && !(flags & 0x10U)) {
+    if (/*!GUI_PTR->msg && */
+        ENEMY_MANAGER_PTR && ENEMY_MANAGER_PTR->enemy_count_real &&
+        /*!(GAME_THREAD_PTR->flags & 0x4000U) && */
+        inner.time_in_stage >= 20 && (~(flags >> 2) & 1) != 0 && !(flags & 0x10U)) {
         check_shoot();
     } else {
         inner.shoot_key_short_timer = -1;
@@ -1032,25 +1036,16 @@ void Player::try_kill()
 
     if ((flags & 8) == 0) { } // SoundManager::play_sound_centered(2);
 
-    // EFFECT_MANAGER_PTR->effect_anm->__field_134__some_kind_of_counter++;
-    // vm = AnmManager::allocate_vm();
-    // EFFECT_MANAGER_PTR->effect_anm->anm_init_copy_vm_from_loaded(vm,0x1d);
-    // vm->bitflags.randomMode = 0b1;
-    // vm->entity_pos = inner.pos;
-    // vm->rotation.z = 0.0;
-    // vm->update();
-    // vm->mode_of_create_child = 0;
-    // AnmManager::insert_in_world_list_back(&local_8,vm);
+    AnmManager::getLoaded(8)->createEffectPos(0x1d, 0, inner.pos);
 
-    // if ((SPELLCARD_PTR->flags & 1) != 0) {
-    //     if ((SPELLCARD_PTR->_timer_20).current < 0x3c) {
-    //         if (BOMB_PTR->active) SPELLCARD_PTR->flags |= 0x20;
-    //     }
-    //     else {
-    //         SPELLCARD_PTR->bonus = 0;
-    //         SPELLCARD_PTR->flags &= 0xffffffdd;
-    //     }
-    // }
+    if (SPELLCARD_PTR->flags & 1) {
+        if (SPELLCARD_PTR->__timer_20 < 0x3c) {
+            // if (BOMB_PTR->active) SPELLCARD_PTR->flags |= 0x20;
+        } else {
+            SPELLCARD_PTR->bonus = 0;
+            SPELLCARD_PTR->flags &= 0xffffffdd;
+        }
+    }
 
     inner.time_in_state = 0;
     inner.state = 4;
@@ -1225,9 +1220,10 @@ int (*hitFuncs[])(PlayerDamageSource_t*, glm::vec3 const&, float, float, float) 
         return damage;
     },
     [](PlayerDamageSource_t*, glm::vec3 const& param_2, float, float, float) {
-        auto vm = AnmManager::getVM(AnmManager::SpawnVM(9, 20));
-        vm->entity_pos = param_2;
-        // set script vars 33 & 34 to some bomb related thing
+        AnmVM* vm;
+        PLAYER_PTR->playerAnm->createEffectPos(20, 0, param_2, -1, &vm);
+        // vm->__script_vars_33_34_35.x = cos(BOMB_PTR->field_0x2c) * 6.5;
+        // vm->__script_vars_33_34_35.y = sin(BOMB_PTR->field_0x2c) * 6.5;
         return -1;
     },
     [](PlayerDamageSource_t*, glm::vec3 const&, float, float, float) { if (GOAST_MANAGER_PTR) GOAST_MANAGER_PTR->field_0x50 = 20; return -1; }
@@ -1317,4 +1313,26 @@ int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb, float hb_size, u
             GLOBALS.inner.CURRENT_SCORE = 999999999;
     }
     return local_4c;
+}
+
+
+void Player::do_graze(glm::vec3 const& pos) {
+    GLOBALS.inner.GRAZE += 1;
+    GLOBALS.inner.GRAZE_IN_CHAPTER__POSSIBLY_BROKEN += 1;
+    if (99999999 < GLOBALS.inner.GRAZE) {
+        GLOBALS.inner.GRAZE = 99999999;
+    }
+    if (99999999 < GLOBALS.inner.GRAZE_IN_CHAPTER__POSSIBLY_BROKEN) {
+        GLOBALS.inner.GRAZE_IN_CHAPTER__POSSIBLY_BROKEN = 99999999;
+    }
+    glm::vec3 graze_pos;
+    graze_pos.x = (pos.x + PLAYER_PTR->inner.pos.x) / 2.f;
+    graze_pos.y = (pos.y + PLAYER_PTR->inner.pos.y) / 2.f;
+    graze_pos.z = 0.f;
+    AnmManager::getLoaded(8)->createEffectPos(24, 0, graze_pos);
+    POPUP_MANAGER_PTR->generate_small_score_popup(graze_pos,
+        GLOBALS.inner.GRAZE_IN_CHAPTER__POSSIBLY_BROKEN,
+        NSEngine::Color{0xc0,0xc0,0xff,0xff});
+    // SoundManager::play_sound_at_position(0x2a);
+    return;
 }

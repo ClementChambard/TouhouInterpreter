@@ -242,39 +242,13 @@ AnmID AnmManager::insert_in_ui_list_front(AnmVM *vm) {
   return vm->id;
 }
 
-AnmVM *AnmManager::SpawnVMExt(size_t slot, size_t script) {
-  AnmVM *activeVM = new AnmVM(loadedFiles[slot].getPreloaded(script));
-  activeVM->fast_id = AnmID::fastIdMask;
-  activeVM->script_id = script;
-  return activeVM;
-}
-
-uint32_t AnmManager::SpawnVM(size_t slot, size_t script, bool ui, bool front) {
-  if (slot >= loadedFiles.size())
-    return 0;
-  if (loadedFiles[slot].name == "notLoaded")
-    return -1;
-
-  AnmVM *activeVM = allocate_vm();
-  loadedFiles[slot].copyFromLoaded(activeVM, script);
-  activeVM->entity_pos = {};
-  // activeVM->run();
-  activeVM->update();
-
-  if (ui) {
-    if (front)
-      insert_in_ui_list_front(activeVM);
-    else
-      insert_in_ui_list_back(activeVM);
-  } else {
-    if (front)
-      insert_in_world_list_front(activeVM);
-    else
-      insert_in_world_list_back(activeVM);
+void AnmManager::recreate_vm(AnmID& id, int new_script) {
+  auto vm = getVM(id);
+  if (vm) {
+    vm->bitflags.visible = false;
+    vm->instr_offset = -1;
+    id = loadedFiles[vm->anm_loaded_index].createEffect(new_script);
   }
-  // FIXME: this is supposed to be correct from the beginning
-  activeVM->script_id = script;
-  return activeVM->id.val;
 }
 
 void AnmManager::killAll() {
@@ -2058,8 +2032,7 @@ AnmID AnmManager::createVM508(int i, AnmVM *root) {
   if (-1 < ANM_508_TABLE[i].script_index) {
     auto vm = root;
     if (!vm) {
-      vm = AnmManager::getVM(AnmManager::SpawnVM(
-          ANM_508_TABLE[i].anm_loaded_index, ANM_508_TABLE[i].script_index));
+      loadedFiles[ANM_508_TABLE[i].anm_loaded_index].createEffect(ANM_508_TABLE[i].script_index, -1, &vm);
     }
     if (ANM_508_TABLE[i].on_create)
       ANM_508_TABLE[i].on_create(vm);

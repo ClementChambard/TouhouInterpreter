@@ -48,6 +48,8 @@ void AnmFile::Open(std::string const& filename, uint32_t slot)
     AnmOpener::anm_archive_t* archive = AnmOpener::anm_read_file(filename);
     uint32_t scrID = 0;
     for (auto entry : archive->entries) {
+        // should check for @ and @R textures
+        // TODO: think of a way to link framebuffer & textures
         AnmOpener::image_t img = AnmOpener::anm_get_image(entry);
         uint32_t tex = textureFromImage(img);
 
@@ -157,9 +159,7 @@ void AnmFile::copyFromLoaded(AnmVM* vm, int id) {
     vm->list_of_children = {vm, nullptr, nullptr};
     memcpy(reinterpret_cast<char*>(vm),
            reinterpret_cast<char*>(&this->preloaded[id]), offsetof(AnmVM, id));
-    // reset();
     vm->time_in_script = 0;
-    // reset();
     vm->__timer_1c = 0;
 }
 

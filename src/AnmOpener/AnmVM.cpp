@@ -64,11 +64,19 @@ void AnmVM::interruptRecRun(int i) {
 }
 
 AnmVM::AnmVM(uint32_t script_id, uint32_t anim_slot) {
-  this->anm_loaded_index = anim_slot;
+  reset();
+  anm_loaded_index = anim_slot;
+  script_id_2 = script_id;
   this->script_id = script_id;
+  instr_offset = 0;
+  bitflags.flip_x = false;
+  bitflags.flip_y = false;
+  bitflags.visible = false;
+  bitflags.f534_14_15 = 0b10;
 
   // When creating via instruction vector, update frame -1 of the VM.
   time_in_script = -1;
+  __timer_1c = -1;
   update();
 }
 
@@ -1090,27 +1098,6 @@ void AnmVM::update_variables_growth() {
     else if (uv_scroll_pos.y > 2.0)
       uv_scroll_pos.y -= 2.0;
   }
-}
-
-AnmID AnmVM::add_child(int i, int mode) {
-  // loaded->__field_134__some_kind_of_counter++;
-  auto new_vm = AnmManager::getVM(
-      AnmManager::SpawnVM(anm_loaded_index, i, mode & 4, mode & 2));
-  new_vm->bitflags.randomMode = 0b1;
-  new_vm->bitflags.colorizeChildren = bitflags.colorizeChildren;
-  new_vm->parent_vm = this;
-  new_vm->__root_vm__or_maybe_not =
-      __root_vm__or_maybe_not ? __root_vm__or_maybe_not : this;
-  if (!new_vm->layer)
-    new_vm->layer = layer;
-  new_vm->update();
-  new_vm->__node_as_child.previous = &list_of_children;
-  new_vm->__node_as_child.next = list_of_children.next;
-  if (list_of_children.next)
-    list_of_children.next->previous = &new_vm->__node_as_child;
-  list_of_children.next = &new_vm->__node_as_child;
-  new_vm->mode_of_create_child = mode;
-  return new_vm->id;
 }
 
 AnmVM *AnmVM::search_children(int a, int b) {

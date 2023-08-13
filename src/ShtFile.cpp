@@ -419,10 +419,10 @@ int FUN_00449c80(glm::vec3 const& pos, int param_3, uint32_t param_4, float para
 int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
     nullptr,
     [](PlayerBullet_t* param_1, glm::vec3 const&, float, float, float) {
-        auto vm = AnmManager::getVM(AnmManager::SpawnVM(8, 0x95));
-        vm->entity_pos = param_1->pos.pos;
-        vm->rotation.z = (param_1->pos).angle + Random::Floatm11() * 0.3490658;
-        math::angle_normalize(vm->rotation.z);
+        float ang = (param_1->pos).angle + Random::Floatm11() * 0.3490658;
+        math::angle_normalize(ang);
+        AnmVM* vm;
+        AnmManager::getLoaded(8)->createEffectPos(0x95, ang, param_1->pos.pos, -1, &vm);
         vm->color_1.r = (rand() & 0x7f) + 0x7f;
         vm->color_1.g = (rand() & 0x3f) + 0x40;
         vm->color_1.b = (rand() & 0x3f) + 0x40;
@@ -472,21 +472,11 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
             PLAYER_PTR->inner.damage_sources[param_1->damageSourceId - 1].hitbox.x = xx + 16.0;
         }
         if (!(param_1->__field_c & 1)) {
-            // PLAYER_PTR->playerAnm->__field_134__some_kind_of_counter++;
-            // auto vm = AnmManager::allocate_vm();
-            // PLAYER_PTR->playerAnm->anm_init_copy_vm_from_loaded(vm, 8);
-            auto vm = AnmManager::getVM(AnmManager::SpawnVM(9, 8));
-            vm->bitflags.randomMode = true;
-            vm->bitflags.rotated = true;
-            vm->entity_pos = glm::vec3 { math::lengthdir_vec(param_1->hitbox.x, param_1->pos.angle), 0.f } + param_1->pos.pos;
+            AnmVM* vm;
+            PLAYER_PTR->playerAnm->createEffectPos(8, 0, glm::vec3 { math::lengthdir_vec(param_1->hitbox.x, param_1->pos.angle), 0.f } + param_1->pos.pos, -1, &vm);
             vm->rotation.z = param_1->pos.angle;
-            vm->update();
-            vm->mode_of_create_child = 0;
             vm->pos_i.start({ 0, 0, 0 }, { math::lengthdir_vec(64.f, param_1->pos.angle), 0.f }, 20, 4);
-            // AnmManager::insert_in_world_list_back(id,vm);
-            // anm_id.value = id;
-            // iVar6 = EffectManager::get_next_index(EFFECT_MANAGER_PTR);
-            // if (iVar6 != -1) EFFECT_MANAGER_PTR->anm_ids[iVar6].value = anm_id.value;
+            // put in effectmanager
         }
         if (abs(param_1->__field_c) % 4 == 0) {
             if (GLOBALS.inner.HYPER_FLAGS & 2)

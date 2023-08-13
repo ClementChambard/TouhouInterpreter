@@ -112,6 +112,8 @@ public:
 
     void set_pos(glm::vec3 const& p);
 
+    void do_graze(glm::vec3 const& pos);
+
 private:
     int _on_tick();
     int _on_draw();

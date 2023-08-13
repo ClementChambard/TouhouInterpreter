@@ -517,37 +517,18 @@ int LaserLine::cancel(int, int as_bomb)
         float len = 8.0;
         do {
             if (bullet_type < 18 || bullet_type == 34 || bullet_type == 38) {
-                // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
-                // vm = AnmManager::allocate_vm();
-                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,
-                // vm,inner.bullet_color * 2 + 0xd1);
-                AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7,
-                                                inner.bullet_color * 2 + 0xd1));
-                vm->bitflags.randomMode = true;
-                vm->entity_pos = p;
-                vm->update();
+                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.bullet_color * 2 + 0xd1, 0, p);
             } else {
                 if (bullet_type < 32) {
-                    // Same
-                    AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7,
-                                               inner.bullet_color * 2 + 0x101));
-                    vm->bitflags.randomMode = true;
-                    vm->entity_pos = p;
-                    vm->update();
+                    BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.bullet_color * 2 + 0x101, 0, p);
                 }
                 if (bullet_type < 0x22) {
-                    // Same
-                    AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7,
-                                               inner.bullet_color * 2 + 0x119));
-                    vm->bitflags.randomMode = true;
-                    vm->entity_pos = p;
-                    vm->update();
+                    BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.bullet_color * 2 + 0x119, 0, p);
                 }
             }
             if (((as_bomb && (-192.0 < p.x + 32.0)) && ((p.x - 32.0 < 192.0 &&
                 ((0.0 < p.y + 32.0 && (p.y - 32.0 < 448.0))))))) {
-                // BULLET_MANAGER_PTR->__related_to_cancels =
-                // BULLET_MANAGER_PTR->__related_to_cancels + 1;
+                BULLET_MANAGER_PTR->__unknown_cancel_counter++;
                 ITEM_MANAGER_PTR->spawn_item(9, p, Random::Floatm11() *
                                              0.1745329 - 1.570796, 2.2, 0, -1);
             }

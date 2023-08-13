@@ -1,5 +1,6 @@
 #include "LaserInfinite.h"
 #include "../ItemManager.h"
+#include "../BulletManager.h"
 #include "../Player.h"
 #include "LaserManager.h"
 #include <math/Random.h>
@@ -210,35 +211,14 @@ int LaserInfinite::cancel(int, int as_bomb)
     for (; (i + 1) * 16.f < laser_inf_current_length; i++) {
         if (-192.0 < p.x + 16.0 && p.x - 16.0 < 192.0 && 0.0 < p.y + 16.0 && p.y - 16.0 < 448.0) {
             if (bullet_type < 18 || bullet_type == 34 || bullet_type == 38) {
-                // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
-                // vm = AnmManager::allocate_vm();
-                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.color * 2 + 0xd1);
-                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0xd1));
-                vm->bitflags.randomMode = 1;
-                vm->entity_pos = p;
-                vm->update();
-                // vm->mode_of_create_child = 0;
+                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.color * 2 + 0xd1, 0, p);
             } else if (bullet_type < 32) {
-                // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
-                // vm = AnmManager::allocate_vm();
-                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.color * 2 + 0x101);
-                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0x101));
-                vm->bitflags.randomMode = 1;
-                vm->entity_pos = p;
-                vm->update();
-                // vm->mode_of_create_child = 0;
+                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.color * 2 + 0x101, 0, p);
             } else if (bullet_type < 34) {
-                // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
-                // vm = AnmManager::allocate_vm();
-                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.color * 2 + 0x119);
-                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0x119));
-                vm->bitflags.randomMode = 1;
-                vm->entity_pos = p;
-                vm->update();
-                // vm->mode_of_create_child = 0;
+                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.color * 2 + 0x119, 0, p);
             }
             if (as_bomb && -192.0 < p.x + 32.0 && p.x - 32.0 < 192.0 && 0.0 < p.y + 32.0 && p.y - 32.0 < 448.0) {
-                // BULLET_MANAGER_PTR->__related_to_cancels++
+                BULLET_MANAGER_PTR->__unknown_cancel_counter++;
                 ITEM_MANAGER_PTR->spawn_item(9, p, Random::Floatm11() * 0.1745329 - 1.570796, 2.2, 0, -1);
             }
         }
@@ -273,35 +253,14 @@ int LaserInfinite::cancel_as_bomb_rectangle(glm::vec3 p1, glm::vec3 p2, float ro
             canceled_node[i] = 1;
             gen_items_from_et_cancel(p, item);
             if (bullet_type < 0x12 || bullet_type == 0x22 || bullet_type == 0x26) {
-                // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
-                // vm = AnmManager::allocate_vm();
-                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm, vm, inner.color * 2 + 0xd1);
-                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0xd1));
-                vm->bitflags.randomMode = 1;
-                vm->entity_pos = p;
-                vm->update();
-                // vm->mode_of_create_child = 0;
-                // if (EffectManager::get_next_index() != -1) EFFECT_MANAGER_PTR->anm_ids[EffectManager::get_next_index()].value = idofanm;
+                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.color * 2 + 0xd1, 0, p);
+                // put in EffectManager
             } else if (bullet_type < 0x20) {
-                // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
-                // vm = AnmManager::allocate_vm();
-                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm, vm, inner.color * 2 + 0x101);
-                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0x101));
-                vm->bitflags.randomMode = 1;
-                vm->entity_pos = p;
-                vm->update();
-                // vm->mode_of_create_child = 0;
-                // if (EffectManager::get_next_index() != -1) EFFECT_MANAGER_PTR->anm_ids[EffectManager::get_next_index()].value = idofanm;
+                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.color * 2 + 0x101, 0, p);
+                // put in EffectManager
             } else if (bullet_type < 0x22) {
-                // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
-                // vm = AnmManager::allocate_vm();
-                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm, vm, inner.color * 2 + 0x119);
-                auto vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0x119));
-                vm->bitflags.randomMode = 1;
-                vm->entity_pos = p;
-                vm->update();
-                // vm->mode_of_create_child = 0;
-                // if (EffectManager::get_next_index() != -1) EFFECT_MANAGER_PTR->anm_ids[EffectManager::get_next_index()].value = idofanm;
+                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.color * 2 + 0x119, 0, p);
+                // put in EffectManager
             }
         }
         p += inc;

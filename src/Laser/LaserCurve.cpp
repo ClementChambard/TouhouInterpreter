@@ -557,16 +557,7 @@ int LaserCurve::cancel(int, int as_bomb)
     if (!as_bomb || ex_invuln__remaining_frames == 0) {
         for (int i = 0; i < inner.laser_time_start; i++) {
             if (i % 3 == 0) {
-                // BULLET_MANAGER_PTR->bullet_anm->__field_134__some_kind_of_counter++;
-                // vm = AnmManager::allocate_vm();
-                // anm_init_copy_vm_from_loaded(BULLET_MANAGER_PTR->bullet_anm,vm,inner.color * 2 + 0xd1);
-                AnmVM* vm = AnmManager::getVM(AnmManager::SpawnVM(7, inner.color * 2 + 0xd1));
-                vm->bitflags.randomMode = true;
-                vm->entity_pos = nodes[i].pos;
-                vm->rotation.z = 0.0;
-                vm->update();
-                //(vm->prefix).mode_of_create_child = 0;
-                // AnmManager::insert_in_world_list_back(&local_14, vm);
+                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(inner.color * 2 + 0xd1, 0, nodes[i].pos);
             }
         }
         __field_10__set_to_3_by_ex_delete = 1;

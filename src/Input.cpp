@@ -11,5 +11,6 @@ void InputStruct_t::Update() {
     if (Inputs::Keyboard().Down(NSK_down  )) input |= 0x20;
     if (Inputs::Keyboard().Down(NSK_up    )) input |= 0x10;
     if (Inputs::Keyboard().Down(NSK_lshift)) input |= 0x08;
+    if (Inputs::Keyboard().Down(NSK_x     )) input |= 0x02;
     if (Inputs::Keyboard().Down(NSK_w     )) input |= 0x01;
 }
