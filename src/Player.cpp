@@ -14,6 +14,7 @@
 #include <NSEngine.h>
 #include "./GoastManager.h"
 #include "AsciiPopupManager.hpp"
+#include "Bomb.hpp"
 
 Player* PLAYER_PTR = nullptr;
 
@@ -260,8 +261,8 @@ int Player::_on_tick() {
         }
         [[fallthrough]];
     case 1: // Normal
-        if (false) { // if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ((byte)INPUT_STRUCT.rising_edge & 2)) {
-            // do_bomb();
+        if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && Inputs::Keyboard().Pressed(NSK_x)) {
+            Bomb::start();
         }
         move();
         break;
@@ -275,10 +276,10 @@ int Player::_on_tick() {
                     GOAST_MANAGER_PTR->hyper_die(true);
                 inner.time_in_state = 60;
             }
-            // if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ((byte)INPUT_STRUCT.rising_edge & 2)) {
-            //     do_bomb();
-            //     inner.time_in_state = 60;
-            // }
+            if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && Inputs::Keyboard().Pressed(NSK_x)) {
+                Bomb::start();
+                inner.time_in_state = 60;
+            }
             break;
         }
         [[fallthrough]];
@@ -492,6 +493,38 @@ int create_damage_source(glm::vec3 const& pos, float angle, int timeToLive, int 
     PLAYER_PTR->inner.damage_sources[id].hitbox = { w, h };
     PLAYER_PTR->inner.damage_sources[id].angle = angle;
     PLAYER_PTR->inner.damage_sources[id].angle_increase = 0;
+    PLAYER_PTR->inner.damage_sources[id].time_to_live = timeToLive;
+    PLAYER_PTR->inner.damage_sources[id].damage = damage;
+    PLAYER_PTR->inner.damage_sources[id].field_0x78 = 0;
+    PLAYER_PTR->inner.damage_sources[id].field_0x7c = 9999999;
+    PLAYER_PTR->inner.damage_sources[id].field_0x80 = 1;
+    PLAYER_PTR->inner.damage_sources[id].ds_on_hit = 0;
+    PLAYER_PTR->inner.damage_sources[id].field_0x84 = 0;
+    PLAYER_PTR->inner.damage_sources[id].field_0x88 = 0;
+    PLAYER_PTR->inner.damage_sources[id].field_0x8c = 0;
+    PLAYER_PTR->inner.last_created_damage_source_index = id;
+    return id + 1;
+}
+
+int create_damage_source_3(glm::vec3 const& pos, int timeToLive, int damage, float field_4, float field_8)
+{
+    // find damage source index
+    int id = PLAYER_PTR->inner.last_created_damage_source_index;
+    for (int i = 0; i < 257; i++) {
+        id = (id + 1) % 256;
+        if (!(PLAYER_PTR->inner.damage_sources[id].flags & 1))
+            break;
+        if (i == 256) {
+            PLAYER_PTR->inner.last_created_damage_source_index = id;
+            return id + 1;
+        }
+    }
+
+    PLAYER_PTR->inner.damage_sources[id].flags = (PLAYER_PTR->inner.damage_sources[id].flags & 0xfffffffb) | 3;
+    PLAYER_PTR->inner.damage_sources[id].pos = {};
+    PLAYER_PTR->inner.damage_sources[id].pos.pos = pos;
+    PLAYER_PTR->inner.damage_sources[id].field_0x4 = field_4;
+    PLAYER_PTR->inner.damage_sources[id].field_0x8 = field_8;
     PLAYER_PTR->inner.damage_sources[id].time_to_live = timeToLive;
     PLAYER_PTR->inner.damage_sources[id].damage = damage;
     PLAYER_PTR->inner.damage_sources[id].field_0x78 = 0;
@@ -1040,7 +1073,7 @@ void Player::try_kill()
 
     if (SPELLCARD_PTR->flags & 1) {
         if (SPELLCARD_PTR->__timer_20 < 0x3c) {
-            // if (BOMB_PTR->active) SPELLCARD_PTR->flags |= 0x20;
+            if (BOMB_PTR->active) SPELLCARD_PTR->flags |= 0x20;
         } else {
             SPELLCARD_PTR->bonus = 0;
             SPELLCARD_PTR->flags &= 0xffffffdd;
@@ -1097,8 +1130,8 @@ void Player::die() {
     // update spell capture
     if ((SPELLCARD_PTR->flags & 1) != 0) {
         if (SPELLCARD_PTR->__timer_20 < 0x3c) {
-            // if (BOMB_PTR->active == 1)
-            //     SPELLCARD_PTR->flags |= 0x20;
+            if (BOMB_PTR->active == 1)
+                SPELLCARD_PTR->flags |= 0x20;
         } else {
             SPELLCARD_PTR->bonus = 0;
             SPELLCARD_PTR->flags &= 0xffffffdd;
@@ -1222,8 +1255,8 @@ int (*hitFuncs[])(PlayerDamageSource_t*, glm::vec3 const&, float, float, float) 
     [](PlayerDamageSource_t*, glm::vec3 const& param_2, float, float, float) {
         AnmVM* vm;
         PLAYER_PTR->playerAnm->createEffectPos(20, 0, param_2, -1, &vm);
-        // vm->__script_vars_33_34_35.x = cos(BOMB_PTR->field_0x2c) * 6.5;
-        // vm->__script_vars_33_34_35.y = sin(BOMB_PTR->field_0x2c) * 6.5;
+        vm->__script_vars_33_34_35.x = cos(BOMB_PTR->field_0x2c) * 6.5;
+        vm->__script_vars_33_34_35.y = sin(BOMB_PTR->field_0x2c) * 6.5;
         return -1;
     },
     [](PlayerDamageSource_t*, glm::vec3 const&, float, float, float) { if (GOAST_MANAGER_PTR) GOAST_MANAGER_PTR->field_0x50 = 20; return -1; }
@@ -1232,7 +1265,7 @@ int (*hitFuncs[])(PlayerDamageSource_t*, glm::vec3 const&, float, float, float) 
 int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb, float hb_size, uint* param_4, glm::vec3& dmg_pos, int param_6, int enemy_id, float ang)
 {
 
-    float local_4c = 0; //(BOMB_PTR->active ? (*(code *)BOMB_PTR->vtable->method_c_2arg_always_returns_0)(enemyPos,enemy_hb) : 0);
+    float local_4c = BOMB_PTR->active ? BOMB_PTR->method_c(/*enemyPos,enemy_hb*/) : 0;
 
     if (param_4)
         *param_4 = local_4c > 0;

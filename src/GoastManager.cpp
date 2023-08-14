@@ -5,6 +5,9 @@
 #include "./Spellcard.h"
 #include "./Player.h"
 #include "./GlobalData.h"
+#include "Bomb.hpp"
+#include "BulletManager.h"
+#include "Laser/LaserManager.h"
 #include <math/Random.h>
 #include <InputManager.h>
 
@@ -402,43 +405,22 @@ LAB_0040ef69:
     }
     if ((GLOBALS.inner.HYPER_FLAGS & 0x100U) == 0) {
       if (GLOBALS.inner.HYPER_TYPE == 2) {
-        // DAMAGE SOURCE RELATED
-        // puStack_6c = &this->field14_0x44;
-        // uStack_68 = (double)CONCAT44(uStack_68._4_4_,3);
-        // do {
-        //   auto vm = AnmManager::getVM(*puStack_6c);
-        //   if (!vm) {
-        //     *puStack_6c = 0;
-        //   } else {
-        //     vm->entity_pos = PLAYER_PTR->inner.pos;
-        //     polar_to_cartesian(&zStack_50, vm->rotation.z - 0.3490658, 96.0);
-        //     zStack_50 += (PLAYER_PTR->inner).pos;
-        //     BulletManager::cancel_radius_as_bomb(pos,1,28.0);
-        //     pzVar2 = (LASER_MANAGER_PTR->dummy_laser_for_list_tail).prev;
-        //     LASER_MANAGER_PTR->cancel_rectangle_born1 = zStack_50;
-        //     while (pzVar5 = pzVar2, pzVar5 != NULL) {
-        //       pzVar2 = pzVar5->prev;
-        //       if (pzVar5->__field_10__set_to_3_by_ex_delete != 1) {
-        //         (*(code *)pzVar5->vtable->cancel_as_bomb_circle)
-                //          (&zStack_50,0x41e00000,1);
-        //       }
-        //     }
-        //     iVar13 = FUN_00449c80(PLAYER_PTR,&zStack_50,2,5,28.0,0.0);
-        //     if (iVar13 == 0) {
-        //       puVar11 = 0x98;
-        //     } else {
-        //       puVar11 = &(PLAYER_PTR->inner)
-                //       .damage_sources[iVar13 + -1].field17_0x98;
-        //     }
-        //     *puVar11 = 4;
-        //   }
-        //   puStack_6c++;
-        //   iVar13 = (int)uStack_68 + -1;
-        //   uStack_68 = (double)CONCAT44(uStack_68._4_4_,iVar13);
-        // } while (iVar13 != 0);
+        for (int i = 0; i < 3; i++) {
+          auto vm = AnmManager::getVM(otter_hyper_anms[i]);
+          if (!vm) {
+            otter_hyper_anms[i] = 0;
+          } else {
+            vm->entity_pos = PLAYER_PTR->inner.pos;
+            auto pos = PLAYER_PTR->inner.pos + math::lengthdir_vec3(96, vm->rotation.z - 0.3490658);
+            // BulletManager::cancel_radius_as_bomb(pos,1,28.0);
+            BULLET_MANAGER_PTR->ClearScreen(3, 28.0, pos.x, pos.y);
+            LASER_MANAGER_PTR->cancel_in_radius(pos, 1, 0, 28.0);
+            auto ds = create_damage_source_3(pos,2,5,28.0,0.0);
+            PLAYER_PTR->inner.damage_sources[ds + -1].ds_on_hit = 4;
+          }
+        }
       }
       if (Inputs::Keyboard().Pressed(NSK_x)) {
-        // INPUT_STRUCT.input & 2) { // bomb input
         hyper_die(false);
       }
     }
@@ -490,24 +472,17 @@ LAB_0040ef69:
     update_hyper_bar();
     return;
   }
-  // DAMAGE SOURCE RELATED
-  // if (field_0x40 &&
-  //    (puVar15 = (PLAYER_PTR->inner).bullets[0xff].field1_0x1 +
-  //       *(int *)((int)((zAnmLoaded *)this)->name + 0x3c)
-    //       * 0x9c + 0x47, puVar15 != NULL)) {
-  //   fVar18 = 1.0 - (1.0 - GLOBALS.inner.HYPER_TIME.current_f / 40.0);
-  //   fVar18 = (1.0 - fVar18 * fVar18 * fVar18 * fVar18) * 200.0;
-  //   *(float *)(puVar15 + 4) = fVar18;
-  //   BulletManager::cancel_radius_as_bomb
-  //             ((zFloat3 *)(zPlayerInner *)(puVar15 + 0x1c),
-  //              ~((uint)GLOBALS.inner.HYPER_FLAGS >> 3) & 1,fVar18);
-  //   uVar19 = CONCAT44(1,~((uint)GLOBALS.inner.HYPER_FLAGS >> 3))
-    //   & 0xffffffff00000001;
-  //   LaserManager::cancel_in_radius
-  //             ((zPlayerInner *)(puVar15 + 0x1c),
-    //             (int)uVar19,(int)(uVar19 >> 0x20),
-  //              *(float *)(puVar15 + 4));
-  // }
+  if (!field_0x40) return;
+  PlayerDamageSource_t* ds = &PLAYER_PTR->inner.damage_sources[field_0x40 - 1];
+  if (!ds) return;
+  float fVar18 = 1.0 - (1.0 - GLOBALS.inner.HYPER_TIME / 40.0);
+  fVar18 = (1.0 - fVar18 * fVar18 * fVar18 * fVar18) * 200.0;
+  ds->field_0x4 = fVar18;
+  // BulletManager::cancel_radius_as_bomb(ds->pos.pos, ~((uint)GLOBALS.inner.HYPER_FLAGS >> 3) & 1, fVar18);
+  BULLET_MANAGER_PTR->ClearScreen(3, fVar18, ds->pos.pos.x, ds->pos.pos.y);
+  LASER_MANAGER_PTR->cancel_in_radius(ds->pos.pos,
+            (~(GLOBALS.inner.HYPER_FLAGS >> 3) & 1),
+            1, fVar18);
   return;
 }
 
@@ -541,18 +516,16 @@ void GoastManager::hyper_die(bool actually_die) {
         ((((actually_die) << 3 ^ GLOBALS.inner.HYPER_FLAGS) &
             8U) ^ GLOBALS.inner.HYPER_FLAGS) | 4;
     GLOBALS.inner.HYPER_TIME = 40;
-    // DAMAGE SOURCE RELATED
-    // field_0x40 =
-    //     PLAYER_PTR->FUN_00449c80(PLAYER_PTR->inner.pos, 0x28, 5, 8.0, 0.0);
+    field_0x40 = create_damage_source_3(PLAYER_PTR->inner.pos, 0x28, 5, 8.0, 0.0);
     if (GLOBALS.inner.HYPER_TYPE == 3) {
         PLAYER_PTR->flags |= 0x40;
     }
     if ((!(GLOBALS.inner.HYPER_FLAGS & 0x800U) && !actually_die) &&
        (SPELLCARD_PTR->flags & 1)) {
         if (SPELLCARD_PTR->__timer_20 < 0x3c) {
-            // if (BOMB_PTR->active == 1) {
-            //     SPELLCARD_PTR->flags |= 0x20;
-            // }
+            if (BOMB_PTR->active == 1) {
+                SPELLCARD_PTR->flags |= 0x20;
+            }
         } else {
             SPELLCARD_PTR->bonus = 0;
             SPELLCARD_PTR->flags &= 0xffffffdd;

@@ -321,6 +321,20 @@ void AnmVM::destroy() {
   associated_game_entity = nullptr;
 }
 
+
+glm::vec3 AnmVM::get_pos_with_root() {
+  glm::vec3 p = pos + entity_pos + __pos_2;
+  auto root = __root_vm__or_maybe_not;
+  if (root && !bitflags.noParent) {
+    if (bitflags.parRotate) {
+      p.y = p.y * cos(root->rotation.z) + p.x * sin(root->rotation.z);
+      p.x = p.x * cos(root->rotation.z) - p.y * sin(root->rotation.z);
+    }
+    p += root->get_pos_with_root();
+  }
+  return p;
+}
+
 void AnmVM::write_sprite_corners_2d(glm::vec4 *corners) {
   switch (bitflags.rendermode) {
   case 0:
@@ -356,13 +370,13 @@ void AnmVM::write_sprite_corners__without_rot(glm::vec4 &tl, glm::vec4 &tr,
   br.x *= sprite_size.x;
   br.y *= sprite_size.y;
   tl.x -= anchor_offset.x;
-  tl.y -= anchor_offset.y;
+  tl.y += anchor_offset.y;
   tr.x -= anchor_offset.x;
-  tr.y -= anchor_offset.y;
+  tr.y += anchor_offset.y;
   bl.x -= anchor_offset.x;
-  bl.y -= anchor_offset.y;
+  bl.y += anchor_offset.y;
   br.x -= anchor_offset.x;
-  br.y -= anchor_offset.y;
+  br.y += anchor_offset.y;
   if (bitflags.resolutionMode == 1) {
     tl *= RESOLUTION_MULT;
     tr *= RESOLUTION_MULT;
@@ -459,6 +473,19 @@ void AnmVM::write_sprite_corners__without_rot_o(glm::vec4 &tl, glm::vec4 &tr,
   return;
 }
 
+
+glm::vec3 getRotation(AnmVM *vm) {
+  vm->__rotation_related = vm->rotation;
+  if (vm->__root_vm__or_maybe_not && !vm->bitflags.noParent) {
+    glm::vec3 parentRot = getRotation(vm->__root_vm__or_maybe_not);
+    vm->__rotation_related += parentRot;
+    // math::angle_normalize(vm->rotation.x);
+    // math::angle_normalize(vm->rotation.y);
+    // math::angle_normalize(vm->rotation.z);
+  }
+  return vm->__rotation_related;
+}
+
 void AnmVM::write_sprite_corners__with_z_rot_o(glm::vec4 &tl, glm::vec4 &tr,
                                                glm::vec4 &bl, glm::vec4 &br) {
   tl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
@@ -499,7 +526,6 @@ void AnmVM::write_sprite_corners__with_z_rot_o(glm::vec4 &tl, glm::vec4 &tr,
   auto s = scale_2 * scale;
   if (parent_vm && !bitflags.noParent)
     s *= parent_vm->scale_2 * parent_vm->scale;
-  // no rotation ?
   tl.x *= s.x;
   tl.y *= s.y;
   tr.x *= s.x;
@@ -511,18 +537,19 @@ void AnmVM::write_sprite_corners__with_z_rot_o(glm::vec4 &tl, glm::vec4 &tr,
   glm::vec3 p = entity_pos + pos + __pos_2;
   transform_coordinate_o(p);
   // p.y *= -1;
+  float rot = getRotation(this).z;
   glm::vec2 temp = {};
-  temp.x = tl.x * cos(rotation.z) - tl.y * sin(rotation.z);
-  temp.y = tl.y * cos(rotation.z) + tl.x * sin(rotation.z);
+  temp.x = tl.x * cos(rot) - tl.y * sin(rot);
+  temp.y = tl.y * cos(rot) + tl.x * sin(rot);
   tl = {temp.x, temp.y, tl.z, tl.w};
-  temp.x = tr.x * cos(rotation.z) - tr.y * sin(rotation.z);
-  temp.y = tr.y * cos(rotation.z) + tr.x * sin(rotation.z);
+  temp.x = tr.x * cos(rot) - tr.y * sin(rot);
+  temp.y = tr.y * cos(rot) + tr.x * sin(rot);
   tr = {temp.x, temp.y, tr.z, tr.w};
-  temp.x = bl.x * cos(rotation.z) - bl.y * sin(rotation.z);
-  temp.y = bl.y * cos(rotation.z) + bl.x * sin(rotation.z);
+  temp.x = bl.x * cos(rot) - bl.y * sin(rot);
+  temp.y = bl.y * cos(rot) + bl.x * sin(rot);
   bl = {temp.x, temp.y, bl.z, bl.w};
-  temp.x = br.x * cos(rotation.z) - br.y * sin(rotation.z);
-  temp.y = br.y * cos(rotation.z) + br.x * sin(rotation.z);
+  temp.x = br.x * cos(rot) - br.y * sin(rot);
+  temp.y = br.y * cos(rot) + br.x * sin(rot);
   br = {temp.x, temp.y, br.z, br.w};
   tl += glm::vec4(p, 0);
   tr += glm::vec4(p, 0);
@@ -549,13 +576,13 @@ void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
   br.x *= sprite_size.x;
   br.y *= sprite_size.y;
   tl.x -= anchor_offset.x;
-  tl.y -= anchor_offset.y;
+  tl.y += anchor_offset.y;
   tr.x -= anchor_offset.x;
-  tr.y -= anchor_offset.y;
+  tr.y += anchor_offset.y;
   bl.x -= anchor_offset.x;
-  bl.y -= anchor_offset.y;
+  bl.y += anchor_offset.y;
   br.x -= anchor_offset.x;
-  br.y -= anchor_offset.y;
+  br.y += anchor_offset.y;
   if (bitflags.resolutionMode == 1) {
     tl *= RESOLUTION_MULT;
     tr *= RESOLUTION_MULT;
@@ -570,7 +597,6 @@ void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
   auto s = scale_2 * scale;
   if (parent_vm && !bitflags.noParent)
     s *= parent_vm->scale_2 * parent_vm->scale;
-  // no rotation ?
   tl.x *= s.x;
   tl.y *= s.y;
   tr.x *= s.x;
@@ -582,18 +608,19 @@ void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
   glm::vec3 p = entity_pos + pos + __pos_2;
   transform_coordinate(p);
   p.y *= -1;
+  float rot = -getRotation(this).z;
   glm::vec2 temp = {};
-  temp.x = tl.x * cos(-rotation.z) - tl.y * sin(-rotation.z);
-  temp.y = tl.y * cos(-rotation.z) + tl.x * sin(-rotation.z);
+  temp.x = tl.x * cos(rot) - tl.y * sin(rot);
+  temp.y = tl.y * cos(rot) + tl.x * sin(rot);
   tl = {temp.x, temp.y, tl.z, tl.w};
-  temp.x = tr.x * cos(-rotation.z) - tr.y * sin(-rotation.z);
-  temp.y = tr.y * cos(-rotation.z) + tr.x * sin(-rotation.z);
+  temp.x = tr.x * cos(rot) - tr.y * sin(rot);
+  temp.y = tr.y * cos(rot) + tr.x * sin(rot);
   tr = {temp.x, temp.y, tr.z, tr.w};
-  temp.x = bl.x * cos(-rotation.z) - bl.y * sin(-rotation.z);
-  temp.y = bl.y * cos(-rotation.z) + bl.x * sin(-rotation.z);
+  temp.x = bl.x * cos(rot) - bl.y * sin(rot);
+  temp.y = bl.y * cos(rot) + bl.x * sin(rot);
   bl = {temp.x, temp.y, bl.z, bl.w};
-  temp.x = br.x * cos(-rotation.z) - br.y * sin(-rotation.z);
-  temp.y = br.y * cos(-rotation.z) + br.x * sin(-rotation.z);
+  temp.x = br.x * cos(rot) - br.y * sin(rot);
+  temp.y = br.y * cos(rot) + br.x * sin(rot);
   br = {temp.x, temp.y, br.z, br.w};
   tl += glm::vec4(p, 0);
   tr += glm::vec4(p, 0);
@@ -749,12 +776,13 @@ void AnmVM::transform_coordinate_o(glm::vec3 &p) {
   } else {
     if (bitflags.parRotate) {
       /* the vm moves as the parent rotate */
-      p.y = p.y * cos(__root_vm__or_maybe_not->rotation.z) +
-            p.x * sin(__root_vm__or_maybe_not->rotation.z);
-      p.x = p.x * cos(__root_vm__or_maybe_not->rotation.z) -
-            p.y * sin(__root_vm__or_maybe_not->rotation.z);
+      auto oldp = p;
+      p.y = oldp.y * cos(__root_vm__or_maybe_not->rotation.z) +
+            oldp.x * sin(__root_vm__or_maybe_not->rotation.z);
+      p.x = oldp.x * cos(__root_vm__or_maybe_not->rotation.z) -
+            oldp.y * sin(__root_vm__or_maybe_not->rotation.z);
     }
-    p += __root_vm__or_maybe_not->get_own_transformed_pos();
+    p += __root_vm__or_maybe_not->get_own_transformed_pos_o();
   }
 }
 
@@ -783,10 +811,11 @@ void AnmVM::transform_coordinate(glm::vec3 &p) {
   } else {
     if (bitflags.parRotate) {
       /* the vm moves as the parent rotate */
-      p.y = p.y * cos(-__root_vm__or_maybe_not->rotation.z) +
-            p.x * sin(-__root_vm__or_maybe_not->rotation.z);
-      p.x = p.x * cos(-__root_vm__or_maybe_not->rotation.z) -
-            p.y * sin(-__root_vm__or_maybe_not->rotation.z);
+      auto oldp = p;
+      p.y = oldp.y * cos(__root_vm__or_maybe_not->rotation.z) +
+            oldp.x * sin(__root_vm__or_maybe_not->rotation.z);
+      p.x = oldp.x * cos(__root_vm__or_maybe_not->rotation.z) -
+            oldp.y * sin(__root_vm__or_maybe_not->rotation.z);
     }
     p += __root_vm__or_maybe_not->get_own_transformed_pos();
   }

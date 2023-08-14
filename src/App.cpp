@@ -11,6 +11,7 @@
 #include "./AsciiManager.hpp"
 #include "./AsciiPopupManager.hpp"
 #include "./Gui.hpp"
+#include "Bomb.hpp"
 #include "PauseMenu.hpp"
 #include "StdOpener/Stage.hpp"
 #include <NSEngine.h>
@@ -58,8 +59,8 @@ void App::on_create() {
       glm::vec3(0.f, -224.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
   cam->setMatStatic(perspS * viewMatrixS);
 
-  GLOBALS.inner.CHARACTER = 0;
-  GLOBALS.inner.SHOTTYPE = 0;
+  GLOBALS.inner.CHARACTER = 1;
+  GLOBALS.inner.SHOTTYPE = 1;
   GLOBALS.inner.CURRENT_POWER = 450;
   GLOBALS.inner.DIFFICULTY = 3;
   GLOBALS.inner.SPELL_ID = -1;
@@ -70,6 +71,7 @@ void App::on_create() {
   if (strlen(m_argv[1]) > 3 && m_argv[1][3] >= '0' && m_argv[1][3] < '8')
       GLOBALS.inner.STAGE_NUM = m_argv[1][3] - '0';
 
+  Bomb::initialize();
   new Player();
   new ItemManager();
   new AsciiManager();

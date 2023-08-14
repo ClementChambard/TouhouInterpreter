@@ -9,6 +9,7 @@
 #include "./Player.h"
 #include "./Spellcard.h"
 #include "./Gui.hpp"
+#include "Bomb.hpp"
 #include <DrawFuncs.h>
 #include <math/Random.h>
 #include <NSEngine.h>
@@ -289,14 +290,13 @@ void Enemy::set_sub(std::string const& sub) {
 int EnemyData::step_game_logic() {
     // bomb shield logic
     if (!(flags & 0x10000000)) {
-        if (/*(BOMB_PTR->active != 1) && */ (flags & 0x20000000)) {
+        if ((BOMB_PTR->active != 1) && (flags & 0x20000000)) {
             anmSetMain = bombShieldOffAnmMain;
             AnmManager::recreate_vm(anmIds[0], bombShieldOffAnmMain);
             flags &= 0xdffffffe;
         }
     } else {
-        // if (BOMB_PTR->active == 1) // below
-        if (false) {
+        if (BOMB_PTR->active == 1) {
             if (!((flags >> 0x1d) & 1)) {
                 anmSetMain = bombShieldOnAnmMain;
                 AnmManager::recreate_vm(anmIds[0], bombShieldOnAnmMain);
@@ -342,9 +342,9 @@ int EnemyData::step_game_logic() {
                         if (SPELLCARD_PTR->__timer_20 >= 60) {
                             SPELLCARD_PTR->bonus = 0;
                             SPELLCARD_PTR->flags &= 0xffffffdd;
-                        } /* else if (BOMB_PTR->active == 1) {
+                        } else if (BOMB_PTR->active == 1) {
                             SPELLCARD_PTR->flags |= 0x20;
-                        } */
+                        }
                     }
                     ENEMY_MANAGER_PTR->can_still_capture_spell = 0;
                 } else if ((SPELLCARD_PTR->flags & 9) == 9) {
@@ -402,11 +402,11 @@ int EnemyData::step_game_logic() {
             }
         }
 
-        // if ((BOMB_PTR->active == 1) && bombDmgMul < 1.0) {
-        //     if ((totalDamage != 0) && (bombDmgMul <= 0.0))
-        //         SoundManager::play_sound_at_position(0x24);
-        //     totalDamage *= bombDmgMul;
-        // }
+        if ((BOMB_PTR->active == 1) && bombDmgMul < 1.0) {
+            if ((totalDamage != 0) && (bombDmgMul <= 0.0))
+                // SoundManager::play_sound_at_position(0x24);
+            totalDamage *= bombDmgMul;
+        }
 
         if (totalDamage != 0) {
             if ((SPELLCARD_PTR->flags & 0x21) == 0x21) {
@@ -540,7 +540,7 @@ int EnemyData::step_game_logic() {
 
     vm0->color_2 = { 0, 0, 255, 255 };
     vm0->bitflags.colmode = 0b01;
-    frBefNxtHurtFx = 3;
+    frBefNxtHurtFx = 3; // why not 4
 
     // hit sound
     if (hitSnd >= 0) {

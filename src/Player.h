@@ -179,6 +179,8 @@ extern Player* PLAYER_PTR;
 
 extern int create_damage_source(glm::vec3 const&, float,
                                 int, int, float, float);
+extern int create_damage_source_3(glm::vec3 const&, int,
+                                  int, float, float);
 
 extern int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb,
                        float hb_size, uint* param_4, glm::vec3& dmg_pos,

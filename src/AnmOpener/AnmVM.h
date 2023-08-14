@@ -109,6 +109,7 @@ public:
   }
   void transform_coordinate(glm::vec3 &pos);
   void transform_coordinate_o(glm::vec3 &p);
+  glm::vec3 get_pos_with_root();
   glm::vec3 get_own_transformed_pos();
   glm::vec3 get_own_transformed_pos_o();
 void write_sprite_corners__without_rot_o(glm::vec4 &tl, glm::vec4 &tr,
@@ -211,6 +212,7 @@ void write_sprite_corners__with_z_rot_o(glm::vec4 &tl, glm::vec4 &tr,
   int32_t index_of_sprite_mapping_func = 0;
   glm::vec3 entity_pos = {};
   void *associated_game_entity = nullptr;
+  glm::vec3 __rotation_related = {};
 
   friend class AnmManager;
   friend class AnmManager;

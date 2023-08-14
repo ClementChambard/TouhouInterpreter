@@ -6,6 +6,7 @@
 #include "./Gui.hpp"
 #include "./Player.h"
 #include "./Supervisor.h"
+#include "Bomb.hpp"
 
 Spellcard *SPELLCARD_PTR = nullptr;
 
@@ -51,7 +52,7 @@ int Spellcard::on_tick() {
   if (vm) {
     vm->entity_pos = boss0_pos;
   }
-  if ((flags & 0x20) && false /*BOMB_PTR->active != 1*/) {
+  if ((flags & 0x20) && BOMB_PTR->active != 1) {
     flags &= 0xffffffdf;
   }
 
