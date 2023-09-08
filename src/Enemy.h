@@ -36,10 +36,10 @@ struct EnemyDropSeason_t {
 struct EnemyFog_t {
     Fog_t* fog_ptr = nullptr;
     float fog_radius = 0.f;
-    float __fog_field_c__init_16f = 0.0;
-    int32_t fog_color = 0;
-    float __fog_angle_44d0 = 0.f;
-    float __fog_angle_44d4 = 0.f;
+    float r = 0.0;
+    NSEngine::Color fog_color = {0, 0, 0, 0};
+    float oscillate_x = 0.f;
+    float oscillate_y = 0.f;
 };
 
 struct EnemyInterrupt_t {

@@ -9,9 +9,12 @@
 #include "./Laser/LaserManager.h"
 #include "./Player.h"
 #include "./Gui.hpp"
+#include "./StdOpener/Stage.hpp"
 #include "./Spellcard.h"
+#include "./Supervisor.h"
 #include "./EclInstrs/EclFuncs.hpp"
 #include "./AsciiPopupManager.hpp"
+#include "./ScreenEffect.hpp"
 #include <math/Random.h>
 
 #define PRINT false

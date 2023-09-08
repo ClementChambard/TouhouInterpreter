@@ -34,6 +34,7 @@ Enemy::~Enemy() {
     /* Clear async list */
     clear_async_contexts();
     ENEMY_MANAGER_PTR->enemy_count_real--;
+    if (enemy.fog.fog_ptr) delete enemy.fog.fog_ptr;
 }
 
 void Enemy::Init(std::string const& sub) {
@@ -60,13 +61,12 @@ void EnemyDrop_t::eject_all_drops(glm::vec3 const& pos) {
 }
 
 void Enemy::DebugDraw() {
-    NSEngine::draw_set_layer(20);
+    NSEngine::draw_set_layer(NSEngine::engineData::debugLayer);
     NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x,
         -enemy.final_pos.pos.y, enemy.hurtbox_size.x, enemy.hurtbox_size.y,
         -enemy.rotation, { 255, 0, 255, 90 }, { 255, 0, 255, 90 },
         { 255, 0, 255, 90 }, { 255, 0, 255, 90 });
 
-    NSEngine::draw_set_layer(21);
     float wt = 64;
     float ht = 4;
     float y = -16;
@@ -80,7 +80,6 @@ void Enemy::DebugDraw() {
         { 255, 0, 0, 255 }, { 255, 0, 0, 255 }, { 255, 0, 0, 255 });
     // if (0 && enemy.moveLimitSize.x > 0)
     //{
-    // NSEngine::draw_set_layer(4);
     // NSEngine::draw_set_color({255,255,0,255});
     // NSEngine::draw_rectangle(enemy.moveLimitPos.x-enemy.moveLimitSize.x/2,
     // -enemy.moveLimitPos.y+enemy.moveLimitSize.y/2,
@@ -558,92 +557,6 @@ int EnemyData::step_game_logic() {
     }
 
     return 0;
-}
-
-void EnemyData::related_to_fog() {
-    // if (fog.fog_ptr) {
-    //     if (fog.__fog_field_c__init_16f < fog.fog_radius)
-    //         fog.__fog_field_c__init_16f += GAME_SPEED * 2.0;
-    //     FUN_0041bb80(fog.fog_ptr,2*fog.__fog_field_c__init_16f + 40.0);
-    //     pfVar7 = (float *)fog.fog_ptr->field8_0x14;
-    //     if (fog.fog_ptr->field0_0x0 > 0) {
-    //         local_50 = fog.__fog_angle_44d0;
-    //         local_4c = fog.__fog_angle_44d4;
-    //         pfVar8 = (float *)(fog.fog_ptr->time).current_f;
-    //         for (int i = 0; i < fog.fog_ptr->field0_0x0; i++) {
-    //             for (int j = 0; j < fog.fog_ptr->field_0x4; j++) {
-    //               local_18 = pfVar8[0] - final_pos.pos.x - DAT_00524710
-    //                  * 0.5;
-    //               local_14 = pfVar8[1] - final_pos.pos.y - SURF_ORIGIN_ECL_Y;
-    //               fVar11 = pow(fog.__fog_field_c__init_16f, 2) - (local_14 *
-    //                  local_14 + local_18 * local_18);
-    //               if (fVar11 < 0.0) {
-    //                   *(undefined *)((int)pfVar7 + 0x13) = 0;
-    //               }
-    //               else {
-    //                   local_44 = fVar11 / pow(fog.__fog_field_c__init_16f,
-    //                      2);
-    //                   pfVar7[4] = fog.fog_color;
-    //                   *(undefined *)((int)pfVar7 + 0x13) = 0xff;
-    //                   *(char *)((int)pfVar7 + 0x12) = (char)(int)(255.0 -
-    //                   (float)(0xff - ((uint)fog.fog_color >> 0x10 & 0xff))
-    //                   * local_44);
-    //                   *(char *)((int)pfVar7 + 0x11) = (char)(int)(255.0 -
-    //                   (float)(0xff - (uint)*(byte *)((int)pfVar7 + 0x11))
-    //                   * local_44);
-    //                   *(char *)((int)pfVar7 + 0x04) = (char)(int)(255.0
-    //                   - (float)(0xff - (uint)*(byte *)(pfVar7 + 4)) *
-    //                   local_44);
-    //                   D3DXVec3Normalize(&local_18,&local_18);
-    //                   local_18 = local_44 * 32.0 * local_18 + sin(local_50)
-    //                   * local_44 * 8.0;
-    //                   local_14 = local_44 * 32.0 * local_14 + sin(local_4c)
-    //                   * local_44 * 8.0;
-    //                   pfVar7[0] += local_18;
-    //                   pfVar7[1] += local_14;
-    //                   pfVar7[2] = 0.0;
-    //                   pfVar8[2] = 0.0;
-    //               }
-    //               local_50 += 0.09817477;
-    //               local_4c -= 0.04908739;
-    //               math::angle_normalize(local_50);
-    //               math::angle_normalize(local_4c);
-    //               if (DAT_0052471c < pfVar8[0]) {
-    //                   if (DAT_0052471c + 384.0 <= pfVar8[0]) {
-    //                       pfVar7[0] = DAT_0052471c + 383.0;
-    //                       pfVar8[0] = DAT_0052471c + 383.0;
-    //                   }
-    //               }
-    //               else {
-    //                   pfVar7[0] = DAT_0052471c + 1.0;
-    //                   pfVar8[0] = DAT_0052471c + 1.0;
-    //               }
-    //               if (SURF_ORIGIN_ECL_Y < pfVar8[1]) {
-    //                   if (SURF_ORIGIN_ECL_Y + 448.0 <= pfVar8[1]) {
-    //                       pfVar7[1] = SURF_ORIGIN_ECL_Y + 447.0;
-    //                       pfVar8[1] = SURF_ORIGIN_ECL_Y + 447.0;
-    //                   }
-    //               }
-    //               else {
-    //                   pfVar7[1] = SURF_ORIGIN_ECL_Y + 1.0;
-    //                   pfVar8[1] = SURF_ORIGIN_ECL_Y + 1.0;
-    //               }
-    //               pfVar7[5] = pfVar8[0] / DAT_00524710;
-    //               pfVar7[6] = pfVar8[1] / uint32_t_00524714;
-    //               if (pfVar7[5] < 0.0) pfVar7[5] = 0.0;
-    //               if (pfVar7[6] < 0.0) pfVar7[6] = 0.0;
-    //               pfVar8 += 3;
-    //               pfVar7 += 7;
-    //             }
-    //         }
-    //     }
-    //     fVar9 = GAME_SPEED * 0.1963495 + fog.__fog_angle_44d0;
-    //     math::angle_normalize(fVar9);
-    //     fog.__fog_angle_44d0 = fVar9;
-    //     fVar9 = GAME_SPEED * 0.09817477 + fog.__fog_angle_44d4;
-    //     math::angle_normalize(fVar9);
-    //     fog.__fog_angle_44d4 = fVar9;
-    // }
 }
 
 int Enemy::ecl_run(float speed) {

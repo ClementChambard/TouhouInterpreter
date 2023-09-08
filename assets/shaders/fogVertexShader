@@ -7,6 +7,7 @@ in vec2 vertexTexCoords;
 
 out vec4 fragmentColor;
 out vec2 fragmentTexCoords;
+out vec3 fragmentPosition;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
@@ -16,5 +17,6 @@ void main()
     gl_Position = projectionMatrix * viewMatrix * vertexPosition;
 
     fragmentColor = vertexColor;
+    fragmentPosition = vertexPosition.xyz;
     fragmentTexCoords = vertexTexCoords;
 }

@@ -70,6 +70,37 @@ int LaserManager::cancel_all(bool as_bomb) {
     return 1;
 }
 
+int LaserManager::cancel_in_radius(glm::vec3 const& pos, bool item, int a, float r) {
+    int cnt = 0;
+    auto l = dummy_laser_for_list_tail.prev;
+    Laser* l2;
+    cancel_rectangle_p1 = pos;
+    while (l2 = l, l2) {
+        l = l2->prev;
+        if (l2->__field_10__set_to_3_by_ex_delete != 1) {
+            cnt += l2->cancel_as_bomb_circle(pos, r, item, a);
+        }
+    }
+    return cnt;
+}
+    
+int LaserManager::cancel_in_rectangle(glm::vec2 const& pos, glm::vec2 const& scale, float angle) {
+    auto prev = dummy_laser_for_list_tail.prev;
+    int cnt = 0;
+    cancel_rectangle_p1 = {pos, 0};
+    cancel_rectangle_p2 = {scale, 0};
+    Laser* laser;
+    while (laser = prev, laser) {
+        prev = laser->prev;
+        if (laser->__field_10__set_to_3_by_ex_delete != 1 &&
+           (laser->some_flags & 1)) {
+            cnt += laser->cancel_as_bomb_rectangle(
+                {pos, 0}, {scale, 0}, angle, 0, 1);
+        }
+    }
+    return cnt;
+}
+
 int LaserManager::f_on_tick() {
     // Temprorarily change game speed to 0 ????
 

@@ -13,7 +13,7 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb) {
     /* CHECK IF THE VM IS VISIBLE */
     if (bitflags.activeFlags != ANMVM_ACTIVE && bitflags.activeFlags != ANMVM_FROZEN)
         return;
-    if (!bitflags.visible)
+    if (!bitflags.visible || !bitflags.f530_1)
         return;
     if (color_1.a == 0 && color_2.a == 0)
         return;
@@ -201,34 +201,34 @@ void AnmVM::draw(NSEngine::SpriteBatch* sb) {
         return;
     }
 
-    // if (bitflags.rendermode == 4 || bitflags.rendermode == 6) {
-    //     write_sprite_corners__mode_4();
-    //     if (bitflags.colmode == 1)
-    //         c1 = c2;
-    //     NSEngine::Color ctl = c1;
-    //     NSEngine::Color ctr = c1;
-    //     NSEngine::Color cbr = c1;
-    //     NSEngine::Color cbl = c1;
-    //     if (bitflags.colmode == 2)
-    //         ctr = cbr = c2;
-    //     if (bitflags.colmode == 3)
-    //         cbl = cbr = c2;
+    if (bitflags.rendermode == 4 || bitflags.rendermode == 6) {
+        write_sprite_corners__mode_4();
+        if (bitflags.colmode == 1)
+            c1 = c2;
+        NSEngine::Color ctl = c1;
+        NSEngine::Color ctr = c1;
+        NSEngine::Color cbr = c1;
+        NSEngine::Color cbl = c1;
+        if (bitflags.colmode == 2)
+            ctr = cbr = c2;
+        if (bitflags.colmode == 3)
+            cbl = cbr = c2;
 
-    //     /* DRAW ON LAYER */
-    //     NSEngine::Vertex tl = { SPRITE_TEMP_BUFFER[0].transformed_pos, ctl, { u1, v1 } };
-    //     NSEngine::Vertex tr = { SPRITE_TEMP_BUFFER[1].transformed_pos, ctr, { u2, v1 } };
-    //     NSEngine::Vertex bl = { SPRITE_TEMP_BUFFER[2].transformed_pos, cbl, { u1, v2 } };
-    //     NSEngine::Vertex br = { SPRITE_TEMP_BUFFER[3].transformed_pos, cbr, { u2, v2 } };
+        /* DRAW ON LAYER */
+        NSEngine::Vertex tl = { SPRITE_TEMP_BUFFER[0].transformed_pos, ctl, { u1, v1 } };
+        NSEngine::Vertex tr = { SPRITE_TEMP_BUFFER[1].transformed_pos, ctr, { u2, v1 } };
+        NSEngine::Vertex bl = { SPRITE_TEMP_BUFFER[2].transformed_pos, cbl, { u1, v2 } };
+        NSEngine::Vertex br = { SPRITE_TEMP_BUFFER[3].transformed_pos, cbr, { u2, v2 } };
 
-    //     sb->draw(s.texID, tl, tr, br, bl, bitflags.blendmode);
-    //     return;
-    // }
+        sb->draw(s.texID, tl, tr, br, bl, bitflags.blendmode);
+        return;
+    }
 
     if (bitflags.rendermode == 8 || bitflags.rendermode == 15) {
         // if 15 set fog
         // disable zwrite if set
-        __matrix_1 = glm::mat4(1.f);
-        __matrix_2 = __matrix_1; // glm::scale(__matrix_1, {scale * scale_2, 1.f});
+        //__matrix_1 = glm::mat4(1.f);
+        __matrix_2 = glm::mat4(1.f); // glm::scale(__matrix_1, {scale * scale_2, 1.f});
         // bitflags.scaled = false;
         if (bitflags.resolutionMode == 1) {
             __matrix_2[0][0] *= RESOLUTION_MULT;

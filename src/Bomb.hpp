@@ -155,4 +155,18 @@ public:
     Timer_t timer2088 = 0;       // 0x2088
 };
 
+class BombEmpty : public Bomb {
+public:
+    BombEmpty() {}
+    ~BombEmpty() override {}
+
+    void begin() override {}
+    void cleanup() override {}
+    int method_c() override { return 0; }
+    int method_10() override { return 0; }
+protected:
+    int f_on_tick_() override { return 1; }
+    int f_on_draw_() override { return 1; }
+};
+
 #endif // !BOMB_INCLUDED_H

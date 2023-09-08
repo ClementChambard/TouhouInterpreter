@@ -37,6 +37,8 @@ public:
     int __timer_20 = 0;
     int duration = 1;
 
+    int spell_id = 0;
+
     int spell_bg_anm_id = 0;
     int flags = 0;
     int bonus = 0;

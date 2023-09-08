@@ -1151,12 +1151,11 @@ int Player::_on_draw() {
     if (inner.state != 2) {
         vm.entity_pos = inner.pos;
         vm.bitflags.originMode = 0b01;
-        vm.setLayer(15);
-        vm.draw();
+        AnmManager::drawVM(&vm);
     }
     if (!NSEngine::getInstance()->flags().flags.debugInfo)
         return 1;
-    NSEngine::draw_set_layer(20);
+    NSEngine::draw_set_layer(NSEngine::engineData::debugLayer);
     static NSEngine::Color c = { 255, 0, 0, 128 };
     static NSEngine::Color c2 = { 255, 255, 0, 128 };
     for (int i = 0; i < 256; i++) {

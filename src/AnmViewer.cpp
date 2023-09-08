@@ -10,12 +10,14 @@
 #include <NSEngine.h>
 #include <string>
 
+#include "./StdOpener/Stage.hpp"
+
 AnmViewer *ANM_VIEWER_PTR = nullptr;
 
-float c = 640.f;
-float top = 256.f;
-float w = 200.f;
-float bottom = 600.f;
+float c = 640.f / 2;
+float top = 256.f / 2;
+float w = 200.f / 2;
+float bottom = 600.f / 2;
 int cam = 3;
 
 class ImGuiEventProcessor : public NSEngine::IEventProcessor {
@@ -32,20 +34,7 @@ public:
 
 static ImGuiEventProcessor *igep = nullptr;
 
-// AnmVM vm1;
-// AnmVM vm2;
 AnmViewer::AnmViewer() {
-  RESOLUTION_MULT = 1.f;
-  BACK_BUFFER_SIZE.x = 1280/2.f;
-  BACK_BUFFER_SIZE.y = 960/2.f;
-  SUPERVISOR.init_cameras();
-  RESOLUTION_MULT = 1.f;
-  // AnmManager::LoadFile(8, "effect.anm");
-  // AnmManager::LoadFile(5, "front.anm");
-  // AnmManager::getLoaded(8)->copyFromLoaded(&vm1, 105);
-  // AnmManager::getLoaded(5)->copyFromLoaded(&vm2, 391);
-  // animPtr(&vm1);
-  // animPtr(&vm2);
   ANM_VIEWER_PTR = this;
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -208,6 +197,14 @@ void TextureViewerWindow(bool *open) {
   if (static_cast<size_t>(spriteId) >= f->sprites.size())
     spriteId = f->sprites.size() - 1;
   auto sp = f->sprites[spriteId];
+  std::string name = "";
+  for (auto pair : f->textures) {
+    if (pair.second == sp.texID) {
+      name = pair.first;
+      break;
+    }
+  }
+  ImGui::Text("%s", name.c_str());
   auto t = NSEngine::TextureManager::GetTextureID(sp.texID);
   int w, h;
   NSEngine::TextureManager::GetTextureSize(sp.texID, w, h);
@@ -239,8 +236,7 @@ void AnmView::renderInList() {
   if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     windowOpen = !windowOpen;
   }
-  ImGui::SameLine();
-  if (!this->vm && ImGui::Button("X")) {
+  if (!this->vm && (ImGui::SameLine(), ImGui::Button("X"))) {
     AnmManager::deleteVM(anmId);
   }
   ImGui::PopID();
@@ -488,6 +484,30 @@ void anm_view_window(AnmView *v) {
     }
   }
 
+  if (ImGui::CollapsingHeader("matrices")) {
+      ImGui::Text("matrix 1");
+      ImGui::PushID("matrix1");
+      ImGui::InputFloat4("##row0", &vm->__matrix_1[0][0]);
+      ImGui::InputFloat4("##row1", &vm->__matrix_1[1][0]);
+      ImGui::InputFloat4("##row2", &vm->__matrix_1[2][0]);
+      ImGui::InputFloat4("##row3", &vm->__matrix_1[3][0]);
+      ImGui::PopID();
+      ImGui::Text("matrix 2");
+      ImGui::PushID("matrix2");
+      ImGui::InputFloat4("##row0", &vm->__matrix_2[0][0]);
+      ImGui::InputFloat4("##row1", &vm->__matrix_2[1][0]);
+      ImGui::InputFloat4("##row2", &vm->__matrix_2[2][0]);
+      ImGui::InputFloat4("##row3", &vm->__matrix_2[3][0]);
+      ImGui::PopID();
+      ImGui::Text("matrix 3");
+      ImGui::PushID("matrix3");
+      ImGui::InputFloat4("##row0", &vm->__matrix_3[0][0]);
+      ImGui::InputFloat4("##row1", &vm->__matrix_3[1][0]);
+      ImGui::InputFloat4("##row2", &vm->__matrix_3[2][0]);
+      ImGui::InputFloat4("##row3", &vm->__matrix_3[3][0]);
+      ImGui::PopID();
+  }
+
   if (ImGui_BeginPopupCenter("InterruptVM")) {
     static bool interrupt_recursive = false;
     static int interrupt_value = 0;
@@ -495,10 +515,11 @@ void anm_view_window(AnmView *v) {
     ImGui::InputInt("interrrupt label", &interrupt_value);
     ImGui::Checkbox("recursive", &interrupt_recursive);
     if (ImGui::Button("Send")) {
-      if (interrupt_recursive)
+      if (interrupt_recursive) {
         vm->interruptRec(interrupt_value);
-      else
+      } else {
         vm->interrupt(interrupt_value);
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button("Close")) {
@@ -516,7 +537,7 @@ void anm_view_window(AnmView *v) {
     return;
 
   ImGui::Begin(("SpriteOf(" + std::to_string(v->anmId) + ")").c_str(),
-               &v->windowOpen);
+               &v->spriteShowOpen);
   ImGui::PushID(("spriteWin" + std::to_string(v->anmId)).c_str());
   auto sp = vm->getSprite();
   ImTextureID tex = reinterpret_cast<ImTextureID>(
@@ -665,6 +686,12 @@ void main_menu_window(bool *open) {
   SURF_ORIGIN_ECL_Y = ecl_origin.y;
   SURF_ORIGIN_ECL_FULL_X = ecl_origin_full.x;
   SURF_ORIGIN_ECL_FULL_Y = ecl_origin_full.y;
+  if (ImGui::Button("ADD_ARCADE")) {
+      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_0);
+      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_1);
+      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_2__handles_upscaling);
+      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_3__handles_seija);
+  }
   ImGui::PopID();
   ImGui::End();
 }
@@ -695,44 +722,11 @@ void AnmViewer::on_tick() {
         vm->entity_pos = PLAYER_PTR->inner.pos;
     }
   }
-
-  ImGui::Begin("test");
-  ImGui::InputFloat("top", &top);
-  ImGui::InputFloat("bottom", &bottom);
-  ImGui::InputFloat("width", &w);
-  ImGui::InputFloat("center", &c);
-  ImGui::InputInt("cam", &cam);
-  ImGui::End();
 }
 
-extern float SURF_ORIGIN_ECL_X;
-extern float SURF_ORIGIN_ECL_Y;
 void AnmViewer::on_draw() {
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-  // vm1.update();
-  // vm2.update();
-  // vm1.entity_pos = PLAYER_PTR->inner.pos;
-  // vm2.entity_pos = PLAYER_PTR->inner.pos*2.f;
-  // // SUPERVISOR.cameras[3].as_2d_matrix();
-  // SUPERVISOR.cameras[2].as_2d_matrix();
-  // SUPERVISOR.set_camera_by_index(cam, true);
-  // glEnable(GL_BLEND);
-  // AnmManager::drawVM(&vm2);
-  // AnmManager::drawVM(&vm1);
-  // SUPERVISOR.disable_ztest();
-  // SUPERVISOR.disable_zwrite(true);
-  // SUPERVISOR.disable_d3d_fog(true);
-  // // AnmManager::batch->draw(1, {{c, top, 0}, {255, 0, 0, 255}, {0, 0}},
-  // //                         {{c - w / 2, bottom, 0}, {0, 255, 0, 255}, {0, 0}},
-  // //                         {{c + w / 2, bottom, 0}, {0, 0, 255, 255}, {0, 0}},
-  // //                         {{c, top, 0}, {255, 0, 0, 255}, {0, 0}});
-  // AnmManager::batch->end();
-  // // AnmManager::shader->start();
-  // AnmManager::batch->renderBatch();
-  // // AnmManager::shader->stop();
-  // AnmManager::batch->begin();
-  // glDisable(GL_BLEND);
 }
 
 void AnmViewer::check_anmviews() {

@@ -10,5 +10,4 @@ uniform sampler2D NSTexture;
 
 void main() {
     color = texture(NSTexture, fragmentTexCoords) * fragmentColor;
-    if (color.a == 0) discard;
 }

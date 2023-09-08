@@ -1,5 +1,5 @@
 #version 130
-precision mediump float; //Medium precision for float. highp and smallp can also be used
+precision mediump float;
 
 in vec4 vertexPosition;
 in vec4 vertexColor;

@@ -4,7 +4,10 @@
 #include "./GlobalData.h"
 #include "./Supervisor.h"
 #include "./Gui.hpp"
+#include "AnmOpener/CopyTextures.hpp"
+#include "Hardcoded.h"
 #include <InputManager.h>
+#include <TextureManager.h>
 #include <cstdio>
 
 PauseMenu* PAUSE_MENU_PTR = nullptr;
@@ -220,10 +223,12 @@ int PauseMenu::f_on_draw() {
   if (!vm) {
     pause_blur_anmid = 0;
   } else {
-    vm = vm->search_children(57, 0);
+    int a = 57;
+    if (TOUHOU_VERSION == 18) a = 64;
+    vm = vm->search_children(a, 0);
     if (vm) {
-      // SUPERVISOR.arcade_vm_2__handles_upscaling->color_1 = vm->color_1;
-      // SUPERVISOR.arcade_vm_2__handles_upscaling->color_1.a = 255;
+      SUPERVISOR.arcade_vm_2__handles_upscaling->color_1 = vm->color_1;
+      SUPERVISOR.arcade_vm_2__handles_upscaling->color_1.a = 255;
     }
   }
   if (field_1ec == 1 || field_1ec == 3) {
@@ -317,7 +322,27 @@ int PauseMenu::f_on_tick() {
     return 1;
 }
 
-void PauseMenu::init_pause_blur_effect() {}
+extern float SURF_ORIGIN_ECL_FULL_X;
+extern float SURF_ORIGIN_ECL_FULL_Y;
+
+void PauseMenu::init_pause_blur_effect() {
+  AnmManager::deleteVM(pause_blur_anmid);
+  AnmVM* vm;
+  int a = 52;
+  if (TOUHOU_VERSION == 18) a = 59;
+  pause_blur_anmid = SUPERVISOR.text_anm->new_vm_ui_back(a, &vm);
+  auto srcTexId = NSEngine::TextureManager::
+    GetTextureNSIDByOpengl(SUPERVISOR.surface_atR_1->getColorTexture());
+  auto texsiz = NSEngine::TextureManager::GetTexture(srcTexId)->getSize();
+  auto spr = vm->getSprite();
+  AnmManager::flush_vbos();
+  CopyTextures::doCopy(srcTexId, spr.opengl_texid, {
+      (SURF_ORIGIN_ECL_FULL_X - RESOLUTION_MULT * 384.0 * 0.5)       / texsiz.x,
+      (SURF_ORIGIN_ECL_FULL_Y)                                       / texsiz.y,
+      (SURF_ORIGIN_ECL_FULL_X + RESOLUTION_MULT * 384.0 * 0.5 - 1.0) / texsiz.x,
+      (SURF_ORIGIN_ECL_FULL_Y + RESOLUTION_MULT * 448.0 - 1.0)       / texsiz.y
+      }, { spr.u1, spr.v1, spr.u2, spr.v2 });
+}
 
 static bool menu_confirm() {
     // (INPUT_STRUCT.hardware_input_rising_edge & 0x80001U) != 0

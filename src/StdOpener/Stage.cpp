@@ -1,9 +1,11 @@
 #include "./Stage.hpp"
 #include "../AnmOpener/AnmManager.h"
+#include "../Spellcard.h"
 #include "../GlobalData.h"
 #include "../Hardcoded.h"
 #include <FileOpener.h>
 #include <NSEngine.h>
+#include <math/Random.h>
 #include <cstring>
 #include <ctime>
 
@@ -189,7 +191,7 @@ void Stage::run_std() {
     case 2: /* POS */
       inner.camera.__vec3_104 = inner.camera.position;
       inner.camera.position = {FARG(0), FARG(1), FARG(2)};
-      inner.camera.__vec3_104 -= inner.camera.position;
+      inner.camera.__vec3_104 = inner.camera.position - inner.camera.__vec3_104;
       break;
     case 3: /* POS TIME */
       inner.camera_pos_i.start(inner.camera.position,
@@ -225,14 +227,15 @@ void Stage::run_std() {
     case 9: /* FOG TIME */
     {
       CameraSky_t goal;
-      goal.color_components[0] = (IARG(2) >> 0) & 0xff;
-      goal.color_components[1] = (IARG(2) >> 8) & 0xff;
-      goal.color_components[2] = (IARG(2) >> 16) & 0xff;
-      goal.color_components[3] = (IARG(2) >> 24) & 0xff;
-      goal.color.b = inner.camera.sky.color_components[0];
-      goal.color.g = inner.camera.sky.color_components[1];
-      goal.color.r = inner.camera.sky.color_components[2];
-      goal.color.a = inner.camera.sky.color_components[3];
+      int arg2 = IARG(2);
+      goal.color_components[0] = (arg2 >> 0) & 0xff;
+      goal.color_components[1] = (arg2 >> 8) & 0xff;
+      goal.color_components[2] = (arg2 >> 16) & 0xff;
+      goal.color_components[3] = (arg2 >> 24) & 0xff;
+      goal.color.b = goal.color_components[0];
+      goal.color.g = goal.color_components[1];
+      goal.color.r = goal.color_components[2];
+      goal.color.a = goal.color_components[3];
       goal.begin_distance = FARG(3);
       goal.end_distance = FARG(4);
       inner.camera_sky_i.start(inner.camera.sky, goal, IARG(0),
@@ -260,6 +263,7 @@ void Stage::run_std() {
         inner.rocking_timer.set(0x200);
       else
         inner.rocking_timer.set(0);
+      std::cout << "ROCK " << inner.rocking_mode << "\n";
       break;
     case 13: /* BG COLOR */
       {
@@ -272,6 +276,7 @@ void Stage::run_std() {
       }
       break;
     case 14: /* SPRITE */
+      std::cout << "SPRIT" << IARG(0) << "=" << IARG(1) << "=" << IARG(2) << "\n";
       if (IARG(1) == -2) {
         inner.vms[IARG(0)].bitflags.visible = false;
       } else if (IARG(1) == -1) {
@@ -288,13 +293,14 @@ void Stage::run_std() {
     case 17: /* DISTORTION */
       if (inner.distortion.fog_ptr)
         delete inner.distortion.fog_ptr;
+      std::cout << "DISTORTION " << IARG(0) << "\n";
       inner.distortion.fog_ptr = NULL;
-      inner.distortion.field_0x04 = 112.0;
-      inner.distortion.field_0x08 = 192.0;
+      inner.distortion.r_target = 112.0;
+      inner.distortion.r = 192.0;
       inner.distortion.field_0x0c = -1;
-      inner.distortion.field_0x24 = 0.0;
-      inner.distortion.field_0x28 = 0.0;
-      inner.distortion.timer_0x10 = 0;
+      inner.distortion.ox = 0.0;
+      inner.distortion.oy = 0.0;
+      inner.distortion.time = 0;
       inner.distortion.mode = IARG(0);
       inner.distortion.fog_ptr =
         new Fog_t(inner.distortion.mode != 1 ? 17 : 7);
@@ -304,7 +310,9 @@ void Stage::run_std() {
                               IARG(0), IARG(1));
       break;
     case 19: /* INTERRUPT ANMS */
+      std::cout << "INT" << IARG(0) << "\n";
       for (int i = 0; i < 8; i++) {
+        if (inner.vms[i].instr_offset < 0) continue;
         inner.vms[i].interrupt(IARG(0) + 7);
         inner.vms[i].run();
       }
@@ -344,36 +352,36 @@ update_rest:
   float intensity;
   switch (inner.rocking_mode) {
   case 1:
-    intensity = fmin(inner.rocking_timer.current_f / 512, 1);
+    intensity = fmin(inner.rocking_timer.current_f / 512.f, 1);
     inner.camera.__rocking_vector_1.x =
-        sin(inner.rocking_timer.current_f * 0.006136) * -10.0 * intensity;
+        sin(inner.rocking_timer.current_f * PI / 0x200) * -10.0 * intensity;
     inner.camera.__rocking_vector_1.z =
-        sin(inner.rocking_timer.current_f * 0.012272) * -10.0 * intensity;
+        sin(inner.rocking_timer.current_f * PI / 0x100) * -10.0 * intensity;
     inner.camera.__rocking_vector_2.x =
-        sin(inner.rocking_timer.current_f * 0.006136) * 5.0 * intensity;
+        sin(inner.rocking_timer.current_f * PI / 0x200) * 5.0 * intensity;
     inner.camera.__rocking_vector_2.z =
-        sin(inner.rocking_timer.current_f * 0.012272) * 5.0 * intensity;
+        sin(inner.rocking_timer.current_f * PI / 0x100) * 5.0 * intensity;
     inner.camera.up.x =
-        sin(inner.rocking_timer.current_f * 0.006136) * -0.01 * intensity;
+        sin(inner.rocking_timer.current_f * PI / 0x200) * -0.01 * intensity;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x800)
       inner.rocking_timer.set(0x400);
     break;
   case 2:
-    inner.camera.up.x = -sin(inner.rocking_timer.current_f * 0.002045);
-    inner.camera.up.z = cos(inner.rocking_timer.current_f * 0.002045);
+    inner.camera.up.x = -sin(inner.rocking_timer.current_f * PI / 0x600);
+    inner.camera.up.z = cos(inner.rocking_timer.current_f * PI / 0x600);
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0xc00)
       inner.rocking_timer.set(0);
     break;
   case 3:
-    intensity = fmin(80, inner.rocking_timer.current / 400 * 80);
+    intensity = fmin(80, inner.rocking_timer.current_f / 0x400 * 80.f);
     inner.camera.__rocking_vector_1.y = 0.0;
     inner.camera.__rocking_vector_1.z = 0.0;
     inner.camera.__rocking_vector_1.x =
-        sin((inner.rocking_timer.current % 0x400) * 3.141593 / 200) * intensity;
+        sin((inner.rocking_timer.current % 0x400) * PI / 0x200) * intensity;
     inner.camera.__rocking_vector_2.x =
-        (sin((inner.rocking_timer.current % 0x400) * 3.141593 / 200) *
+        (sin((inner.rocking_timer.current % 0x400) * PI / 0x200) *
          intensity) /
         -10.0;
     inner.rocking_timer.increment();
@@ -381,8 +389,8 @@ update_rest:
       inner.rocking_timer.set(0x400);
     break;
   case 4:
-    inner.camera.up.x = -sin(inner.rocking_timer.current_f * 3.141593 / 1536.0);
-    inner.camera.up.z = -cos(inner.rocking_timer.current_f * 3.141593 / 1536.0);
+    inner.camera.up.x = -sin(inner.rocking_timer.current_f * PI / 0x600);
+    inner.camera.up.z = -cos(inner.rocking_timer.current_f * PI / 0x600);
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0xc00)
       inner.rocking_timer.set(0);
@@ -390,13 +398,13 @@ update_rest:
   case 5:
     intensity = fmin(1.0, inner.rocking_timer.current / 0x200);
     inner.camera.__rocking_vector_1.x =
-        sin(((inner.rocking_timer.current % 400) * 3.141593 / 0x200)) * -5.0 *
+        sin(((inner.rocking_timer.current % 0x400) * PI / 0x200)) * -5.0 *
         intensity;
     inner.camera.__rocking_vector_2.x =
-        sin(((inner.rocking_timer.current % 400) * 3.141593 / 0x200)) * 2.5 *
+        sin(((inner.rocking_timer.current % 0x400) * PI / 0x200)) * 2.5 *
         intensity * intensity;
     inner.camera.up.x =
-        sin(((inner.rocking_timer.current % 400) * 3.141593 / 0x200)) * -0.005 *
+        sin(((inner.rocking_timer.current % 0x400) * PI / 0x200)) * -0.005 *
         intensity;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x800)
@@ -408,10 +416,10 @@ update_rest:
     inner.camera.__rocking_vector_1.y = 0.0;
     inner.camera.__rocking_vector_1.z = 0.0;
     inner.camera.__rocking_vector_1.x =
-        sin((inner.rocking_timer.current % 0x400) * 3.141593 / 0x200) *
+        sin((inner.rocking_timer.current % 0x400) * PI / 0x200) *
         intensity;
     inner.camera.__rocking_vector_2.x =
-        (sin((inner.rocking_timer.current % 0x400) * 3.141593 / 0x200) *
+        (sin((inner.rocking_timer.current % 0x400) * PI / 0x200) *
          intensity) /
         -10.0;
     inner.rocking_timer.increment();
@@ -421,14 +429,14 @@ update_rest:
     break;
   case 9:
     inner.camera.__rocking_vector_1.x =
-        sin(((inner.rocking_timer.current_f * 3.141593) / 0x400 - 3.141593)) *
+        sin(((inner.rocking_timer.current_f * PI) / 0x400 - PI)) *
         70.0;
     inner.camera.__rocking_vector_1.z =
         sin(2 *
-            ((inner.rocking_timer.current_f * 3.141593) / 0x400 - 3.141593)) *
+            ((inner.rocking_timer.current_f * PI) / 0x400 - PI)) *
         200.0;
     inner.camera.up.x =
-        sin(((inner.rocking_timer.current_f * 3.141593) / 0x400 - 3.141593)) *
+        sin(((inner.rocking_timer.current_f * PI) / 0x400 - PI)) *
         -0.1;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x800)
@@ -436,10 +444,10 @@ update_rest:
     break;
   case 10:
     inner.camera.__rocking_vector_1.x =
-        sin((inner.rocking_timer.current_f * 3.141593) / 0x200 - 3.141593) *
+        sin((inner.rocking_timer.current_f * PI) / 0x200 - PI) *
         -50.0;
     inner.camera.up.x =
-        sin((inner.rocking_timer.current_f * 3.141593) / 0x200 - 3.141593) *
+        sin((inner.rocking_timer.current_f * PI) / 0x200 - PI) *
         -0.1;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x400)
@@ -447,10 +455,10 @@ update_rest:
     break;
   case 11:
     inner.camera.__rocking_vector_1.x =
-        sin((inner.rocking_timer.current_f * 3.141593) / 0x100 - 3.141593) *
+        sin((inner.rocking_timer.current_f * PI) / 0x100 - PI) *
         -15.0;
     inner.camera.up.x =
-        sin((inner.rocking_timer.current_f * 3.141593) / 0x100 - 3.141593) *
+        sin((inner.rocking_timer.current_f * PI) / 0x100 - PI) *
         -0.01;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x200)
@@ -482,129 +490,90 @@ CameraSky_t CameraSkyInterp_t::step() {
   out.color.g = static_cast<uint8_t>(color.current.g);
   out.color.b = static_cast<uint8_t>(color.current.b);
   out.color.a = static_cast<uint8_t>(color.current.a);
-  out.color_components = {out.color.r, out.color.g, out.color.b, out.color.a};
+  out.color_components = {out.color.b, out.color.g, out.color.r, out.color.a};
   return out;
 }
 
 void StageInner_t::update_distortion() {
-  /*
-  bool bVar1;
-  int iVar3;
-  int iVar4;
-  zFloat3 *pfVar5;
-  zFloat3 *pzVar6;
-  float fVar99;
-  float fvar100;
-  float fVar9;
-  zFloat3 *local_40;
-  float local_3c;
-  float local_38;
-  float local_30;
-  float local_28;
-  float local_24;
-  float local_1c;
-  float local_18;
-  float local_14;
-  float local_10;
-  uint local_c;
-  zFloat3 *pfVar4;
-  zFloat3 *temp_3f29d2ac03;
-  void *pvVar6;
-  
-  if (!distortion.fog_ptr) return;
+  if (distortion.fog_ptr == nullptr) return;
   if (distortion.mode == 1) {
-    if (SPELLCARD_PTR && (SPELLCARD_PTR->flags & 1)) {
-      distortion.timer_0x10++;
-      return;
-    }
-    FUN_0041bb80(distortion.fog_ptr, 128.0, -192.0, 320.0, 384.0);
-    if (60.0 <= distortion.timer_0x10) {
-      local_28 = 6.0;
-    } else {
-      local_28 = (distortion.timer_0x10.current_f * 6.0) / 60.0;
-    }
-    pfVar5 = distortion.fog_ptr->field5_0x14_malloced_to_0x1dc_x_field_0x4;
-    local_38 = distortion.field_0x28;
-    local_3c = distortion.field_0x24;
-    local_40 = distortion.fog_ptr->field6_0x18_malloced_to_0xcc_x_field_0x4;
-    for (int j = 0; j < distortion.fog_ptr->field0_0x0_set_to_17; j++) {
-      for (int i = 0; i < distortion.fog_ptr->field1_0x4_some_count; i++) {
-        *(undefined *)((int)&pfVar5[1].y + 3) = 0x80;
-        local_24 = i * local_28 / (float)(distortion.fog_ptr->field1_0x4_some_count - 1);
-        if (j != 0 && i != 0 &&
-            j != distortion.fog_ptr->field0_0x0_set_to_17 - 1 &&
-            i != distortion.fog_ptr->field1_0x4_some_count - 1) {
-          pfVar5->x += sin(local_3c) * local_24;
-          pfVar5->y += sin(local_38) * local_24;
-          pfVar5->z += 0.0;
-          local_40->z = 0.0;
+    // if (SPELLCARD_PTR && !(SPELLCARD_PTR->flags & 1)) {
+    //   distortion.time++;
+    //   return;
+    // }
+    distortion.fog_ptr->reset_area(-192.0, 320.0, 384.0, 128.0);
+    float magnitude = fmin(6.f, (distortion.time.current_f * 6.0) / 60.0);
+    float ox = distortion.ox;
+    float oy = distortion.oy;
+    for (int j = 0; j < distortion.fog_ptr->vm_count; j++) {
+      for (int i = 0; i < distortion.fog_ptr->vertex_count; i++) {
+        auto& v = distortion.fog_ptr->vertex_array
+          [i + j * distortion.fog_ptr->vertex_count];
+        v.diffuse_color.a = 128;
+        if (j != 0 && i != 0 && j != distortion.fog_ptr->vm_count - 1
+           && i != distortion.fog_ptr->vertex_count - 1) {
+          float strength = (i * magnitude) /
+            (distortion.fog_ptr->vertex_count - 1);
+          v.transformed_pos.x += sin(ox) * strength;
+          v.transformed_pos.y += sin(oy) * strength;
         }
-        local_3c += 0.668424;
-        math::angle_normalize(local_3c);
-        local_40++;
-        pfVar5 = (zFloat3 *)&pfVar5[2].y;
+        ox += 0.668424;
+        math::angle_normalize(ox);
       }
-      local_38 -= 1.495997;
-      math::angle_normalize(local_38);
+      oy -= 1.495997;
+      math::angle_normalize(oy);
     }
-    distortion.field5_0x24 += 0.04908739;
-    math::angle_normalize(distortion.field5_0x24);
-    distortion.field6_0x28 += 0.03926991;
-    math::angle_normalize(distortion.field6_0x28);
+    distortion.ox += 0.04908739;
+    math::angle_normalize(distortion.ox);
+    distortion.oy += 0.03926991;
+    math::angle_normalize(distortion.oy);
   } else if (distortion.mode == 2) {
-    FUN_0041bb80(distortion.fog_ptr,
-        2 * distortion.field2_0x8, -distortion.field2_0x8, 224.0 -
-        distortion.field2_0x8, 2 * distortion.field2_0x8);
-    if (distortion.field1_0x4 < distortion.field2_0x8) {
-      distortion.field2_0x8 -= 2.0;
-    }
-    pfVar4 = distortion.fog_ptr->field6_0x18_malloced_to_0xcc_x_field_0x4;
-    pzVar6 = distortion.fog_ptr->field5_0x14_malloced_to_0x1dc_x_field_0x4;
-    local_3c = distortion.field_0x24;
-    local_40 = distortion.field_0x28;
-    for (int j = 0; j < distortion.fog_ptr->field0_0x0_set_to_17; j++) {
-      for (int i = 0; i < distortion.fog_ptr->field1_0x4_some_count; i++) {
-        local_18 = pfVar4->x - 224.0;
-        local_14 = pfVar4->y - 240.0;
-        local_10 = pfVar4->z - local_1c * local_1c;
-        fVar9 = local_1c * local_1c - local_18 * local_18 - local_14 * local_14;
-        if (fVar9 < 0.0) {
-          *(undefined *)((int)&pzVar6[1].y + 3) = 0;
+    if (distortion.r_target <= distortion.r)
+      distortion.r -= 2.0;
+    distortion.fog_ptr->reset_area(-distortion.r, 224.0 - distortion.r,
+                    2 * distortion.r, 2 * distortion.r);
+    float ox = distortion.ox;
+    float oy = distortion.oy;
+    for (int i = 0; i < distortion.fog_ptr->vm_count; i++) {
+      for (int j = 0; j < distortion.fog_ptr->vertex_count; j++) {
+        auto& p = distortion.fog_ptr->pos_array
+          [j + i * distortion.fog_ptr->vertex_count];
+        auto& v = distortion.fog_ptr->vertex_array
+          [j + i * distortion.fog_ptr->vertex_count];
+        glm::vec2 local_18 = {
+          p.x - BACK_BUFFER_SIZE.x / 2.f,
+          p.y - BACK_BUFFER_SIZE.y / 2.f
+        };
+        float distin = distortion.r * distortion.r - math::veclensq(local_18);
+        if (distin < 0.0) {
+          v.diffuse_color.a = 0;
         } else {
-          local_30 = fVar9 / local_1c * local_1c;
-          pzVar6[1].y = -NAN;
-          *(undefined *)((int)&pzVar6[1].y + 3) = 0x60;
-          *(char *)((int)&pzVar6[1].y + 2) = (char)(int)(255.0 - local_30 * 0.0);
-          *(char *)((int)&pzVar6[1].y + 1) =
-               (char)(int)(255.0 - (float)(0xff - (uint)*(byte *)((int)&pzVar6[1].y + 1)) *
-                                   local_30);
-          *(char *)&pzVar6[1].y =
-               (char)(int)(255.0 - (float)(0xff - (uint)*(byte *)&pzVar6[1].y) * local_30);
-          D3DXVec3Normalize(&local_18,&local_18);
-          local_10 *= local_30 * 32.0;
-          pzVar6->x += sin(local_3c) * local_30 * 8.0 + local_30 * 32.0 * local_18;
-          pzVar6->y += sin(local_40) * local_30 * 8.0 + local_30 * 32.0 * local_14;
-          pzVar6->z += 0.0;
-          pfVar4->z = 0.0;
+          float s = distin / (distortion.r * distortion.r);
+          local_18 = glm::normalize(local_18) * s * 32.f;
+          local_18.x += sin(ox) * s * 8.0;
+          local_18.y += sin(oy) * s * 8.0;
+          v.diffuse_color = {255, 255, 255, 96};
+          v.transformed_pos.x += local_18.x;
+          v.transformed_pos.y += local_18.y;
         }
-        local_3c += PI1_2;
-        math::angle_normalize(local_3c);
-        local_40 -= 0.6981317;
-        math::angle_normalize(local_40);
-        pfVar4++;
-        pzVar6 = &pzVar6[2].y;
+        ox += 1.570796;
+        math::angle_normalize(ox);
+        oy -= 0.6981317;
+        math::angle_normalize(oy);
       }
     }
-    distortion.field5_0x24 = distortion.field5_0x24 + 0.04908739;
-    math::angle_normalize(distortion.field5_0x24);
-    distortion.field6_0x28 += (Random::Float01() * PI) / 40.0 + 0.03926991;
-    math::angle_normalize(distortion.field6_0x28);
+    distortion.ox += 0.04908739;
+    math::angle_normalize(distortion.ox);
+    distortion.oy += (Random::Float01() * PI) / 40.0 + 0.03926991;
+    math::angle_normalize(distortion.oy);
   }
   distortion.time++;
-  */
 }
 
 int Stage::f_on_draw_1() {
+  NSEngine::toggleCulling(false);
+
+  glEnable(GL_BLEND);
   glm::vec4 viewport_rect;
   NSEngine::Color color;
 
@@ -618,9 +587,9 @@ int Stage::f_on_draw_1() {
     SUPERVISOR.set_camera_by_index(3);
     SUPERVISOR.enable_zwrite();
     SUPERVISOR.enable_ztest();
-    // SUPERVISOR.set_fog_params(inner.camera.sky.color,
-    //                           inner.camera.sky.begin_distance,
-    //                           inner.camera.sky.end_distance);
+    SUPERVISOR.set_fog_params(inner.camera.sky.color,
+                             inner.camera.sky.begin_distance,
+                             inner.camera.sky.end_distance);
     if (!(flags & 4) || 33 < num_ticks_alive_2)
       color = inner.camera.sky.color;
     else
@@ -632,6 +601,9 @@ int Stage::f_on_draw_1() {
     viewport_rect.w = SUPERVISOR.cameras[3].viewport.Y +
                       SUPERVISOR.cameras[3].viewport.Height;
     // SUPERVISOR.d3d_device->Clear(1, &viewport_rect, 3, color, 1.0f, 0);
+    glClearColor(color.r/255.f, color.g/255.f, color.b/255.f, 1.0f);
+    glClearDepth(1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
   if (flags & 4) {
@@ -678,7 +650,7 @@ int Stage::f_on_draw_2() {
   if (!(flags & 4) || some_countdown_timer < 60) {
     AnmManager::flush_vbos();
     inner.camera.screen_shake = SUPERVISOR.cameras[3].screen_shake;
-    memcpy(&SUPERVISOR.cameras[3], &inner.camera, sizeof(Camera_t));
+    SUPERVISOR.cameras[3] = inner.camera;
     SUPERVISOR.cameras[3].as_3d_matrix();
     SUPERVISOR.set_camera_by_index(3);
     SUPERVISOR.disable_d3d_fog();
@@ -687,9 +659,9 @@ int Stage::f_on_draw_2() {
     AnmManager::render_layer(32);
     SUPERVISOR.enable_ztest();
     AnmManager::render_layer(33);
-    // SUPERVISOR.set_fog_params(inner.camera.sky.color,
-    //                          inner.camera.sky.begin_distance,
-    //                          inner.camera.sky.end_distance);
+    SUPERVISOR.set_fog_params(inner.camera.sky.color,
+                             inner.camera.sky.begin_distance,
+                             inner.camera.sky.end_distance);
   }
   if ((flags & 4) && some_countdown_timer >= 30)
     inner.some_bg_color_unrelated_to_ins_13.a = 0;
@@ -820,15 +792,16 @@ void Stage::draw_layer(int layer) {
   SUPERVISOR.set_camera_by_index(3);
   SUPERVISOR.disable_d3d_fog();
   SUPERVISOR.disable_zwrite();
+  SUPERVISOR.disable_ztest();
   for (int i = 0; i < 8; i++) {
     if (inner.anm_layers[i] != layer)
       continue;
     // if (this->inner.vms[i].sprite_id > 0)
     //   continue;
-
     AnmManager::drawVM(&this->inner.vms[i]);
     // inner.vms[i].draw();
   }
+  SUPERVISOR.enable_ztest();
   SUPERVISOR.enable_zwrite();
   SUPERVISOR.enable_d3d_fog();
   SUPERVISOR.cameras[3].as_3d_matrix();
@@ -904,5 +877,22 @@ void Stage::create_face_vms() {
             obj->vmid = anm_i;
             anm_i++;
         }
+    }
+}
+
+void Stage::interrupt(unsigned int i) {
+    int off = 0;
+    auto instr = reinterpret_cast<StdOpener::std_instr_t *>(
+        reinterpret_cast<uint64_t>(beginning_of_script) + off);
+    while (static_cast<int32_t>(instr->time) > -1) {
+        if (instr->type == 0x10 && instr->args[0] == i) {
+            inner.instr_offset = reinterpret_cast<uint64_t>(instr) -
+                reinterpret_cast<uint64_t>(beginning_of_script);
+            inner.time_in_script = instr->time;
+            return;
+        }
+        off += instr->size;
+        instr = reinterpret_cast<StdOpener::std_instr_t *>(
+            reinterpret_cast<uint64_t>(beginning_of_script) + off);
     }
 }

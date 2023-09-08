@@ -146,12 +146,14 @@ inline int Enemy::execInstr(EclRunContext_t *cont, const EclRawInstr_t *instr) {
 
   allocate_new_laser(2, &inner);
 
-  _ins(712, etCancelRect) _f(w) _f(h) _args _notImpl
-      // get zRotation of anm0
-      // BulletManager::cancel_rectangle_as_bomb(z_rot,
-      //                  enemy.final_pos.pos, {w, h}, 1); TODO
+  _ins(712, etCancelRect) _f(w) _f(h) _args
+  auto vm = AnmManager::getVM(enemy.anmIds[0]);
+  float z_rot = 0.f;
+  if (vm) z_rot = vm->rotation.z;
+  BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(
+    z_rot, enemy.final_pos.pos, {w, h}, 1);
 
-      _ins(713, LaserBeOn) _S(a) _S(b) _args LaserBeamInner_t inner;
+  _ins(713, LaserBeOn) _S(a) _S(b) _args LaserBeamInner_t inner;
 
   // TODO(ClementChambard)
 

@@ -355,7 +355,8 @@ int LaserCurve::on_draw()
     _dzaww(&vm1, vertices, inner.laser_time_start * 2);
     if (time_alive <= inner.laser_time_start) {
         vm2.pos = nodes[inner.laser_time_start - 1].pos;
-        vm2.draw();
+        // vm2.draw();
+        AnmManager::drawVM(&vm2);
     }
     return 0;
 }

@@ -1,11 +1,11 @@
-#ifndef ANMSHADER_INCLUDED_H
-#define ANMSHADER_INCLUDED_H
+#ifndef BLITSHADER_INCLUDED_H
+#define BLITSHADER_INCLUDED_H
 
 #include <ShaderProgram.h>
 
-class AnmShader : public NSEngine::ShaderProgram {
+class BlitShader : public NSEngine::ShaderProgram {
     public:
-        AnmShader() : ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH) { bindAttributes(); getAllUniformLocation(); };
+        BlitShader() : ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH) { bindAttributes(); getAllUniformLocation(); };
 
         void SetProjectionMatrix(const glm::mat4& mat);
         void SetViewMatrix(const glm::mat4& mat);
@@ -20,7 +20,6 @@ class AnmShader : public NSEngine::ShaderProgram {
 
         GLuint location_projectionMatrix;
         GLuint location_viewMatrix;
-
 };
 
 #endif

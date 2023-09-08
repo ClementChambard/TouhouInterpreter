@@ -33,7 +33,6 @@ public:
             return "void";
         return loaded_subs[id].name;
     }
-    StdOpener::StdFile* stdf = nullptr;
 
 private:
     EclFileManager() { }

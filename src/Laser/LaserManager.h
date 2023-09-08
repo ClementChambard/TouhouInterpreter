@@ -17,13 +17,16 @@ public:
 
     void destroy_all();
     int cancel_all(bool as_bomb);
-    int cancel_in_radius(glm::vec3 /*pos*/, bool /*item*/,
-                         int /*a*/, float /*r*/) { return 0; }
+    int cancel_in_radius(glm::vec3 const& pos, bool item,
+                         int a, float r);
+    int cancel_radius_as_bomb(glm::vec3 const& pos, bool item, float r);
+    int cancel_in_rectangle(glm::vec2 const& pos, glm::vec2 const& scale, float angle);
 
 private:
     int f_on_tick();
     int f_on_draw();
 
+public:
     // undefined4 maybe vtable so doesn't matter
     UpdateFunc* on_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
@@ -31,8 +34,8 @@ private:
     Laser* list_head = nullptr;
     int32_t list_length = 0;
     int32_t current_id = 0;
-    glm::vec3 __field_5ec = {};
-    glm::vec3 __field_5f8 = {};
+    glm::vec3 cancel_rectangle_p1 = {};
+    glm::vec3 cancel_rectangle_p2 = {};
     AnmFile* bullet_anm = nullptr;
     // undefined4
     // undefined4

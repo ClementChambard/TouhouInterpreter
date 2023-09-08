@@ -31,6 +31,15 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 #define ANM_SLOT(a) ENEMY_MANAGER_PTR->loadedAnms[a]->getSlot()
 
         // ENEMY CREATION AND ANM SCRIPT
+
+    _ins(321, enmMapleEnemy) _z(sub) _f(x) _f(y) _S(hp) _S(score)
+                             _S(item) _args
+    // is it the same ?
+    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+        x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
+    if (e)
+        COPY_VARS_TO(e);
+
     _ins(300, enmCreate) _noprint _z(sub) _f(x) _f(y) _S(hp)
                                   _S(score) _S(item) _args
     auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
@@ -213,16 +222,22 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(320, anmMove) _S(slot) _f(x) _f(y) _args
     enemy.anmPos[slot] = { x, y, 0 };
 
-    _ins(321, enmMapleEnemy) _z(sub) _f(x) _f(y) _S(hp) _S(score)
-                             _S(item) _args _notImpl;
-
-    _ins(322, enm322) _S(a) _S(b) _args _notImpl;
+    _ins(322, enm322) _S(a) _S(b) _args
+    enemy.anmRelated[a] = b; // anmRelated seems unused and should be init to -1
 
     _ins(323, deathAnm) _S(anm) _S(scr) _args
     enemy.deathAnm = ANM_SLOT(anm);
     enemy.deathScr = scr;
 
-    _ins(324, enmPos2) _notImpl;
+    _ins(324, enmPos2) _rf(x) _rf(y) _S(id)
+    auto e = EnemyManager::GetInstance()->EnmFind(id);
+    if (!e) {
+      x = enemy.final_pos.pos.x;
+      y = enemy.final_pos.pos.y;
+    } else {
+      x = e->enemy.final_pos.pos.x;
+      y = e->enemy.final_pos.pos.y;
+    }
 
     _ins(325, anmCol) _S(slot) _S(r) _S(g) _S(b) _args
     auto vm = AnmManager::getVM(enemy.anmIds[slot].val);
@@ -274,9 +289,8 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     if (vm)
         vm->pos_i.start(vm->pos, { x, y, 0.f }, t, m);
 
-    _ins(334, anm334) _S(a) _args _notImpl;
-    // effect and anm 508 related, seiga lightning ?
-    // AnmManager::createVM508(a, ??);
+    _ins(334, anm334) _S(a) _args
+    AnmManager::createVM508(a, nullptr);
     // set result to effectmanager
 
     _ins(335, anmScale2) _S(slot) _f(x) _f(y) _args

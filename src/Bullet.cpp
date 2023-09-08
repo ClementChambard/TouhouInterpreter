@@ -82,15 +82,13 @@ void Bullet::_delete() {
 int Bullet::cancel(bool item) {
     vm.interrupt(1);
     vm.update();
-    // AnmManager::interrupt_tree(anmExtraId,1);
+    AnmManager::interrupt_tree(anm_extra_id, 1);
     if ((flags & 0x200) == 0) {
         if (-1 < cancel_sprite_id) {
-            auto VM = AnmManager::getVM(
-                BULLET_MANAGER_PTR->bullet_anm->createEffectPos(
-                    cancel_sprite_id, 0, pos));
-            VM->setScale2(scale, scale);
-            VM->setLayer(10);
-            // set it in BULLET_MANAGER_PTR->anm_ids[index_in_bullet_array]
+            AnmVM* vm;
+            BULLET_MANAGER_PTR->bullet_anm->createEffectPos(
+                    cancel_sprite_id, 0, pos, -1, &vm);
+            // BULLET_MANAGER_PTR->anm_ids[index_in_bullet_array] = id;
         }
         // SoundManager::play_sound_at_position(0x47);
         gen_items_from_et_cancel(pos, item);
@@ -98,6 +96,5 @@ int Bullet::cancel(bool item) {
     state = 4;
     pos += velocity * 0.5f;
     __timer_e54 = 0;
-    // _delete();
     return 0;
 }

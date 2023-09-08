@@ -1,0 +1,13 @@
+#version 130
+precision mediump float;
+
+in vec2 dstUvs;
+in vec2 srcUvs;
+
+out vec2 fragmentTexCoords;
+
+void main()
+{
+    gl_Position = vec4(dstUvs * 2.0 - 1.0, 0.0, 1.0);
+    fragmentTexCoords = srcUvs;
+}

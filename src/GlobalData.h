@@ -35,8 +35,8 @@ struct GlobalsInner_t {
     int32_t CURRENT_BOMBS = 2;
     int32_t CURRENT_BOMB_PIECES = 0;
     int32_t bombpiece_related = 2;
-    // undefined4
-    // undefined4
+    int32_t cnt_7c = 0;
+    int32_t cnt_80 = 0;
     int32_t HYPER_FILL = 0;
     int32_t TOKENS[5] = {};
     int32_t HYPER_FILL2 = 0;
@@ -84,5 +84,12 @@ extern bool GAME_PAUSED;
 extern Globals GLOBALS;
 extern float GAME_SPEED;
 extern glm::vec2 BACK_BUFFER_SIZE;
+
+extern float SURF_ORIGIN_ECL_FULL_X;
+extern float SURF_ORIGIN_ECL_FULL_Y;
+extern float GAME_REGION_WIDTH;
+extern float GAME_REGION_HEIGHT;
+extern float SURF_ORIGIN_ECL_X;
+extern float SURF_ORIGIN_ECL_Y;
 
 #endif // GLOBALDATA_H_

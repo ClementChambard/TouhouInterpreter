@@ -2,10 +2,12 @@
 #include "../Supervisor.h"
 #include "AnmBitflags.h"
 #include "./AnmFuncs.h"
+#include "../UpdateFuncRegistry.h"
 #include <DrawFuncs.h>
 #include <cstring>
 #include <NSlist.h>
 #include <TextureManager.h>
+#include <glm/common.hpp>
 // #include "../Supervisor.h"
 
 // zThread
@@ -54,6 +56,9 @@ int32_t AnmManager::use_custom_color_1c90a4c = false;
 GLuint AnmManager::vboID = 0;
 NSEngine::SpriteBatch* AnmManager::batch;
 AnmShader* AnmManager::shader;
+BlitShader* AnmManager::bshader;
+FogShader* AnmManager::fshader;
+NSEngine::ShaderProgram* AnmManager::curr_shader;
 
 void AnmManager::bindBuffer() {
   glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -87,16 +92,221 @@ void AnmManager::drawBuffer(RenderVertex_t *start, uint32_t count) {
 
 void AnmManager::unbindBuffer() { glBindBuffer(GL_ARRAY_BUFFER, 0); }
 
+
+static void anmmanager_initialize() {
+  // zFloat3_00529ecc.x = 1.0;
+  // zFloat3_00529ecc.y = 0.0;
+  // zFloat3_00529ecc.z = 0.0;
+  // zFloat3_00529ee4.x = 1.0;
+  // zFloat3_00529ee4.y = 1.0;
+  // zFloat3_00529ee4.z = 0.0;
+  // zFloat3_00529efc.x = 1.0;
+  // zFloat3_00529efc.y = 0.0;
+  // zFloat3_00529efc.z = 1.0;
+  // zFloat3_00529f14.x = 1.0;
+  // zFloat3_00529f14.y = 1.0;
+  // zFloat3_00529f14.z = 1.0;
+  SPRITE_TEMP_BUFFER[0].transformed_pos.w = 1.0;
+  SPRITE_TEMP_BUFFER[0].texture_uv.x = 0.0;
+  SPRITE_TEMP_BUFFER[0].texture_uv.y = 0.0;
+  SPRITE_TEMP_BUFFER[1].transformed_pos.w = 1.0;
+  SPRITE_TEMP_BUFFER[1].texture_uv.x = 1.0;
+  SPRITE_TEMP_BUFFER[1].texture_uv.y = 0.0;
+  SPRITE_TEMP_BUFFER[2].transformed_pos.w = 1.0;
+  SPRITE_TEMP_BUFFER[2].texture_uv.x = 0.0;
+  SPRITE_TEMP_BUFFER[2].texture_uv.y = 1.0;
+  SPRITE_TEMP_BUFFER[3].transformed_pos.w = 1.0;
+  SPRITE_TEMP_BUFFER[3].texture_uv.x = 1.0;
+  SPRITE_TEMP_BUFFER[3].texture_uv.y = 1.0;
+  UpdateFunc* func;
+  func = new UpdateFunc(AnmManager::on_tick_world);
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_tick(func, 35);
+  func = new UpdateFunc(AnmManager::on_tick_ui);
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_tick(func, 10);
+  func = new UpdateFunc([](){return AnmManager::render_layer(0);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 5);
+  func = new UpdateFunc([](){return AnmManager::render_layer(1);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 7);
+  func = new UpdateFunc([](){return AnmManager::render_layer(2);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 9);
+  func = new UpdateFunc([](){return AnmManager::render_layer(4);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 11);
+  func = new UpdateFunc([](){
+    SUPERVISOR.cameras[3].as_2d_matrix();
+    SUPERVISOR.set_camera_by_index(3);
+    SUPERVISOR.disable_d3d_fog();
+    return AnmManager::render_layer(3);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 10);
+  func = new UpdateFunc([](){return AnmManager::render_layer(5);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 13);
+  func = new UpdateFunc([](){return AnmManager::render_layer(6);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 16);
+  func = new UpdateFunc([](){return AnmManager::render_layer(7);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 18);
+  func = new UpdateFunc([](){return AnmManager::render_layer(8);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 20);
+  func = new UpdateFunc([](){return AnmManager::render_layer(9);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 21);
+  func = new UpdateFunc([](){return AnmManager::render_layer(10);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 22);
+  func = new UpdateFunc([](){return AnmManager::render_layer(11);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 24);
+  func = new UpdateFunc([](){return AnmManager::render_layer(12);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 27);
+  func = new UpdateFunc([](){return AnmManager::render_layer(13);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 28);
+  func = new UpdateFunc([](){return AnmManager::render_layer(14);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 31);
+  func = new UpdateFunc([](){return AnmManager::render_layer(15);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 32);
+  func = new UpdateFunc([](){return AnmManager::render_layer(16);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 35);
+  func = new UpdateFunc([](){return AnmManager::render_layer(17);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 37);
+  func = new UpdateFunc([](){return AnmManager::render_layer(18);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 40);
+  func = new UpdateFunc([](){return AnmManager::render_layer(19);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 43);
+  func = new UpdateFunc([](){
+    SUPERVISOR.set_camera_by_index(1);
+    SUPERVISOR.disable_zwrite();
+    SUPERVISOR.disable_ztest();
+    return AnmManager::render_layer(20);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 46);
+  func = new UpdateFunc([](){return AnmManager::render_layer(21);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 47);
+  func = new UpdateFunc([](){return AnmManager::render_layer(22);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 53);
+  func = new UpdateFunc([](){return AnmManager::render_layer(23);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 55);
+  func = new UpdateFunc([](){return AnmManager::render_layer(26);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 62);
+  func = new UpdateFunc([](){return AnmManager::render_layer(27);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 63);
+  func = new UpdateFunc([](){return AnmManager::render_layer(29);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 78);
+  func = new UpdateFunc([](){return AnmManager::render_layer(30);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 80);
+  func = new UpdateFunc([](){return AnmManager::render_layer(31);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 83);
+  func = new UpdateFunc([](){return AnmManager::render_layer(25);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 60);
+  func = new UpdateFunc([](){
+    SUPERVISOR.set_camera_by_index(2);
+    SUPERVISOR.disable_zwrite();
+    SUPERVISOR.disable_ztest();
+    AnmManager::cam_vec2_fc_x = 0.0f;
+    AnmManager::cam_vec2_fc_y = 0.0f;
+    return AnmManager::render_layer(24);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 59);
+  func = new UpdateFunc([](){
+    SUPERVISOR.set_camera_by_index(0);
+    return AnmManager::render_layer(28);
+    SUPERVISOR.set_camera_by_index(2);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 65);
+  func = new UpdateFunc([](){
+    SUPERVISOR.set_camera_by_index(2);
+    SUPERVISOR.disable_zwrite();
+    SUPERVISOR.disable_ztest();
+    return AnmManager::render_layer(36);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 56);
+  func = new UpdateFunc([](){return AnmManager::render_layer(37);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 61);
+  func = new UpdateFunc([](){return AnmManager::render_layer(38);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 64);
+  func = new UpdateFunc([](){
+    SUPERVISOR.set_camera_by_index(0);
+    return AnmManager::render_layer(39);
+    SUPERVISOR.set_camera_by_index(2);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 66);
+  func = new UpdateFunc([](){return AnmManager::render_layer(40);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 79);
+  func = new UpdateFunc([](){return AnmManager::render_layer(41);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 81);
+  func = new UpdateFunc([](){return AnmManager::render_layer(42);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 84);
+}
+
+
 void AnmManager::Init() {
   for (size_t i = 0; i < 8191; i++) {
+    fastArray[i].vm.reset();
     fastArray[i].fastID = i;
+    fastArray[i].vm.fast_id = i;
+    fastArray[i].isAlive = false;
+    fastArray[i].freelistNode.value = &fastArray[i];
     ListUtil::listInsertAfter(&freelist_head, &fastArray[i].freelistNode);
   }
+
+  some_positions[1] = 0.0;
+  last_used_texture = -1;
+  last_used_blendmode = 0;
+  field_0x18607c9 = 0;
+  field_0x18607ca = 0;
+  field_0x18607cb = 0;
+  field_0x18607c0 = {0, 0, 0, 1};
+  field_0x18607cc = 255;
+  // pause_related[0].anm_loaded = -1;
+  // pause_related[1].anm_loaded = -1;
+  // pause_related[2].anm_loaded = -1;
+  // pause_related[3].anm_loaded = -1;
 
   // glGenBuffers(1, &vboID);
   batch = new NSEngine::SpriteBatch();
   batch->Init();
   shader = new AnmShader();
+  bshader = new BlitShader();
+  fshader = new FogShader();
+  curr_shader = shader;
+
+  anmmanager_initialize();
 }
 
 void AnmManager::Cleanup() {
@@ -132,6 +342,8 @@ void AnmManager::Cleanup() {
   batch->Dispose();
   delete batch;
   delete shader;
+  delete bshader;
+  delete fshader;
 }
 
 AnmVM *AnmManager::allocate_vm() {
@@ -559,8 +771,7 @@ int AnmManager::render_layer(uint32_t layer) {
       l -= 12;
     }
     if (l == layer) {
-      // draw_vm
-      node->value->draw();
+      drawVM(node->value);
     }
     render_loop_ctr_0xd8++;
   }
@@ -574,8 +785,7 @@ int AnmManager::render_layer(uint32_t layer) {
       l = 38;
     }
     if (l == layer) {
-      // draw_vm
-      node->value->draw();
+      drawVM(node->value);
     }
     render_loop_ctr_0xd8++;
   }
@@ -585,14 +795,14 @@ int AnmManager::render_layer(uint32_t layer) {
 RenderVertex_t SPRITE_TEMP_BUFFER[4];
 float RESOLUTION_MULT = 1.f;
 
-void AnmManager::flush_vbos() // TODO: do the render call
-{
+void AnmManager::flush_vbos() {
   batch->end();
-  shader->start();
+  curr_shader->start();
   batch->renderBatch();
-  shader->stop();
+  curr_shader->stop();
   batch->begin();
   return;
+  // TODO: REAL
   if (vertex_buffers.unrendered_sprite_count != 0) {
     // if (field_0x18607cf != 1) {
     //  IDK
@@ -755,9 +965,21 @@ void AnmManager::calc_mat_world(AnmVM *vm) {
 void AnmManager::drawVM(AnmVM *vm) {
   if (vm->index_of_on_draw) ANM_ON_DRAW_FUNCS[vm->index_of_on_draw](vm);
 
-  if (!vm->bitflags.visible /*|| !vm->bitflags.f530_1*/ ||
+  if (!vm->bitflags.visible || !vm->bitflags.f530_1 ||
       vm->bitflags.activeFlags)
     return;
+
+  // auto saved_a1 = vm->color_1.a;
+  // auto saved_a2 = vm->color_2.a;
+  // if (vm->bitflags.fadeNearCamera) {
+  //   float d = math::point_distance(
+  //     {vm->pos + vm->__pos_2 + vm->entity_pos}, SUPERVISOR.current_camera->position);
+  //   float factor = (d - vm->cam_fade_begin) / (vm->cam_fade_end-vm->cam_fade_begin);
+  //   if (factor > 1.f) factor = 1.f;
+  //   if (factor < 0.f) factor = 0.f;
+  //   vm->color_1.a *= factor;
+  //   vm->color_2.a *= factor;
+  // }
 
   SUPERVISOR.disable_zwrite();
 
@@ -772,7 +994,7 @@ void AnmManager::drawVM(AnmVM *vm) {
         SPRITE_TEMP_BUFFER[2].transformed_pos,
         SPRITE_TEMP_BUFFER[3].transformed_pos);
     draw_vm__modes_0_1_2_3(vm, 1);
-    return;
+    break;
   case 1:
   case 3:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
@@ -783,7 +1005,7 @@ void AnmManager::drawVM(AnmVM *vm) {
                                          SPRITE_TEMP_BUFFER[2].transformed_pos,
                                          SPRITE_TEMP_BUFFER[3].transformed_pos);
     draw_vm__modes_0_1_2_3(vm, 0);
-    return;
+    break;
   case 2:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
@@ -793,13 +1015,13 @@ void AnmManager::drawVM(AnmVM *vm) {
         SPRITE_TEMP_BUFFER[2].transformed_pos,
         SPRITE_TEMP_BUFFER[3].transformed_pos);
     draw_vm__modes_0_1_2_3(vm, 0);
-    return;
+    break;
   case 4:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
     if (!vm->write_sprite_corners__mode_4_o())
-      draw_vm__modes_0_1_2_3(vm, 0);
-    return;
+      draw_vm__modes_0_1_2_3(vm, 4);
+    break;
   case 5:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
@@ -810,12 +1032,12 @@ void AnmManager::drawVM(AnmVM *vm) {
     SPRITE_TEMP_BUFFER[2].transformed_pos.w = 1.0;
     SPRITE_TEMP_BUFFER[1].transformed_pos.w = 1.0;
     SPRITE_TEMP_BUFFER[0].transformed_pos.w = 1.0;
-    return;
+    break;
   case 6:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
     draw_vm__mode_6(vm);
-    return;
+    break;
   case 7: {
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
@@ -852,13 +1074,13 @@ void AnmManager::drawVM(AnmVM *vm) {
     SPRITE_TEMP_BUFFER[2].transformed_pos.w = 1.0;
     SPRITE_TEMP_BUFFER[1].transformed_pos.w = 1.0;
     SPRITE_TEMP_BUFFER[0].transformed_pos.w = 1.0;
-    return;
+    break;
   }
   case 8:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
     draw_vm__mode_8_15(vm);
-    return;
+    break;
   case 9:
   case 0xc:
   case 0xd:
@@ -866,21 +1088,19 @@ void AnmManager::drawVM(AnmVM *vm) {
     draw_vm_triangle_strip(vm,
             reinterpret_cast<RenderVertex_t*>(vm->special_vertex_buffer_data),
             vm->int_script_vars[0] * 2);
-    return;
-  default:
-    return;
+    break;
   case 0xb:
     draw_vm_triangle_fan(vm,
             reinterpret_cast<RenderVertex_t*>(vm->special_vertex_buffer_data),
             vm->int_script_vars[0] * 2);
-    return;
+    break;
   case 0xf:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
     SUPERVISOR.enable_d3d_fog();
     draw_vm__mode_8_15(vm);
     SUPERVISOR.disable_d3d_fog();
-    return;
+    break;
   case 0x10:
   case 0x14:
   case 0x15:
@@ -904,32 +1124,31 @@ void AnmManager::drawVM(AnmVM *vm) {
     case 0x10:
       draw_vm__ins_603(pos.x, pos.y, xs, ys, rot, vm->color_1, vm->color_1,
                        vm->bitflags.anchorX, vm->bitflags.anchorY);
-      return;
+      break;
     case 0x14:
       draw_vm__ins_603(pos.x, pos.y, xs, ys, rot, vm->color_1, vm->color_2,
                        vm->bitflags.anchorX, vm->bitflags.anchorY);
-      return;
+      break;
     case 0x15:
       draw_vm__ins_607(pos.x, pos.y, xs, ys, rot, vm->color_1, vm->color_1,
                        vm->bitflags.anchorX, vm->bitflags.anchorY);
-      return;
+      break;
     case 0x16:
       draw_vm__ins_607(pos.x, pos.y, xs, ys, rot, vm->color_1, vm->color_2,
                        vm->bitflags.anchorX, vm->bitflags.anchorY);
-      return;
+      break;
     case 0x1a:
       draw_vm__ins_613(pos.x, pos.y, xs, rot, vm->color_1,
                        (vm->bitflags.colmode == 0) ? vm->color_1 : vm->color_2,
                        vm->bitflags.anchorX);
-      return;
+      break;
     case 0x1b:
       draw_vm__ins_612(pos.x, pos.y, xs, ys, rot, vm->color_1,
                        (vm->bitflags.colmode == 0) ? vm->color_1 : vm->color_2,
                        vm->bitflags.anchorX, vm->bitflags.anchorY);
-      return;
-    default:
-      return;
+      break;
     }
+    break;
   }
   case 0x11:
   case 0x12:
@@ -963,13 +1182,16 @@ void AnmManager::drawVM(AnmVM *vm) {
             vm->int_script_vars[0], vm->color_1);
     }
   }
-    return;
+    break;
   case 0x18:
   case 0x19:
     draw_vm_mode_24_25(vm, vm->special_vertex_buffer_data,
         vm->int_script_vars[0] * 2);
-    return;
+    break;
   }
+
+  // vm->color_1.a = saved_a1;
+  // vm->color_2.a = saved_a2;
 }
 
 void AnmManager::draw_vm__modes_0_1_2_3(AnmVM *vm, int i) {
@@ -981,23 +1203,23 @@ void AnmManager::draw_vm__modes_0_1_2_3(AnmVM *vm, int i) {
   SPRITE_TEMP_BUFFER[2].transformed_pos.y += cam_vec2_fc_y;
   SPRITE_TEMP_BUFFER[3].transformed_pos.x += cam_vec2_fc_x;
   SPRITE_TEMP_BUFFER[3].transformed_pos.y += cam_vec2_fc_y;
-  if (i & 1) {
+  if (!(i & 1)) {
     SPRITE_TEMP_BUFFER[0].transformed_pos.x =
         round(SPRITE_TEMP_BUFFER[0].transformed_pos.x) - 0.5;
-    SPRITE_TEMP_BUFFER[1].transformed_pos.x =
-        round(SPRITE_TEMP_BUFFER[1].transformed_pos.x) - 0.5;
     SPRITE_TEMP_BUFFER[0].transformed_pos.y =
         round(SPRITE_TEMP_BUFFER[0].transformed_pos.y) - 0.5;
+    SPRITE_TEMP_BUFFER[1].transformed_pos.x =
+        round(SPRITE_TEMP_BUFFER[1].transformed_pos.x) - 0.5;
+    SPRITE_TEMP_BUFFER[1].transformed_pos.y =
+        round(SPRITE_TEMP_BUFFER[1].transformed_pos.y) - 0.5;
+    SPRITE_TEMP_BUFFER[2].transformed_pos.x =
+        round(SPRITE_TEMP_BUFFER[2].transformed_pos.x) - 0.5;
     SPRITE_TEMP_BUFFER[2].transformed_pos.y =
         round(SPRITE_TEMP_BUFFER[2].transformed_pos.y) - 0.5;
-    SPRITE_TEMP_BUFFER[1].transformed_pos.y =
-        SPRITE_TEMP_BUFFER[0].transformed_pos.y;
-    SPRITE_TEMP_BUFFER[2].transformed_pos.x =
-        SPRITE_TEMP_BUFFER[0].transformed_pos.x;
     SPRITE_TEMP_BUFFER[3].transformed_pos.x =
-        SPRITE_TEMP_BUFFER[1].transformed_pos.x;
+        round(SPRITE_TEMP_BUFFER[3].transformed_pos.x) - 0.5;
     SPRITE_TEMP_BUFFER[3].transformed_pos.y =
-        SPRITE_TEMP_BUFFER[2].transformed_pos.y;
+        round(SPRITE_TEMP_BUFFER[3].transformed_pos.y) - 0.5;
   }
   vm->last_rendered_quad_in_surface_space[0] =
       SPRITE_TEMP_BUFFER[0].transformed_pos;
@@ -1008,35 +1230,37 @@ void AnmManager::draw_vm__modes_0_1_2_3(AnmVM *vm, int i) {
   vm->last_rendered_quad_in_surface_space[3] =
       SPRITE_TEMP_BUFFER[3].transformed_pos;
 
-  /* if max of x pos is smaller than left of viewport --> discard drawing */
-  if (fmax(fmax(SPRITE_TEMP_BUFFER[0].transformed_pos.x,
-  SPRITE_TEMP_BUFFER[1].transformed_pos.x),
-  fmax(SPRITE_TEMP_BUFFER[2].transformed_pos.x,
-  SPRITE_TEMP_BUFFER[3].transformed_pos.x))
-      < SUPERVISOR.current_camera->viewport.X) return;
+  if (!(i & 4)) {
+    /* if max of x pos is smaller than left of viewport --> discard drawing */
+    if (fmax(fmax(SPRITE_TEMP_BUFFER[0].transformed_pos.x,
+    SPRITE_TEMP_BUFFER[1].transformed_pos.x),
+    fmax(SPRITE_TEMP_BUFFER[2].transformed_pos.x,
+    SPRITE_TEMP_BUFFER[3].transformed_pos.x))
+        < SUPERVISOR.current_camera->viewport.X) return;
 
-  /* if max of y pos is smaller than top of viewport --> discard drawing */
-  if (fmax(fmax(SPRITE_TEMP_BUFFER[0].transformed_pos.y,
-  SPRITE_TEMP_BUFFER[1].transformed_pos.y),
-  fmax(SPRITE_TEMP_BUFFER[2].transformed_pos.y,
-  SPRITE_TEMP_BUFFER[3].transformed_pos.y))
-      < SUPERVISOR.current_camera->viewport.Y) return;
+    /* if max of y pos is smaller than top of viewport --> discard drawing */
+    if (fmax(fmax(SPRITE_TEMP_BUFFER[0].transformed_pos.y,
+    SPRITE_TEMP_BUFFER[1].transformed_pos.y),
+    fmax(SPRITE_TEMP_BUFFER[2].transformed_pos.y,
+    SPRITE_TEMP_BUFFER[3].transformed_pos.y))
+        < SUPERVISOR.current_camera->viewport.Y) return;
 
-  /* if min of x pos is larger than right of viewport --> discard drawing */
-  if (fmin(fmin(SPRITE_TEMP_BUFFER[0].transformed_pos.x,
-  SPRITE_TEMP_BUFFER[1].transformed_pos.x),
-  fmin(SPRITE_TEMP_BUFFER[2].transformed_pos.x,
-  SPRITE_TEMP_BUFFER[3].transformed_pos.x))
-      > SUPERVISOR.current_camera->viewport.Width +
-      SUPERVISOR.current_camera->viewport.X) return;
+    /* if min of x pos is larger than right of viewport --> discard drawing */
+    if (fmin(fmin(SPRITE_TEMP_BUFFER[0].transformed_pos.x,
+    SPRITE_TEMP_BUFFER[1].transformed_pos.x),
+    fmin(SPRITE_TEMP_BUFFER[2].transformed_pos.x,
+    SPRITE_TEMP_BUFFER[3].transformed_pos.x))
+        > SUPERVISOR.current_camera->viewport.Width +
+        SUPERVISOR.current_camera->viewport.X) return;
 
-  /* if min of y pos is larger than bottom of viewport --> discard drawing */
-  if (fmin(fmin(SPRITE_TEMP_BUFFER[0].transformed_pos.y,
-  SPRITE_TEMP_BUFFER[1].transformed_pos.y),
-  fmin(SPRITE_TEMP_BUFFER[2].transformed_pos.y,
-  SPRITE_TEMP_BUFFER[3].transformed_pos.y))
-      > SUPERVISOR.current_camera->viewport.Height +
-      SUPERVISOR.current_camera->viewport.Y) return;
+    /* if min of y pos is larger than bottom of viewport --> discard drawing */
+    if (fmin(fmin(SPRITE_TEMP_BUFFER[0].transformed_pos.y,
+    SPRITE_TEMP_BUFFER[1].transformed_pos.y),
+    fmin(SPRITE_TEMP_BUFFER[2].transformed_pos.y,
+    SPRITE_TEMP_BUFFER[3].transformed_pos.y))
+        > SUPERVISOR.current_camera->viewport.Height +
+        SUPERVISOR.current_camera->viewport.Y) return;
+  }
 
   SPRITE_TEMP_BUFFER[0].texture_uv.x =
       vm->uv_scroll_pos.x + vm->uv_quad_of_sprite[0].x;
@@ -1067,6 +1291,9 @@ void AnmManager::draw_vm__modes_0_1_2_3(AnmVM *vm, int i) {
     last_used_texture = vm->getSprite().opengl_texid;
     flush_vbos();
     glBindTexture(GL_TEXTURE_2D, last_used_texture);
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
   }
 
   if (field_0x18607ca != 1) {
@@ -1130,8 +1357,9 @@ void AnmManager::draw_vm__modes_0_1_2_3(AnmVM *vm, int i) {
 extern glm::vec2 BACK_BUFFER_SIZE;
 
 int AnmManager::draw_vm__mode_6(AnmVM *vm) {
-  if (vm->write_sprite_corners__mode_4_o() != 0)
+  if (vm->write_sprite_corners__mode_4_o() != 0) {
     return -1;
+  }
   glm::vec3 pos_from_cam = vm->entity_pos + vm->pos + vm->__pos_2 -
                          SUPERVISOR.current_camera->position;
   if (vm->bitflags.originMode != 0 && !vm->parent_vm) {
@@ -1153,13 +1381,14 @@ int AnmManager::draw_vm__mode_6(AnmVM *vm) {
       SPRITE_TEMP_BUFFER[1].diffuse_color = col;
       SPRITE_TEMP_BUFFER[2].diffuse_color = col;
       SPRITE_TEMP_BUFFER[3].diffuse_color = col;
-      draw_vm__modes_0_1_2_3(vm, 2);
+      draw_vm__modes_0_1_2_3(vm, 6);
       return 0;
     }
+
     fog_factor =
-        (SUPERVISOR.current_camera->sky.begin_distance - dist_to_cam) /
-        (SUPERVISOR.current_camera->sky.begin_distance -
-         SUPERVISOR.current_camera->sky.end_distance);
+         (dist_to_cam - SUPERVISOR.current_camera->sky.begin_distance) /
+         (SUPERVISOR.current_camera->sky.end_distance -
+          SUPERVISOR.current_camera->sky.begin_distance);
     if (fog_factor > 1.0)
       return -1;
     SPRITE_TEMP_BUFFER[0].diffuse_color.r =
@@ -1175,7 +1404,7 @@ int AnmManager::draw_vm__mode_6(AnmVM *vm) {
     SPRITE_TEMP_BUFFER[1].diffuse_color = SPRITE_TEMP_BUFFER[0].diffuse_color;
     SPRITE_TEMP_BUFFER[2].diffuse_color = SPRITE_TEMP_BUFFER[0].diffuse_color;
     SPRITE_TEMP_BUFFER[3].diffuse_color = SPRITE_TEMP_BUFFER[0].diffuse_color;
-    draw_vm__modes_0_1_2_3(vm, 2);
+    draw_vm__modes_0_1_2_3(vm, 6);
     return 0;
   case 2:
   case 3:
@@ -1226,13 +1455,13 @@ int AnmManager::draw_vm__mode_6(AnmVM *vm) {
       SPRITE_TEMP_BUFFER[1].diffuse_color = SPRITE_TEMP_BUFFER[0].diffuse_color;
       SPRITE_TEMP_BUFFER[2].diffuse_color = SPRITE_TEMP_BUFFER[3].diffuse_color;
     }
-    draw_vm__modes_0_1_2_3(vm, 2);
+    draw_vm__modes_0_1_2_3(vm, 6);
     return 0;
   }
 }
 
 void AnmManager::draw_vm__mode_8_15(AnmVM *vm) {
-  if (!vm->bitflags.visible || /*!vm->bitflags.f530_1 ||*/
+  if (!vm->bitflags.visible || !vm->bitflags.f530_1 ||
       vm->color_1.a == 0) {
     return;
   }
@@ -1258,34 +1487,34 @@ void AnmManager::draw_vm__mode_8_15(AnmVM *vm) {
   }
   switch (vm->bitflags.rotationMode) {
   case 0:
-    if (vm->rotation.z != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1});
-    if (vm->rotation.y != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0});
-    if (vm->rotation.x != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0});
+    if (vm->rotation.x != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0}) * vm->__matrix_2;
+    if (vm->rotation.y != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0}) * vm->__matrix_2;
+    if (vm->rotation.z != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1}) * vm->__matrix_2;
     break;
   case 1:
-    if (vm->rotation.y != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0});
-    if (vm->rotation.z != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1});
-    if (vm->rotation.x != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0});
+    if (vm->rotation.x != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0}) * vm->__matrix_2;
+    if (vm->rotation.z != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1}) * vm->__matrix_2;
+    if (vm->rotation.y != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0}) * vm->__matrix_2;
     break;
   case 2:
-    if (vm->rotation.z != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1});
-    if (vm->rotation.x != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0});
-    if (vm->rotation.y != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0});
+    if (vm->rotation.y != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0}) * vm->__matrix_2;
+    if (vm->rotation.x != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0}) * vm->__matrix_2;
+    if (vm->rotation.z != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1}) * vm->__matrix_2;
     break;
   case 3:
-    if (vm->rotation.x != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0});
-    if (vm->rotation.z != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1});
-    if (vm->rotation.y != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0});
+    if (vm->rotation.y != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0}) * vm->__matrix_2;
+    if (vm->rotation.z != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1}) * vm->__matrix_2;
+    if (vm->rotation.x != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0}) * vm->__matrix_2;
     break;
   case 4:
-    if (vm->rotation.y != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0});
-    if (vm->rotation.x != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0});
-    if (vm->rotation.z != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1});
+    if (vm->rotation.z != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1}) * vm->__matrix_2;
+    if (vm->rotation.x != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0}) * vm->__matrix_2;
+    if (vm->rotation.y != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0}) * vm->__matrix_2;
     break;
   case 5:
-    if (vm->rotation.x != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0});
-    if (vm->rotation.y != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0});
-    if (vm->rotation.z != 0.0) vm->__matrix_2 *= glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1});
+    if (vm->rotation.z != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.z, {0, 0, 1}) * vm->__matrix_2;
+    if (vm->rotation.y != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.y, {0, 1, 0}) * vm->__matrix_2;
+    if (vm->rotation.x != 0.0) vm->__matrix_2 = glm::rotate(glm::mat4(1.f), vm->rotation.x, {1, 0, 0}) * vm->__matrix_2;
     break;
   }
   vm->bitflags.rotated = false;
@@ -1304,7 +1533,6 @@ LAB_0046ecb8:
   local_90[3][0] = pp.x;
   local_90[3][1] = pp.y;
   local_90[3][2] = pp.z;
-  setup_render_state_for_vm(vm);
   NSEngine::Color col = vm->color_1;
   if (vm->bitflags.colmode != 0) {
     col = vm->color_2;
@@ -1323,18 +1551,23 @@ LAB_0046ecb8:
     last_used_texture = vm->getSprite().opengl_texid;
     flush_vbos();
     glBindTexture(GL_TEXTURE_2D, last_used_texture);
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     // SUPERVISOR.d3d_device->SetTexture(0, vm->getSprite().opengl_texid);
   }
+
+  setup_render_state_for_vm(vm);
 
   // My version
   float l = vm->bitflags.anchorX != 0 ? -(vm->bitflags.anchorX - 1) : -0.5f;
   float r = l + 1;
   float t = vm->bitflags.anchorY != 0 ? -(vm->bitflags.anchorY - 1) : -0.5f;
   float b = t + 1;
-  float top = t * vm->sprite_size.y;// * vm->scale.y * vm->scale_2.y;
-  float bottom = b * vm->sprite_size.y;// * vm->scale.y * vm->scale_2.y;
-  float left = l * vm->sprite_size.x;// * vm->scale.x * vm->scale_2.x;
-  float right = r * vm->sprite_size.x;// * vm->scale.x * vm->scale_2.x;
+  float top = t * 256;
+  float bottom = b * 256;
+  float left = l * 256;
+  float right = r * 256;
   float u1 = (vm->getSprite().u1 + vm->uv_scroll_pos.x) * vm->uv_scale.x;
   float u2 = (vm->getSprite().u2 + vm->uv_scroll_pos.x) * vm->uv_scale.x;
   float v1 = (vm->getSprite().v1 + vm->uv_scroll_pos.y) * vm->uv_scale.y;
@@ -1346,6 +1579,7 @@ LAB_0046ecb8:
   NSEngine::Vertex bl = { { local_90 * glm::vec4(left, bottom, 0, 1) }, col, { u1, v2 } };
   batch->draw(vm->getSprite().texID, tl, tr, br, bl, last_used_blendmode);
   // TODO: real ?
+  // What I did is equivalent to below (don't understand TextureStageState though)
 
   // if ((/*(some_positions[0] != vm->getSprite()) ||*/
   //      (vm->uv_scroll_pos.x != 0.0)) ||
@@ -1391,6 +1625,9 @@ void AnmManager::draw_vm_triangle_fan(AnmVM *vm, RenderVertex_t *vertexData,
     last_used_texture = vm->getSprite().opengl_texid;
     flush_vbos();
     // SUPERVISOR.d3d_device->SetTexture(0, last_used_texture);
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     glBindTexture(GL_TEXTURE_2D, last_used_texture);
   }
   SUPERVISOR.disable_zwrite();
@@ -1421,7 +1658,7 @@ void AnmManager::draw_vm_triangle_fan(AnmVM *vm, RenderVertex_t *vertexData,
 void AnmManager::draw_vm_triangle_strip(AnmVM *vm,
                                              RenderVertex_t *vertexData,
                                              int nVert) {
-  if (!vm->bitflags.visible || /*!vm->bitflags.f530_1 ||*/ vm->color_1.a == 0)
+  if (!vm->bitflags.visible || !vm->bitflags.f530_1 || vm->color_1.a == 0)
     return;
   if (vertex_buffers.unrendered_sprite_count != 0) {
     flush_vbos();
@@ -1429,6 +1666,9 @@ void AnmManager::draw_vm_triangle_strip(AnmVM *vm,
   if (last_used_texture != vm->getSprite().opengl_texid) {
     last_used_texture = vm->getSprite().opengl_texid;
     flush_vbos();
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     // SUPERVISOR.d3d_device->SetTexture(0, vm->getSprite().opengl_texid);
     glBindTexture(GL_TEXTURE_2D, last_used_texture);
   }
@@ -1511,6 +1751,9 @@ int AnmManager::draw_vm__ins_603(float x, float y, float width, float height,
   // My version
   if (last_used_texture != 1) {
     last_used_texture = 1;
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     flush_vbos();
     glBindTexture(GL_TEXTURE_2D, 1);
   }
@@ -1563,6 +1806,9 @@ int AnmManager::draw_vm__ins_613(float x, float y, float width, float rot_z,
   SUPERVISOR.disable_zwrite();
   if (last_used_texture != 1) {
     last_used_texture = 1;
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     flush_vbos();
     glBindTexture(GL_TEXTURE_2D, 1);
   }
@@ -1632,6 +1878,9 @@ int AnmManager::draw_vm__ins_612(float x, float y, float width, float height,
   SUPERVISOR.disable_zwrite();
   if (last_used_texture != 1) {
     last_used_texture = 1;
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     flush_vbos();
     glBindTexture(GL_TEXTURE_2D, 1);
   }
@@ -1691,6 +1940,9 @@ int AnmManager::draw_vm__mode_17__drawCircle(float x, float y, float angle_0,
   // My version
   if (last_used_texture != 1) {
     last_used_texture = 1;
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     flush_vbos();
     glBindTexture(GL_TEXTURE_2D, 1);
   }
@@ -1762,6 +2014,9 @@ int AnmManager::draw_vm__mode_18__drawCircleBorder(float x, float y,
   // My version
   if (last_used_texture != 1) {
     last_used_texture = 1;
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     flush_vbos();
     glBindTexture(GL_TEXTURE_2D, 1);
   }
@@ -1825,6 +2080,9 @@ int AnmManager::draw_vm__mode_19__drawRing(float x, float y, float angle_0,
   // My version
   if (last_used_texture != 1) {
     last_used_texture = 1;
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     flush_vbos();
     glBindTexture(GL_TEXTURE_2D, 1);
   }
@@ -1864,9 +2122,9 @@ int AnmManager::draw_vm__mode_19__drawRing(float x, float y, float angle_0,
 
 extern float SURF_ORIGIN_ECL_X;
 
-void AnmManager::draw_vm_mode_24_25(AnmVM *vm, [[maybe_unused]] void *buff,
-                                    [[maybe_unused]] int cnt) {
-  if (!(vm->bitflags.visible) /*|| !(vm->bitflags.f530_1)*/) return;
+void AnmManager::draw_vm_mode_24_25(AnmVM *vm, void *buff,
+                                    int cnt) {
+  if (!(vm->bitflags.visible) || !(vm->bitflags.f530_1)) return;
   if (vertex_buffers.unrendered_sprite_count != 0) {
     flush_vbos();
   }
@@ -1892,6 +2150,8 @@ void AnmManager::draw_vm_mode_24_25(AnmVM *vm, [[maybe_unused]] void *buff,
                vm->__pos_2.y -
               vm->anchor_offset.y * vm->scale.y *
                   vm->scale_2.y;
+  DStack_e0[3][2] = vm->entity_pos.z + vm->pos.z +
+               vm->__pos_2.z;
   if (vm->bitflags.originMode && !vm->parent_vm) {
     DStack_e0[3][0] += SURF_ORIGIN_ECL_X;
   }
@@ -1899,12 +2159,36 @@ void AnmManager::draw_vm_mode_24_25(AnmVM *vm, [[maybe_unused]] void *buff,
 
   if (last_used_texture != vm->getSprite().opengl_texid) {
     last_used_texture = vm->getSprite().opengl_texid;
+    last_used_scrollmodex = 255;
+    last_used_scrollmodey = 255;
+    last_used_resamplemode = 255;
     flush_vbos();
     // SUPERVISOR.d3d_device->SetTexture(0, last_used_texture);
     glBindTexture(GL_TEXTURE_2D, last_used_texture);
   }
 
-  //TODO: basically transform all points in buffer
+  auto cursor = reinterpret_cast<RenderVertex_t*>(buff);
+  std::vector<RenderVertex_t> data(cursor, &cursor[cnt]);
+  for (auto& v : data) {
+    v.transformed_pos = DStack_e0 * v.transformed_pos;
+  }
+
+  int nb_segments = (cnt - 2) / 2;
+  for (int i = 0; i < nb_segments; i++) {
+    auto& tl = data[i*2+0];
+    auto& tr = data[i*2+1];
+    auto& bl = data[i*2+2];
+    auto& br = data[i*2+3];
+    batch->draw(vm->getSprite().texID,
+      {tl.transformed_pos, tl.diffuse_color, tl.texture_uv},
+      {tr.transformed_pos, tr.diffuse_color, tr.texture_uv},
+      {br.transformed_pos, br.diffuse_color, br.texture_uv},
+      {bl.transformed_pos, bl.diffuse_color, bl.texture_uv},
+      last_used_blendmode);
+  }
+  return;
+
+  /// Actual
   // if (some_positions[0] != vm->getSprite() || vm->uv_scroll_pos.x != 0.0 ||
   //     vm->uv_scale.x != 1.0 || vm->uv_scale.y != 1.0) {
   //   some_positions[0] = vm->getSprite();

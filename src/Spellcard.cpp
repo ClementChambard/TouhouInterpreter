@@ -7,6 +7,7 @@
 #include "./Player.h"
 #include "./Supervisor.h"
 #include "Bomb.hpp"
+#include "StdOpener/Stage.hpp"
 
 Spellcard *SPELLCARD_PTR = nullptr;
 
@@ -209,9 +210,9 @@ void Spellcard::Stop() {
 }
 
 #include "Hardcoded.h"
-void Spellcard::Init(int /*id*/, int time, int mode, std::string name) {
+void Spellcard::Init(int id, int time, int mode, std::string name) {
   __timer_20 = 0;
-  // field25_0x74 = param_2;
+  spell_id = id;
 
   // strcpy name
   // pcVar10 = param_3;
@@ -263,7 +264,7 @@ void Spellcard::Init(int /*id*/, int time, int mode, std::string name) {
   field_0x8c = 1;
   flags &= 0xffffff9f;
   ascii_anmid_10 = ASCII_MANAGER_PTR->ascii_anm->createEffect(0);
-  // text_anmid_14 = SUPERVISOR.text_anm->createEffect(2);
+  text_anmid_14 = SUPERVISOR.text_anm->createEffect(2);
   ascii_anmid_18 = ASCII_MANAGER_PTR->ascii_anm->createEffect(1);
 
   // vm = ANM_MANAGER_PTR->get_vm_with_id(this->_text_anmid_14.value);

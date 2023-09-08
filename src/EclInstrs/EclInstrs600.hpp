@@ -5,6 +5,7 @@
 #include "../EclContext.h"
 #include "../Enemy.h"
 #include "../EnemyManager.h"
+#include "../StdOpener/Stage.hpp"
 #include "../Spellcard.h"
 #include "../Laser/LaserManager.h"
 #include "../AnmOpener/AnmManager.h"
@@ -137,7 +138,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(613, etClearAll) _args
     // TODO(ClementChambard): better
-    BulletManager::GetInstance()->ClearScreen(0);
+    BULLET_MANAGER_PTR->cancel_all(true);
     LASER_MANAGER_PTR->cancel_all(true);
 
     _ins(614, etCopy) _S(dst) _S(src) _args
@@ -146,15 +147,11 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.bulletOrigins[dst] = enemy.bulletOrigins[src];
 
     _ins(615, etCancel) _f(r) _args
-    // TODO(ClementChambard): better
-    BulletManager::GetInstance()
-        ->ClearScreen(1, r, enemy.final_pos.pos.x, enemy.final_pos.pos.y);
+    BULLET_MANAGER_PTR->cancel_radius(enemy.final_pos.pos, 1, r);
     LASER_MANAGER_PTR->cancel_in_radius(enemy.final_pos.pos, 1, 1, r);
 
     _ins(616, etClear) _f(r) _args
-    // TODO(ClementChambard): better
-    BulletManager::GetInstance()
-        ->ClearScreen(0, r, enemy.final_pos.pos.x, enemy.final_pos.pos.y);
+    BULLET_MANAGER_PTR->cancel_radius(enemy.final_pos.pos, 0, r);
     LASER_MANAGER_PTR->cancel_in_radius(enemy.final_pos.pos, 0, 1, r);
 
     _ins(617, etSpeedR3) _S(id) _f(a1) _f(b1) _f(c1) _f(a2) _f(b2) _f(c2) _args
@@ -214,17 +211,19 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
     enemy.fog.fog_ptr = nullptr;
     enemy.fog.fog_radius = r;
-    enemy.fog.__fog_field_c__init_16f = 16.0;
-    enemy.fog.fog_color = c;
-    enemy.fog.__fog_angle_44d0 = 0.0;
-    enemy.fog.__fog_angle_44d4 = 0.0;
+    enemy.fog.r = 16.0;
+    enemy.fog.fog_color.b = (c >> 0) & 0xff;
+    enemy.fog.fog_color.g = (c >> 8) & 0xff;
+    enemy.fog.fog_color.r = (c >> 16) & 0xff;
+    enemy.fog.fog_color.a = (c >> 24) & 0xff;
+    enemy.fog.oscillate_x = 0.0;
+    enemy.fog.oscillate_y = 0.0;
     if (r > 0) {
-        enemy.fog.fog_ptr = new Fog_t(0x11);
+        enemy.fog.fog_ptr = new Fog_t(17);
     }
 
     _ins(630, callStd) _S(s) _args
-    fileManager->stdf->interrupt(s);
-    // TODO: new stage
+    STAGE_PTR->interrupt(s);
 
     _ins(631, lifeHide) _S(t) _args
     if (t) ENEMY_MANAGER_PTR->flags &= 0xfffffffe;
@@ -240,15 +239,12 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(634, setHitboxFunc) _S(id) _args
     enemy.hitbox_func = ECL_HITBOX_FUNC[id];
 
-    _ins(635, etCancel2) _f(r) _args
-    BulletManager::GetInstance()
-        ->ClearScreen(3, r, enemy.final_pos.pos.x, enemy.final_pos.pos.y);
-    // TODO(ClementChambard): change clearScreen
+    _ins(635, etCancelAsBomb) _f(r) _args
+    BULLET_MANAGER_PTR->cancel_radius_as_bomb(enemy.final_pos.pos, 1, r);
     LASER_MANAGER_PTR->cancel_in_radius(enemy.final_pos.pos, 1, 1, r);
 
-    _ins(636, etClear2) _f(r) _args
-    BulletManager::GetInstance()
-        ->ClearScreen(2, r, enemy.final_pos.pos.x, enemy.final_pos.pos.y);
+    _ins(636, etClearAsBomb) _f(r) _args
+    BULLET_MANAGER_PTR->cancel_radius_as_bomb(enemy.final_pos.pos, 0, r);
     LASER_MANAGER_PTR->cancel_in_radius(enemy.final_pos.pos, 0, 1, r);
 
     _ins(637, funcCall) _S(id) _args

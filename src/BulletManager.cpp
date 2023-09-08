@@ -40,32 +40,6 @@ BulletManager* BulletManager::GetInstance() {
     return inst;
 }
 
-void BulletManager::ClearScreen(int mode, float r, float x, float y) {
-    if (r == -1) {
-        while (tick_list_head.next) {
-            tick_list_head.next->value->cancel(mode & 1);
-            RemoveBullet(tick_list_head.next->value);
-        }
-        return;
-    }
-    std::vector<Bullet*> toRemove;
-    for (auto n = tick_list_head.next; n != nullptr; n = n->next) {
-        Bullet* b = n->value;
-        if (!b)
-            continue;
-        if ((mode & 2) && b->ex_invuln__remaining_frames > 0)
-            continue;
-
-        if (math::point_distance_sq(x, y, b->pos.x, b->pos.y) < r * r) {
-            b->cancel(mode & 1);
-            toRemove.push_back(b);
-        }
-    }
-    for (auto b : toRemove)
-        RemoveBullet(b);
-}
-
-
 int BulletManager::on_tick() {
     Bullet* bullet;
     /* shift the graze_recent array, then
@@ -156,8 +130,9 @@ int BulletManager::on_draw() {
                 bullet->vm.bitflags.scaled = true;
                 bullet->vm.scale_2 = { bullet->scale, bullet->scale };
             }
-            bullet->vm.setLayer(17); // TODO(ClementChambard): remove this
-            bullet->vm.draw();
+            // bullet->vm.setLayer(17);
+            // bullet->vm.draw();
+            AnmManager::drawVM(&bullet->vm);
         }
         layer_head++;
     }
@@ -391,4 +366,101 @@ void BulletManager::RemoveBullet(Bullet* b) {
     if (freelist_head.next)
         freelist_head.next->previous = &b->freelist_node;
     freelist_head.next = &b->freelist_node;
+}
+
+void BulletManager::cancel_all(int item) {
+    for (size_t i = 0; i < max_bullet; i++) {
+        bullets[i].cancel(item);
+    }
+}
+
+void BulletManager::cancel_radius(glm::vec3 const& pos, int item, float r) {
+    auto node = tick_list_head.next;
+    auto next_node = node;
+    Bullet* bullet = nullptr;
+    if (node) {
+        next_node = node->next;
+        bullet = node->value;
+    }
+    iter_current = node;
+    iter_next = next_node;
+    while (bullet) {
+        if ((bullet->state == 2 || bullet->state == 1) &&
+            math::point_distance_sq(bullet->pos, pos) <=
+                  pow(bullet->hitbox_diameter / 2.f + r, 2)) {
+            bullet->cancel(item);
+        }
+        node = iter_next;
+        if (node) {
+            next_node = node->next;
+            bullet = node->value;
+        } else {
+            bullet = nullptr;
+        }
+        iter_current = node;
+        iter_next = next_node;
+    }
+}
+
+void BulletManager::cancel_radius_as_bomb(glm::vec3 const& pos, int item, float r) {
+    auto node = tick_list_head.next;
+    auto next_node = node;
+    Bullet* bullet = nullptr;
+    if (node) {
+        next_node = node->next;
+        bullet = node->value;
+    }
+    iter_current = node;
+    iter_next = next_node;
+    while (bullet) {
+        if ((bullet->state == 2 || bullet->state == 1) &&
+            bullet->ex_invuln__remaining_frames == 0 &&
+            math::point_distance_sq(bullet->pos, pos) <=
+                  pow(bullet->hitbox_diameter / 2.f + r, 2)) {
+            bullet->cancel(item);
+        }
+        node = iter_next;
+        if (node) {
+            next_node = node->next;
+            bullet = node->value;
+        } else {
+            bullet = nullptr;
+        }
+        iter_current = node;
+        iter_next = next_node;
+    }
+}
+
+void BulletManager::cancel_rectangle_as_bomb(float angle, glm::vec2 const& pos, glm::vec2 const& size, int item) {
+    for (int i = 0; i < 2000; i++) {
+        auto bullet = &bullets[i];
+        if (!(bullet->state == 2 || bullet->state == 1) ||
+            bullet->ex_invuln__remaining_frames != 0) continue;
+        float r = bullet->scale * bullet->hitbox_diameter;
+        float xx = abs(cos(-angle) * (bullet->pos.x - pos.x) -
+                       sin(-angle) * (bullet->pos.y - pos.y));
+        float yy = abs(cos(-angle) * (bullet->pos.y - pos.y) +
+                       sin(-angle) * (bullet->pos.x - pos.x));
+        if (size.x * 0.5 + r < xx ||
+           (size.y * 0.5 < yy && size.x * 0.5 < xx) ||
+            size.y * 0.5 + r < yy) {
+            float dxs = (xx - size.x * 0.5) * (xx - size.x * 0.5);
+            float dys = (yy - size.y * 0.5) * (yy - size.y * 0.5);
+            if (r * r <= dxs + dys) continue;
+        }
+        // if (((r + 192.0 < abs(bullet->pos.x)) ||
+        //     (224.0 < abs(bullet->pos.y - 224.0))) &&
+        //    ((192.0 < abs(bullet->pos.x) ||
+        //     (r + 224.0 < abs(bullet->pos.y - 224.0))))) {
+        //     float bs = (bullet->pos.y - 448.0) * (bullet->pos.y - 448.0);
+        //     float ls = (bullet->pos.x - 192.0) * (bullet->pos.x - 192.0);
+        //     float ts = (bullet->pos.y + 0.0) * (bullet->pos.y + 0.0);
+        //     float rs = (bullet->pos.x + 192.0) * (bullet->pos.x + 192.0);
+        //     if (r * r <= bs + ls &&
+        //         r * r <= bs + rs &&
+        //         r * r <= ts + ls &&
+        //         r * r <= ts + rs) continue;
+        // }
+        bullet->cancel(item);
+    }
 }

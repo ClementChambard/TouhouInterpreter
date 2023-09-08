@@ -412,9 +412,8 @@ LAB_0040ef69:
           } else {
             vm->entity_pos = PLAYER_PTR->inner.pos;
             auto pos = PLAYER_PTR->inner.pos + math::lengthdir_vec3(96, vm->rotation.z - 0.3490658);
-            // BulletManager::cancel_radius_as_bomb(pos,1,28.0);
-            BULLET_MANAGER_PTR->ClearScreen(3, 28.0, pos.x, pos.y);
-            LASER_MANAGER_PTR->cancel_in_radius(pos, 1, 0, 28.0);
+            BULLET_MANAGER_PTR->cancel_radius_as_bomb(pos, 1, 28.0);
+            LASER_MANAGER_PTR->cancel_in_radius(pos, 1, 1, 28.0);
             auto ds = create_damage_source_3(pos,2,5,28.0,0.0);
             PLAYER_PTR->inner.damage_sources[ds + -1].ds_on_hit = 4;
           }
@@ -478,8 +477,9 @@ LAB_0040ef69:
   float fVar18 = 1.0 - (1.0 - GLOBALS.inner.HYPER_TIME / 40.0);
   fVar18 = (1.0 - fVar18 * fVar18 * fVar18 * fVar18) * 200.0;
   ds->field_0x4 = fVar18;
-  // BulletManager::cancel_radius_as_bomb(ds->pos.pos, ~((uint)GLOBALS.inner.HYPER_FLAGS >> 3) & 1, fVar18);
-  BULLET_MANAGER_PTR->ClearScreen(3, fVar18, ds->pos.pos.x, ds->pos.pos.y);
+  BULLET_MANAGER_PTR->cancel_radius_as_bomb(ds->pos.pos,
+            ~((uint)GLOBALS.inner.HYPER_FLAGS >> 3) & 1,
+                fVar18);
   LASER_MANAGER_PTR->cancel_in_radius(ds->pos.pos,
             (~(GLOBALS.inner.HYPER_FLAGS >> 3) & 1),
             1, fVar18);

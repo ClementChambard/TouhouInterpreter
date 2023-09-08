@@ -96,7 +96,7 @@ int Bomb::f_on_draw() {
 }
 
 void Bomb::initialize() {
-    if (TOUHOU_VERSION != 17) return;
+    if (TOUHOU_VERSION != 17) new BombEmpty();
     if (GLOBALS.inner.CHARACTER == 0) new BombReimu();
     if (GLOBALS.inner.CHARACTER == 1) new BombMarisa();
     if (GLOBALS.inner.CHARACTER == 2) new BombYoumu();
@@ -115,9 +115,9 @@ void Bomb::start() {
     if (0x3b < SPELLCARD_PTR->__timer_20) {
       BOMB_PTR->field_0x68 = 1;
     }
-    // if (SPELLCARD_PTR->spell_id == 100) {
-    //   BulletManager::cancel_radius(PLAYER_PTR->inner.pos, 0, 192.0);
-    // }
+    if (SPELLCARD_PTR->spell_id == 100) {
+      BULLET_MANAGER_PTR->cancel_radius(PLAYER_PTR->inner.pos, 0, 192.0);
+    }
   }
   // SoundManager::play_sound_at_position(0x2c);
   BOMB_PTR->begin();
@@ -140,10 +140,8 @@ int BombReimu::method_10() {
     for (int i = 0; i < 0x18; i++) {
         if (buffer->orbs[i].field28) {
             if (timer_0x34.current % 8 == (i % 8)) {
-                // BULLET_MANAGER_PTR->cancel_radius_as_bomb(buffer->orbs[i].pos.pos, 0, 64.0);
-                // LASER_MANAGER_PTR->cancel_radius_as_bomb(buffer->orbs[i].pos.pos, 0, 64.0);
-                BULLET_MANAGER_PTR->ClearScreen(3, 64.0, buffer->orbs[i].pos.pos.x, buffer->orbs[i].pos.pos.y);
-                LASER_MANAGER_PTR->cancel_in_radius(buffer->orbs[i].pos.pos, 1, 0, 64.0);
+                BULLET_MANAGER_PTR->cancel_radius_as_bomb(buffer->orbs[i].pos.pos, 0, 64.0);
+                LASER_MANAGER_PTR->cancel_in_radius(buffer->orbs[i].pos.pos, 0, 1, 64.0);
             }
         }
     }
@@ -188,10 +186,8 @@ void BombReimu::Buffer_t::Orb_t::explode() {
     if (field35 == 0) {
         if (field28) {
             // SoundManager::play_sound_at_position(0x1b);
-            // BulletManager::cancel_radius_as_bomb(pos.pos, 0, 128.0);
-            // LaserManager::cancel_radius_as_bomb(pos.pos, 0, 128.0);
-            BULLET_MANAGER_PTR->ClearScreen(3, 128, pos.pos.x, pos.pos.y);
-            LASER_MANAGER_PTR->cancel_in_radius(pos.pos, 1, 0, 128);
+            BULLET_MANAGER_PTR->cancel_radius_as_bomb(pos.pos, 0, 128.0);
+            LASER_MANAGER_PTR->cancel_in_radius(pos.pos, 1, 1, 128);
             int ds = create_damage_source_3(pos.pos, 0xb, 100, 64.0, 8.0);
             PLAYER_PTR->inner.damage_sources[ds - 1].flags |= 4;
         }
@@ -387,10 +383,10 @@ int BombMarisa::method_10() {
     while (vm = AnmManager::getVM(anmid_0x5c), vm) {
         vm = vm->search_children(scr, i);
         if (!vm) return 0;
-        // glm::vec2 scale = vm->scale * glm::vec2(48.0, 160.0);
-        // glm::vec3 pos = vm->get_pos_with_root();
-        // BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(field_0x2c, pos, scale, 0);
-        // LASER_MANAGER_PTR->cancel_rectangle_as_bomb(field_0x2c, pos, scale, 0);
+        glm::vec2 scale = vm->scale * glm::vec2(48.0, 160.0);
+        glm::vec3 pos = vm->get_pos_with_root();
+        BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(field_0x2c, pos, scale, 0);
+        LASER_MANAGER_PTR->cancel_in_rectangle(pos, scale, field_0x2c);
         i++;
     }
     anmid_0x5c = 0;
@@ -527,8 +523,9 @@ int BombYoumu::f_on_tick_() {
             int ds = create_damage_source(pos,
                   vm->rotation.z, 0, 0x1e, hbsize.x, hbsize.y);
             PLAYER_PTR->inner.damage_sources[ds - 1].flags |= 4;
-            // BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(vm->rotation.z, pos, hbsize, 0);
-            // LASER_MANAGER_PTR->cancel_in_rectangle(pos, hbsize);
+            BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(vm->rotation.z,
+                                                         pos, hbsize, 0);
+            LASER_MANAGER_PTR->cancel_in_rectangle(pos, hbsize, vm->rotation.z);
             timers[i]++;
         }
     }

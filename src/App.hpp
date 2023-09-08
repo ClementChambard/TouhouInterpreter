@@ -4,8 +4,8 @@
 #include "./AnmViewer.hpp"
 #include <Engine.hpp>
 
-#define WINDOW_WIDTH (/*384 * 2 */1920)
-#define WINDOW_HEIGHT (/*448 * 2 */1080)
+#define WINDOW_WIDTH  (/*1920*/1280/*640*/)
+#define WINDOW_HEIGHT (/*1080*/960 /*480*/)
 
 class App : public NSEngine::IEngine {
 public:

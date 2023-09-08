@@ -103,9 +103,9 @@ public:
 
   void alloc_special_vertex_buffer(int size) {
     if (special_vertex_buffer_data)
-      delete[] reinterpret_cast<uint8_t*>(special_vertex_buffer_data);
+      free(special_vertex_buffer_data);
     special_vertex_buffer_size = size;
-    special_vertex_buffer_data = new uint8_t[size];
+    special_vertex_buffer_data = malloc(size);
   }
   void transform_coordinate(glm::vec3 &pos);
   void transform_coordinate_o(glm::vec3 &p);
@@ -160,9 +160,9 @@ void write_sprite_corners__with_z_rot_o(glm::vec4 &tl, glm::vec4 &tr,
   Interp<float> v_vel_i = {};
   glm::vec2 uv_quad_of_sprite[4] = {};
   glm::vec2 uv_scroll_vel = {};
-  glm::mat4 __matrix_1 = {}; // translate ?
-  glm::mat4 __matrix_2 = {}; // rotate ?
-  glm::mat4 __matrix_3 = {}; // scale ?
+  glm::mat4 __matrix_1 = {};
+  glm::mat4 __matrix_2 = {};
+  glm::mat4 __matrix_3 = {};
   int32_t pending_interrupt = 0;
   int32_t __time_of_last_sprite_set__unused = 0;
   // undefined4
@@ -183,14 +183,17 @@ void write_sprite_corners__with_z_rot_o(glm::vec4 &tl, glm::vec4 &tr,
   NSEngine::Color color_2 = {0, 0, 0, 0};
   NSEngine::Color mixed_inherited_color = {255, 255, 255, 255};
   uint8_t font_dims[2] = {};
+
   // undefined2
   AnmVM_flags_t bitflags;
+  float cam_fade_begin = 0.f;
+  float cam_fade_end = 0.f;
 
   // SUFFIX
   AnmID id = 0;
   int32_t fast_id = 0;
-  int32_t time_in_script = 0; // zTimer
-  int32_t __timer_1c = 0;     // zTimer
+  int32_t time_in_script = 0;  // zTimer
+  int32_t __timer_1c = 0;      // zTimer
   AnmVMList_t node_in_global_list = {this, nullptr, nullptr};
   AnmVMList_t __node_as_child = {this, nullptr, nullptr};
   AnmVMList_t list_of_children = {};

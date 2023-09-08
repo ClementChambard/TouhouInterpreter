@@ -34,7 +34,7 @@ public:
     int on_draw() override;
     int cancel_as_bomb_rectangle(glm::vec3, glm::vec3,
                                  float, int, int) override;
-    int cancel_as_bomb_circle(int, int, int, int) override;
+    int cancel_as_bomb_circle(glm::vec3 const&, float, int, int) override;
     int cancel(int, int) override;
     int check_graze_or_kill(int) override { return 0; }
     int method_50_line();

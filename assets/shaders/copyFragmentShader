@@ -1,14 +1,14 @@
 #version 130
 precision mediump float;
 
-in vec4 fragmentColor;
 in vec2 fragmentTexCoords;
 
 out vec4 color;
 
 uniform sampler2D NSTexture;
+uniform vec4 tint;
 
 void main() {
-    color = texture(NSTexture, fragmentTexCoords) * fragmentColor;
-    if (color.a == 0) discard;
+    color = texture(NSTexture, fragmentTexCoords) * tint;
+    color.a = 1.0;
 }

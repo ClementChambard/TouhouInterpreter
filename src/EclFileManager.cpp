@@ -30,13 +30,6 @@ void EclFileManager::LoadEcl(std::string file) {
 
     ENEMY_MANAGER_PTR->loadedAnms[0] = BulletManager::GetInstance()->bullet_anm;
     ENEMY_MANAGER_PTR->loadedAnms[1] = AnmManager::getLoaded(8);
-
-    std::string stdFile = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]
-        ["std_filename"].asString();
-    if (file_exists(stdFile)) {
-        stdf = new StdOpener::StdFile(stdFile);
-        stdf->Init();
-    }
 }
 
 void EclFileManager::LoadEcli(std::string const& file) {
@@ -60,9 +53,6 @@ void EclFileManager::CloseEcl() {
     for (auto f : loaded_files)
         ecl_close(f);
     loaded_files.clear();
-    if (stdf)
-        delete stdf;
-    stdf = nullptr;
 }
 
 void EclFileManager::ListSubs() {

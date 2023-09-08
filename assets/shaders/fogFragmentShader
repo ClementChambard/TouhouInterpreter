@@ -1,0 +1,28 @@
+#version 130
+precision mediump float;
+
+in vec4 fragmentColor;
+in vec2 fragmentTexCoords;
+in vec3 fragmentPosition;
+
+out vec4 color;
+
+uniform sampler2D NSTexture;
+
+uniform vec3 cameraPosition;
+uniform vec4 fogColor;
+uniform float fogMax;
+uniform float fogMin;
+
+float getFogFactor(float d) {
+    return clamp((d-fogMin)/(fogMax-fogMin), 0.0, 1.0);
+}
+
+void main() {
+    float distToCamera = length(fragmentPosition.xyz - cameraPosition);
+    vec4 col = texture(NSTexture, fragmentTexCoords);
+    col = col * fragmentColor;
+    if (col.a == 0) discard;
+    color = mix(col, fogColor, getFogFactor(distToCamera));
+    color.a = col.a;
+}

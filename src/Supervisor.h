@@ -3,9 +3,11 @@
 
 #include "AnmOpener/AnmFile.h"
 #include <glm/glm.hpp>
+#include <FrameBuffer.h>
 #include <color.h>
 
 struct CameraSky_t {
+    void init(float beg, float eng, float c0, float c1, float c2, float c3);
     float begin_distance = 0.f;
     float end_distance = 0.f;
     glm::vec4 color_components{};
@@ -44,8 +46,12 @@ struct Camera_t {
 };
 
 struct Supervisor_t {
-    Supervisor_t();
+    Supervisor_t() {}
     ~Supervisor_t();
+
+    void init();
+
+    int initialize();
 
     // hinstance
     // d3d
@@ -63,8 +69,8 @@ struct Supervisor_t {
     // present_parameters
     // lot undefined
     // display_mode
-    // surface_atR_0
-    // surface_atR_1
+    NSEngine::FrameBuffer* surface_atR_0 = nullptr;
+    NSEngine::FrameBuffer* surface_atR_1 = nullptr;
     // back_buffer
     // undefined4
     AnmVM* arcade_vm_0 = nullptr;
@@ -99,9 +105,12 @@ struct Supervisor_t {
     void disable_d3d_fog(bool force = false);
     void enable_d3d_fog(bool force = false);
     void disable_zwrite(bool force = false);
+    void set_fog_params(NSEngine::Color col, float beg, float end);
     void enable_zwrite(bool force = false);
     void disable_ztest();
     void enable_ztest();
+    void disable_atest();
+    void enable_atest();
     void init_cameras();
     void setup_special_anms();
 };

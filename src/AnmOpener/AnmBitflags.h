@@ -70,12 +70,10 @@
 #define ANMVM_BIT_534_31 (1 << 31)
 
 struct AnmVM_flags_t {
-
-    AnmVM_flags_t()
-    {
-        //*reinterpret_cast<uint64_t*>(this) = 0;
+    AnmVM_flags_t() {
+        // *reinterpret_cast<uint64_t*>(this) = 0;
         visible = false;
-        f530_1 = 0;
+        f530_1 = false;
         rotated = false;
         scaled = false;
         zoomed = false;
@@ -115,6 +113,7 @@ struct AnmVM_flags_t {
         colorizeChildren = false;
         f534_26 = 0;
         f534_27_31 = 0;
+        fadeNearCamera = 0;
     }
     uint32_t visible : 1; /* 0x00000001  |  0xfffffffe */
     uint32_t f530_1 : 1; /* 0x00000002  |  0xfffffffd */
@@ -157,7 +156,8 @@ struct AnmVM_flags_t {
     uint32_t hasGrowth : 1;
     uint32_t colorizeChildren : 1;
     uint32_t f534_26 : 1;
-    uint32_t f534_27_31 : 5;
+    uint32_t f534_27_31 : 4;
+    uint32_t fadeNearCamera : 1;
 };
 
 #define RESET_FLAGS(f, r, n) f &= ~(n << r)

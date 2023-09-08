@@ -23,12 +23,12 @@ class Stage;
 
 struct StageDistortion_t {
   Fog_t *fog_ptr = nullptr;
-  float field_0x04 = 0.f;
-  float field_0x08 = 0.f;
+  float r_target = 0.f;
+  float r = 0.f;
   int32_t field_0x0c = 0;
-  Timer_t timer_0x10 = 0;
-  float field_0x24 = 0.f;
-  float field_0x28 = 0.f;
+  Timer_t time = 0;
+  float ox = 0.f;
+  float oy = 0.f;
   int32_t mode = 0;
 };
 
@@ -66,6 +66,8 @@ public:
   void draw_layer(int i);
 
   void create_face_vms();
+
+  void interrupt(unsigned int i);
 
   // undefined4
   UpdateFunc *on_tick = nullptr;

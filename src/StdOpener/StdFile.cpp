@@ -5,6 +5,7 @@
 #include "./stdOpener.h"
 #include <Engine.hpp>
 #include <NSEngine.h>
+#include <cstdio>
 #include "../GlobalData.h"
 #include "../Supervisor.h"
 
@@ -144,6 +145,8 @@ void StdFile::Draw() {
     baseShader.SetCameraPosition(theCam->getPosition());
     glActiveTexture(GL_TEXTURE0);
     NSEngine::toggleCulling(false);
+    glEnable(GL_DEPTH_TEST);
+    // SUPERVISOR.enable_zwrite(true);
     if (NSEngine::getInstance()->flags().flags.wireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {

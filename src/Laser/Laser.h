@@ -16,7 +16,7 @@ public:
     virtual int on_draw() { return 0; }
     virtual int cancel_as_bomb_rectangle(glm::vec3, glm::vec3,
                                          float, int, int) { return 0; }
-    virtual int cancel_as_bomb_circle(int, int, int, int) { return 0; }
+    virtual int cancel_as_bomb_circle(glm::vec3 const&, float, int, int) { return 0; }
     virtual int cancel(int, int) { return 0; }
     virtual int method_30(int, int) { return 0; }
     virtual int check_graze_or_kill(int) { return 0; }

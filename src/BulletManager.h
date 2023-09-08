@@ -17,7 +17,10 @@ public:
 
     void Shoot(EnemyBulletShooter_t* bh);
 
-    void ClearScreen(int mode, float r = -1.f, float x = 0.f, float y = 0.f);
+    void cancel_all(int item);
+    void cancel_radius(glm::vec3 const& pos, int item, float r);
+    void cancel_radius_as_bomb(glm::vec3 const& pos, int item, float r);
+    void cancel_rectangle_as_bomb(float angle, glm::vec2 const& pos, glm::vec2 const& scale, int item);
 
     void set_bounce_rect(float w, float h) {
         et_bounce_rect_w = w;

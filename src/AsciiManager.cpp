@@ -1,17 +1,19 @@
 #include "./AsciiManager.hpp"
 #include "./AnmOpener/AnmManager.h"
+#include "Hardcoded.h"
+#include "Supervisor.h"
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
 
 AsciiManager *ASCII_MANAGER_PTR = nullptr;
 
-// Should refer to a variable inside SUPERVISOR
-static const int resolution = (RESOLUTION_MULT * 2 - 2);
-
 AsciiManager::AsciiManager() {
+  // Should refer to a variable inside SUPERVISOR
+  int resolution = math::clamp(static_cast<int>(RESOLUTION_MULT * 2 - 2), 0, 2);
   ASCII_MANAGER_PTR = this;
   const char *anms[] = {"ascii.anm", "ascii_960.anm", "ascii_1280.anm"};
+  if (TOUHOU_VERSION < 14) anms[1] = anms[2] = anms[0];
   ascii_anm = AnmManager::LoadFile(2, anms[resolution]);
   if (!ascii_anm) {
     std::cerr << "データが壊れています\n";
@@ -26,18 +28,21 @@ AsciiManager::AsciiManager() {
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 82);
 
   on_draw_2 = new UpdateFunc([this]() {
-    // SUPERVISOR.set_camera_by_index(0);
+    SUPERVISOR.set_camera_by_index(0);
     this->__vm_1.bitflags.originMode = 2;
     this->render_group(1);
     this->__vm_1.bitflags.originMode = 0;
+    AnmManager::flush_vbos();
+    SUPERVISOR.set_camera_by_index(2);
     return 1;
   });
   on_draw_2->flags &= 0xfffffffd;
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_2, 54);
 
   on_draw_3 = new UpdateFunc([this]() {
-    // SUPERVISOR.set_camera_by_index(0);
+    SUPERVISOR.set_camera_by_index(0);
     this->render_group(2);
+    SUPERVISOR.set_camera_by_index(2);
     return 1;
   });
   on_draw_3->flags &= 0xfffffffd;
@@ -71,7 +76,7 @@ int AsciiManager::render_group(int gid) {
     if (strings[i].render_group == gid)
       render_string(strings[i]);
   }
-  // SUPERVISOR.set_camera_by_index(2);
+  SUPERVISOR.set_camera_by_index(2);
   return 1;
 }
 
@@ -95,6 +100,7 @@ int AsciiManager::f_on_tick() {
 void AsciiManager::render_string(AsciiStr_t const &str) {
   __vm_1.bitflags.resolutionMode = 0;
   __vm_1.bitflags.visible = true;
+  __vm_1.bitflags.f530_1 = true;
   __vm_1.bitflags.anchorX = 1;
   __vm_1.bitflags.anchorY = 1;
   __vm_1.pos = str.pos;
@@ -102,10 +108,9 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
   __vm_1.bitflags.scaled = true;
   __vm_1.color_1 = str.color;
 
-  // TODO: NO
-  if (str.render_group == 0) __vm_1.layer = 42;
-  if (str.render_group == 1) __vm_1.layer = 23;
-  if (str.render_group == 2) __vm_1.layer = 29;
+  // if (str.render_group == 0) __vm_1.layer = 42;
+  // if (str.render_group == 1) __vm_1.layer = 23;
+  // if (str.render_group == 2) __vm_1.layer = 29;
 
   float font_width = 0.0;
   float font_height = 0.0;
@@ -264,26 +269,26 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
       __vm_1.pos.x += RESOLUTION_MULT * 2.f;
       __vm_1.pos.y += RESOLUTION_MULT * 2.f;
 
-      // AnmVm::write_sprite_corners__without_rot(
-      //     &this->__vm_1, (zFloat3 *)SPRITE_TEMP_BUFFER,
-      //     (zFloat3 *)(SPRITE_TEMP_BUFFER + 1),
-      //     (zFloat3 *)(SPRITE_TEMP_BUFFER + 2),
-      //     (zFloat3 *)(SPRITE_TEMP_BUFFER + 3));
-      // ANM_MANAGER_PTR->draw_vm__modes_0_1_2_3(&this->__vm_1, 1);
-      __vm_1.draw();
+      __vm_1.write_sprite_corners__without_rot_o(
+          SPRITE_TEMP_BUFFER[0].transformed_pos,
+          SPRITE_TEMP_BUFFER[1].transformed_pos,
+          SPRITE_TEMP_BUFFER[2].transformed_pos,
+          SPRITE_TEMP_BUFFER[3].transformed_pos);
+      AnmManager::draw_vm__modes_0_1_2_3(&__vm_1, 1);
+      // __vm_1.draw();
 
       __vm_1.pos.x -= RESOLUTION_MULT * 2.f;
       __vm_1.pos.y -= RESOLUTION_MULT * 2.f;
       __vm_1.color_1 = str.color;
     }
 
-    // AnmVm::write_sprite_corners__without_rot(
-    //     &this->__vm_1, (zFloat3 *)SPRITE_TEMP_BUFFER,
-    //     (zFloat3 *)(SPRITE_TEMP_BUFFER + 1),
-    //     (zFloat3 *)(SPRITE_TEMP_BUFFER + 2),
-    //     (zFloat3 *)(SPRITE_TEMP_BUFFER + 3));
-    // ANM_MANAGER_PTR->draw_vm__modes_0_1_2_3(&this->__vm_1, 1);
-    __vm_1.draw();
+    __vm_1.write_sprite_corners__without_rot_o(
+        SPRITE_TEMP_BUFFER[0].transformed_pos,
+        SPRITE_TEMP_BUFFER[1].transformed_pos,
+        SPRITE_TEMP_BUFFER[2].transformed_pos,
+        SPRITE_TEMP_BUFFER[3].transformed_pos);
+    AnmManager::draw_vm__modes_0_1_2_3(&__vm_1, 1);
+    // __vm_1.draw();
     __vm_1.pos.x += RESOLUTION_MULT * next_char_pos;
     c++;
   }

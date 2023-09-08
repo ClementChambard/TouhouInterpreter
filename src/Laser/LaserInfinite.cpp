@@ -183,18 +183,19 @@ int LaserInfinite::on_tick()
     return 0;
 }
 
-int LaserInfinite::on_draw()
-{
+int LaserInfinite::on_draw() {
     float zrot = angle + 1.570796;
     math::angle_normalize(zrot);
     // vm1.rotation.current.z = vm1.rotation.goal.z = zrot;
     vm1.rotation.z = zrot;
     vm1.bitflags.rotated = true;
     vm1.pos = laser_offset;
-    vm1.draw();
+    // vm1.draw();
+    AnmManager::drawVM(&vm1);
     if (__field_7c__sometimes_0p01_or_0f == 0.0) {
         vm2.pos = laser_offset;
-        vm2.draw();
+        // vm2.draw();
+        AnmManager::drawVM(&vm2);
     }
     return 0;
 }

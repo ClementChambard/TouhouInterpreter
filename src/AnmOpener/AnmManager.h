@@ -4,6 +4,8 @@
 #include "AnmFile.h"
 #include "AnmShader.h"
 #include "AnmVM.h"
+#include "BlitShader.h"
+#include "FogShader.h"
 #include <array>
 #include <string>
 
@@ -166,6 +168,9 @@ public:
     static GLuint vboID;
     static NSEngine::SpriteBatch* batch;
     static AnmShader* shader;
+    static BlitShader* bshader;
+    static FogShader* fshader;
+    static NSEngine::ShaderProgram* curr_shader;
     friend class AnmVM;
 
     static void bindBuffer();

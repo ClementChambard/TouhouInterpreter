@@ -8,6 +8,7 @@
 #include <Engine.hpp>
 #include <string>
 
+// TODO check macros
 // XXX -600 XXX -200 XXX 200 XXX 600 XXX
 #define Rank5(a, b, c, d, e) a
 // XXX -200 XXX 200 XXX 

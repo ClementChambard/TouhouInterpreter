@@ -575,18 +575,14 @@ int ItemManager::_on_tick() {
     return 1;
 }
 
-#include <DrawFuncs.h>
-#include <NSEngine.h>
 int ItemManager::_on_draw(bool a) {
-    NSEngine::draw_set_layer(19);
     for (int i = 0; i < 600; i++) {
         if (normal_items[i].state && normal_items[i].anm_vm_1.bitflags.visible
             && normal_items[i].intangibility_frames < 1 && a) {
             normal_items[i].anm_vm_1.pos = normal_items[i].position;
             normal_items[i].anm_vm_2.pos = normal_items[i].position;
             if (normal_items[i].anm_vm_1.pos.y >= -8) {
-                normal_items[i].anm_vm_1.layer = 15;
-                normal_items[i].anm_vm_1.draw();
+                AnmManager::drawVM(&normal_items[i].anm_vm_1);
                 normal_items[i].
                     __field_c60__init_to_item_type_but_only_for_piv_items = 0;
             } else {
@@ -598,8 +594,7 @@ int ItemManager::_on_draw(bool a) {
                     else
                         normal_items[i].anm_vm_2.color_1.a = 0xff;
                     normal_items[i].anm_vm_2.pos.y = 8.0;
-                    normal_items[i].anm_vm_2.layer = 15;
-                    normal_items[i].anm_vm_2.draw();
+                    AnmManager::drawVM(&normal_items[i].anm_vm_2);
                 }
                 normal_items[i]
                     .__field_c60__init_to_item_type_but_only_for_piv_items = 1;
@@ -612,8 +607,7 @@ int ItemManager::_on_draw(bool a) {
             cancel_items[i].anm_vm_1.pos = cancel_items[i].position;
             cancel_items[i].anm_vm_2.pos = cancel_items[i].position;
             if (cancel_items[i].anm_vm_1.pos.y >= -8) {
-                cancel_items[i].anm_vm_1.layer = 15;
-                cancel_items[i].anm_vm_1.draw();
+                AnmManager::drawVM(&normal_items[i].anm_vm_1);
                 cancel_items[i]
                     .__field_c60__init_to_item_type_but_only_for_piv_items = 0;
             } else {
@@ -625,8 +619,7 @@ int ItemManager::_on_draw(bool a) {
                     else
                         cancel_items[i].anm_vm_2.color_1.a = 0xff;
                     cancel_items[i].anm_vm_2.pos.y = 8.0;
-                    cancel_items[i].anm_vm_2.layer = 15;
-                    cancel_items[i].anm_vm_2.draw();
+                    AnmManager::drawVM(&normal_items[i].anm_vm_2);
                 }
                 cancel_items[i]
                     .__field_c60__init_to_item_type_but_only_for_piv_items = 1;

@@ -399,7 +399,10 @@ int AnmVM::exec_instruction(int8_t* ins) {
         case 438: // originMode
             bitflags.originMode = S(0);
             break;
-        case 439: // TODO: fadeNearCamera (doesn't exist in th17 ???)
+        case 439: // fadeNearCamera
+            bitflags.fadeNearCamera = S(0);
+            cam_fade_begin = f(1);
+            cam_fade_begin = f(2);
             break;
 
         case 500: // scriptNew

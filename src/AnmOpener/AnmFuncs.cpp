@@ -170,12 +170,19 @@ int on_draw_anm_1(AnmVM* vm) {
 
 int on_draw_anm_3(AnmVM*) { return 0; }
 
+#include "../Fog.hpp"
+
+int on_draw_anm_4(AnmVM* vm) {
+    reinterpret_cast<Fog_t*>(vm->associated_game_entity)->set_vm_vertices();
+    return 0;
+}
+
 int (*ANM_ON_DRAW_FUNCS[8])(AnmVM*) = {
     nullptr,
     on_draw_anm_1,
     on_func_return_0,
     on_draw_anm_3,
-    on_draw_anm_3,
+    on_draw_anm_4,
     on_draw_anm_3,
     on_draw_anm_3,
     on_draw_anm_3,
