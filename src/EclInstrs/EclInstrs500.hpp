@@ -119,8 +119,8 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(516, playSound) _S(id) _args
     // SoundManager::play_sound_at_position(id, enemy.final_pos.pos.x);
 
-    _ins(517, setScreenShake) _S(t) _S(s) _S(e) _args
-    new ScreenEffect(1, t, s, e, 0, 0x55);
+    _ins(517, setScreenShake) _S(time) _S(start_str) _S(end_str) _args
+    new ScreenEffect(1, time, start_str, end_str, 0, 0x55);
 
     _ins(518, dialogueRead) _S(i) _args
     // GUI_PTR->dialog_read(i);

@@ -9,5 +9,7 @@ float SURF_ORIGIN_ECL_FULL_X = 0.0;
 float SURF_ORIGIN_ECL_FULL_Y = 0.0;
 float GAME_REGION_WIDTH = 0.0;
 float GAME_REGION_HEIGHT = 0.0;
+float GAME_REGION_X = 0.0;
+float GAME_REGION_Y = 0.0;
 float SURF_ORIGIN_ECL_X = 0.0;
 float SURF_ORIGIN_ECL_Y = 0.0;

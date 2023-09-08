@@ -11,6 +11,7 @@
 #include <string>
 
 #include "./StdOpener/Stage.hpp"
+#include "ScreenEffect.hpp"
 
 AnmViewer *ANM_VIEWER_PTR = nullptr;
 
@@ -552,32 +553,28 @@ void set_camera_window(bool *open) {
     return;
   ImGui::Begin("Camera", open);
   ImGui::PushID("CameraWindow");
-  static bool captureActive = false;
-  ImGui::Checkbox("Capture camera", &captureActive);
-  static glm::vec3 camPos = {0, 0, -2000};
-  static glm::vec3 up = {0, 0, -1};
-  static float yaw = 0.f;
-  static float pitch = 0.1f;
-  static float fov = NSEngine::engineData::cam3d->getFov();
-  ImGui::InputFloat3("position", &camPos[0]);
-  ImGui::InputFloat3("up", &up[0]);
-  ImGui::InputFloat("yaw", &yaw);
-  ImGui::InputFloat("pitch", &pitch);
-  ImGui::InputFloat("fov", &fov);
-  pitch = glm::clamp(pitch, -PI / 2.f + 0.001f, PI / 2.f - 0.001f);
-  fov = glm::clamp(fov, 0.f, PI / 2.f);
-  static const float aspectRatio =
-      (float)NSEngine::getInstance()->window().getWindowData().width /
-      (float)NSEngine::getInstance()->window().getWindowData().height;
-  if (captureActive) {
-    glm::vec3 debugLookat =
-        glm::vec3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw));
-    glm::vec3 debugRight = glm::normalize(glm::cross(debugLookat, up));
-    glm::mat4 persp = glm::perspective(fov, aspectRatio, 0.1f, 10000.f);
-    glm::vec3 up2 = glm::normalize(glm::cross(debugRight, debugLookat));
-    glm::mat4 viewMatrix = glm::lookAt(camPos, camPos + debugLookat, up2);
-    NSEngine::engineData::cam3d->setMat(persp, viewMatrix);
+  static int cam = 0;
+  static const char *camera_names[] = {"Camera 0", "Camera 1", "Camera 2", "Camera 3", "Stage"};
+  auto selected = camera_names[cam];
+  if (ImGui::BeginCombo("Camera", selected)) {
+    for (int i = 0; i < IM_ARRAYSIZE(camera_names); i++) {
+      bool isSelected = (selected == camera_names[i]);
+      if (ImGui::Selectable(camera_names[i], isSelected)) {
+        selected = camera_names[i];
+        cam = i;
+      }
+      if (isSelected)
+        ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
   }
+  Camera_t* camera;
+  if (cam < 4) camera = &SUPERVISOR.cameras[cam];
+  else camera = &STAGE_PTR->inner.camera;
+  ImGui::InputFloat3("position", &camera->position[0]);
+  ImGui::InputFloat3("look", &camera->facing[0]);
+  ImGui::InputFloat3("up", &camera->up[0]);
+  ImGui::InputFloat("fov", &camera->fov_y);
   ImGui::PopID();
   ImGui::End();
 }
@@ -636,10 +633,23 @@ void openedFiles_window(bool *open) {
   ImGui::PopID();
   ImGui::End();
 }
-extern float SURF_ORIGIN_ECL_X;
-extern float SURF_ORIGIN_ECL_Y;
-extern float SURF_ORIGIN_ECL_FULL_X;
-extern float SURF_ORIGIN_ECL_FULL_Y;
+
+void screff_window(bool* open) {
+  if (!*open) return;
+  ImGui::Begin("Screen effect", open);
+  static int p1 = 0, p2 = 0, p3 = 0, p4 = 0, p5 = 0, p6 = 0;
+  ImGui::InputInt("param_1", &p1);
+  ImGui::InputInt("param_2", &p2);
+  ImGui::InputInt("param_3", &p3);
+  ImGui::InputInt("param_4", &p4);
+  ImGui::InputInt("param_5", &p5);
+  ImGui::InputInt("param_6", &p6);
+  if (ImGui::Button("Create")) {
+    new ScreenEffect(p1, p2, p3, p4, p5, p6);
+  }
+  ImGui::End();
+}
+
 void main_menu_window(bool *open) {
   if (!*open)
     return;
@@ -659,6 +669,9 @@ void main_menu_window(bool *open) {
   static bool camera_w_open = false;
   set_camera_window(&camera_w_open);
 
+  static bool screff_w_open = false;
+  screff_window(&screff_w_open);
+
   ImGui::Begin("Anm viewer main menu", open);
   ImGui::PushID("MainMenu");
   if (ImGui::Button("open files window")) {
@@ -676,16 +689,11 @@ void main_menu_window(bool *open) {
   if (ImGui::Button("camera")) {
     camera_w_open = !camera_w_open;
   }
+  if (ImGui::Button("screen effect")) {
+    screff_w_open = !screff_w_open;
+  }
 
   ImGui::InputFloat("RESOLUTION_MULT", &RESOLUTION_MULT);
-  glm::vec2 ecl_origin = {SURF_ORIGIN_ECL_X, SURF_ORIGIN_ECL_Y};
-  glm::vec2 ecl_origin_full = {SURF_ORIGIN_ECL_FULL_X, SURF_ORIGIN_ECL_FULL_Y};
-  ImGui::InputFloat2("SURF_ORIGIN_ECL", &ecl_origin.x);
-  ImGui::InputFloat2("SURF_ORIGIN_ECL_FULL", &ecl_origin_full.x);
-  SURF_ORIGIN_ECL_X = ecl_origin.x;
-  SURF_ORIGIN_ECL_Y = ecl_origin.y;
-  SURF_ORIGIN_ECL_FULL_X = ecl_origin_full.x;
-  SURF_ORIGIN_ECL_FULL_Y = ecl_origin_full.y;
   if (ImGui::Button("ADD_ARCADE")) {
       ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_0);
       ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_1);

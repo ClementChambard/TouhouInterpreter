@@ -1,6 +1,7 @@
 #include "./Stage.hpp"
 #include "../AnmOpener/AnmManager.h"
 #include "../Spellcard.h"
+#include "../ScreenEffect.hpp"
 #include "../GlobalData.h"
 #include "../Hardcoded.h"
 #include <FileOpener.h>
@@ -608,7 +609,7 @@ int Stage::f_on_draw_1() {
 
   if (flags & 4) {
     if (some_countdown_timer < 30) {
-      // new zScreenEffect(3, 30, 0, 0, 0, 10);
+      new ScreenEffect(3, 30, 0, 0, 0, 10);
       flags |= 1;
       some_countdown_timer = 1;
     } else {

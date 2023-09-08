@@ -10,6 +10,7 @@
 #include "Hardcoded.h"
 #include "Laser/LaserManager.h"
 #include "Player.h"
+#include "ScreenEffect.hpp"
 #include "Spellcard.h"
 #include "UpdateFuncRegistry.h"
 
@@ -131,7 +132,7 @@ void BombReimu::cleanup() {
         free(ptr_0x70);
         ptr_0x70 = nullptr;
     }
-    // create a screen effect...
+    new ScreenEffect(1, 8, 6, 6, 0, 0);
     active = 0;
 }
 
@@ -291,7 +292,7 @@ int BombReimu::f_on_tick_() {
     if (timer_0x34.current == ((GLOBALS.inner.SHOTTYPE == 1) * 200 + 200)) {
       buffer->explode_all();
       AnmManager::interrupt_tree(anmid_0x64, 1);
-      // create screen effect
+      new ScreenEffect(1, 8, 6, 6, 0, 0);
       return 0;
     }
     if (timer_0x34.current != timer_0x34.previous) {
@@ -346,7 +347,7 @@ int BombReimu::f_on_tick_() {
             } else {
                 orb->explode();
                 // SoundManager::play_sound_at_position(0x1b);
-                // create ScreenEffect (screenshake ?)
+                new ScreenEffect(1, 8, 6, 6, 0, 0);
             }
         }
     }
@@ -371,7 +372,8 @@ void BombMarisa::begin() {
     }
     PLAYER_PTR->inner.iframes = 120;
     ENEMY_MANAGER_PTR->bomb_count++;
-    // create ScreenEffect (screenshake ?)
+    new ScreenEffect(8, 3, 0x3c,
+        GLOBALS.inner.SHOTTYPE != 1 ? 0xf0 : 0x1a4, 0x1e, 0);
     anmid_0x64 = PLAYER_PTR->playerAnm->createEffectPos(0x24, 0, field_0x14);
     PLAYER_PTR->flags |= 4;
 }
@@ -457,7 +459,8 @@ void BombYoumu::begin() {
     }
     PLAYER_PTR->inner.iframes = 120;
     ENEMY_MANAGER_PTR->bomb_count++;
-    // ScreenEffect
+    new ScreenEffect(8, 1, 6,
+        GLOBALS.inner.SHOTTYPE != 1 ? 0xe6 : 0x140, 0x1e, 0);
     AnmVM* vm;
     anmid_0x64 = PLAYER_PTR->playerAnm->createEffectPos(0x1e,
                                           0, field_0x14, -1, &vm);
