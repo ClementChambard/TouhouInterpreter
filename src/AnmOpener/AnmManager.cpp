@@ -2,11 +2,15 @@
 #include "./AnmBitflags.h"
 #include "./AnmFuncs.h"
 #include <DrawFuncs.h>
-#include <cstring>
 #include <NSlist.h>
 #include <TextureManager.h>
 #include <glm/common.hpp>
+#include <cstring>
 #include <fstream>
+
+RenderVertex_t SPRITE_TEMP_BUFFER[4];
+float RESOLUTION_MULT = 1.f;
+glm::vec2 BACK_BUFFER_SIZE = {1920, 1080};
 
 // zThread
 // zAnmSaveRelated[4] pause_related
@@ -63,6 +67,10 @@ uint8_t AnmManager::fog_enabled = false;
 NSEngine::ShaderProgram* AnmManager::last_shader_before_no_atest_save = nullptr;
 Camera_t* AnmManager::current_camera = nullptr;
 Camera_t* AnmManager::_3d_camera = nullptr;
+
+glm::vec2 AnmManager::origins[4] = {
+  {0, 0}, {0, 0}, {0, 0}, {0, 0}
+};
 
 void AnmManager::bindBuffer() {
   glBindBuffer(GL_ARRAY_BUFFER, vboID);
@@ -635,9 +643,6 @@ int AnmManager::render_layer(uint32_t layer) {
   return 1;
 }
 
-RenderVertex_t SPRITE_TEMP_BUFFER[4];
-float RESOLUTION_MULT = 1.f;
-
 void AnmManager::flush_vbos() {
   batch->end();
   curr_shader->start();
@@ -831,7 +836,7 @@ void AnmManager::drawVM(AnmVM *vm) {
   case 0:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
-    vm->write_sprite_corners__without_rot_o(
+    vm->write_sprite_corners__without_rot(
         SPRITE_TEMP_BUFFER[0].transformed_pos,
         SPRITE_TEMP_BUFFER[1].transformed_pos,
         SPRITE_TEMP_BUFFER[2].transformed_pos,
@@ -842,17 +847,17 @@ void AnmManager::drawVM(AnmVM *vm) {
   case 3:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
-    vm->write_sprite_corners__with_z_rot_o(
-                                         SPRITE_TEMP_BUFFER[0].transformed_pos,
-                                         SPRITE_TEMP_BUFFER[1].transformed_pos,
-                                         SPRITE_TEMP_BUFFER[2].transformed_pos,
-                                         SPRITE_TEMP_BUFFER[3].transformed_pos);
+    vm->write_sprite_corners__with_z_rot(
+                                       SPRITE_TEMP_BUFFER[0].transformed_pos,
+                                       SPRITE_TEMP_BUFFER[1].transformed_pos,
+                                       SPRITE_TEMP_BUFFER[2].transformed_pos,
+                                       SPRITE_TEMP_BUFFER[3].transformed_pos);
     draw_vm__modes_0_1_2_3(vm, 0);
     break;
   case 2:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
-    vm->write_sprite_corners__without_rot_o(
+    vm->write_sprite_corners__without_rot(
         SPRITE_TEMP_BUFFER[0].transformed_pos,
         SPRITE_TEMP_BUFFER[1].transformed_pos,
         SPRITE_TEMP_BUFFER[2].transformed_pos,
@@ -862,7 +867,7 @@ void AnmManager::drawVM(AnmVM *vm) {
   case 4:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
-    if (!vm->write_sprite_corners__mode_4_o())
+    if (!vm->write_sprite_corners__mode_4())
       draw_vm__modes_0_1_2_3(vm, 4);
     break;
   case 5:
@@ -954,7 +959,7 @@ void AnmManager::drawVM(AnmVM *vm) {
     float xs = vm->sprite_size.x * vm->scale.x;
     float ys = vm->sprite_size.y * vm->scale.y;
     glm::vec3 pos = vm->pos + vm->entity_pos + vm->__pos_2;
-    vm->transform_coordinate_o(pos);
+    vm->transform_coordinate(pos);
     if (vm->parent_vm && !vm->bitflags.noParent) {
         xs *= vm->parent_vm->scale.x;
         ys *= vm->parent_vm->scale.y;
@@ -1000,7 +1005,7 @@ void AnmManager::drawVM(AnmVM *vm) {
     float xs = vm->sprite_size.x * vm->scale.x;
     float ys = vm->sprite_size.y * vm->scale.y;
     glm::vec3 pos = vm->pos + vm->entity_pos + vm->__pos_2;
-    vm->transform_coordinate_o(pos);
+    vm->transform_coordinate(pos);
     if (vm->parent_vm && !vm->bitflags.noParent) {
       rot += vm->parent_vm->rotation.z;
       xs *= vm->parent_vm->scale.x;
@@ -1197,10 +1202,8 @@ void AnmManager::draw_vm__modes_0_1_2_3(AnmVM *vm, int i) {
   batch->draw(vm->getSprite().texID, tl, tr, br, bl, last_used_blendmode);
 }
 
-extern glm::vec2 BACK_BUFFER_SIZE;
-
 int AnmManager::draw_vm__mode_6(AnmVM *vm) {
-  if (vm->write_sprite_corners__mode_4_o() != 0) {
+  if (vm->write_sprite_corners__mode_4() != 0) {
     return -1;
   }
   glm::vec3 pos_from_cam = vm->entity_pos + vm->pos + vm->__pos_2 -
@@ -1372,7 +1375,7 @@ LAB_0046ecb8:
               vm->anchor_offset.y * vm->scale.y *
                   vm->scale_2.y;
   glm::vec3 pp = {local_90[3][0], local_90[3][1], local_90[3][2]};
-  vm->transform_coordinate_o(pp);
+  vm->transform_coordinate(pp);
   local_90[3][0] = pp.x;
   local_90[3][1] = pp.y;
   local_90[3][2] = pp.z;
@@ -1963,8 +1966,6 @@ int AnmManager::draw_vm__mode_19__drawRing(float x, float y, float angle_0,
   return 0;
 }
 
-extern float SURF_ORIGIN_ECL_X;
-
 void AnmManager::draw_vm_mode_24_25(AnmVM *vm, void *buff,
                                     int cnt) {
   if (!(vm->bitflags.visible) || !(vm->bitflags.f530_1)) return;
@@ -1995,8 +1996,8 @@ void AnmManager::draw_vm_mode_24_25(AnmVM *vm, void *buff,
                   vm->scale_2.y;
   DStack_e0[3][2] = vm->entity_pos.z + vm->pos.z +
                vm->__pos_2.z;
-  if (vm->bitflags.originMode && !vm->parent_vm) {
-    DStack_e0[3][0] += SURF_ORIGIN_ECL_X;
+  if (!vm->parent_vm) {
+    DStack_e0[3][0] += origins[vm->bitflags.originMode].x;
   }
   setup_render_state_for_vm(vm);
 

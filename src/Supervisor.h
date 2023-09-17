@@ -72,4 +72,9 @@ struct Supervisor_t {
 
 extern Supervisor_t SUPERVISOR;
 
+extern float GAME_REGION_WIDTH;
+extern float GAME_REGION_HEIGHT;
+extern float GAME_REGION_X;
+extern float GAME_REGION_Y;
+
 #endif // SUPERVISOR_H_

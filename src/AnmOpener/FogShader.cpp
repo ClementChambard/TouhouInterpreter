@@ -1,4 +1,4 @@
-#include "FogShader.h"
+#include "./FogShader.h"
 
 const char* FogShader::VERTEX_SHADER_PATH = "assets/shaders/fogVertexShader";
 const char* FogShader::FRAGMENT_SHADER_PATH = "assets/shaders/fogFragmentShader";

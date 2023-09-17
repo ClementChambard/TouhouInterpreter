@@ -137,7 +137,7 @@ struct EnemyData {
     int update();
     int step_interpolators();
     int step_game_logic();
-    void related_to_fog();
+    void update_distorsion();
     void calc_final_pos();
 };
 

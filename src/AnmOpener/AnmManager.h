@@ -29,6 +29,7 @@ struct AnmVertexBuffers_t {
 
 extern RenderVertex_t SPRITE_TEMP_BUFFER[4];
 extern float RESOLUTION_MULT;
+extern glm::vec2 BACK_BUFFER_SIZE;
 
 class AnmManager {
 
@@ -179,6 +180,7 @@ public:
     static NSEngine::ShaderProgram* last_shader_before_no_atest_save;
     static Camera_t* current_camera;
     static Camera_t* _3d_camera;
+    static glm::vec2 origins[4];
 
     static void bindBuffer();
     static void drawBuffer(RenderVertex_t* start, uint32_t count);

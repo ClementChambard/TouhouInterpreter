@@ -1,8 +1,8 @@
 #ifndef CAMERA_INCLUDED_H
 #define CAMERA_INCLUDED_H
 
-#include <glm/glm.hpp>
 #include <color.h>
+#include <glm/glm.hpp>
 
 struct CameraSky_t {
     void init(float beg, float eng, float c0, float c1, float c2, float c3);

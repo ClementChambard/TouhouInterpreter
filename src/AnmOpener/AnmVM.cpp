@@ -1,17 +1,18 @@
-#include "AnmVM.h"
-#include "AnmBitflags.h"
+#include "./AnmVM.h"
+#include "./AnmBitflags.h"
 #include "./AnmFuncs.h"
-#include "AnmManager.h"
-#include <NSEngine.h>
+#include "./AnmManager.h"
+#include <Engine.hpp>
 #include <NSlist.h>
+#include <math/Random.h>
+#include <vertex.h>
 #include <cstring>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/matrix.hpp>
-#include <math/Random.h>
-#include <vertex.h>
-#include "../GlobalData.h"
 
 int AnmVM::cnt = 0;
+
+#define GAME_SPEED NSEngine::getInstance()->gameSpeed()
 
 void AnmVM::setLayer(uint32_t i) {
   layer = i;
@@ -364,10 +365,10 @@ void AnmVM::write_sprite_corners__without_rot(glm::vec4 &tl, glm::vec4 &tr,
   tr.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
   bl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
   br.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
-  tl.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 1 : 0);
-  tr.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 1 : 0);
-  bl.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? 0 : -1);
-  br.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? 0 : -1);
+  tl.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? -1 : 0);
+  tr.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? -1 : 0);
+  bl.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
+  br.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
   tl.x *= sprite_size.x;
   tl.y *= sprite_size.y;
   tr.x *= sprite_size.x;
@@ -377,13 +378,13 @@ void AnmVM::write_sprite_corners__without_rot(glm::vec4 &tl, glm::vec4 &tr,
   br.x *= sprite_size.x;
   br.y *= sprite_size.y;
   tl.x -= anchor_offset.x;
-  tl.y += anchor_offset.y;
+  tl.y -= anchor_offset.y;
   tr.x -= anchor_offset.x;
-  tr.y += anchor_offset.y;
+  tr.y -= anchor_offset.y;
   bl.x -= anchor_offset.x;
-  bl.y += anchor_offset.y;
+  bl.y -= anchor_offset.y;
   br.x -= anchor_offset.x;
-  br.y += anchor_offset.y;
+  br.y -= anchor_offset.y;
   if (bitflags.resolutionMode == 1) {
     tl *= RESOLUTION_MULT;
     tr *= RESOLUTION_MULT;
@@ -407,67 +408,6 @@ void AnmVM::write_sprite_corners__without_rot(glm::vec4 &tl, glm::vec4 &tr,
   br.x *= s.x;
   br.y *= s.y;
   glm::vec4 p = {get_own_transformed_pos(), 0};
-  p.y *= -1;
-  tl += p;
-  tr += p;
-  bl += p;
-  br += p;
-  br.z = entity_pos.z + pos.z + __pos_2.z;
-  bl.z = entity_pos.z + pos.z + __pos_2.z;
-  tr.z = entity_pos.z + pos.z + __pos_2.z;
-  tl.z = entity_pos.z + pos.z + __pos_2.z;
-  return;
-}
-
-void AnmVM::write_sprite_corners__without_rot_o(glm::vec4 &tl, glm::vec4 &tr,
-                                                glm::vec4 &bl, glm::vec4 &br) {
-  tl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
-  tr.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
-  bl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
-  br.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
-  tl.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? -1 : 0);
-  tr.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? -1 : 0);
-  bl.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
-  br.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
-  tl.x *= sprite_size.x;
-  tl.y *= sprite_size.y;
-  tr.x *= sprite_size.x;
-  tr.y *= sprite_size.y;
-  bl.x *= sprite_size.x;
-  bl.y *= sprite_size.y;
-  br.x *= sprite_size.x;
-  br.y *= sprite_size.y;
-  tl.x -= anchor_offset.x;
-  tl.y -= anchor_offset.y;
-  tr.x -= anchor_offset.x;
-  tr.y -= anchor_offset.y;
-  bl.x -= anchor_offset.x;
-  bl.y -= anchor_offset.y;
-  br.x -= anchor_offset.x;
-  br.y -= anchor_offset.y;
-  if (bitflags.resolutionMode == 1) {
-    tl *= RESOLUTION_MULT;
-    tr *= RESOLUTION_MULT;
-    bl *= RESOLUTION_MULT;
-    br *= RESOLUTION_MULT;
-  } else if (bitflags.resolutionMode == 2) {
-    tl *= RESOLUTION_MULT * 0.5;
-    tr *= RESOLUTION_MULT * 0.5;
-    bl *= RESOLUTION_MULT * 0.5;
-    br *= RESOLUTION_MULT * 0.5;
-  }
-  auto s = scale_2 * scale;
-  if (parent_vm && !bitflags.noParent)
-    s *= parent_vm->scale_2 * parent_vm->scale;
-  tl.x *= s.x;
-  tl.y *= s.y;
-  tr.x *= s.x;
-  tr.y *= s.y;
-  bl.x *= s.x;
-  bl.y *= s.y;
-  br.x *= s.x;
-  br.y *= s.y;
-  glm::vec4 p = {get_own_transformed_pos_o(), 0};
   // p.y *= -1;
   tl += p;
   tr += p;
@@ -481,87 +421,16 @@ void AnmVM::write_sprite_corners__without_rot_o(glm::vec4 &tl, glm::vec4 &tr,
 }
 
 
-glm::vec3 getRotation(AnmVM *vm) {
-  vm->__rotation_related = vm->rotation;
-  if (vm->__root_vm__or_maybe_not && !vm->bitflags.noParent) {
-    glm::vec3 parentRot = getRotation(vm->__root_vm__or_maybe_not);
-    vm->__rotation_related += parentRot;
-    // math::angle_normalize(vm->rotation.x);
-    // math::angle_normalize(vm->rotation.y);
-    // math::angle_normalize(vm->rotation.z);
+glm::vec3 AnmVM::getRotation() {
+  __rotation_related = rotation;
+  if (__root_vm__or_maybe_not && !bitflags.noParent) {
+    glm::vec3 parentRot = __root_vm__or_maybe_not->getRotation();
+    __rotation_related += parentRot;
+    // math::angle_normalize(rotation.x);
+    // math::angle_normalize(rotation.y);
+    // math::angle_normalize(rotation.z);
   }
-  return vm->__rotation_related;
-}
-
-void AnmVM::write_sprite_corners__with_z_rot_o(glm::vec4 &tl, glm::vec4 &tr,
-                                               glm::vec4 &bl, glm::vec4 &br) {
-  tl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
-  tr.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
-  bl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
-  br.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
-  tl.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? -1 : 0);
-  tr.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? -1 : 0);
-  bl.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
-  br.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
-  tl.x *= sprite_size.x;
-  tl.y *= sprite_size.y;
-  tr.x *= sprite_size.x;
-  tr.y *= sprite_size.y;
-  bl.x *= sprite_size.x;
-  bl.y *= sprite_size.y;
-  br.x *= sprite_size.x;
-  br.y *= sprite_size.y;
-  tl.x -= anchor_offset.x;
-  tl.y -= anchor_offset.y;
-  tr.x -= anchor_offset.x;
-  tr.y -= anchor_offset.y;
-  bl.x -= anchor_offset.x;
-  bl.y -= anchor_offset.y;
-  br.x -= anchor_offset.x;
-  br.y -= anchor_offset.y;
-  if (bitflags.resolutionMode == 1) {
-    tl *= RESOLUTION_MULT;
-    tr *= RESOLUTION_MULT;
-    bl *= RESOLUTION_MULT;
-    br *= RESOLUTION_MULT;
-  } else if (bitflags.resolutionMode == 2) {
-    tl *= RESOLUTION_MULT * 0.5;
-    tr *= RESOLUTION_MULT * 0.5;
-    bl *= RESOLUTION_MULT * 0.5;
-    br *= RESOLUTION_MULT * 0.5;
-  }
-  auto s = scale_2 * scale;
-  if (parent_vm && !bitflags.noParent)
-    s *= parent_vm->scale_2 * parent_vm->scale;
-  tl.x *= s.x;
-  tl.y *= s.y;
-  tr.x *= s.x;
-  tr.y *= s.y;
-  bl.x *= s.x;
-  bl.y *= s.y;
-  br.x *= s.x;
-  br.y *= s.y;
-  glm::vec3 p = entity_pos + pos + __pos_2;
-  transform_coordinate_o(p);
-  // p.y *= -1;
-  float rot = getRotation(this).z;
-  glm::vec2 temp = {};
-  temp.x = tl.x * cos(rot) - tl.y * sin(rot);
-  temp.y = tl.y * cos(rot) + tl.x * sin(rot);
-  tl = {temp.x, temp.y, tl.z, tl.w};
-  temp.x = tr.x * cos(rot) - tr.y * sin(rot);
-  temp.y = tr.y * cos(rot) + tr.x * sin(rot);
-  tr = {temp.x, temp.y, tr.z, tr.w};
-  temp.x = bl.x * cos(rot) - bl.y * sin(rot);
-  temp.y = bl.y * cos(rot) + bl.x * sin(rot);
-  bl = {temp.x, temp.y, bl.z, bl.w};
-  temp.x = br.x * cos(rot) - br.y * sin(rot);
-  temp.y = br.y * cos(rot) + br.x * sin(rot);
-  br = {temp.x, temp.y, br.z, br.w};
-  tl += glm::vec4(p, 0);
-  tr += glm::vec4(p, 0);
-  bl += glm::vec4(p, 0);
-  br += glm::vec4(p, 0);
+  return __rotation_related;
 }
 
 void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
@@ -570,10 +439,10 @@ void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
   tr.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
   bl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
   br.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
-  tl.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 1 : 0);
-  tr.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 1 : 0);
-  bl.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? 0 : -1);
-  br.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? 0 : -1);
+  tl.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? -1 : 0);
+  tr.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? -1 : 0);
+  bl.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
+  br.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
   tl.x *= sprite_size.x;
   tl.y *= sprite_size.y;
   tr.x *= sprite_size.x;
@@ -583,13 +452,13 @@ void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
   br.x *= sprite_size.x;
   br.y *= sprite_size.y;
   tl.x -= anchor_offset.x;
-  tl.y += anchor_offset.y;
+  tl.y -= anchor_offset.y;
   tr.x -= anchor_offset.x;
-  tr.y += anchor_offset.y;
+  tr.y -= anchor_offset.y;
   bl.x -= anchor_offset.x;
-  bl.y += anchor_offset.y;
+  bl.y -= anchor_offset.y;
   br.x -= anchor_offset.x;
-  br.y += anchor_offset.y;
+  br.y -= anchor_offset.y;
   if (bitflags.resolutionMode == 1) {
     tl *= RESOLUTION_MULT;
     tr *= RESOLUTION_MULT;
@@ -614,8 +483,8 @@ void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
   br.y *= s.y;
   glm::vec3 p = entity_pos + pos + __pos_2;
   transform_coordinate(p);
-  p.y *= -1;
-  float rot = -getRotation(this).z;
+  // p.y *= -1;
+  float rot = getRotation().z;
   glm::vec2 temp = {};
   temp.x = tl.x * cos(rot) - tl.y * sin(rot);
   temp.y = tl.y * cos(rot) + tl.x * sin(rot);
@@ -635,7 +504,7 @@ void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
   br += glm::vec4(p, 0);
 }
 
-int AnmVM::write_sprite_corners__mode_4_o() {
+int AnmVM::write_sprite_corners__mode_4() {
   glm::vec3 pp = {pos + __pos_2 + entity_pos};
   glm::vec2 s = scale * scale_2 * sprite_size / 2.f;
 
@@ -748,148 +617,6 @@ int AnmVM::write_sprite_corners__mode_4_o() {
   // return 0;
 }
 
-int AnmVM::write_sprite_corners__mode_4() {
-  glm::vec3 pp = {pos + __pos_2 + entity_pos};
-  glm::vec3 f = pp - AnmManager::current_camera->position;
-  glm::vec3 r = glm::normalize(glm::cross(f, AnmManager::current_camera->up));
-  glm::vec3 u = glm::normalize(glm::cross(r, f));
-  glm::vec4 p = {pp, 0};
-
-  glm::vec3 right, left, top, bottom;
-
-  if (bitflags.anchorX == 0) {
-    right = sprite_size.x * r * scale.x * scale_2.x * 0.5f;
-    left = sprite_size.x * r * scale.x * scale_2.x * -0.5f;
-  } else if (bitflags.anchorX == 1) {
-    right = sprite_size.x * r * scale.x * scale_2.x;
-    left = glm::vec3(0, 0, 0);
-  } else if (bitflags.anchorX == 2) {
-    right = glm::vec3(0, 0, 0);
-    left = -sprite_size.x * r * scale.x * scale_2.x;
-  }
-  if (bitflags.anchorY == 0) {
-    bottom = sprite_size.y * u * scale.y * scale_2.y * -0.5f;
-    top = sprite_size.y * u * scale.y * scale_2.y * 0.5f;
-  } else if (bitflags.anchorY == 1) {
-    bottom = -sprite_size.y * u * scale.y * scale_2.y;
-    top = glm::vec3(0, 0, 0);
-  } else if (bitflags.anchorY == 2) {
-    bottom = glm::vec3(0, 0, 0);
-    top = sprite_size.y * u * scale.y * scale_2.y;
-  }
-
-  glm::mat4 rotmat = glm::rotate(glm::mat4(1.f),
-      rotation.z, AnmManager::current_camera->facing_normalized);
-
-  SPRITE_TEMP_BUFFER[0].transformed_pos = p + rotmat * glm::vec4{top + left, 1};
-  SPRITE_TEMP_BUFFER[1].transformed_pos = p + rotmat * glm::vec4{top + right, 1};
-  SPRITE_TEMP_BUFFER[2].transformed_pos = p + rotmat * glm::vec4{bottom + left, 1};
-  SPRITE_TEMP_BUFFER[3].transformed_pos = p + rotmat * glm::vec4{bottom + right, 1};
-  SPRITE_TEMP_BUFFER[0].transformed_pos.y *= -1;
-  SPRITE_TEMP_BUFFER[1].transformed_pos.y *= -1;
-  SPRITE_TEMP_BUFFER[2].transformed_pos.y *= -1;
-  SPRITE_TEMP_BUFFER[3].transformed_pos.y *= -1;
-  return 0;
-  // glm::vec4 pp = SUPERVISOR.current_camera->projection_matrix *
-  //                SUPERVISOR.current_camera->view_matrix *
-  //                glm::vec4(pos + __pos_2 + entity_pos, 1.f);
-  // if (pp.z < 0 || pp.z > 1)
-  //   return -1;
-  // glm::vec4 sprite_right =
-  //     SUPERVISOR.current_camera->projection_matrix *
-  //     SUPERVISOR.current_camera->view_matrix *
-  //     glm::vec4((pos + __pos_2 + entity_pos) + SUPERVISOR.current_camera->right,
-  //               1.f);
-  // float half_sprite_size =
-  //     math::point_distance(glm::vec3(sprite_right), glm::vec3(pp)) * 0.5;
-  // float right = 0.f, left = 0.f, top = 0.f, bottom = 0.f;
-  // if (bitflags.anchorX == 0) {
-  //   right = sprite_size.x * half_sprite_size * scale.x * scale_2.x * 0.5;
-  //   left = sprite_size.x * half_sprite_size * scale.x * scale_2.x * -0.5;
-  // } else if (bitflags.anchorX == 1) {
-  //   right = sprite_size.x * half_sprite_size * scale.x * scale_2.x;
-  //   left = 0.0;
-  // } else if (bitflags.anchorX == 2) {
-  //   right = 0.0;
-  //   left = -sprite_size.x * half_sprite_size * scale.x * scale_2.x;
-  // }
-  // if (bitflags.anchorY == 0) {
-  //   bottom = sprite_size.y * half_sprite_size * scale.y * scale_2.y * -0.5;
-  //   top = sprite_size.y * half_sprite_size * scale.y * scale_2.y * 0.5;
-  // } else if (bitflags.anchorY == 1) {
-  //   bottom = 0.0;
-  //   top = sprite_size.y * half_sprite_size * scale.y * scale_2.y;
-  // } else if (bitflags.anchorY == 2) {
-  //   bottom = -sprite_size.y * half_sprite_size * scale.y * scale_2.y;
-  //   top = 0.0;
-  // }
-  // pp.y *= -1;
-  // SPRITE_TEMP_BUFFER[0].transformed_pos = pp;
-  // SPRITE_TEMP_BUFFER[1].transformed_pos = pp;
-  // SPRITE_TEMP_BUFFER[2].transformed_pos = pp;
-  // SPRITE_TEMP_BUFFER[3].transformed_pos = pp;
-  // SPRITE_TEMP_BUFFER[0].transformed_pos.x +=
-  //     left * cos(rotation.z) - top * sin(rotation.z);
-  // SPRITE_TEMP_BUFFER[1].transformed_pos.x +=
-  //     right * cos(rotation.z) - top * sin(rotation.z);
-  // SPRITE_TEMP_BUFFER[2].transformed_pos.x +=
-  //     left * cos(rotation.z) - bottom * sin(rotation.z);
-  // SPRITE_TEMP_BUFFER[3].transformed_pos.x +=
-  //     right * cos(rotation.z) - bottom * sin(rotation.z);
-  // SPRITE_TEMP_BUFFER[0].transformed_pos.y +=
-  //     left * sin(rotation.z) + top * cos(rotation.z);
-  // SPRITE_TEMP_BUFFER[1].transformed_pos.y +=
-  //     right * sin(rotation.z) + top * cos(rotation.z);
-  // SPRITE_TEMP_BUFFER[2].transformed_pos.y +=
-  //     left * sin(rotation.z) + bottom * cos(rotation.z);
-  // SPRITE_TEMP_BUFFER[3].transformed_pos.y +=
-  //     right * sin(rotation.z) + bottom * cos(rotation.z);
-  // return 0;
-}
-
-// TODO: set this
-float SURF_ORIGIN_ECL_FULL_X_ = 0;
-float SURF_ORIGIN_ECL_FULL_Y_ = 0;
-float SURF_ORIGIN_ECL_X_ = 0;
-float SURF_ORIGIN_ECL_Y_ = 0;
-float SURF_ORIGIN_FULL_X_ = -224;
-float SURF_ORIGIN_FULL_Y_ = -16;
-extern float SURF_ORIGIN_ECL_X;
-extern float SURF_ORIGIN_ECL_Y;
-extern float SURF_ORIGIN_ECL_FULL_X;
-extern float SURF_ORIGIN_ECL_FULL_Y;
-void AnmVM::transform_coordinate_o(glm::vec3 &p) {
-  /* if the resolution mode is set, position should increase */
-  if (bitflags.resolutionMode == 1 || bitflags.resolutionMode == 3)
-    p *= RESOLUTION_MULT;
-  else if (bitflags.resolutionMode == 2 || bitflags.resolutionMode == 4)
-    p *= RESOLUTION_MULT * 0.5;
-
-  /* if no root mode or ignore parent */
-  if (!__root_vm__or_maybe_not || bitflags.noParent) {
-    if (bitflags.originMode == 0) {
-    } else if (bitflags.originMode == 2) {
-      /* if origin is ecl origin at full resolution */
-      p.x += SURF_ORIGIN_ECL_FULL_X;
-      p.y += SURF_ORIGIN_ECL_FULL_Y;
-    } else if (bitflags.originMode == 1) {
-      /* if origin is ecl origin at original resolution */
-      p.x += SURF_ORIGIN_ECL_X;
-      p.y += SURF_ORIGIN_ECL_Y;
-    }
-  } else {
-    if (bitflags.parRotate) {
-      /* the vm moves as the parent rotate */
-      auto oldp = p;
-      p.y = oldp.y * cos(__root_vm__or_maybe_not->rotation.z) +
-            oldp.x * sin(__root_vm__or_maybe_not->rotation.z);
-      p.x = oldp.x * cos(__root_vm__or_maybe_not->rotation.z) -
-            oldp.y * sin(__root_vm__or_maybe_not->rotation.z);
-    }
-    p += __root_vm__or_maybe_not->get_own_transformed_pos_o();
-  }
-}
-
 void AnmVM::transform_coordinate(glm::vec3 &p) {
   /* if the resolution mode is set, position should increase */
   if (bitflags.resolutionMode == 1 || bitflags.resolutionMode == 3)
@@ -899,19 +626,8 @@ void AnmVM::transform_coordinate(glm::vec3 &p) {
 
   /* if no root mode or ignore parent */
   if (!__root_vm__or_maybe_not || bitflags.noParent) {
-    if (bitflags.originMode == 0) {
-      /* if origin is top left */
-      p.x += SURF_ORIGIN_FULL_X_;
-      p.y += SURF_ORIGIN_FULL_Y_;
-    } else if (bitflags.originMode == 2) {
-      /* if origin is ecl origin at full resolution */
-      p.x += SURF_ORIGIN_ECL_FULL_X_;
-      p.y += SURF_ORIGIN_ECL_FULL_Y_;
-    } else if (bitflags.originMode == 1) {
-      /* if origin is ecl origin at original resolution */
-      p.x += SURF_ORIGIN_ECL_X_;
-      p.y += SURF_ORIGIN_ECL_Y_;
-    }
+    p.x += AnmManager::origins[bitflags.originMode].x;
+    p.y += AnmManager::origins[bitflags.originMode].y;
   } else {
     if (bitflags.parRotate) {
       /* the vm moves as the parent rotate */
@@ -931,79 +647,10 @@ glm::vec3 AnmVM::get_own_transformed_pos() {
   return p;
 }
 
-glm::vec3 AnmVM::get_own_transformed_pos_o() {
-  glm::vec3 p = pos + entity_pos + __pos_2;
-  transform_coordinate_o(p);
-  return p;
-}
-
 float getSlowdown(AnmVM *vm) {
   while (vm->__root_vm__or_maybe_not && !vm->bitflags.noParent)
     vm = vm->__root_vm__or_maybe_not;
   return vm->slowdown;
-}
-
-int AnmVM::check_interrupt() {
-  // pzStack_120 = NULL;
-  // pzStack_11c = NULL;
-  // anm_loaded = get_anm_loaded(vm);
-  // anm_script = (zAnmVM *)AnmLoaded::get_script(anm_loaded,script_id);
-  // root_vm = local_114;
-  // pzVar18 = NULL;
-  // do {
-  //   while (pzVar26 = anm_script, pzStack_118 = pzVar18, sVar5 = *(short
-  //   *)&(pzVar26->prefix).interrupt_return_time.previous, sVar5 != 5)
-  //   {
-  //       if (sVar5 == -1) {
-  //           goto PENDING_INTERRUPT_END;
-  //       }
-  //  IN_SEARCH_FOR_LABEL:
-  //     uVar15 = (uint)*(ushort *)
-  //     ((int)&(pzVar26->prefix).interrupt_return_time.previous + 2); pzVar18 =
-  //     (zAnmVM *) ((int)&(pzStack_118->prefix).interrupt_return_time.previous
-  //     + uVar15); anm_script = (zAnmVM *)
-  //     ((int)&(pzVar26->prefix).interrupt_return_time.previous + uVar15);
-  //   }
-  //   fVar27 = (pzVar26->prefix).interrupt_return_time.current_f;
-  //   if ((float)(vm->prefix).pending_interrupt == fVar27) {
-  //     PENDING_INTERRUPT_END:
-  //                         /* clear flag 14 */
-  //         field_0x530 &= 0xffffbfff;
-  //         pending_interrupt = 0;
-  //         if (*(short *)&(pzVar24->prefix).interrupt_return_time.previous !=
-  //         5) {
-  //           if (pzStack_11c == NULL) {
-  //             time_in_script--;
-  //             pfVar17 = extraout_EDX;
-  return 0;
-  //          }
-  //          pzStack_118 = pzStack_120;
-  //          pzVar24 = pzStack_11c;
-  //        }
-  //        set_interrupt_return_time(vm,time_in_script);
-  //        (root_vm->prefix).interrupt_return_offset =
-  //        (root_vm->prefix).instr_offset; uVar11 = *(ushort
-  //        *)((int)&(pzVar24->prefix).interrupt_return_time.previous + 2);
-  //        in_stack_fffffebc = CONCAT412(0x467007,time_in_script);
-  //        time_in_script = pzVar24->interrupt_return_time.current;
-  //        field_0x530 |= 1;
-  //        instr_offset =
-  //        (int32_t)((int)&(pzStack_118->prefix.interrupt_return_time).previous
-  //        + (uint)uVar11); goto START_SWITCH;
-  //  }
-  //  if (fVar27 != -1) goto IN_SEARCH_FOR_LABEL;
-  //  uVar15 = (uint)*(ushort
-  //  *)((int)&(pzVar26->prefix).interrupt_return_time.previous + 2)
-  //  ;
-  //  pzVar18 = (zAnmVM *)
-  //            ((int)&(pzStack_118->prefix).interrupt_return_time.previous +
-  //            uVar15);
-  //  anm_script = (zAnmVM *)
-  //               ((int)&(pzVar26->prefix).interrupt_return_time.previous +
-  //               uVar15);
-  //  pzStack_120 = pzStack_118;
-  //  pzStack_11c = pzVar26;
-  //} while( true );
 }
 
 void AnmVM::clear_flag_1_rec() {
@@ -1067,78 +714,7 @@ void AnmVM::reset() {
   __wierd_list = {this, nullptr, nullptr};
 }
 
-int AnmVM::run() {
-  float saved_game_speed = GAME_SPEED;
-  if (bitflags.noSlowdown)
-    GAME_SPEED = 1.0;
-  if (0.0 < getSlowdown(this)) {
-    GAME_SPEED = (GAME_SPEED - getSlowdown(this) * GAME_SPEED);
-    if (GAME_SPEED < 0.0)
-      GAME_SPEED = 0.0;
-  }
-
-  // if (index_of_on_tick && ANM_ON_TICK_FUNCS[index_of_on_tick](this)) {
-  //     GAME_SPEED = saved_game_speed;
-  //     return 1;
-  // }
-
-  if (instr_offset > -1 && !bitflags.f530_20) {
-    __timer_1c++;
-    if (pending_interrupt)
-      check_interrupt();
-    if (bitflags.activeFlags ==
-        0b01 /*&& GAME_THREAD_PTR && (GAME_THREAD_PTR->flags & 2)*/) {
-      GAME_SPEED = saved_game_speed;
-      return 0;
-    }
-    // START_LOOP:
-    while (true) {
-      // get ins
-      // if (time_in_script < ins.time)
-      goto WAITING;
-      // ins_exec can jump to these locations
-      // --> 0 = loop
-      // --> 1 = break
-      // --> 2 = quit
-    }
-  }
-  // check interrupt
-  // if (pending_interrupt && check_interrupt()) {
-  //    bitflags.f530_14 = 1;
-  //    time_in_script--;
-  //}
-
-WAITING:
-  /* if hasGrowth flag is set */
-  if (bitflags.hasGrowth) {
-    update_variables_growth();
-  }
-  /* if flag_set_by_ins306 is set */
-  if (bitflags.f530_15) entity_pos += AnmManager::current_camera->__vec3_104;
-
-  /* if ins419 flag is set */
-  if (bitflags.ins419) {
-    glm::vec4 temp_quad[4];
-    write_sprite_corners_2d(temp_quad);
-    uv_quad_of_sprite[0].x = fmax(0.f, temp_quad[0].x / 640.0);
-    uv_quad_of_sprite[0].y = fmax(0.f, temp_quad[0].y / 480.0);
-    uv_quad_of_sprite[1].x = fmax(0.f, temp_quad[1].x / 640.0);
-    uv_quad_of_sprite[1].y = fmax(0.f, temp_quad[1].y / 480.0);
-    uv_quad_of_sprite[2].x = fmax(0.f, temp_quad[2].x / 640.0);
-    uv_quad_of_sprite[2].y = fmax(0.f, temp_quad[2].y / 480.0);
-    uv_quad_of_sprite[3].x = fmax(0.f, temp_quad[3].x / 640.0);
-    uv_quad_of_sprite[3].y = fmax(0.f, temp_quad[3].y / 480.0);
-  }
-  step_interpolators();
-  write_texture_circle_vertices();
-  // if (index_of_on_wait && ANM_ON_WAIT_FUNCS[index_of_on_wait](this)) {
-  //     GAME_SPEED = saved_game_speed;
-  //     return 1;
-  // }
-  time_in_script++;
-  GAME_SPEED = saved_game_speed;
-  return 0;
-}
+int AnmVM::run() { return update(); }
 
 void AnmVM::step_interpolators() {
   if (pos_i.end_time) {
@@ -1266,7 +842,7 @@ void AnmVM::write_texture_circle_vertices() {
     float ang_inc = PI2 / n_segment;
     float v_inc = int_script_vars[1] / static_cast<float>(n_segment);
     glm::vec3 p = pos + entity_pos + __pos_2;
-    transform_coordinate_o(p);
+    transform_coordinate(p);
     auto pos = glm::vec4(p, 0);
     NSEngine::Color col2;
     if (bitflags.colmode) {
@@ -1320,7 +896,7 @@ void AnmVM::write_texture_circle_vertices() {
     float v_inc = int_script_vars[1] / static_cast<float>(npts - 0x1);
     float ang_inc = rotation.x / (npts - 0x1);
     glm::vec3 p = pos + entity_pos + __pos_2;
-    transform_coordinate_o(p);
+    transform_coordinate(p);
     auto pos = glm::vec4(p, 0);
     if (bitflags.rendermode == 14) {
       start_ang = rotation.z;

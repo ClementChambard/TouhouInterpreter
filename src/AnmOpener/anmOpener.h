@@ -1,9 +1,9 @@
 #ifndef ANMOPENER_H_
 #define ANMOPENER_H_
 
-#include <vector>
 #include "./anmTypes.h"
 #include "./image.h"
+#include <vector>
 
 namespace AnmOpener {
 

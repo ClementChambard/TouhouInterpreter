@@ -107,7 +107,7 @@ int AsciiPopupManager::f_on_draw() {
         AnmManager::getLoaded(vm.anm_loaded_index)
             ->setSprite(&vm, popups[i].nums[num] + 21 + fst);
       }
-      vm.write_sprite_corners__without_rot_o(
+      vm.write_sprite_corners__without_rot(
           SPRITE_TEMP_BUFFER[0].transformed_pos,
           SPRITE_TEMP_BUFFER[1].transformed_pos,
           SPRITE_TEMP_BUFFER[2].transformed_pos,

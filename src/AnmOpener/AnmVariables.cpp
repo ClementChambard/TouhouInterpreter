@@ -1,7 +1,8 @@
-#include "AnmVM.h"
+#include "./AnmVM.h"
+#include "./AnmManager.h"
+
 #include <NSEngine.h>
 #include <math/Random.h>
-#include "AnmManager.h"
 
 int& AnmVM::check_ref(int i) {
     if      (i >= 10000 && i < 10004) return int_script_vars[static_cast<size_t>(i-10000)];
@@ -39,8 +40,6 @@ int AnmVM::check_val(int i) {
     else return i;
 }
 
-extern glm::vec3 getRotation(AnmVM *vm);
-
 float AnmVM::check_val(float f) {
     if      (f >= 10000.f && f <  10004.f) return int_script_vars[static_cast<size_t>(f-10000.f)];
     else if (f >= 10004.f && f <  10008.f) return float_script_vars[static_cast<size_t>(f-10004.f)];
@@ -65,7 +64,7 @@ float AnmVM::check_val(float f) {
     else if (f == 10023.f) return rotation.x;
     else if (f == 10024.f) return rotation.y;
     else if (f == 10025.f) return rotation.z;
-    else if (f == 10026.f) return getRotation(this).z;
+    else if (f == 10026.f) return getRotation().z;
     else if (f == 10027.f) return rand_param_one;
     else if (f == 10028.f) return rand_param_pi;
     else if (f == 10029.f) return rand_param_int;

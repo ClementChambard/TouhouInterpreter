@@ -102,9 +102,9 @@ void Fog_t::set_vm_vertices() {
 void Fog_t::reset_area(float some_x, float some_y,
                          float width, float height) {
   if (vm_count == 0) return;
-  float pos_x = SURF_ORIGIN_ECL_X + some_x;
+  float pos_x = AnmManager::origins[1].x + some_x;
   for (int i = 0; i < vm_count; i++) {
-      float pos_y = SURF_ORIGIN_ECL_Y + some_y;
+      float pos_y = AnmManager::origins[1].y + some_y;
       for (int j = 0; j < vertex_count; j++) {
           auto& p = pos_array[j + i * vertex_count];
           auto& v = vertex_array[j + i * vertex_count];
@@ -128,7 +128,7 @@ void Fog_t::reset_area(float some_x, float some_y,
   set_vm_vertices();
 }
 
-void EnemyData::related_to_fog() {
+void EnemyData::update_distorsion() {
   if (fog.fog_ptr == nullptr) return;
 
   if (fog.r < fog.fog_radius) {
@@ -148,8 +148,8 @@ void EnemyData::related_to_fog() {
               [i * fog.fog_ptr->vertex_count + j];
           // vertex position recentered so that it is centered around 0
           glm::vec2 local_18 = {
-             p.x - SURF_ORIGIN_ECL_X - final_pos.pos.x,
-             p.y - SURF_ORIGIN_ECL_Y - final_pos.pos.y,
+             p.x - AnmManager::origins[1].x - final_pos.pos.x,
+             p.y - AnmManager::origins[1].y - final_pos.pos.y,
           };
           float dst_in_circle = fog.r * fog.r - math::veclensq(local_18);
           if (dst_in_circle < 0.0) {
@@ -172,7 +172,7 @@ void EnemyData::related_to_fog() {
           math::angle_normalize(osc_x);
           osc_y -= 0.04908739;
           math::angle_normalize(osc_y);
-          const float GAME_REGION_X = SURF_ORIGIN_ECL_X - 384.0 / 2.f;
+          const float GAME_REGION_X = AnmManager::origins[1].x - 384.0 / 2.f;
           if (p.x <= GAME_REGION_X) {
             v.transformed_pos.x = GAME_REGION_X + 1.0;
             p.x = GAME_REGION_X + 1.0;
@@ -180,12 +180,12 @@ void EnemyData::related_to_fog() {
             v.transformed_pos.x = GAME_REGION_X + 383.0;
             p.x = GAME_REGION_X + 383.0;
           }
-          if (p.y <= SURF_ORIGIN_ECL_Y) {
-            v.transformed_pos.y = SURF_ORIGIN_ECL_Y + 1.0;
-            p.y = SURF_ORIGIN_ECL_Y + 1.0;
-          } else if (p.y >= SURF_ORIGIN_ECL_Y + 448.0) {
-            v.transformed_pos.y = SURF_ORIGIN_ECL_Y + 447.0;
-            p.y = SURF_ORIGIN_ECL_Y + 447.0;
+          if (p.y <= AnmManager::origins[1].y) {
+            v.transformed_pos.y = AnmManager::origins[1].y + 1.0;
+            p.y = AnmManager::origins[1].y + 1.0;
+          } else if (p.y >= AnmManager::origins[1].y + 448.0) {
+            v.transformed_pos.y = AnmManager::origins[1].y + 447.0;
+            p.y = AnmManager::origins[1].y + 447.0;
           }
           v.texture_uv.x = p.x / BACK_BUFFER_SIZE.x;
           v.texture_uv.y = (BACK_BUFFER_SIZE.y - p.y) / BACK_BUFFER_SIZE.y;

@@ -1,18 +1,18 @@
-#include "Bomb.hpp"
+#include "./Bomb.hpp"
+#include "./AnmOpener/AnmManager.h"
+#include "./AsciiManager.hpp"
+#include "./BulletManager.h"
+#include "./EnemyManager.h"
+#include "./GlobalData.h"
+#include "./GoastManager.h"
+#include "./Gui.hpp"
+#include "./Hardcoded.h"
+#include "./Laser/LaserManager.h"
+#include "./Player.h"
+#include "./ScreenEffect.hpp"
+#include "./Spellcard.h"
+#include "./UpdateFuncRegistry.h"
 #include <math/Random.h>
-#include "AnmOpener/AnmManager.h"
-#include "AsciiManager.hpp"
-#include "BulletManager.h"
-#include "EnemyManager.h"
-#include "GlobalData.h"
-#include "GoastManager.h"
-#include "Gui.hpp"
-#include "Hardcoded.h"
-#include "Laser/LaserManager.h"
-#include "Player.h"
-#include "ScreenEffect.hpp"
-#include "Spellcard.h"
-#include "UpdateFuncRegistry.h"
 
 Bomb* BOMB_PTR = nullptr;
 
@@ -85,7 +85,7 @@ int Bomb::f_on_draw() {
         ASCII_MANAGER_PTR->font_id = 2;
         ASCII_MANAGER_PTR->alignment_mode_h = 0;
         ASCII_MANAGER_PTR->alignment_mode_v = 2;
-        ASCII_MANAGER_PTR->create_string_f(field_0x94, "+%d",(static_cast<int>(field_0x78) / 10) * 10);
+        ASCII_MANAGER_PTR->create_string_f(field_0x94, "+%d", (static_cast<int>(field_0x78) / 10) * 10);
         ASCII_MANAGER_PTR->color = c_white;
         ASCII_MANAGER_PTR->font_id = 0;
         ASCII_MANAGER_PTR->group = 0;

@@ -1,7 +1,7 @@
 #ifndef IMAGE_H_
 #define IMAGE_H_
 
-#include "anmTypes.h"
+#include "./anmTypes.h"
 
 #define FORMAT_RGBA8888 ((format_t)-1)
 

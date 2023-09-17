@@ -83,15 +83,5 @@ extern bool GAME_PAUSED;
 
 extern Globals GLOBALS;
 extern float GAME_SPEED;
-extern glm::vec2 BACK_BUFFER_SIZE;
-
-extern float SURF_ORIGIN_ECL_FULL_X;
-extern float SURF_ORIGIN_ECL_FULL_Y;
-extern float GAME_REGION_WIDTH;
-extern float GAME_REGION_HEIGHT;
-extern float GAME_REGION_X;
-extern float GAME_REGION_Y;
-extern float SURF_ORIGIN_ECL_X;
-extern float SURF_ORIGIN_ECL_Y;
 
 #endif // GLOBALDATA_H_

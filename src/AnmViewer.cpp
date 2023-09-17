@@ -461,8 +461,8 @@ void anm_view_window(AnmView *v) {
     FLAG_COMBOBOX(f534_14_15, "00", "01", "10", "11")
     FLAG_CHECKBOX(noParent)
     FLAG_CHECKBOX(f534_17)
-    FLAG_COMBOBOX(originMode, "TopLeft", "0,0", "scaled 0,0");
-    FLAG_COMBOBOX(resolutionMode, "0", "1", "2", "3");
+    FLAG_COMBOBOX(originMode, "TopLeft", "EclOrigin", "ScaledEclOrigin");
+    FLAG_COMBOBOX(resolutionMode, "AsIs", "UpscaleIfNeeded", "DownscaleIfNeeded");
     FLAG_CHECKBOX(parRotate)
     FLAG_CHECKBOX(hasGrowth)
     FLAG_CHECKBOX(colorizeChildren)

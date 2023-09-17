@@ -2,7 +2,6 @@
 #include "./AnmFuncs.h"
 #include "./AnmManager.h"
 #include "./anmOpener.h"
-#include "../GlobalData.h"
 #include <ImageLoader.h>
 #include <TextureManager.h>
 #include <Texture.hpp>

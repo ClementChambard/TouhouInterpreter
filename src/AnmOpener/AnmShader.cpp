@@ -1,7 +1,7 @@
-#include "AnmShader.h"
+#include "./AnmShader.h"
 
-const std::string AnmShader::VERTEX_SHADER_PATH = "assets/shaders/anmVertexShader";
-const std::string AnmShader::FRAGMENT_SHADER_PATH = "assets/shaders/anmFragmentShader";
+const char* AnmShader::VERTEX_SHADER_PATH = "assets/shaders/anmVertexShader";
+const char* AnmShader::FRAGMENT_SHADER_PATH = "assets/shaders/anmFragmentShader";
 
 void AnmShader::bindAttributes() {
     bindAttribute(0, "vertexPosition");

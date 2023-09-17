@@ -5,7 +5,7 @@
 #include <iostream>
 
 struct AnmSprite {
-    uint32_t texID = 0; // Right now it uses TextureManager's texID
+    uint32_t texID = 0;  // Right now it uses TextureManager's texID
     float x = 0, y = 0, w = 0, h = 0;
     float u1 = 0, v1 = 0, u2 = 0, v2 = 0;
 

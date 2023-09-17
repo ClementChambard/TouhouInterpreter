@@ -269,7 +269,7 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
       __vm_1.pos.x += RESOLUTION_MULT * 2.f;
       __vm_1.pos.y += RESOLUTION_MULT * 2.f;
 
-      __vm_1.write_sprite_corners__without_rot_o(
+      __vm_1.write_sprite_corners__without_rot(
           SPRITE_TEMP_BUFFER[0].transformed_pos,
           SPRITE_TEMP_BUFFER[1].transformed_pos,
           SPRITE_TEMP_BUFFER[2].transformed_pos,
@@ -282,7 +282,7 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
       __vm_1.color_1 = str.color;
     }
 
-    __vm_1.write_sprite_corners__without_rot_o(
+    __vm_1.write_sprite_corners__without_rot(
         SPRITE_TEMP_BUFFER[0].transformed_pos,
         SPRITE_TEMP_BUFFER[1].transformed_pos,
         SPRITE_TEMP_BUFFER[2].transformed_pos,

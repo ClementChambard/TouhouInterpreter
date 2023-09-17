@@ -2,7 +2,6 @@
 #define FOGSHADER_INCLUDED_H
 
 #include <ShaderProgram.h>
-#include <string>
 
 class FogShader : public NSEngine::ShaderProgram {
     public:

@@ -1,16 +1,17 @@
 #ifndef ANMVM_H_
 #define ANMVM_H_
 
-#include <Interp.hpp>
 #include "./AnmBitflags.h"
 #include "./AnmSprite.h"
 #include "./anmOpener.h"
+
+#include <Interp.hpp>
 #include <SpriteBatch.h>
-#include <functional>
-#include <glm/glm.hpp>
-#include <math/math.h>
-#include <vector>
 #include <vertex.h>
+#include <math/math.h>
+#include <glm/glm.hpp>
+#include <functional>
+#include <vector>
 
 using NSEngine::Interp;
 
@@ -73,7 +74,6 @@ public:
   int check_val(int i);
   float check_val(float f);
   int exec_instruction(int8_t *ins);
-  int check_interrupt();
   AnmVM* search_children(int a, int b);
 
   void setPos(float x, float y, float z) { pos = {x, y, z}; }
@@ -91,6 +91,7 @@ public:
   int getMode() const;
   int getLayer() const { return layer; }
   int getZdis() const;
+  glm::vec3 getRotation();
   void *getEntity() const { return associated_game_entity; }
   AnmVMList_t *getChild() { return list_of_children.next; }
   uint32_t getID() const { return id.val; }
@@ -109,21 +110,14 @@ public:
     special_vertex_buffer_data = malloc(size);
   }
   void transform_coordinate(glm::vec3 &pos);
-  void transform_coordinate_o(glm::vec3 &p);
   glm::vec3 get_pos_with_root();
   glm::vec3 get_own_transformed_pos();
-  glm::vec3 get_own_transformed_pos_o();
-void write_sprite_corners__without_rot_o(glm::vec4 &tl, glm::vec4 &tr,
-                                              glm::vec4 &bl, glm::vec4 &br);
-void write_sprite_corners__with_z_rot_o(glm::vec4 &tl, glm::vec4 &tr,
-                                             glm::vec4 &bl, glm::vec4 &br);
   void write_sprite_corners_2d(glm::vec4 *corners);
   void write_sprite_corners__without_rot(glm::vec4 &v1, glm::vec4 &v2,
                                          glm::vec4 &v3, glm::vec4 &v4);
   void write_sprite_corners__with_z_rot(glm::vec4 &v1, glm::vec4 &v2,
                                         glm::vec4 &v3, glm::vec4 &v4);
   int write_sprite_corners__mode_4();
-  int write_sprite_corners__mode_4_o();
 
   void write_texture_circle_vertices();
   static int cnt;

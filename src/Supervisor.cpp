@@ -1,12 +1,16 @@
 #include "./Supervisor.h"
 #include "AnmOpener/AnmManager.h"
 #include "AsciiManager.hpp"
-#include "GlobalData.h"
 #include "Hardcoded.h"
 #include "UpdateFuncRegistry.h"
 #include <TextureManager.h>
 
 Supervisor_t SUPERVISOR{};
+
+float GAME_REGION_WIDTH = 0.0;
+float GAME_REGION_HEIGHT = 0.0;
+float GAME_REGION_X = 0.0;
+float GAME_REGION_Y = 0.0;
 
 void Supervisor_t::init() {  // temporary
   initialize();
@@ -63,10 +67,10 @@ void Supervisor_t::init_cameras() {
   cameras[3].viewport.Width = 408;
   cameras[3].viewport.Height = 472;
   cameras[3].as_2d_matrix();
-  SURF_ORIGIN_ECL_FULL_X = BACK_BUFFER_SIZE.x / 2;
-  SURF_ORIGIN_ECL_FULL_Y = static_cast<int>(RESOLUTION_MULT * 16.0);
-  SURF_ORIGIN_ECL_X = BACK_BUFFER_SIZE.x / 2;
-  SURF_ORIGIN_ECL_Y = (BACK_BUFFER_SIZE.y + -448) / 2;
+  AnmManager::origins[2].x = BACK_BUFFER_SIZE.x / 2;
+  AnmManager::origins[2].y = static_cast<int>(RESOLUTION_MULT * 16.0);
+  AnmManager::origins[1].x = BACK_BUFFER_SIZE.x / 2;
+  AnmManager::origins[1].y = (BACK_BUFFER_SIZE.y + -448) / 2;
   return;
 }
 
@@ -154,10 +158,10 @@ static int supervisor_on_draw_01() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     GAME_REGION_WIDTH = 384;
     GAME_REGION_HEIGHT = 448;
-    SURF_ORIGIN_ECL_X = BACK_BUFFER_SIZE.x / 2;
-    SURF_ORIGIN_ECL_Y = (BACK_BUFFER_SIZE.y - 448) / 2;
-    GAME_REGION_X = SURF_ORIGIN_ECL_X - GAME_REGION_WIDTH / 2;
-    GAME_REGION_Y = SURF_ORIGIN_ECL_Y - GAME_REGION_HEIGHT / 2;
+    AnmManager::origins[1].x = BACK_BUFFER_SIZE.x / 2;
+    AnmManager::origins[1].y = (BACK_BUFFER_SIZE.y - 448) / 2;
+    GAME_REGION_X = AnmManager::origins[1].x - GAME_REGION_WIDTH / 2;
+    GAME_REGION_Y = AnmManager::origins[1].y - GAME_REGION_HEIGHT / 2;
   }
   AnmManager::some_positions[0] = 0.0;
   AnmManager::last_used_texture = -1;
@@ -251,8 +255,8 @@ static int supervisor_on_draw_2c() {
   glClear(GL_DEPTH_BUFFER_BIT);
   GAME_REGION_WIDTH = RESOLUTION_MULT * 384.0;
   GAME_REGION_HEIGHT = RESOLUTION_MULT * 448.0;
-  GAME_REGION_X = SURF_ORIGIN_ECL_FULL_X - GAME_REGION_WIDTH / 2;
-  GAME_REGION_Y = SURF_ORIGIN_ECL_FULL_Y - GAME_REGION_HEIGHT / 2;
+  GAME_REGION_X = AnmManager::origins[2].x - GAME_REGION_WIDTH / 2;
+  GAME_REGION_Y = AnmManager::origins[2].y - GAME_REGION_HEIGHT / 2;
   return 1;
 }
 

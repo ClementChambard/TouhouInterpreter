@@ -1,6 +1,8 @@
-#include "AnmFuncs.h"
+#include "./AnmFuncs.h"
+// TODO: find a way to remove these
 #include "../Bullet.h"
 #include "../Laser/Laser.h"
+#include "../Fog.hpp"
 #include <math/Random.h>
 
 int on_switch_anm_1(AnmVM* vm, int interrupt) {
@@ -168,8 +170,6 @@ int on_draw_anm_1(AnmVM* vm) {
 }
 
 int on_draw_anm_3(AnmVM*) { return 0; }
-
-#include "../Fog.hpp"
 
 int on_draw_anm_4(AnmVM* vm) {
     reinterpret_cast<Fog_t*>(vm->associated_game_entity)->set_vm_vertices();

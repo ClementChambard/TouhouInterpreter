@@ -15,8 +15,8 @@ class AnmShader : public NSEngine::ShaderProgram {
         void getAllUniformLocation() override;
 
     private:
-        static const std::string VERTEX_SHADER_PATH;
-        static const std::string FRAGMENT_SHADER_PATH;
+        static const char* VERTEX_SHADER_PATH;
+        static const char* FRAGMENT_SHADER_PATH;
 
         GLuint location_projectionMatrix;
         GLuint location_viewMatrix;

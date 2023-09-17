@@ -10,11 +10,11 @@
 #include "./AsciiManager.hpp"
 #include "./AsciiPopupManager.hpp"
 #include "./Gui.hpp"
-#include "AnmOpener/CopyTextures.hpp"
-#include "Bomb.hpp"
-#include "PauseMenu.hpp"
-#include "StdOpener/Stage.hpp"
-#include "UpdateFuncRegistry.h"
+#include "./AnmOpener/CopyTextures.hpp"
+#include "./Bomb.hpp"
+#include "./PauseMenu.hpp"
+#include "./StdOpener/Stage.hpp"
+#include "./UpdateFuncRegistry.h"
 #include <NSEngine.h>
 
 //int layerOrder[] = {

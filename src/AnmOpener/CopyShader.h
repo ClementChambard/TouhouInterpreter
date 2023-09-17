@@ -2,7 +2,6 @@
 #define COPYSHADER_INCLUDED_H
 
 #include <ShaderProgram.h>
-#include <string>
 
 class CopyShader : public NSEngine::ShaderProgram {
     public:
@@ -15,8 +14,8 @@ class CopyShader : public NSEngine::ShaderProgram {
         void getAllUniformLocation() override;
 
     private:
-        static const std::string VERTEX_SHADER_PATH;
-        static const std::string FRAGMENT_SHADER_PATH;
+        static const char* VERTEX_SHADER_PATH;
+        static const char* FRAGMENT_SHADER_PATH;
 
         GLuint location_tint = 0;
         glm::vec4 last_tint{};

@@ -1,9 +1,9 @@
 #ifndef ANMFUNCS_H_
 #define ANMFUNCS_H_
 
-#include <cstdint>
-#include "AnmVM.h"
+#include "./AnmVM.h"
 #include <Timer.hpp>
+#include <cstdint>
 
 struct EFFECT_1_buffer_t {
   AnmVM vms[5] = {};

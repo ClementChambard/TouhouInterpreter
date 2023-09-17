@@ -322,9 +322,6 @@ int PauseMenu::f_on_tick() {
     return 1;
 }
 
-extern float SURF_ORIGIN_ECL_FULL_X;
-extern float SURF_ORIGIN_ECL_FULL_Y;
-
 void PauseMenu::init_pause_blur_effect() {
   AnmManager::deleteVM(pause_blur_anmid);
   AnmVM* vm;
@@ -337,10 +334,10 @@ void PauseMenu::init_pause_blur_effect() {
   auto spr = vm->getSprite();
   AnmManager::flush_vbos();
   CopyTextures::doCopy(srcTexId, spr.opengl_texid, {
-      (SURF_ORIGIN_ECL_FULL_X - RESOLUTION_MULT * 384.0 * 0.5)       / texsiz.x,
-      (SURF_ORIGIN_ECL_FULL_Y)                                       / texsiz.y,
-      (SURF_ORIGIN_ECL_FULL_X + RESOLUTION_MULT * 384.0 * 0.5 - 1.0) / texsiz.x,
-      (SURF_ORIGIN_ECL_FULL_Y + RESOLUTION_MULT * 448.0 - 1.0)       / texsiz.y
+      (AnmManager::origins[2].x - RESOLUTION_MULT * 384.0 * 0.5)       / texsiz.x,
+      (AnmManager::origins[2].y)                                       / texsiz.y,
+      (AnmManager::origins[2].x + RESOLUTION_MULT * 384.0 * 0.5 - 1.0) / texsiz.x,
+      (AnmManager::origins[2].y + RESOLUTION_MULT * 448.0 - 1.0)       / texsiz.y
       }, { spr.u1, spr.v1, spr.u2, spr.v2 });
 }
 

@@ -1,7 +1,7 @@
-#include "CopyShader.h"
+#include "./CopyShader.h"
 
-const std::string CopyShader::VERTEX_SHADER_PATH = "assets/shaders/copyVertexShader";
-const std::string CopyShader::FRAGMENT_SHADER_PATH = "assets/shaders/copyFragmentShader";
+const char* CopyShader::VERTEX_SHADER_PATH = "assets/shaders/copyVertexShader";
+const char* CopyShader::FRAGMENT_SHADER_PATH = "assets/shaders/copyFragmentShader";
 
 void CopyShader::bindAttributes() {
     bindAttribute(0, "dstUvs");

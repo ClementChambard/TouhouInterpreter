@@ -1,11 +1,11 @@
 #ifndef ANMFILE_H_
 #define ANMFILE_H_
 
+#include "./anmOpener.h"
+#include "./AnmVM.h"
 #include <map>
 #include <vector>
 #include <string>
-#include "./anmOpener.h"
-#include "./AnmVM.h"
 
 class AnmFile {
 

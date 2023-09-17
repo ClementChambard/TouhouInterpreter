@@ -221,7 +221,7 @@ int Enemy::die() {
     // if (enemy.deathSnd >= 0)
     //     SoundManager::play_sound_at_position(enemy.deathSnd);
 
-    float rot_z = math::point_direction(enemy.final_pos.pos.x,
+    float rot_z = -math::point_direction(enemy.final_pos.pos.x,
                                         enemy.final_pos.pos.y,
                                         enemy.lastDmgPos.x,
                                         enemy.lastDmgPos.y);
@@ -630,7 +630,7 @@ int EnemyData::update() {
             return -1;
         }
 
-        related_to_fog();
+        update_distorsion();
 
         if (flags & 0x4000000) {
             for (size_t i = 0; i < 14; i++) {

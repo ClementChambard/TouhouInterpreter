@@ -1,8 +1,8 @@
-#include "AnmBitflags.h"
-#include "AnmVM.h"
-#include "AnmFuncs.h"
+#include "./AnmBitflags.h"
+#include "./AnmVM.h"
+#include "./AnmFuncs.h"
+#include "./AnmManager.h"
 #include <math/Random.h>
-#include "AnmManager.h"
 
 #define argS(x) *reinterpret_cast<int32_t*>(&(ins[8+4*x]))
 #define argf(x) *reinterpret_cast<float*>(&(ins[8+4*x]))
