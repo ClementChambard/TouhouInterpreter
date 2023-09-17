@@ -23,7 +23,7 @@ int LaserInfinite::initialize(void* arg)
     __field_10__set_to_3_by_ex_delete = 3;
 
     vm1.reset();
-    vm1.index_of_sprite_mapping_func = 2;
+    vm1.index_of_sprite_mapping_func = LASER_ON_SPRITE_SET_FUNC;
     vm1.associated_game_entity = this;
     LASER_MANAGER_PTR->bullet_anm->load_external_vm(&vm1, BULLET_TYPE_TABLE[bullet_type]["script"].asInt());
     vm1.interrupt(2);

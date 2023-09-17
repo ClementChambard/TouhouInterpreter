@@ -4,6 +4,7 @@
 #include "./GlobalData.h"
 #include "./GoastManager.h"
 #include "./Hardcoded.h"
+#include "./HardcodedFuncs.hpp"
 #include "./ItemManager.h"
 #include "./Player.h"
 #include "./Spellcard.h"
@@ -45,6 +46,8 @@ void App::on_create() {
   AnmManager::LoadFile(8, "effect.anm");
 
   std::cout << "Touhou " << TOUHOU_VERSION << "\n";
+
+  HardcodedFuncsInit(TOUHOU_VERSION);
 
   GLOBALS.inner.CHARACTER = 1;
   GLOBALS.inner.SHOTTYPE = 0;

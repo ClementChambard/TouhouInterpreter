@@ -131,9 +131,9 @@ uint32_t AnmFile::getTextureFromName(std::string const& name) const {
 }
 
 void AnmFile::setSprite(AnmVM* vm, size_t sprite_id) {
-    if (vm->index_of_sprite_mapping_func)
-        sprite_id =
-            ANM_ON_SPRITE_SET_FUNCS[vm->index_of_sprite_mapping_func]
+    if (vm->index_of_sprite_mapping_func &&
+        AnmFuncs::on_sprite_set(vm->index_of_sprite_mapping_func))
+        sprite_id = AnmFuncs::on_sprite_set(vm->index_of_sprite_mapping_func)
             (vm, sprite_id);
     vm->sprite_id = sprite_id;
     if (sprite_id >= sprites.size())

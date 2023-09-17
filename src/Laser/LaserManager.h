@@ -52,6 +52,9 @@ public:
 int allocate_new_laser(int32_t type, void* init_arg);
 Laser* find_laser_by_id(int id);
 
+constexpr int LASER_ON_SPRITE_SET_FUNC = 2;
+constexpr int LASER_CURVE_ON_SPRITE_SET_FUNC = 3;
+
 extern LaserManager* LASER_MANAGER_PTR;
 
 #endif // LASERMANAGER_H_

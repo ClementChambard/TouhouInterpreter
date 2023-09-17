@@ -8,6 +8,7 @@
 #include "./Camera.hpp"
 #include "./FogShader.h"
 #include <array>
+#include <vector>
 #include <string>
 
 struct RenderVertex_t {
@@ -196,6 +197,31 @@ public:
     static void disable_zwrite();
     static void enable_ztest();
     static void disable_ztest();
+
+    static void set_effect_508(size_t i,
+        int16_t anm_loaded_index,
+        int16_t script_index,
+        int32_t index_of_on_create,
+        int32_t index_of_on_tick,
+        int32_t index_of_on_draw,
+        int32_t index_of_on_destroy,
+        int32_t index_of_on_interrupt,
+        int32_t index_of_on_copy_1__disused = 0,
+        int32_t index_of_on_copy_2__disused = 0);
+
+private:
+    struct TableAnm508_t {
+        int16_t anm_loaded_index = -1;
+        int16_t script_index = 0;
+        int32_t index_of_on_create = 0;
+        int32_t index_of_on_tick = 0;
+        int32_t index_of_on_draw = 0;
+        int32_t index_of_on_destroy = 0;
+        int32_t index_of_on_interrupt = 0;
+        int32_t index_of_on_copy_1__disused = 0;
+        int32_t index_of_on_copy_2__disused = 0;
+    };
+    static std::vector<TableAnm508_t> effect_table;
 };
 
 #endif // ANMMANAGER_H_

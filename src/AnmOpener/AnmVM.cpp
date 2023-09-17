@@ -32,20 +32,18 @@ void AnmVM::setLayer(uint32_t i) {
 }
 
 void AnmVM::interrupt(int i) {
-  if (index_of_on_interrupt &&
-      ANM_ON_SWITCH_FUNCS[index_of_on_interrupt]) {
-    ANM_ON_SWITCH_FUNCS[index_of_on_interrupt](this, i);
+  if (index_of_on_interrupt && AnmFuncs::on_switch(index_of_on_interrupt)) {
+    AnmFuncs::on_switch(index_of_on_interrupt)(this, i);
   }
   pending_interrupt = i;
 }
 
 void AnmVM::interruptRun(int i) {
-  if (index_of_on_interrupt &&
-      ANM_ON_SWITCH_FUNCS[index_of_on_interrupt]) {
-    ANM_ON_SWITCH_FUNCS[index_of_on_interrupt](this, i);
+  if (index_of_on_interrupt && AnmFuncs::on_switch(index_of_on_interrupt)) {
+    AnmFuncs::on_switch(index_of_on_interrupt)(this, i);
   }
   pending_interrupt = i;
-  update(); // run
+  update();  // run
 }
 
 void AnmVM::interruptRec(int i) {
@@ -128,8 +126,8 @@ int AnmVM::update(bool /*printInstr*/) {
   if (bitflags.activeFlags == ANMVM_FROZEN || !bitflags.f530_1)
     return 0;
 
-  if (index_of_on_tick) {
-    if (ANM_ON_TICK_FUNCS[index_of_on_tick](this)) {
+  if (index_of_on_tick && AnmFuncs::on_tick(index_of_on_tick)) {
+    if (AnmFuncs::on_tick(index_of_on_tick)(this)) {
       return 1;
     }
   }

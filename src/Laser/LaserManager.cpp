@@ -1,10 +1,36 @@
 #include "./LaserManager.h"
+#include "../AnmOpener/AnmFuncs.h"
 
 LaserManager* LASER_MANAGER_PTR = nullptr;
+
+int32_t on_sprite_set_laser(AnmVM* vm, int32_t v) {
+    auto b = reinterpret_cast<Laser*>(vm->getEntity());
+    if (BULLET_TYPE_TABLE[b->bullet_type]["colors"][0]
+        ["main_sprite_id"].asInt() < 0)
+        return v;
+    if (v == 0)
+        return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]
+        ["main_sprite_id"].asInt();
+    if (v == 1)
+        return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]
+        ["spawn_sprite_id"].asInt();
+    if (v == 2)
+        return BULLET_TYPE_TABLE[b->bullet_type]["colors"][b->bullet_color]
+        ["cancel_sprite_id"].asInt();
+    return v;
+}
+
+int32_t on_sprite_set_laser_curve(AnmVM* vm, int32_t) {
+    return reinterpret_cast<Laser*>(vm->getEntity())
+        ->bullet_color + LASER_DATA["laser_curve"]["sprite_first"].asInt();
+}
 
 LaserManager::LaserManager() {
     if (LASER_MANAGER_PTR)
         delete LASER_MANAGER_PTR;
+    AnmFuncs::set_on_sprite_set(LASER_ON_SPRITE_SET_FUNC, on_sprite_set_laser);
+    AnmFuncs::set_on_sprite_set(LASER_CURVE_ON_SPRITE_SET_FUNC,
+                                on_sprite_set_laser_curve);
     current_id = 0x10000;
     LASER_MANAGER_PTR = this;
 

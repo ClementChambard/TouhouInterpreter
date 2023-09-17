@@ -1,5 +1,6 @@
 #include "./BulletManager.h"
 #include "./Player.h"
+#include "./AnmOpener/AnmFuncs.h"
 #include <NSEngine.h>
 #include <math/Random.h>
 
@@ -10,8 +11,24 @@ int BULLET_ADDITIONAL_CANCEL_SCR[18] = {
 
 BulletManager* BULLET_MANAGER_PTR = nullptr;
 
+static int32_t on_sprite_set_bullet(AnmVM* vm, int32_t v) {
+    auto b = reinterpret_cast<Bullet*>(vm->getEntity());
+    if (b->sprite_data["colors"][0]["main_sprite_id"].asInt() < 0)
+        return v;
+    if (v == 0)
+        return b->sprite_data["colors"][b->color]["main_sprite_id"].asInt();
+    if (v == 1)
+        return b->sprite_data["colors"][b->color]["spawn_sprite_id"].asInt();
+    if (v == 2)
+        return b->sprite_data["colors"][b->color]["cancel_sprite_id"].asInt();
+    return v;
+}
+
+constexpr int BULLET_ON_SPRITE_SET = 1;
+
 BulletManager::BulletManager() {
     BULLET_MANAGER_PTR = this;
+    AnmFuncs::set_on_sprite_set(BULLET_ON_SPRITE_SET, on_sprite_set_bullet);
     BulletList_t* pred = &freelist_head;
     BulletList_t* current = nullptr;
     for (size_t i = 0; i < max_bullet; i++) {

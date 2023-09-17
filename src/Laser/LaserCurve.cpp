@@ -89,8 +89,7 @@ void LaserCurveTransform_t::posvel(glm::vec3* out_pos, float* out_speed, float* 
     }
 }
 
-int LaserCurve::initialize(void* arg)
-{
+int LaserCurve::initialize(void* arg) {
     inner = *reinterpret_cast<LaserCurveInner_t*>(arg);
 
     bullet_type = inner.type;
@@ -103,7 +102,7 @@ int LaserCurve::initialize(void* arg)
         LASER_MANAGER_PTR->bullet_anm->load_external_vm(&vm1,
                 LASER_DATA["laser_curve"]["anm_type_0"].asInt());
     } else {
-        vm1.index_of_sprite_mapping_func = 3;
+        vm1.index_of_sprite_mapping_func = LASER_CURVE_ON_SPRITE_SET_FUNC;
         vm1.associated_game_entity = this;
         LASER_MANAGER_PTR->bullet_anm->load_external_vm(&vm1,
                 bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt());

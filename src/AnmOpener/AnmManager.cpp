@@ -68,6 +68,8 @@ NSEngine::ShaderProgram* AnmManager::last_shader_before_no_atest_save = nullptr;
 Camera_t* AnmManager::current_camera = nullptr;
 Camera_t* AnmManager::_3d_camera = nullptr;
 
+std::vector<AnmManager::TableAnm508_t> AnmManager::effect_table;
+
 glm::vec2 AnmManager::origins[4] = {
   {0, 0}, {0, 0}, {0, 0}, {0, 0}
 };
@@ -486,8 +488,9 @@ int AnmManager::destroy_possibly_managed_vm(AnmVM *vm) {
   if (&vm->node_in_global_list == ui_list_head) {
     ui_list_head = vm->node_in_global_list.next;
   }
-  if (vm->index_of_on_destroy) {
-      ANM_ON_DESTROY_FUNCS[vm->index_of_on_destroy](vm);
+  if (vm->index_of_on_destroy &&
+      AnmFuncs::on_destroy(vm->index_of_on_destroy)) {
+      AnmFuncs::on_destroy(vm->index_of_on_destroy)(vm);
   }
   if (vm->node_in_global_list.next) {
     vm->node_in_global_list.next->previous = vm->node_in_global_list.previous;
@@ -811,7 +814,8 @@ void AnmManager::calc_mat_world(AnmVM *vm) {
 }
 
 void AnmManager::drawVM(AnmVM *vm) {
-  if (vm->index_of_on_draw) ANM_ON_DRAW_FUNCS[vm->index_of_on_draw](vm);
+  if (vm->index_of_on_draw && AnmFuncs::on_draw(vm->index_of_on_draw))
+    AnmFuncs::on_draw(vm->index_of_on_draw)(vm);
 
   if (!vm->bitflags.visible || !vm->bitflags.f530_1 ||
       vm->bitflags.activeFlags)
@@ -2059,119 +2063,48 @@ void AnmManager::draw_vm_mode_24_25(AnmVM *vm, void *buff,
   // return;
 }
 
-struct TableAnm508_t {
-  int16_t anm_loaded_index = 0;
-  int16_t script_index = 0;
-  std::function<int(AnmVM *)> on_create = nullptr;
-  int32_t index_of_on_tick = 0;
-  int32_t index_of_on_draw = 0;
-  int32_t index_of_on_destroy = 0;
-  int32_t index_of_on_interrupt = 0;
-  int32_t index_of_on_copy_1__disused = 0;
-  int32_t index_of_on_copy_2__disused = 0;
-} ANM_508_TABLE[]{
-    {0, 0,
-     [](AnmVM *vm) {
-       vm->bitflags.originMode = 0;
-       vm->layer = 0x28;
-       vm->bitflags.resolutionMode = 1;
-       vm->special_vertex_buffer_size = sizeof(EFFECT_1_buffer_t);
-       vm->special_vertex_buffer_data = malloc(sizeof(EFFECT_1_buffer_t));
-       memset(vm->special_vertex_buffer_data, 0, sizeof(EFFECT_1_buffer_t));
-       auto buff =
-           reinterpret_cast<EFFECT_1_buffer_t*>(vm->special_vertex_buffer_data);
-       for (int i = 0; i < 4; i++) {
-           AnmManager::getLoaded(8)->copyFromLoaded(&buff->vms[i], i + 3);
-           buff->vms[i].parent_vm = nullptr;
-           buff->vms[i].__root_vm__or_maybe_not = nullptr;
-           buff->vms[i].update();
-           buff->vms[i].entity_pos = {320, 240, 0};
-       }
-       AnmManager::getLoaded(8)->copyFromLoaded(&buff->vms[4], 0xc2);
-       buff->vms[4].parent_vm = nullptr;
-       buff->vms[4].__root_vm__or_maybe_not = nullptr;
-       buff->vms[4].update();
-       return 0;
-     },
-     1, 1, 1, 1, 0, 0},
-    {0, 0,
-     [](AnmVM *vm) {
-       vm->special_vertex_buffer_size = sizeof(EFFECT_2_buffer_t);
-       vm->special_vertex_buffer_data = malloc(sizeof(EFFECT_2_buffer_t));
-       memset(vm->special_vertex_buffer_data, 0, sizeof(EFFECT_2_buffer_t));
-       reinterpret_cast<EFFECT_2_buffer_t*>(vm->special_vertex_buffer_data)
-        ->timer.reset();
-       return 0;
-     },
-     2, 2, 2, 2, 1, 1},
-    {0, 0,
-     [](AnmVM *vm) {
-       std::cout << "[WARNING] anm: effect 2 is not implemented\n";
-       vm->bitflags.activeFlags = ANMVM_DELETE;
-       return 0;
-     },
-     3, 3, 3, 3, 0, 0},
-    {0, 0,
-     [](AnmVM *vm) {
-       std::cout << "[WARNING] anm: effect 3 is not implemented\n";
-       vm->bitflags.activeFlags = ANMVM_DELETE;
-       return 0;
-     },
-     3, 3, 3, 3, 0, 0},
-    {0, 0,
-     [](AnmVM *vm) {
-       std::cout << "[WARNING] anm: effect 4 is not implemented\n";
-       vm->bitflags.activeFlags = ANMVM_DELETE;
-       return 0;
-     },
-     5, 7, 4, 4, 0, 0},
-    {0, 0,
-     [](AnmVM *vm) {
-       std::cout << "[WARNING] anm: effect 5 is not implemented\n";
-       vm->bitflags.activeFlags = ANMVM_DELETE;
-       return 0;
-     },
-     5, 7, 4, 4, 0, 0},
-    {0, 0,
-     [](AnmVM *vm) {
-       std::cout << "[WARNING] anm: effect 6 is not implemented\n";
-       vm->bitflags.activeFlags = ANMVM_DELETE;
-       return 0;
-     },
-     5, 7, 4, 4, 0, 0},
-    {0, 0,
-     [](AnmVM *vm) {
-       std::cout << "[WARNING] anm: effect 7 is not implemented\n";
-       vm->bitflags.activeFlags = ANMVM_DELETE;
-       return 0;
-     },
-     5, 7, 4, 4, 0, 0},
-    {0, 0,
-     [](AnmVM *vm) {
-       std::cout << "[WARNING] anm: effect 8 is not implemented\n";
-       vm->bitflags.activeFlags = ANMVM_DELETE;
-       return 0;
-     },
-     5, 7, 4, 4, 0, 0},
-};
+void AnmManager::set_effect_508(size_t i,
+    int16_t anm_loaded_index,
+    int16_t script_index,
+    int32_t index_of_on_create,
+    int32_t index_of_on_tick,
+    int32_t index_of_on_draw,
+    int32_t index_of_on_destroy,
+    int32_t index_of_on_interrupt,
+    int32_t index_of_on_copy_1__disused,
+    int32_t index_of_on_copy_2__disused) {
+  if (i >= effect_table.size()) effect_table.resize(i + 1);
+  effect_table[i].anm_loaded_index = anm_loaded_index;
+  effect_table[i].script_index = script_index;
+  effect_table[i].index_of_on_create = index_of_on_create;
+  effect_table[i].index_of_on_tick = index_of_on_tick;
+  effect_table[i].index_of_on_draw = index_of_on_draw;
+  effect_table[i].index_of_on_destroy = index_of_on_destroy;
+  effect_table[i].index_of_on_interrupt = index_of_on_interrupt;
+  effect_table[i].index_of_on_copy_1__disused = index_of_on_copy_1__disused;
+  effect_table[i].index_of_on_copy_2__disused = index_of_on_copy_2__disused;
+}
 
 AnmID AnmManager::createVM508(int i, AnmVM *root) {
-
-  if (-1 < ANM_508_TABLE[i].script_index) {
+  if (effect_table.size() <= static_cast<size_t>(i) ||
+      effect_table[i].anm_loaded_index < 0) return 0;
+  if (-1 < effect_table[i].script_index) {
     auto vm = root;
     if (!vm) {
-      loadedFiles[ANM_508_TABLE[i].anm_loaded_index].createEffect(ANM_508_TABLE[i].script_index, -1, &vm);
+      loadedFiles[effect_table[i].anm_loaded_index].createEffect(
+        effect_table[i].script_index, -1, &vm);
     }
-    if (ANM_508_TABLE[i].on_create)
-      ANM_508_TABLE[i].on_create(vm);
-    vm->index_of_on_tick = ANM_508_TABLE[i].index_of_on_tick;
-    vm->index_of_on_draw = ANM_508_TABLE[i].index_of_on_draw;
-    vm->index_of_on_destroy = ANM_508_TABLE[i].index_of_on_destroy;
-    vm->index_of_on_interrupt = ANM_508_TABLE[i].index_of_on_interrupt;
+    if (effect_table[i].index_of_on_create &&
+      AnmFuncs::on_create(effect_table[i].index_of_on_create))
+      AnmFuncs::on_create(effect_table[i].index_of_on_create)(vm);
+    vm->index_of_on_tick = effect_table[i].index_of_on_tick;
+    vm->index_of_on_draw = effect_table[i].index_of_on_draw;
+    vm->index_of_on_destroy = effect_table[i].index_of_on_destroy;
+    vm->index_of_on_interrupt = effect_table[i].index_of_on_interrupt;
     vm->index_of_on_copy_1__disused =
-        ANM_508_TABLE[i].index_of_on_copy_1__disused;
+        effect_table[i].index_of_on_copy_1__disused;
     vm->index_of_on_copy_2__disused =
-        ANM_508_TABLE[i].index_of_on_copy_2__disused;
+        effect_table[i].index_of_on_copy_2__disused;
     return vm->id;
   }
   return 0;
