@@ -1,6 +1,7 @@
 #ifndef ANMSPRITE_H_
 #define ANMSPRITE_H_
 
+#include <cstdint>
 #include <iostream>
 
 struct AnmSprite {

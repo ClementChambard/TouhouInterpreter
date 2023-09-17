@@ -5,7 +5,7 @@
 #include "AnmOpener/AnmVM.h"
 #include "Enemy.h"
 #include "PosVel.h"
-#include "Timer.hpp"
+#include <Timer.hpp>
 #include "UpdateFuncRegistry.h"
 
 class Bomb {
@@ -38,7 +38,7 @@ public:
     int32_t field_0x28 = 0;
     float field_0x2c = 0.0;
     int32_t active = 0;
-    Timer_t timer_0x34 = {};
+    NSEngine::Timer_t timer_0x34 = {};
     int32_t field_0x48 = 0;
     int32_t field_0x4c = 0;
     int32_t field_0x50 = 0;
@@ -52,7 +52,7 @@ public:
     void* ptr_0x70 = nullptr;
     int32_t field_0x74 = 0;
     float field_0x78 = 0;
-    Timer_t timer_0x7c = {};
+    NSEngine::Timer_t timer_0x7c = {};
     int32_t field_0x90 = 0;
     glm::vec3 field_0x94 = {};
 };
@@ -102,7 +102,7 @@ public:
             int32_t field26 = 0;
             int32_t field27 = 0;
             int32_t field28 = 0;
-            Timer_t time_alive = {};
+            NSEngine::Timer_t time_alive = {};
             glm::vec3 velocity = {};
             int32_t field2f = 0;
             int32_t field30 = 0;
@@ -149,10 +149,10 @@ public:
     AnmID anmids[0x104] = {};
     float floats[0x104] = {};    // 0x0410
     float floats2[0x104] = {};   // 0x0820
-    Timer_t timers[0x104] = {};  // 0x0c30
+    NSEngine::Timer_t timers[0x104] = {};  // 0x0c30
     int32_t field2080 = 0;       // 0x2080
     int32_t field2084 = 0;       // 0x2084
-    Timer_t timer2088 = 0;       // 0x2088
+    NSEngine::Timer_t timer2088 = 0;       // 0x2088
 };
 
 class BombEmpty : public Bomb {

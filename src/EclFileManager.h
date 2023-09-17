@@ -2,7 +2,6 @@
 #define ECLMANAGER_H_
 
 #include "./EclRaw.h"
-#include "./StdOpener/StdFile.h"
 #include <vector>
 #include <string>
 

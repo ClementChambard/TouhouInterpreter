@@ -5,23 +5,8 @@
 #include "Hardcoded.h"
 #include "UpdateFuncRegistry.h"
 #include <TextureManager.h>
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
 
 Supervisor_t SUPERVISOR{};
-
-void CameraSky_t::init(float beg, float end, float c0, float c1, float c2, float c3) {
-    begin_distance = beg;
-    end_distance = end;
-    color_components[0] = c0;
-    color_components[1] = c1;
-    color_components[2] = c2;
-    color_components[3] = c3;
-    color.b = color_components[0];
-    color.g = color_components[1];
-    color.r = color_components[2];
-    color.a = color_components[3];
-}
 
 void Supervisor_t::init() {  // temporary
   initialize();
@@ -34,130 +19,6 @@ Supervisor_t::~Supervisor_t() {
   if (arcade_vm_1) delete arcade_vm_1;
   if (arcade_vm_2__handles_upscaling) delete arcade_vm_2__handles_upscaling;
   if (arcade_vm_3__handles_seija) delete arcade_vm_3__handles_seija;
-}
-
-void Camera_t::as_2d_matrix() {
-  glm::vec2 pos = {viewport.Width * 0.5 + viewport.X,
-                   viewport.Height * 0.5 + viewport.Y};
-  float z = (viewport.Height / 2.f) / tan(fov_y / 2);
-  view_matrix = glm::lookAtLH(glm::vec3{pos.x, pos.y, z}, {pos.x, pos.y, 0.f},
-                              {0.f, -1.f, 0.f});
-  projection_matrix = glm::perspectiveLH(
-      fov_y, static_cast<float>(viewport.Width) / viewport.Height, 1.f,
-      10000.f);
-  return;
-}
-
-void Camera_t::as_3d_matrix() {
-  glm::vec3 pos = position + __rocking_vector_1;
-  glm::vec3 look_at = pos + facing_normalized;
-  view_matrix = glm::lookAtLH(pos, look_at, up);
-  projection_matrix = glm::perspectiveLH(
-      fov_y, static_cast<float>(viewport.Width) / viewport.Height, 30.f,
-      8000.f);
-  right.x = up.z * facing_normalized.y - up.y * facing_normalized.z;
-  right.y = up.x * facing_normalized.z - up.z * facing_normalized.x;
-  right.z = up.y * facing_normalized.x - up.x * facing_normalized.y;
-  right = glm::normalize(right);
-}
-
-void Supervisor_t::set_camera_by_index(int cam_id, bool) {
-  current_camera = &cameras[cam_id];
-  current_camera_index = cam_id;
-  AnmManager::flush_vbos();
-  AnmManager::cam_vec2_fc_x = current_camera->screen_shake.x;
-  AnmManager::cam_vec2_fc_y = current_camera->screen_shake.y;
-  // d3d_device->SetTransform(D3DTS_VIEW, &current_camera->view_matrix);
-  // d3d_device->SetTransform(D3DTS_PROJECTION,
-  // &current_camera->projection_matrix);
-  AnmManager::shader->start();
-  AnmManager::shader->SetViewMatrix(current_camera->view_matrix);
-  AnmManager::shader->SetProjectionMatrix(current_camera->projection_matrix);
-  AnmManager::shader->stop();
-  AnmManager::fshader->start();
-  AnmManager::fshader->SetViewMatrix(current_camera->view_matrix);
-  AnmManager::fshader->SetProjectionMatrix(current_camera->projection_matrix);
-  AnmManager::fshader->SetCameraPosition(current_camera->position);
-  AnmManager::shader->stop();
-  AnmManager::bshader->start();
-  AnmManager::bshader->SetViewMatrix(current_camera->view_matrix);
-  AnmManager::bshader->SetProjectionMatrix(current_camera->projection_matrix);
-  AnmManager::bshader->stop();
-  // d3d_device->SetViewport(&this->current_camera->viewport);
-  glViewport(current_camera->viewport.X, current_camera->viewport.Y,
-             current_camera->viewport.Width, current_camera->viewport.Height);
-  return;
-}
-
-void Supervisor_t::disable_d3d_fog(bool force) {
-  if (fog_enabled || force) {
-    AnmManager::flush_vbos();
-    fog_enabled = false;
-    // d3d_device->SetRenderState(D3DRS_FOGENABLE, false);
-    AnmManager::curr_shader = AnmManager::shader;
-  }
-}
-
-void Supervisor_t::enable_d3d_fog(bool force) {
-  if (!fog_enabled || force) {
-    AnmManager::flush_vbos();
-    fog_enabled = true;
-    // d3d_device->SetRenderState(D3DRS_FOGENABLE, true);
-    AnmManager::curr_shader = AnmManager::fshader;
-  }
-}
-
-void Supervisor_t::set_fog_params(NSEngine::Color col, float beg, float end) {
-  if (AnmManager::curr_shader == AnmManager::fshader) AnmManager::flush_vbos();
-  AnmManager::fshader->start();
-  AnmManager::fshader->SetFog(beg, end,
-                {col.r / 255.f, col.g / 255.f, col.b / 255.f, col.a / 255.f});
-  AnmManager::fshader->stop();
-}
-
-static NSEngine::ShaderProgram* last_shader_before_no_atest_save = nullptr;
-void Supervisor_t::disable_atest() {
-  if (AnmManager::curr_shader != AnmManager::bshader) {
-    AnmManager::flush_vbos();
-    last_shader_before_no_atest_save = AnmManager::curr_shader;
-    AnmManager::curr_shader = AnmManager::bshader;
-  }
-}
-void Supervisor_t::enable_atest() {
-  if (AnmManager::curr_shader == AnmManager::bshader) {
-    AnmManager::flush_vbos();
-    AnmManager::curr_shader = last_shader_before_no_atest_save;
-  }
-}
-
-void Supervisor_t::disable_zwrite(bool force) {
-  if (zwrite_enabled || force) {
-    AnmManager::flush_vbos();
-    zwrite_enabled = false;
-    // d3d_device->SetRenderState(D3DRS_ZWRITEENABLE, false);
-    glDepthMask(false);
-  }
-}
-
-void Supervisor_t::enable_zwrite(bool force) {
-  if (!zwrite_enabled || force) {
-    AnmManager::flush_vbos();
-    zwrite_enabled = true;
-    // d3d_device->SetRenderState(D3DRS_ZWRITEENABLE, true);
-    glDepthMask(true);
-  }
-}
-
-void Supervisor_t::disable_ztest() {
-  AnmManager::flush_vbos();
-  // d3d_device->SetRenderState(D3DRS_ZFUNC, 8);
-  glDisable(GL_DEPTH_TEST);
-}
-
-void Supervisor_t::enable_ztest() {
-  AnmManager::flush_vbos();
-  // d3d_device->SetRenderState(D3DRS_ZFUNC, 4);
-  glEnable(GL_DEPTH_TEST);
 }
 
 void Supervisor_t::init_cameras() {
@@ -314,7 +175,7 @@ static int supervisor_on_draw_01() {
   AnmManager::cam_vec2_fc_y = 0.0;
   AnmManager::cam_vec2_fc_x = 0.0;
   AnmManager::field_0x18607ca = 255;
-  SUPERVISOR.set_camera_by_index(2);
+  AnmManager::set_camera(&SUPERVISOR.cameras[2]);
   return 1;
 }
 
@@ -334,9 +195,9 @@ static int supervisor_on_draw_0e() {
 static int supervisor_on_draw_0f() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
   glBlendEquation(GL_FUNC_ADD);
-  SUPERVISOR.disable_atest();
-  SUPERVISOR.disable_zwrite();
-  SUPERVISOR.set_camera_by_index(3);
+  AnmManager::disable_atest();
+  AnmManager::disable_zwrite();
+  AnmManager::set_camera(&SUPERVISOR.cameras[3]);
   if (SUPERVISOR.arcade_vm_0->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_0->bitflags.anchorY = SUPERVISOR.arcade_vm_0->bitflags.anchorY % 2 + 1;
   AnmManager::drawVM(SUPERVISOR.arcade_vm_0);
@@ -345,7 +206,7 @@ static int supervisor_on_draw_0f() {
   SUPERVISOR.arcade_vm_0->color_1 = c_white;
   AnmManager::render_layer(34);
   AnmManager::flush_vbos();
-  SUPERVISOR.enable_atest();
+  AnmManager::enable_atest();
   return 1;
 }
 
@@ -365,16 +226,16 @@ static int supervisor_on_draw_19() {
 static int supervisor_on_draw_1a() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
   glBlendEquation(GL_FUNC_ADD);
-  SUPERVISOR.disable_atest();
-  SUPERVISOR.disable_zwrite();
-  SUPERVISOR.set_camera_by_index(3);
+  AnmManager::disable_atest();
+  AnmManager::disable_zwrite();
+  AnmManager::set_camera(&SUPERVISOR.cameras[3]);
   if (SUPERVISOR.arcade_vm_1->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_1->bitflags.anchorY = SUPERVISOR.arcade_vm_1->bitflags.anchorY % 2 + 1;
   AnmManager::drawVM(SUPERVISOR.arcade_vm_1);
   if (SUPERVISOR.arcade_vm_1->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_1->bitflags.anchorY = SUPERVISOR.arcade_vm_1->bitflags.anchorY % 2 + 1;
   SUPERVISOR.arcade_vm_1->color_1 = c_white;
-  SUPERVISOR.enable_atest();
+  AnmManager::enable_atest();
   return 1;
 }
 
@@ -398,16 +259,16 @@ static int supervisor_on_draw_2c() {
 static int supervisor_on_draw_2d() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
   glBlendEquation(GL_FUNC_ADD);
-  SUPERVISOR.disable_atest();
-  SUPERVISOR.disable_zwrite();
-  SUPERVISOR.set_camera_by_index(1);
+  AnmManager::disable_atest();
+  AnmManager::disable_zwrite();
+  AnmManager::set_camera(&SUPERVISOR.cameras[1]);
   if (SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY = SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY % 2 + 1;
   AnmManager::drawVM(SUPERVISOR.arcade_vm_2__handles_upscaling);
   if (SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY = SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY % 2 + 1;
   SUPERVISOR.arcade_vm_2__handles_upscaling->color_1 = c_white;
-  SUPERVISOR.enable_atest();
+  AnmManager::enable_atest();
   return 1;
 }
 
@@ -422,14 +283,14 @@ static int supervisor_on_draw_39() {
 
 static int supervisor_on_draw_3a() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
-  SUPERVISOR.disable_atest();
+  AnmManager::disable_atest();
   if (SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY = SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY % 2 + 1;
   AnmManager::drawVM(SUPERVISOR.arcade_vm_3__handles_seija);
   if (SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY = SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY % 2 + 1;
   SUPERVISOR.arcade_vm_3__handles_seija->color_1 = c_white;
-  SUPERVISOR.enable_atest();
+  AnmManager::enable_atest();
   return 1;
 }
 
@@ -661,6 +522,163 @@ static int supervisor_on_registration() {
   return 0;
 }
 
+static void anmmanager_updatefuncs() {
+  AnmManager::_3d_camera = &SUPERVISOR.cameras[3];
+  UpdateFunc* func;
+  func = new UpdateFunc(AnmManager::on_tick_world);
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_tick(func, 35);
+  func = new UpdateFunc(AnmManager::on_tick_ui);
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_tick(func, 10);
+  func = new UpdateFunc([](){return AnmManager::render_layer(0);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 5);
+  func = new UpdateFunc([](){return AnmManager::render_layer(1);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 7);
+  func = new UpdateFunc([](){return AnmManager::render_layer(2);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 9);
+  func = new UpdateFunc([](){return AnmManager::render_layer(4);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 11);
+  func = new UpdateFunc([](){
+    AnmManager::set_camera(SUPERVISOR.cameras[3].as_2d_matrix());
+    AnmManager::disable_fog();
+    return AnmManager::render_layer(3);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 10);
+  func = new UpdateFunc([](){return AnmManager::render_layer(5);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 13);
+  func = new UpdateFunc([](){return AnmManager::render_layer(6);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 16);
+  func = new UpdateFunc([](){return AnmManager::render_layer(7);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 18);
+  func = new UpdateFunc([](){return AnmManager::render_layer(8);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 20);
+  func = new UpdateFunc([](){return AnmManager::render_layer(9);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 21);
+  func = new UpdateFunc([](){return AnmManager::render_layer(10);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 22);
+  func = new UpdateFunc([](){return AnmManager::render_layer(11);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 24);
+  func = new UpdateFunc([](){return AnmManager::render_layer(12);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 27);
+  func = new UpdateFunc([](){return AnmManager::render_layer(13);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 28);
+  func = new UpdateFunc([](){return AnmManager::render_layer(14);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 31);
+  func = new UpdateFunc([](){return AnmManager::render_layer(15);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 32);
+  func = new UpdateFunc([](){return AnmManager::render_layer(16);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 35);
+  func = new UpdateFunc([](){return AnmManager::render_layer(17);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 37);
+  func = new UpdateFunc([](){return AnmManager::render_layer(18);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 40);
+  func = new UpdateFunc([](){return AnmManager::render_layer(19);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 43);
+  func = new UpdateFunc([](){
+    AnmManager::set_camera(&SUPERVISOR.cameras[1]);
+    AnmManager::disable_zwrite();
+    AnmManager::disable_ztest();
+    return AnmManager::render_layer(20);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 46);
+  func = new UpdateFunc([](){return AnmManager::render_layer(21);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 47);
+  func = new UpdateFunc([](){return AnmManager::render_layer(22);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 53);
+  func = new UpdateFunc([](){return AnmManager::render_layer(23);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 55);
+  func = new UpdateFunc([](){return AnmManager::render_layer(26);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 62);
+  func = new UpdateFunc([](){return AnmManager::render_layer(27);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 63);
+  func = new UpdateFunc([](){return AnmManager::render_layer(29);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 78);
+  func = new UpdateFunc([](){return AnmManager::render_layer(30);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 80);
+  func = new UpdateFunc([](){return AnmManager::render_layer(31);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 83);
+  func = new UpdateFunc([](){return AnmManager::render_layer(25);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 60);
+  func = new UpdateFunc([](){
+    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+    AnmManager::disable_zwrite();
+    AnmManager::disable_ztest();
+    AnmManager::cam_vec2_fc_x = 0.0f;
+    AnmManager::cam_vec2_fc_y = 0.0f;
+    return AnmManager::render_layer(24);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 59);
+  func = new UpdateFunc([](){
+    AnmManager::set_camera(&SUPERVISOR.cameras[0]);
+    return AnmManager::render_layer(28);
+    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 65);
+  func = new UpdateFunc([](){
+    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+    AnmManager::disable_zwrite();
+    AnmManager::disable_ztest();
+    return AnmManager::render_layer(36);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 56);
+  func = new UpdateFunc([](){return AnmManager::render_layer(37);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 61);
+  func = new UpdateFunc([](){return AnmManager::render_layer(38);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 64);
+  func = new UpdateFunc([](){
+    AnmManager::set_camera(&SUPERVISOR.cameras[0]);
+    return AnmManager::render_layer(39);
+    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+  });
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 66);
+  func = new UpdateFunc([](){return AnmManager::render_layer(40);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 79);
+  func = new UpdateFunc([](){return AnmManager::render_layer(41);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 81);
+  func = new UpdateFunc([](){return AnmManager::render_layer(42);});
+  func->flags |= 2;
+  UPDATE_FUNC_REGISTRY->register_on_draw(func, 84);
+}
+
 int Supervisor_t::initialize() {
   UpdateFunc* func;
   SUPERVISOR.gamemode_current = -2;
@@ -691,5 +709,7 @@ int Supervisor_t::initialize() {
   func = new UpdateFunc(supervisor_on_draw_56);
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 0x56);
   // get back_buffer ...
+  anmmanager_updatefuncs();
   return 0;
 }
+

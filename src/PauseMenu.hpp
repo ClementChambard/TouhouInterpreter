@@ -4,7 +4,7 @@
 #include "AnmOpener/AnmFile.h"
 #include "AnmOpener/AnmVM.h"
 #include "./MenuHelper.hpp"
-#include "./Timer.hpp"
+#include <Timer.hpp>
 #include "./UpdateFuncRegistry.h"
 
 class PauseMenu {
@@ -19,8 +19,8 @@ public:
   int32_t flags_0 = 0;
   UpdateFunc* on_tick = nullptr;
   UpdateFunc* on_draw = nullptr;
-  Timer_t timer4_0xc = {};
-  Timer_t timer5_0x20 = {};
+  NSEngine::Timer_t timer4_0xc = {};
+  NSEngine::Timer_t timer5_0x20 = {};
   MenuHelper_t menu_helper = {};
   MenuHelper_t keyboard_menu_helper = {};
   AnmID menu_anmid = 0;

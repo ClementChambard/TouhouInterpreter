@@ -1,9 +1,8 @@
-#include "image.h"
+#include "./image.h"
 
 namespace AnmOpener {
 
-unsigned int format_Bpp(format_t format)
-{
+unsigned int format_Bpp(format_t format) {
     switch ((int)format) {
     case FORMAT_RGBA8888:
     case FORMAT_BGRA8888:
@@ -20,8 +19,7 @@ unsigned int format_Bpp(format_t format)
     }
 }
 
-unsigned char* format_to_rgba(const unsigned char* data, unsigned int pixels, format_t format)
-{
+unsigned char* format_to_rgba(const unsigned char* data, unsigned int pixels, format_t format) {
     unsigned int i;
     uint32_t* out = new uint32_t[pixels];
 
@@ -85,4 +83,4 @@ unsigned char* format_to_rgba(const unsigned char* data, unsigned int pixels, fo
     return reinterpret_cast<unsigned char*>(out);
 }
 
-}
+}  // namespace AnmOpener

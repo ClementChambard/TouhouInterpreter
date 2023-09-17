@@ -7,7 +7,6 @@
 #include "./ItemManager.h"
 #include "./Player.h"
 #include "./Spellcard.h"
-#include "./StdOpener/StdFile.h"
 #include "./AsciiManager.hpp"
 #include "./AsciiPopupManager.hpp"
 #include "./Gui.hpp"

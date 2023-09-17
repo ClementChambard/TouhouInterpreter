@@ -531,7 +531,7 @@ int AnmVM::exec_instruction(int8_t* ins) {
             //sprite_size.y = f(1);
             break;
         default:
-            NSEngine::error("Wierd anm instruction", type, ": Deleting VM");
+            std::cout << "[ERROR]: Wierd anm instruction " << type << ": Deleting VM\n";
             return 1;
     }
     uint16_t ins_len = *reinterpret_cast<uint16_t *>(ins + 2);

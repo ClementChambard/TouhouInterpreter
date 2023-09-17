@@ -4,7 +4,7 @@
 #include "./BulletHandler.h"
 #include "./EclContext.h"
 #include "./EclFileManager.h"
-#include "./Interp.h"
+#include <Interp.hpp>
 #include "./PosVel.h"
 #include "Fog.hpp"
 #include <iostream>
@@ -59,6 +59,8 @@ struct EnemyLife_t {
     int32_t isSpell;
 };
 
+using NSEngine::Interp;
+using NSEngine::InterpStrange;
 struct EnemyData {
     PosVel prev_final_pos = {};
     PosVel final_pos = {};

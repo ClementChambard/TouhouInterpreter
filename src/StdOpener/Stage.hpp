@@ -3,7 +3,7 @@
 
 #include "../AnmOpener/AnmFile.h"
 #include "../Supervisor.h"
-#include "../Timer.hpp"
+#include <Timer.hpp>
 #include "../UpdateFuncRegistry.h"
 #include "./stdOpener.h"
 #include "../Fog.hpp"
@@ -26,18 +26,18 @@ struct StageDistortion_t {
   float r_target = 0.f;
   float r = 0.f;
   int32_t field_0x0c = 0;
-  Timer_t time = 0;
+  NSEngine::Timer_t time = 0;
   float ox = 0.f;
   float oy = 0.f;
   int32_t mode = 0;
 };
 
 struct StageInner_t {
-  Timer_t time_in_script = 0;
+  NSEngine::Timer_t time_in_script = 0;
   int32_t instr_offset = 0;
   int32_t rocking_mode = 0;
-  Timer_t rocking_timer = 0;
-  Timer_t rocking_6_timer = 0;
+  NSEngine::Timer_t rocking_timer = 0;
+  NSEngine::Timer_t rocking_6_timer = 0;
   Interp<glm::vec3> camera_facing_i = {};
   Interp<glm::vec3> camera_pos_i = {};
   Interp<glm::vec3> camera_up_i = {};
@@ -85,7 +85,7 @@ public:
   int32_t num_vms_outside_draw_distance = 0;
   int32_t num_vms_drawn = 0;
   int32_t flags = 0;
-  Timer_t some_countdown_timer = 0;
+  NSEngine::Timer_t some_countdown_timer = 0;
   int32_t stage_num = 0;
   int32_t num_ticks_alive_2 = 0;
   StdOpener::std_header_10_t *std_file_data = nullptr;

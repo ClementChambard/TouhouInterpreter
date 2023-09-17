@@ -319,14 +319,18 @@ int LaserCurve::on_tick()
 }
 
 #include <NSEngine.h>
-void _dzaww(AnmVM* vm, NSEngine::Vertex* vertices, int count)
-{
+void _dzaww(AnmVM* vm, NSEngine::Vertex* vertices, int count) {
     for (int i = 0; i < (count - 1) / 2; i++)
-        NSEngine::getLayer(14)->draw(vm->getSprite().texID, vertices[i * 2], vertices[i * 2 + 1], vertices[i * 2 + 3], vertices[i * 2 + 2], vm->bitflags.blendmode);
+        AnmManager::batch->draw(
+            vm->getSprite().texID,
+            vertices[i * 2],
+            vertices[i * 2 + 1],
+            vertices[i * 2 + 3],
+            vertices[i * 2 + 2],
+            vm->bitflags.blendmode);
 }
 
-int LaserCurve::on_draw()
-{
+int LaserCurve::on_draw() {
     for (int i = 0; i < inner.laser_time_start; i++) {
         float ang = nodes[i].angle + PI1_2;
         if (i > 0)

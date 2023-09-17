@@ -1,7 +1,7 @@
 #include "AnmVM.h"
 #include <NSEngine.h>
 #include <math/Random.h>
-#include "../StdOpener/Stage.hpp"
+#include "AnmManager.h"
 
 int& AnmVM::check_ref(int i) {
     if      (i >= 10000 && i < 10004) return int_script_vars[static_cast<size_t>(i-10000)];
@@ -55,12 +55,12 @@ float AnmVM::check_val(float f) {
     else if (f == 10013.f) return pos.x;
     else if (f == 10014.f) return pos.y;
     else if (f == 10015.f) return pos.z;
-    else if (f == 10016.f) return SUPERVISOR.cameras[3].position.x + SUPERVISOR.cameras[3].__rocking_vector_1.x;
-    else if (f == 10017.f) return SUPERVISOR.cameras[3].position.y + SUPERVISOR.cameras[3].__rocking_vector_1.y;
-    else if (f == 10018.f) return SUPERVISOR.cameras[3].position.z + SUPERVISOR.cameras[3].__rocking_vector_1.z;
-    else if (f == 10019.f) return SUPERVISOR.cameras[3].facing_normalized.x;
-    else if (f == 10020.f) return SUPERVISOR.cameras[3].facing_normalized.y;
-    else if (f == 10021.f) return SUPERVISOR.cameras[3].facing_normalized.z;
+    else if (f == 10016.f) return AnmManager::_3d_camera->position.x + AnmManager::_3d_camera->__rocking_vector_1.x;
+    else if (f == 10017.f) return AnmManager::_3d_camera->position.y + AnmManager::_3d_camera->__rocking_vector_1.y;
+    else if (f == 10018.f) return AnmManager::_3d_camera->position.z + AnmManager::_3d_camera->__rocking_vector_1.z;
+    else if (f == 10019.f) return AnmManager::_3d_camera->facing_normalized.x;
+    else if (f == 10020.f) return AnmManager::_3d_camera->facing_normalized.y;
+    else if (f == 10021.f) return AnmManager::_3d_camera->facing_normalized.z;
     else if (f == 10022.f) return static_cast<int>(Random::Float01() * rand_param_int);
     else if (f == 10023.f) return rotation.x;
     else if (f == 10024.f) return rotation.y;

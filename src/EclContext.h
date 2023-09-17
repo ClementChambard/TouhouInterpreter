@@ -1,7 +1,7 @@
 #ifndef ECLCONTEXT_H_
 #define ECLCONTEXT_H_
 
-#include "./Interp.h"
+#include <Interp.hpp>
 #include <array>
 #include <iostream>
 
@@ -50,7 +50,7 @@ struct EclRunContext_t {
     int32_t variable_stack_offset[8];
     int32_t int_vars[8];
     float float_vars[8];
-    Interp<float> float_i[8] {}; // XXX
+    NSEngine::Interp<float> float_i[8] {}; // XXX
     float float_interps_locs[8] {}; // XXX
     // float_i
     // float_i_locs

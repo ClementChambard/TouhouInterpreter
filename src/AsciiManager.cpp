@@ -28,21 +28,21 @@ AsciiManager::AsciiManager() {
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 82);
 
   on_draw_2 = new UpdateFunc([this]() {
-    SUPERVISOR.set_camera_by_index(0);
+    AnmManager::set_camera(&SUPERVISOR.cameras[0]);
     this->__vm_1.bitflags.originMode = 2;
     this->render_group(1);
     this->__vm_1.bitflags.originMode = 0;
     AnmManager::flush_vbos();
-    SUPERVISOR.set_camera_by_index(2);
+    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
     return 1;
   });
   on_draw_2->flags &= 0xfffffffd;
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_2, 54);
 
   on_draw_3 = new UpdateFunc([this]() {
-    SUPERVISOR.set_camera_by_index(0);
+    AnmManager::set_camera(&SUPERVISOR.cameras[0]);
     this->render_group(2);
-    SUPERVISOR.set_camera_by_index(2);
+    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
     return 1;
   });
   on_draw_3->flags &= 0xfffffffd;
@@ -76,7 +76,7 @@ int AsciiManager::render_group(int gid) {
     if (strings[i].render_group == gid)
       render_string(strings[i]);
   }
-  SUPERVISOR.set_camera_by_index(2);
+  AnmManager::set_camera(&SUPERVISOR.cameras[2]);
   return 1;
 }
 

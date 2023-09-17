@@ -1,7 +1,6 @@
 #include "AnmFuncs.h"
 #include "../Bullet.h"
 #include "../Laser/Laser.h"
-#include "../Timer.hpp"
 #include <math/Random.h>
 
 int on_switch_anm_1(AnmVM* vm, int interrupt) {

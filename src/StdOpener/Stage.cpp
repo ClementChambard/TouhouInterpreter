@@ -180,15 +180,15 @@ int Stage::f_on_tick() {
 void Stage::run_std() {
   auto instr = reinterpret_cast<StdOpener::std_instr_t *>(
       reinterpret_cast<uint64_t>(beginning_of_script) + inner.instr_offset);
-  while (instr->time <= inner.time_in_script) {
-    switch (instr->type) {
+  while (instr->time <= inner.time_in_script) { // conditionnal jump depends on unitialized value
+    switch (instr->type) { // invalid read of size 2 ???
     case 0: /* STOP */
       goto update_rest;
     case 1: /* JUMP */
-      inner.instr_offset = IARG(0);
+      inner.instr_offset = IARG(0); // Before stage3 boss spawn th16 TODO: Use of uninitialised value of size 8
       inner.time_in_script = IARG(1);
       instr = beginning_of_script + inner.instr_offset;
-      continue;
+      continue; // invalid read of size 4 ???
     case 2: /* POS */
       inner.camera.__vec3_104 = inner.camera.position;
       inner.camera.position = {FARG(0), FARG(1), FARG(2)};
@@ -332,7 +332,7 @@ void Stage::run_std() {
                                IARG(1));
       break;
     }
-    inner.instr_offset += instr->size;
+    inner.instr_offset += instr->size; // invalid read of size 2 ???
     instr = reinterpret_cast<StdOpener::std_instr_t *>(
         reinterpret_cast<uint64_t>(beginning_of_script) + inner.instr_offset);
   }
@@ -584,11 +584,10 @@ int Stage::f_on_draw_1() {
     AnmManager::flush_vbos();
     inner.camera.screen_shake = SUPERVISOR.cameras[3].screen_shake;
     SUPERVISOR.cameras[3] = inner.camera;
-    SUPERVISOR.cameras[3].as_3d_matrix();
-    SUPERVISOR.set_camera_by_index(3);
-    SUPERVISOR.enable_zwrite();
-    SUPERVISOR.enable_ztest();
-    SUPERVISOR.set_fog_params(inner.camera.sky.color,
+    AnmManager::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
+    AnmManager::enable_zwrite();
+    AnmManager::enable_ztest();
+    AnmManager::set_fog_params(inner.camera.sky.color,
                              inner.camera.sky.begin_distance,
                              inner.camera.sky.end_distance);
     if (!(flags & 4) || 33 < num_ticks_alive_2)
@@ -627,7 +626,7 @@ int Stage::f_on_draw_1() {
   num_vms_outside_draw_distance = 0;
   num_vms_drawn = 0;
   if (flags & 1) {
-    SUPERVISOR.enable_d3d_fog();
+    AnmManager::enable_fog();
     draw_layer(0);
     draw_layer(1);
     draw_layer(2);
@@ -640,8 +639,8 @@ int Stage::f_on_draw_1() {
   }
   AnmManager::use_custom_color_1c90a4c = 0;
   AnmManager::custom_color_1c90a48 = {128, 128, 128, 128};
-  SUPERVISOR.disable_zwrite();
-  SUPERVISOR.disable_ztest();
+  AnmManager::disable_zwrite();
+  AnmManager::disable_ztest();
   return 1;
 }
 
@@ -652,23 +651,22 @@ int Stage::f_on_draw_2() {
     AnmManager::flush_vbos();
     inner.camera.screen_shake = SUPERVISOR.cameras[3].screen_shake;
     SUPERVISOR.cameras[3] = inner.camera;
-    SUPERVISOR.cameras[3].as_3d_matrix();
-    SUPERVISOR.set_camera_by_index(3);
-    SUPERVISOR.disable_d3d_fog();
-    SUPERVISOR.disable_zwrite();
-    SUPERVISOR.disable_ztest();
+    AnmManager::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
+    AnmManager::disable_fog();
+    AnmManager::disable_zwrite();
+    AnmManager::disable_ztest();
     AnmManager::render_layer(32);
-    SUPERVISOR.enable_ztest();
+    AnmManager::enable_ztest();
     AnmManager::render_layer(33);
-    SUPERVISOR.set_fog_params(inner.camera.sky.color,
+    AnmManager::set_fog_params(inner.camera.sky.color,
                              inner.camera.sky.begin_distance,
                              inner.camera.sky.end_distance);
   }
   if ((flags & 4) && some_countdown_timer >= 30)
     inner.some_bg_color_unrelated_to_ins_13.a = 0;
   if (flags & 1) {
-    SUPERVISOR.enable_zwrite();
-    SUPERVISOR.enable_d3d_fog();
+    AnmManager::enable_zwrite();
+    AnmManager::enable_fog();
     draw_layer(8);
     draw_layer(9);
     draw_layer(10);
@@ -686,9 +684,9 @@ int Stage::f_on_draw_2() {
       flags &= 0xfffffff9;
     }
   }
-  SUPERVISOR.disable_zwrite();
-  SUPERVISOR.disable_ztest();
-  SUPERVISOR.disable_d3d_fog();
+  AnmManager::disable_zwrite();
+  AnmManager::disable_ztest();
+  AnmManager::disable_fog();
   return 1;
 }
 
@@ -789,11 +787,10 @@ bool shouldBeCulledAt(StdOpener::std_entry_header_t *ent,
 }
 
 void Stage::draw_layer(int layer) {
-  SUPERVISOR.cameras[3].as_2d_matrix();
-  SUPERVISOR.set_camera_by_index(3);
-  SUPERVISOR.disable_d3d_fog();
-  SUPERVISOR.disable_zwrite();
-  SUPERVISOR.disable_ztest();
+  AnmManager::set_camera(SUPERVISOR.cameras[3].as_2d_matrix());
+  AnmManager::disable_fog();
+  AnmManager::disable_zwrite();
+  AnmManager::disable_ztest();
   for (int i = 0; i < 8; i++) {
     if (inner.anm_layers[i] != layer)
       continue;
@@ -802,11 +799,10 @@ void Stage::draw_layer(int layer) {
     AnmManager::drawVM(&this->inner.vms[i]);
     // inner.vms[i].draw();
   }
-  SUPERVISOR.enable_ztest();
-  SUPERVISOR.enable_zwrite();
-  SUPERVISOR.enable_d3d_fog();
-  SUPERVISOR.cameras[3].as_3d_matrix();
-  SUPERVISOR.set_camera_by_index(3);
+  AnmManager::enable_ztest();
+  AnmManager::enable_zwrite();
+  AnmManager::enable_fog();
+  AnmManager::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
   AnmManager::field_0x18607cc = 1;
   for (auto face = std_faces; face->object_id != static_cast<uint16_t>(-1);
        face++) {
@@ -840,14 +836,14 @@ void Stage::draw_layer(int layer) {
       }
       // 3d plane && 3d cylinder (no 3d ring(25) ?)
       if (vm->bitflags.rendermode == 8 || vm->bitflags.rendermode == 24) {
-        SUPERVISOR.enable_d3d_fog();
+        AnmManager::enable_fog();
       } else {
-        SUPERVISOR.disable_d3d_fog();
+        AnmManager::disable_fog();
       }
       if (vm->bitflags.zwritedis) {
-        SUPERVISOR.disable_zwrite();
+        AnmManager::disable_zwrite();
       } else {
-        SUPERVISOR.enable_zwrite();
+        AnmManager::enable_zwrite();
       }
 
       AnmManager::drawVM(vm);
@@ -858,7 +854,7 @@ void Stage::draw_layer(int layer) {
     num_ticks_alive++;
   }
 
-  SUPERVISOR.disable_zwrite();
+  AnmManager::disable_zwrite();
   return;
 }
 
@@ -882,6 +878,7 @@ void Stage::create_face_vms() {
 }
 
 void Stage::interrupt(unsigned int i) {
+    std::cout << "INTERRUPT!\n";
     int off = 0;
     auto instr = reinterpret_cast<StdOpener::std_instr_t *>(
         reinterpret_cast<uint64_t>(beginning_of_script) + off);

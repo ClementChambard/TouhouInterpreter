@@ -1,17 +1,18 @@
 #ifndef ANMVM_H_
 #define ANMVM_H_
 
-#include "../Interp.h"
-#include "AnmBitflags.h"
-#include "AnmSprite.h"
-#include "anmOpener.h"
-#include <Interpolator.h>
+#include <Interp.hpp>
+#include "./AnmBitflags.h"
+#include "./AnmSprite.h"
+#include "./anmOpener.h"
 #include <SpriteBatch.h>
 #include <functional>
 #include <glm/glm.hpp>
 #include <math/math.h>
 #include <vector>
 #include <vertex.h>
+
+using NSEngine::Interp;
 
 class AnmVM;
 struct AnmFastVM;
@@ -57,7 +58,7 @@ public:
   ~AnmVM();
 
   int update(bool printInstr = false);
-  void draw(NSEngine::SpriteBatch *sb = nullptr);
+  // void draw(NSEngine::SpriteBatch *sb = nullptr);
   void destroy();
   void interrupt(int i);
   void interruptRun(int i);

@@ -2,7 +2,7 @@
 #define PLAYER_H_
 
 #include "./AnmOpener/AnmFile.h"
-#include "./Interp.h"
+#include <Interp.hpp>
 #include "./PosVel.h"
 #include "./ShtFile.h"
 #include "./UpdateFuncRegistry.h"
@@ -158,7 +158,7 @@ public:
     ShtFile_t* sht_file = nullptr;
     int32_t field_0x19040 = 0;
     int32_t field_0x19044 = 0;
-    Interp<float> player_scale_i {};
+    NSEngine::Interp<float> player_scale_i {};
     float player_scale__requires_flag_0x10__from_ddc = 1.f;
     float damage_multiplier__used_by_winter_in_th16 = 1.f;
     int32_t field_0x19080 = 0;  // zTimer

@@ -370,7 +370,8 @@ void BulletManager::RemoveBullet(Bullet* b) {
 
 void BulletManager::cancel_all(int item) {
     for (size_t i = 0; i < max_bullet; i++) {
-        bullets[i].cancel(item);
+        if (bullets[i].state == 2 || bullets[i].state == 1)
+            bullets[i].cancel(item);
     }
 }
 

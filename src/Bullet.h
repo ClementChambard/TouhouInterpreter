@@ -5,8 +5,7 @@
 #include "./BulletEx.h"
 #include "./BulletHandler.h"
 #include "./Hardcoded.h"
-#include "./Interp.h"
-#include <Interpolator.h>
+#include <Interp.hpp>
 
 class Bullet;
 struct BulletList_t {
@@ -74,8 +73,8 @@ public:
     BulletExState_Delay_t ex_delay {};
     // undefined4 __unknown;
     // Interpolator for position
-    Interp<glm::vec3> pos_i = {};
-    Interp<float> scale_i = {};
+    NSEngine::Interp<glm::vec3> pos_i = {};
+    NSEngine::Interp<float> scale_i = {};
     float scale = 1.f;
     int32_t __timer_e24 = 0;
     int32_t __timer_e38 = 0;

@@ -2,6 +2,7 @@
 #define BLITSHADER_INCLUDED_H
 
 #include <ShaderProgram.h>
+#include <string>
 
 class BlitShader : public NSEngine::ShaderProgram {
     public:

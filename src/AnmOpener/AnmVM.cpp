@@ -1,5 +1,4 @@
 #include "AnmVM.h"
-#include "../Supervisor.h"
 #include "AnmBitflags.h"
 #include "./AnmFuncs.h"
 #include "AnmManager.h"
@@ -10,6 +9,7 @@
 #include <glm/matrix.hpp>
 #include <math/Random.h>
 #include <vertex.h>
+#include "../GlobalData.h"
 
 int AnmVM::cnt = 0;
 
@@ -142,7 +142,7 @@ int AnmVM::update(bool /*printInstr*/) {
   /* if flag_set_by_ins306 is set */
   // I believe it will teleport the anm when the camera teleports
   if (bitflags.f530_15) {
-    entity_pos += SUPERVISOR.cameras[3].__vec3_104;
+    entity_pos += AnmManager::_3d_camera->__vec3_104;
   }
 
   /* if ins419 flag is set */
@@ -640,7 +640,7 @@ int AnmVM::write_sprite_corners__mode_4_o() {
   glm::vec2 s = scale * scale_2 * sprite_size / 2.f;
 
   // Good enough for now
-  auto& vwmx = SUPERVISOR.current_camera->view_matrix;
+  auto& vwmx = AnmManager::current_camera->view_matrix;
   glm::vec3 ViewZ = glm::vec3(vwmx[0][2], vwmx[1][2], vwmx[2][2]);
   glm::mat4 rot = glm::rotate(glm::mat4(1.f), rotation.z, ViewZ);
   glm::vec3 ViewX = rot * glm::vec4(vwmx[0][0], vwmx[1][0], vwmx[2][0], 1.f);
@@ -750,8 +750,8 @@ int AnmVM::write_sprite_corners__mode_4_o() {
 
 int AnmVM::write_sprite_corners__mode_4() {
   glm::vec3 pp = {pos + __pos_2 + entity_pos};
-  glm::vec3 f = pp - SUPERVISOR.current_camera->position;
-  glm::vec3 r = glm::normalize(glm::cross(f, SUPERVISOR.current_camera->up));
+  glm::vec3 f = pp - AnmManager::current_camera->position;
+  glm::vec3 r = glm::normalize(glm::cross(f, AnmManager::current_camera->up));
   glm::vec3 u = glm::normalize(glm::cross(r, f));
   glm::vec4 p = {pp, 0};
 
@@ -779,7 +779,7 @@ int AnmVM::write_sprite_corners__mode_4() {
   }
 
   glm::mat4 rotmat = glm::rotate(glm::mat4(1.f),
-      rotation.z, SUPERVISOR.current_camera->facing_normalized);
+      rotation.z, AnmManager::current_camera->facing_normalized);
 
   SPRITE_TEMP_BUFFER[0].transformed_pos = p + rotmat * glm::vec4{top + left, 1};
   SPRITE_TEMP_BUFFER[1].transformed_pos = p + rotmat * glm::vec4{top + right, 1};
@@ -936,8 +936,6 @@ glm::vec3 AnmVM::get_own_transformed_pos_o() {
   transform_coordinate_o(p);
   return p;
 }
-
-#include "../GlobalData.h"
 
 float getSlowdown(AnmVM *vm) {
   while (vm->__root_vm__or_maybe_not && !vm->bitflags.noParent)
@@ -1116,7 +1114,7 @@ WAITING:
     update_variables_growth();
   }
   /* if flag_set_by_ins306 is set */
-  if (bitflags.f530_15) entity_pos += SUPERVISOR.cameras[3].__vec3_104;
+  if (bitflags.f530_15) entity_pos += AnmManager::current_camera->__vec3_104;
 
   /* if ins419 flag is set */
   if (bitflags.ins419) {

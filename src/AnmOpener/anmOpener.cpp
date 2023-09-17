@@ -1,5 +1,5 @@
-#include "anmOpener.h"
-#include "image.h"
+#include "./anmOpener.h"
+#include "./image.h"
 #include <cassert>
 #include <fstream>
 #include <string.h>
@@ -562,8 +562,7 @@ void anm_script_descriptor(anm_script_t* script)
     std::cout << "\n";
 }
 
-void anm_dump(const anm_archive_t* anm)
-{
+void anm_dump(const anm_archive_t* anm) {
     unsigned int entry_num = 0;
 
     for (auto entry : anm->entries) {

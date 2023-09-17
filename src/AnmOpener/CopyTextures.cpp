@@ -1,5 +1,5 @@
-#include "CopyTextures.hpp"
-#include "AnmManager.h"
+#include "./CopyTextures.hpp"
+#include "./AnmManager.h"
 
 #include <TextureManager.h>
 #include <FrameBuffer.h>

@@ -2,6 +2,7 @@
 #define COPYSHADER_INCLUDED_H
 
 #include <ShaderProgram.h>
+#include <string>
 
 class CopyShader : public NSEngine::ShaderProgram {
     public:

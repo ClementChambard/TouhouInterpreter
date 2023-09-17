@@ -2,8 +2,8 @@
 #define ANMOPENER_H_
 
 #include <vector>
-#include "anmTypes.h"
-#include "image.h"
+#include "./anmTypes.h"
+#include "./image.h"
 
 namespace AnmOpener {
 

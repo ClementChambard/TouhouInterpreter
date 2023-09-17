@@ -1,14 +1,12 @@
-#include "AnmManager.h"
-#include "../Supervisor.h"
-#include "AnmBitflags.h"
+#include "./AnmManager.h"
+#include "./AnmBitflags.h"
 #include "./AnmFuncs.h"
-#include "../UpdateFuncRegistry.h"
 #include <DrawFuncs.h>
 #include <cstring>
 #include <NSlist.h>
 #include <TextureManager.h>
 #include <glm/common.hpp>
-// #include "../Supervisor.h"
+#include <fstream>
 
 // zThread
 // zAnmSaveRelated[4] pause_related
@@ -60,6 +58,12 @@ BlitShader* AnmManager::bshader;
 FogShader* AnmManager::fshader;
 NSEngine::ShaderProgram* AnmManager::curr_shader;
 
+uint8_t AnmManager::zwrite_enabled = false;
+uint8_t AnmManager::fog_enabled = false;
+NSEngine::ShaderProgram* AnmManager::last_shader_before_no_atest_save = nullptr;
+Camera_t* AnmManager::current_camera = nullptr;
+Camera_t* AnmManager::_3d_camera = nullptr;
+
 void AnmManager::bindBuffer() {
   glBindBuffer(GL_ARRAY_BUFFER, vboID);
 
@@ -92,189 +96,6 @@ void AnmManager::drawBuffer(RenderVertex_t *start, uint32_t count) {
 
 void AnmManager::unbindBuffer() { glBindBuffer(GL_ARRAY_BUFFER, 0); }
 
-
-static void anmmanager_initialize() {
-  // zFloat3_00529ecc.x = 1.0;
-  // zFloat3_00529ecc.y = 0.0;
-  // zFloat3_00529ecc.z = 0.0;
-  // zFloat3_00529ee4.x = 1.0;
-  // zFloat3_00529ee4.y = 1.0;
-  // zFloat3_00529ee4.z = 0.0;
-  // zFloat3_00529efc.x = 1.0;
-  // zFloat3_00529efc.y = 0.0;
-  // zFloat3_00529efc.z = 1.0;
-  // zFloat3_00529f14.x = 1.0;
-  // zFloat3_00529f14.y = 1.0;
-  // zFloat3_00529f14.z = 1.0;
-  SPRITE_TEMP_BUFFER[0].transformed_pos.w = 1.0;
-  SPRITE_TEMP_BUFFER[0].texture_uv.x = 0.0;
-  SPRITE_TEMP_BUFFER[0].texture_uv.y = 0.0;
-  SPRITE_TEMP_BUFFER[1].transformed_pos.w = 1.0;
-  SPRITE_TEMP_BUFFER[1].texture_uv.x = 1.0;
-  SPRITE_TEMP_BUFFER[1].texture_uv.y = 0.0;
-  SPRITE_TEMP_BUFFER[2].transformed_pos.w = 1.0;
-  SPRITE_TEMP_BUFFER[2].texture_uv.x = 0.0;
-  SPRITE_TEMP_BUFFER[2].texture_uv.y = 1.0;
-  SPRITE_TEMP_BUFFER[3].transformed_pos.w = 1.0;
-  SPRITE_TEMP_BUFFER[3].texture_uv.x = 1.0;
-  SPRITE_TEMP_BUFFER[3].texture_uv.y = 1.0;
-  UpdateFunc* func;
-  func = new UpdateFunc(AnmManager::on_tick_world);
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_tick(func, 35);
-  func = new UpdateFunc(AnmManager::on_tick_ui);
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_tick(func, 10);
-  func = new UpdateFunc([](){return AnmManager::render_layer(0);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 5);
-  func = new UpdateFunc([](){return AnmManager::render_layer(1);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 7);
-  func = new UpdateFunc([](){return AnmManager::render_layer(2);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 9);
-  func = new UpdateFunc([](){return AnmManager::render_layer(4);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 11);
-  func = new UpdateFunc([](){
-    SUPERVISOR.cameras[3].as_2d_matrix();
-    SUPERVISOR.set_camera_by_index(3);
-    SUPERVISOR.disable_d3d_fog();
-    return AnmManager::render_layer(3);
-  });
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 10);
-  func = new UpdateFunc([](){return AnmManager::render_layer(5);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 13);
-  func = new UpdateFunc([](){return AnmManager::render_layer(6);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 16);
-  func = new UpdateFunc([](){return AnmManager::render_layer(7);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 18);
-  func = new UpdateFunc([](){return AnmManager::render_layer(8);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 20);
-  func = new UpdateFunc([](){return AnmManager::render_layer(9);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 21);
-  func = new UpdateFunc([](){return AnmManager::render_layer(10);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 22);
-  func = new UpdateFunc([](){return AnmManager::render_layer(11);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 24);
-  func = new UpdateFunc([](){return AnmManager::render_layer(12);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 27);
-  func = new UpdateFunc([](){return AnmManager::render_layer(13);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 28);
-  func = new UpdateFunc([](){return AnmManager::render_layer(14);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 31);
-  func = new UpdateFunc([](){return AnmManager::render_layer(15);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 32);
-  func = new UpdateFunc([](){return AnmManager::render_layer(16);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 35);
-  func = new UpdateFunc([](){return AnmManager::render_layer(17);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 37);
-  func = new UpdateFunc([](){return AnmManager::render_layer(18);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 40);
-  func = new UpdateFunc([](){return AnmManager::render_layer(19);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 43);
-  func = new UpdateFunc([](){
-    SUPERVISOR.set_camera_by_index(1);
-    SUPERVISOR.disable_zwrite();
-    SUPERVISOR.disable_ztest();
-    return AnmManager::render_layer(20);
-  });
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 46);
-  func = new UpdateFunc([](){return AnmManager::render_layer(21);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 47);
-  func = new UpdateFunc([](){return AnmManager::render_layer(22);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 53);
-  func = new UpdateFunc([](){return AnmManager::render_layer(23);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 55);
-  func = new UpdateFunc([](){return AnmManager::render_layer(26);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 62);
-  func = new UpdateFunc([](){return AnmManager::render_layer(27);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 63);
-  func = new UpdateFunc([](){return AnmManager::render_layer(29);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 78);
-  func = new UpdateFunc([](){return AnmManager::render_layer(30);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 80);
-  func = new UpdateFunc([](){return AnmManager::render_layer(31);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 83);
-  func = new UpdateFunc([](){return AnmManager::render_layer(25);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 60);
-  func = new UpdateFunc([](){
-    SUPERVISOR.set_camera_by_index(2);
-    SUPERVISOR.disable_zwrite();
-    SUPERVISOR.disable_ztest();
-    AnmManager::cam_vec2_fc_x = 0.0f;
-    AnmManager::cam_vec2_fc_y = 0.0f;
-    return AnmManager::render_layer(24);
-  });
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 59);
-  func = new UpdateFunc([](){
-    SUPERVISOR.set_camera_by_index(0);
-    return AnmManager::render_layer(28);
-    SUPERVISOR.set_camera_by_index(2);
-  });
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 65);
-  func = new UpdateFunc([](){
-    SUPERVISOR.set_camera_by_index(2);
-    SUPERVISOR.disable_zwrite();
-    SUPERVISOR.disable_ztest();
-    return AnmManager::render_layer(36);
-  });
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 56);
-  func = new UpdateFunc([](){return AnmManager::render_layer(37);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 61);
-  func = new UpdateFunc([](){return AnmManager::render_layer(38);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 64);
-  func = new UpdateFunc([](){
-    SUPERVISOR.set_camera_by_index(0);
-    return AnmManager::render_layer(39);
-    SUPERVISOR.set_camera_by_index(2);
-  });
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 66);
-  func = new UpdateFunc([](){return AnmManager::render_layer(40);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 79);
-  func = new UpdateFunc([](){return AnmManager::render_layer(41);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 81);
-  func = new UpdateFunc([](){return AnmManager::render_layer(42);});
-  func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 84);
-}
-
-
 void AnmManager::Init() {
   for (size_t i = 0; i < 8191; i++) {
     fastArray[i].vm.reset();
@@ -306,7 +127,30 @@ void AnmManager::Init() {
   fshader = new FogShader();
   curr_shader = shader;
 
-  anmmanager_initialize();
+  // zFloat3_00529ecc.x = 1.0;
+  // zFloat3_00529ecc.y = 0.0;
+  // zFloat3_00529ecc.z = 0.0;
+  // zFloat3_00529ee4.x = 1.0;
+  // zFloat3_00529ee4.y = 1.0;
+  // zFloat3_00529ee4.z = 0.0;
+  // zFloat3_00529efc.x = 1.0;
+  // zFloat3_00529efc.y = 0.0;
+  // zFloat3_00529efc.z = 1.0;
+  // zFloat3_00529f14.x = 1.0;
+  // zFloat3_00529f14.y = 1.0;
+  // zFloat3_00529f14.z = 1.0;
+  SPRITE_TEMP_BUFFER[0].transformed_pos.w = 1.0;
+  SPRITE_TEMP_BUFFER[0].texture_uv.x = 0.0;
+  SPRITE_TEMP_BUFFER[0].texture_uv.y = 0.0;
+  SPRITE_TEMP_BUFFER[1].transformed_pos.w = 1.0;
+  SPRITE_TEMP_BUFFER[1].texture_uv.x = 1.0;
+  SPRITE_TEMP_BUFFER[1].texture_uv.y = 0.0;
+  SPRITE_TEMP_BUFFER[2].transformed_pos.w = 1.0;
+  SPRITE_TEMP_BUFFER[2].texture_uv.x = 0.0;
+  SPRITE_TEMP_BUFFER[2].texture_uv.y = 1.0;
+  SPRITE_TEMP_BUFFER[3].transformed_pos.w = 1.0;
+  SPRITE_TEMP_BUFFER[3].texture_uv.x = 1.0;
+  SPRITE_TEMP_BUFFER[3].texture_uv.y = 1.0;
 }
 
 void AnmManager::Cleanup() {
@@ -558,7 +402,6 @@ AnmVM *AnmManager::getVM(uint32_t id) {
     return &(fastArray[id & AnmID::fastIdMask].vm);
   return nullptr;
 }
-#include <fstream>
 
 AnmFile *AnmManager::LoadFile(size_t slot, std::string filename) {
   std::ifstream ifile;
@@ -731,34 +574,34 @@ int AnmManager::on_tick_ui() {
   return 1;
 }
 
-void AnmManager::draw() {
-  for (auto node = world_list_head; node; node = node->next) {
-    if (node->value->bitflags.activeFlags)
-      continue;
-    auto l = node->value->layer;
-    auto oldl = l;
-    if (node->value->layer <= 42 && node->value->layer >= 36) {
-      l -= 12;
-    }
-    node->value->layer = l;
-    node->value->draw();
-    node->value->layer = oldl;
-  }
-  for (auto node = ui_list_head; node; node = node->next) {
-    if (node->value->bitflags.activeFlags)
-      continue;
-    auto l = node->value->layer;
-    auto oldl = l;
-    if (24 <= l && l < 32) {
-      l += 12;
-    } else if (l < 36 || l > 42) {
-      l = 38;
-    }
-    node->value->layer = l;
-    node->value->draw();
-    node->value->layer = oldl;
-  }
-}
+// void AnmManager::draw() {
+//   for (auto node = world_list_head; node; node = node->next) {
+//     if (node->value->bitflags.activeFlags)
+//       continue;
+//     auto l = node->value->layer;
+//     auto oldl = l;
+//     if (node->value->layer <= 42 && node->value->layer >= 36) {
+//       l -= 12;
+//     }
+//     node->value->layer = l;
+//     node->value->draw();
+//     node->value->layer = oldl;
+//   }
+//   for (auto node = ui_list_head; node; node = node->next) {
+//     if (node->value->bitflags.activeFlags)
+//       continue;
+//     auto l = node->value->layer;
+//     auto oldl = l;
+//     if (24 <= l && l < 32) {
+//       l += 12;
+//     } else if (l < 36 || l > 42) {
+//       l = 38;
+//     }
+//     node->value->layer = l;
+//     node->value->draw();
+//     node->value->layer = oldl;
+//   }
+// }
 
 void AnmManager::on_draw(uint32_t layer) { render_layer(layer); }
 
@@ -981,7 +824,7 @@ void AnmManager::drawVM(AnmVM *vm) {
   //   vm->color_2.a *= factor;
   // }
 
-  SUPERVISOR.disable_zwrite();
+  disable_zwrite();
 
   /* switch render mode */
   switch (vm->bitflags.rendermode) {
@@ -1046,24 +889,24 @@ void AnmManager::drawVM(AnmVM *vm) {
     vm->color_1; for (int i = 0; i < 4; i++) {
         glm::vec3 v = __matrix_186017c *
         glm::vec4(some_positions[2], some_positions[3], some_positions[4], 1);
-        if (math::point_distance(v, SUPERVISOR.current_camera->position) <=
-        SUPERVISOR.current_camera->sky.begin_distance) {
+        if (math::point_distance(v, current_camera->position) <=
+        current_camera->sky.begin_distance) {
             SPRITE_TEMP_BUFFER[i].diffuse_color = col;
         } else {
-            float coeff = (SUPERVISOR.current_camera->sky.begin_distance -
-            math::point_distance(v, SUPERVISOR.current_camera->position)) /
-            (SUPERVISOR.current_camera->sky.begin_distance -
-            SUPERVISOR.current_camera->sky.end_distance); if (coeff < 1.0) {
+            float coeff = (current_camera->sky.begin_distance -
+            math::point_distance(v, current_camera->position)) /
+            (current_camera->sky.begin_distance -
+            current_camera->sky.end_distance); if (coeff < 1.0) {
                 SPRITE_TEMP_BUFFER[i].diffuse_color.b = col.b - ((col.b -
-                SUPERVISOR.current_camera->sky.color_components[0]) * coeff);
+                current_camera->sky.color_components[0]) * coeff);
                 SPRITE_TEMP_BUFFER[i].diffuse_color.g = col.g - ((col.g -
-                SUPERVISOR.current_camera->sky.color_components[1]) * coeff);
+                current_camera->sky.color_components[1]) * coeff);
                 SPRITE_TEMP_BUFFER[i].diffuse_color.r = col.r - ((col.r -
-                SUPERVISOR.current_camera->sky.color_components[2]) * coeff);
+                current_camera->sky.color_components[2]) * coeff);
                 SPRITE_TEMP_BUFFER[i].diffuse_color.a = col.a;
             } else {
                 SPRITE_TEMP_BUFFER[i].diffuse_color =
-                SUPERVISOR.current_camera->sky.color;
+                current_camera->sky.color;
                 SPRITE_TEMP_BUFFER[i].diffuse_color.a = col.a;
             }
         }
@@ -1097,9 +940,9 @@ void AnmManager::drawVM(AnmVM *vm) {
   case 0xf:
     if (vm->color_1.a == 0 && vm->color_2.a == 0)
       break;
-    SUPERVISOR.enable_d3d_fog();
+    enable_fog();
     draw_vm__mode_8_15(vm);
-    SUPERVISOR.disable_d3d_fog();
+    disable_fog();
     break;
   case 0x10:
   case 0x14:
@@ -1236,30 +1079,30 @@ void AnmManager::draw_vm__modes_0_1_2_3(AnmVM *vm, int i) {
     SPRITE_TEMP_BUFFER[1].transformed_pos.x),
     fmax(SPRITE_TEMP_BUFFER[2].transformed_pos.x,
     SPRITE_TEMP_BUFFER[3].transformed_pos.x))
-        < SUPERVISOR.current_camera->viewport.X) return;
+        < current_camera->viewport.X) return;
 
     /* if max of y pos is smaller than top of viewport --> discard drawing */
     if (fmax(fmax(SPRITE_TEMP_BUFFER[0].transformed_pos.y,
     SPRITE_TEMP_BUFFER[1].transformed_pos.y),
     fmax(SPRITE_TEMP_BUFFER[2].transformed_pos.y,
     SPRITE_TEMP_BUFFER[3].transformed_pos.y))
-        < SUPERVISOR.current_camera->viewport.Y) return;
+        < current_camera->viewport.Y) return;
 
     /* if min of x pos is larger than right of viewport --> discard drawing */
     if (fmin(fmin(SPRITE_TEMP_BUFFER[0].transformed_pos.x,
     SPRITE_TEMP_BUFFER[1].transformed_pos.x),
     fmin(SPRITE_TEMP_BUFFER[2].transformed_pos.x,
     SPRITE_TEMP_BUFFER[3].transformed_pos.x))
-        > SUPERVISOR.current_camera->viewport.Width +
-        SUPERVISOR.current_camera->viewport.X) return;
+        > current_camera->viewport.Width +
+        current_camera->viewport.X) return;
 
     /* if min of y pos is larger than bottom of viewport --> discard drawing */
     if (fmin(fmin(SPRITE_TEMP_BUFFER[0].transformed_pos.y,
     SPRITE_TEMP_BUFFER[1].transformed_pos.y),
     fmin(SPRITE_TEMP_BUFFER[2].transformed_pos.y,
     SPRITE_TEMP_BUFFER[3].transformed_pos.y))
-        > SUPERVISOR.current_camera->viewport.Height +
-        SUPERVISOR.current_camera->viewport.Y) return;
+        > current_camera->viewport.Height +
+        current_camera->viewport.Y) return;
   }
 
   SPRITE_TEMP_BUFFER[0].texture_uv.x =
@@ -1361,7 +1204,7 @@ int AnmManager::draw_vm__mode_6(AnmVM *vm) {
     return -1;
   }
   glm::vec3 pos_from_cam = vm->entity_pos + vm->pos + vm->__pos_2 -
-                         SUPERVISOR.current_camera->position;
+                         current_camera->position;
   if (vm->bitflags.originMode != 0 && !vm->parent_vm) {
     pos_from_cam += glm::vec3(BACK_BUFFER_SIZE.x * 0.5,
                             (BACK_BUFFER_SIZE.y - 448.0) * 0.5, 0);
@@ -1376,7 +1219,7 @@ int AnmManager::draw_vm__mode_6(AnmVM *vm) {
     if (use_custom_color_1c90a4c) {
       col = NSEngine::mix(col, custom_color_1c90a48);
     }
-    if (dist_to_cam <= SUPERVISOR.current_camera->sky.begin_distance) {
+    if (dist_to_cam <= current_camera->sky.begin_distance) {
       SPRITE_TEMP_BUFFER[0].diffuse_color = col;
       SPRITE_TEMP_BUFFER[1].diffuse_color = col;
       SPRITE_TEMP_BUFFER[2].diffuse_color = col;
@@ -1386,19 +1229,19 @@ int AnmManager::draw_vm__mode_6(AnmVM *vm) {
     }
 
     fog_factor =
-         (dist_to_cam - SUPERVISOR.current_camera->sky.begin_distance) /
-         (SUPERVISOR.current_camera->sky.end_distance -
-          SUPERVISOR.current_camera->sky.begin_distance);
+         (dist_to_cam - current_camera->sky.begin_distance) /
+         (current_camera->sky.end_distance -
+          current_camera->sky.begin_distance);
     if (fog_factor > 1.0)
       return -1;
     SPRITE_TEMP_BUFFER[0].diffuse_color.r =
-        col.r - (col.r - SUPERVISOR.current_camera->sky.color_components[2]) *
+        col.r - (col.r - current_camera->sky.color_components[2]) *
                     fog_factor;
     SPRITE_TEMP_BUFFER[0].diffuse_color.g =
-        col.g - (col.g - SUPERVISOR.current_camera->sky.color_components[1]) *
+        col.g - (col.g - current_camera->sky.color_components[1]) *
                     fog_factor;
     SPRITE_TEMP_BUFFER[0].diffuse_color.b =
-        col.b - (col.b - SUPERVISOR.current_camera->sky.color_components[0]) *
+        col.b - (col.b - current_camera->sky.color_components[0]) *
                     fog_factor;
     SPRITE_TEMP_BUFFER[0].diffuse_color.a = (1.0 - pow(fog_factor, 3)) * col.a;
     SPRITE_TEMP_BUFFER[1].diffuse_color = SPRITE_TEMP_BUFFER[0].diffuse_color;
@@ -1416,35 +1259,35 @@ int AnmManager::draw_vm__mode_6(AnmVM *vm) {
     }
     SPRITE_TEMP_BUFFER[3].diffuse_color = col;
     SPRITE_TEMP_BUFFER[0].diffuse_color = col2;
-    if (SUPERVISOR.current_camera->sky.begin_distance < dist_to_cam) {
+    if (current_camera->sky.begin_distance < dist_to_cam) {
       fog_factor =
-          (SUPERVISOR.current_camera->sky.begin_distance - dist_to_cam) /
-          (SUPERVISOR.current_camera->sky.begin_distance -
-           SUPERVISOR.current_camera->sky.end_distance);
+          (current_camera->sky.begin_distance - dist_to_cam) /
+          (current_camera->sky.begin_distance -
+           current_camera->sky.end_distance);
       if (1.0 <= fog_factor) {
         return -1;
       }
       SPRITE_TEMP_BUFFER[0].diffuse_color.r =
-          col.r - (col.r - SUPERVISOR.current_camera->sky.color_components[2]) *
+          col.r - (col.r - current_camera->sky.color_components[2]) *
                       fog_factor;
       SPRITE_TEMP_BUFFER[0].diffuse_color.g =
-          col.g - (col.g - SUPERVISOR.current_camera->sky.color_components[1]) *
+          col.g - (col.g - current_camera->sky.color_components[1]) *
                       fog_factor;
       SPRITE_TEMP_BUFFER[0].diffuse_color.b =
-          col.b - (col.b - SUPERVISOR.current_camera->sky.color_components[0]) *
+          col.b - (col.b - current_camera->sky.color_components[0]) *
                       fog_factor;
       SPRITE_TEMP_BUFFER[0].diffuse_color.a = (col.a * (1.0 - fog_factor));
       SPRITE_TEMP_BUFFER[3].diffuse_color.r =
           col2.r -
-          (col2.r - SUPERVISOR.current_camera->sky.color_components[2]) *
+          (col2.r - current_camera->sky.color_components[2]) *
               fog_factor;
       SPRITE_TEMP_BUFFER[3].diffuse_color.g =
           col2.g -
-          (col2.g - SUPERVISOR.current_camera->sky.color_components[1]) *
+          (col2.g - current_camera->sky.color_components[1]) *
               fog_factor;
       SPRITE_TEMP_BUFFER[3].diffuse_color.b =
           col2.b -
-          (col2.b - SUPERVISOR.current_camera->sky.color_components[0]) *
+          (col2.b - current_camera->sky.color_components[0]) *
               fog_factor;
       SPRITE_TEMP_BUFFER[3].diffuse_color.a = (col2.a * (1.0 - fog_factor));
     }
@@ -1469,9 +1312,9 @@ void AnmManager::draw_vm__mode_8_15(AnmVM *vm) {
     flush_vbos();
   }
   if (vm->bitflags.zwritedis) {
-    SUPERVISOR.disable_zwrite();
+    disable_zwrite();
   } else {
-    SUPERVISOR.enable_zwrite();
+    enable_zwrite();
   }
   if (vm->bitflags.f530_16)
     goto LAB_0046ecb8;
@@ -1630,7 +1473,7 @@ void AnmManager::draw_vm_triangle_fan(AnmVM *vm, RenderVertex_t *vertexData,
     last_used_resamplemode = 255;
     glBindTexture(GL_TEXTURE_2D, last_used_texture);
   }
-  SUPERVISOR.disable_zwrite();
+  disable_zwrite();
   // if (field_0x18607ca != 1) {
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
@@ -1747,7 +1590,7 @@ int AnmManager::draw_vm__ins_603(float x, float y, float width, float height,
   cursor[1].transformed_pos.w = 1.0;
   cursor[2].transformed_pos.w = 1.0;
   cursor[3].transformed_pos.w = 1.0;
-  SUPERVISOR.disable_zwrite();
+  disable_zwrite();
   // My version
   if (last_used_texture != 1) {
     last_used_texture = 1;
@@ -1803,7 +1646,7 @@ int AnmManager::draw_vm__ins_613(float x, float y, float width, float rot_z,
   cursor[1].transformed_pos.w = 1.0;
   cursor[0].diffuse_color = col1;
   cursor[1].diffuse_color = col2;
-  SUPERVISOR.disable_zwrite();
+  disable_zwrite();
   if (last_used_texture != 1) {
     last_used_texture = 1;
     last_used_scrollmodex = 255;
@@ -1875,7 +1718,7 @@ int AnmManager::draw_vm__ins_612(float x, float y, float width, float height,
   cursor[4].transformed_pos.z = 0.0;
   cursor[4].transformed_pos.w = 1.0;
   cursor[4].diffuse_color = col1;
-  SUPERVISOR.disable_zwrite();
+  disable_zwrite();
   if (last_used_texture != 1) {
     last_used_texture = 1;
     last_used_scrollmodex = 255;
@@ -1935,8 +1778,8 @@ int AnmManager::draw_vm__mode_17__drawCircle(float x, float y, float angle_0,
     angle_0 += angle_inc;
     math::angle_normalize(angle_0);
   }
-  SUPERVISOR.disable_zwrite();
-  SUPERVISOR.disable_ztest();
+  disable_zwrite();
+  disable_ztest();
   // My version
   if (last_used_texture != 1) {
     last_used_texture = 1;
@@ -2129,9 +1972,9 @@ void AnmManager::draw_vm_mode_24_25(AnmVM *vm, void *buff,
     flush_vbos();
   }
   if (vm->bitflags.zwritedis) {
-    SUPERVISOR.disable_zwrite();
+    disable_zwrite();
   } else {
-    SUPERVISOR.enable_zwrite();
+    enable_zwrite();
   }
 
   vm->__matrix_1 = glm::mat4(1.f);
@@ -2331,4 +2174,93 @@ AnmID AnmManager::createVM508(int i, AnmVM *root) {
     return vm->id;
   }
   return 0;
+}
+
+void AnmManager::disable_fog() {
+  if (fog_enabled) {
+    flush_vbos();
+    fog_enabled = false;
+    curr_shader = shader;  // d3d: FOGENABLE
+  }
+}
+
+void AnmManager::enable_fog() {
+  if (!fog_enabled) {
+    flush_vbos();
+    fog_enabled = true;
+    curr_shader = fshader;  // d3d: FOGENABLE
+  }
+}
+
+void AnmManager::set_fog_params(NSEngine::Color col, float beg, float end) {
+  if (curr_shader == fshader) flush_vbos();
+  fshader->start();
+  fshader->SetFog(beg, end,
+                  {col.r / 255.f, col.g / 255.f, col.b / 255.f, col.a / 255.f});
+  fshader->stop();
+}
+
+void AnmManager::disable_atest() {
+  if (curr_shader != bshader) {
+    flush_vbos();
+    last_shader_before_no_atest_save = curr_shader;
+    curr_shader = bshader;
+  }
+}
+void AnmManager::enable_atest() {
+  if (curr_shader == bshader) {
+    flush_vbos();
+    curr_shader = last_shader_before_no_atest_save;
+  }
+}
+
+void AnmManager::disable_zwrite() {
+  if (zwrite_enabled) {
+    flush_vbos();
+    zwrite_enabled = false;
+    glDepthMask(false);  // d3d: ZWRITEENABLE
+  }
+}
+
+void AnmManager::enable_zwrite() {
+  if (!zwrite_enabled) {
+    flush_vbos();
+    zwrite_enabled = true;
+    glDepthMask(true);  // d3d: ZWRITEENABLE
+  }
+}
+
+void AnmManager::disable_ztest() {
+  flush_vbos();
+  glDisable(GL_DEPTH_TEST);  // d3d: ZFUNC 8
+}
+
+void AnmManager::enable_ztest() {
+  flush_vbos();
+  glEnable(GL_DEPTH_TEST);  // d3d: ZFUNC 4
+}
+
+void AnmManager::set_camera(Camera_t* cam) {
+  current_camera = cam;
+  flush_vbos();
+  cam_vec2_fc_x = current_camera->screen_shake.x;
+  cam_vec2_fc_y = current_camera->screen_shake.y;
+  // d3d: SetTransform
+  shader->start();
+  shader->SetViewMatrix(current_camera->view_matrix);
+  shader->SetProjectionMatrix(current_camera->projection_matrix);
+  shader->stop();
+  fshader->start();
+  fshader->SetViewMatrix(current_camera->view_matrix);
+  fshader->SetProjectionMatrix(current_camera->projection_matrix);
+  fshader->SetCameraPosition(current_camera->position);
+  shader->stop();
+  bshader->start();
+  bshader->SetViewMatrix(current_camera->view_matrix);
+  bshader->SetProjectionMatrix(current_camera->projection_matrix);
+  bshader->stop();
+  // d3d: SetViewport
+  glViewport(current_camera->viewport.X, current_camera->viewport.Y,
+             current_camera->viewport.Width, current_camera->viewport.Height);
+  return;
 }

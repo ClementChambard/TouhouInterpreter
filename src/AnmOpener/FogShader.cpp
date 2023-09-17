@@ -1,7 +1,7 @@
 #include "FogShader.h"
 
-const std::string FogShader::VERTEX_SHADER_PATH = "assets/shaders/fogVertexShader";
-const std::string FogShader::FRAGMENT_SHADER_PATH = "assets/shaders/fogFragmentShader";
+const char* FogShader::VERTEX_SHADER_PATH = "assets/shaders/fogVertexShader";
+const char* FogShader::FRAGMENT_SHADER_PATH = "assets/shaders/fogFragmentShader";
 
 void FogShader::bindAttributes() {
     bindAttribute(0, "vertexPosition");

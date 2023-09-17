@@ -1,7 +1,7 @@
 #ifndef COPYTEXTURES_INCLUDED_H
 #define COPYTEXTURES_INCLUDED_H
 
-#include "CopyShader.h"
+#include "./CopyShader.h"
 
 struct CopyTextures {
     static void init();

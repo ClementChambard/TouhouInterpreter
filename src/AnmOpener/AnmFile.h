@@ -4,8 +4,8 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "anmOpener.h"
-#include "AnmVM.h"
+#include "./anmOpener.h"
+#include "./AnmVM.h"
 
 class AnmFile {
 

@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include "AnmVM.h"
-#include "../Timer.hpp"
+#include <Timer.hpp>
 
 struct EFFECT_1_buffer_t {
   AnmVM vms[5] = {};
@@ -19,7 +19,7 @@ struct EFFECT_2_buffer_t {
   glm::vec3 midpoint = {};
   glm::vec3 startpoint = {};
   glm::vec3 endpoint = {};
-  Timer_t timer = {};
+  NSEngine::Timer_t timer = {};
 };
 
 extern int (*ANM_ON_SWITCH_FUNCS[5])(AnmVM*, int);

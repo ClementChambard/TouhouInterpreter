@@ -1,11 +1,12 @@
 #ifndef ANMMANAGER_H_
 #define ANMMANAGER_H_
 
-#include "AnmFile.h"
-#include "AnmShader.h"
-#include "AnmVM.h"
-#include "BlitShader.h"
-#include "FogShader.h"
+#include "./AnmFile.h"
+#include "./AnmShader.h"
+#include "./AnmVM.h"
+#include "./BlitShader.h"
+#include "./Camera.hpp"
+#include "./FogShader.h"
 #include <array>
 #include <string>
 
@@ -96,7 +97,7 @@ public:
     static void draw_vm_mode_24_25(AnmVM *vm, void *buff, int cnt);
 
     static void update(bool printInstr = false);
-    static void draw();
+    // static void draw();
     static int render_layer(uint32_t layer);
     static int on_tick_world();
     static int on_tick_ui();
@@ -173,9 +174,26 @@ public:
     static NSEngine::ShaderProgram* curr_shader;
     friend class AnmVM;
 
+    static uint8_t zwrite_enabled;
+    static uint8_t fog_enabled;
+    static NSEngine::ShaderProgram* last_shader_before_no_atest_save;
+    static Camera_t* current_camera;
+    static Camera_t* _3d_camera;
+
     static void bindBuffer();
     static void drawBuffer(RenderVertex_t* start, uint32_t count);
     static void unbindBuffer();
+
+    static void set_camera(Camera_t* camera);
+    static void enable_fog();
+    static void disable_fog();
+    static void set_fog_params(NSEngine::Color col, float beg, float end);
+    static void enable_atest();
+    static void disable_atest();
+    static void enable_zwrite();
+    static void disable_zwrite();
+    static void enable_ztest();
+    static void disable_ztest();
 };
 
 #endif // ANMMANAGER_H_
