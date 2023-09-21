@@ -3,6 +3,7 @@
 
 #include "AnmOpener/AnmFile.h"
 #include "AnmOpener/AnmVM.h"
+#include "GuiMsgVm.hpp"
 #include "UpdateFuncRegistry.h"
 
 struct BossBar {
@@ -84,8 +85,8 @@ public:
   int32_t some_flags_1a4 = 0;
   int32_t timer_chapter_end = 0;
   int32_t th15_some_time_value_1bc = 0;
-  // GuiMsgVm
-  // msg file
+  GuiMsgVm_t* msg = nullptr;
+  uint8_t* msg_file_data = nullptr;
   int32_t remaining_spell_time_seconds = 0;
   int32_t remaining_spell_time_centiseconds = 0;
   int32_t old_remaining_spell_time_seconds = 0;

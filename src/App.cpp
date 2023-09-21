@@ -16,7 +16,9 @@
 #include "./PauseMenu.hpp"
 #include "./StdOpener/Stage.hpp"
 #include "./UpdateFuncRegistry.h"
+#include "./AnmOpener/Text.hpp"
 #include <NSEngine.h>
+#include <string>
 
 //int layerOrder[] = {
 //  0, 32, 33,
@@ -30,6 +32,7 @@
 
 void App::on_create() {
   Hardcoded_Load();
+  TextRenderer::init();
 
   setMaxFps(60);
   NSEngine::createCamera(NS_CAM_3D, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -54,6 +57,9 @@ void App::on_create() {
   GLOBALS.inner.CURRENT_POWER = 450;
   GLOBALS.inner.DIFFICULTY = 3;
   GLOBALS.inner.SPELL_ID = -1;
+
+  if (m_argc > 3) GLOBALS.inner.CHARACTER = std::stoi(std::string(m_argv[3]));
+  if (m_argc > 4) GLOBALS.inner.SHOTTYPE = std::stoi(std::string(m_argv[4]));
 
   bm = BulletManager::GetInstance();
   em = EnemyManager::GetInstance();
@@ -117,4 +123,5 @@ void App::on_destroy() {
   // SUPERVISOR.cleanup();
   AnmManager::Cleanup();
   CopyTextures::cleanup();
+  TextRenderer::cleanup();
 }

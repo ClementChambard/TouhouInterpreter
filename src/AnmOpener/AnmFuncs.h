@@ -2,7 +2,6 @@
 #define ANMFUNCS_H_
 
 #include "./AnmVM.h"
-#include <Timer.hpp>
 #include <cstdint>
 #include <functional>
 #include <vector>

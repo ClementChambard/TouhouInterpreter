@@ -3,8 +3,10 @@
 #include "./AnmOpener/AnmManager.h"
 #include "./Fog.hpp"
 #include "./Hardcoded.h"
+#include "Gui.hpp"
 
 #include <math/Random.h>
+#include <Timer.hpp>
 
 struct EFFECT_1_buffer_t {
   AnmVM vms[5] = {};
@@ -137,6 +139,34 @@ int on_draw_anm_1(AnmVM* vm) {
 
 int on_draw_anm_4(AnmVM* vm) {
     reinterpret_cast<Fog_t*>(vm->associated_game_entity)->set_vm_vertices();
+    return 0;
+}
+
+int on_draw_anm_5(AnmVM* vm) {
+    int type = GUI_PTR->msg->speechBubbleType;
+    auto bubble = AnmManager::getVM(GUI_PTR->msg->anm_id_speechBubble);
+    if (!bubble) {
+        GUI_PTR->msg->anm_id_speechBubble = 0;
+        return 0;
+    }
+    bubble = bubble->search_children(type + 0xb7, 0);
+    if (!bubble) return 0;
+    auto p = bubble->pos + bubble->entity_pos + bubble->__pos_2;
+    bubble->transform_coordinate(p);
+    p.x *= (2.0 / RESOLUTION_MULT);
+    p.y *= (2.0 / RESOLUTION_MULT);
+    if (GUI_PTR->msg->active_side == 1) {
+        if (1.0 <= bubble->scale.x) {
+            p.x += 24.0;
+        } else {
+            p.x += (bubble->scale.x + 0.125) * 32.0 - 8.0;
+        }
+    } else if (GUI_PTR->msg->active_side == 0) {
+        p.x -= 36.0;
+    } else if (GUI_PTR->msg->active_side == 2) {
+        p.x += (bubble->scale.x + 0.125) * 16.0 - 8.0;
+    }
+    vm->entity_pos = p;
     return 0;
 }
 
@@ -326,6 +356,7 @@ void HardcodedFuncsInit(int) {
     AnmFuncs::set_on_switch(2, on_switch_anm_2);
     AnmFuncs::set_on_draw(1, on_draw_anm_1);
     AnmFuncs::set_on_draw(4, on_draw_anm_4);
+    AnmFuncs::set_on_draw(5, on_draw_anm_5);
     AnmFuncs::set_on_tick(1, on_tick_anm_1);
     AnmFuncs::set_on_tick(2, on_tick_anm_2);
     AnmFuncs::set_on_destroy(2, on_destroy_anm_2);

@@ -7,6 +7,7 @@
 #include "./GlobalData.h"
 #include "Bomb.hpp"
 #include "BulletManager.h"
+#include "Gui.hpp"
 #include "Laser/LaserManager.h"
 #include <math/Random.h>
 #include <InputManager.h>
@@ -341,7 +342,7 @@ int GoastManager::spawn_token(glm::vec3 const& pos, int type, float param_4) {
 }
 
 void GoastManager::FUN_0040ee70() {
-  if ((/*!GUI_PTR->msg &&*/ !(GLOBALS.inner.HYPER_FLAGS & 0x200U)) ||
+  if ((!GUI_PTR->msg && !(GLOBALS.inner.HYPER_FLAGS & 0x200U)) ||
      (GLOBALS.inner.HYPER_FLAGS & 4U)) {
     GLOBALS.inner.HYPER_TIME--;
     GLOBALS.inner.HYPER_FLAGS &= 0xfffffbff;

@@ -7,7 +7,13 @@
 #include "./Player.h"
 #include "./Spellcard.h"
 
+#include <FileOpener.h>
+#include <cstdlib>
+#include <cstring>
+
 Gui *GUI_PTR = nullptr;
+
+uint8_t* DAT_0052a320 = nullptr;
 
 Gui::Gui() {
   GUI_PTR = this;
@@ -22,6 +28,25 @@ Gui::Gui() {
       STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["stage_logo_anm_filename"]
           .asString();
   stage_logo_anmloaded = AnmManager::LoadFile(6, stage_logo_filename);
+
+  if (DAT_0052a320 == NULL) {
+    auto fname = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["msg_filenames"]
+      [PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["msg"].asInt()].asString();
+    std::vector<uint8_t> buffer;
+    NSEngine::FileOpener::readFileToBuffer(fname, buffer);
+    msg_file_data = reinterpret_cast<uint8_t*>(malloc(buffer.size()));
+    std::cout << "opened " << fname << ": " << buffer.size() << " bytes\n";
+    memcpy(msg_file_data, buffer.data(), buffer.size());
+  } else {
+    msg_file_data = DAT_0052a320;
+    DAT_0052a320 = NULL;
+  }
+
+  current_score = GLOBALS.inner.CURRENT_SCORE;
+  remaining_spell_time_seconds = -1;
+  old_remaining_spell_time_seconds = -1;
+
+
   FUN_0042a400();
 }
 
@@ -52,6 +77,8 @@ Gui::~Gui() {
 
   stage_logo_anmloaded->Cleanup();
   front_anm->Cleanup();
+
+  if (msg_file_data) free(msg_file_data);
 
   if (on_tick)
     UPDATE_FUNC_REGISTRY->unregister(on_tick);
@@ -99,7 +126,7 @@ int Gui::f_on_tick() {
 
   if (!ENEMY_MANAGER_PTR || remaining_spell_time_seconds < 0 ||
       !ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]) ||
-      (ENEMY_MANAGER_PTR->flags & 1) /*|| msg ||
+      (ENEMY_MANAGER_PTR->flags & 1) || msg /*||
       (GAME_THREAD_PTR->flags & 0x10000U)*/) {
     vm_timer_digit_hi->clear_flag_1_rec();
     vm_timer_digit_lo->clear_flag_1_rec();
@@ -197,7 +224,7 @@ int Gui::f_on_tick() {
       } else {
         if (boss->getData()->life.current < 100000 &&
             !(boss->getData()->flags & 0x31) &&
-            boss->getData()->invFrame < 1 /* && !msg*/) {
+            boss->getData()->invFrame < 1 && !msg) {
           boss_bars[bbid].current_life = boss->getData()->life.current;
           boss_bars[bbid].actual_bar_pc =
               static_cast<float>(boss->getData()->life.current) /
@@ -308,15 +335,15 @@ int Gui::f_on_tick() {
     }
   }
 
-  // if (msg) {
-  //   if (!msg->tick()) {
-  //     msg->__timer_4.increment();
-  //   } else {
-  //     if (msg)
-  //       delete msg;
-  //     msg = nullptr;
-  //   }
-  // }
+  if (msg) {
+    if (!msg->tick()) {
+      msg->__timer_4.increment();
+    } else {
+      if (msg)
+        delete msg;
+      msg = nullptr;
+    }
+  }
 
   __timer_14c++;
 
@@ -612,9 +639,9 @@ int Gui::f_on_draw() {
     return 1;
   if (ENEMY_MANAGER_PTR->flags & 1)
     return 1;
-  // if (msg)
-  //   return 1;
-  // if (GAME_THREAD_PTR->flags & 0x10000U)
+  if (msg)
+    return 1;
+  // If (GAME_THREAD_PTR->flags & 0x10000U)
   //   return 1;
 
   ASCII_MANAGER_PTR->scale = {1.0, 1.0};

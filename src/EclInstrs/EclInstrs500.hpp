@@ -123,13 +123,79 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     new ScreenEffect(1, time, start_str, end_str, 0, 0x55);
 
     _ins(518, dialogueRead) _S(i) _args
-    // GUI_PTR->dialog_read(i);
-    BulletManager::GetInstance()->cancel_all(0);
-    LASER_MANAGER_PTR->cancel_all(0);
-    EnemyManager::GetInstance()->EnmKillAll(nullptr, true);
+    if (i < 0) std::cout << "DIALOG(" << i << "): no negative dialog yet";
+    // if ((i == -1) || (i == -3)) {
+    //     if (((GLOBALS.FLAGS & 0x30) == 0x20) &&
+    //          (GAME_THREAD_PTR->field18_0xa8 == 0)) {
+    //         pcVar3 = CURRENT_STAGE_DATA->msg_filenames[(i == -1) - 2];
+    //         pcVar9 = pcVar3;
+    //         do {
+    //           cVar1 = *pcVar9;
+    //           pcVar9 = pcVar9 + 1;
+    //           pcVar9[(int)((byte *)((int)register0x00000010 + -0x10f) + (-6 - (int)pcVar3))] = cVar1;
+    //         } while (cVar1 != '\0');
+    //         pbVar10 = &local_114;
+    //         do {
+    //           bVar2 = *pbVar10;
+    //           pbVar10 = pbVar10 + 1;
+    //         } while (bVar2 != 0);
+    //         pbVar10[(int)(&local_114 + (4 - (int)(&local_114 + 1)))] = 0;
+    //         pbVar7 = &DAT_00526b08;
+    //         *(undefined4 *)(pbVar10 + (int)(&local_114 + -(int)(&local_114 + 1))) = 0x7661772e;
+    //         pbVar10 = &local_114;
+    //         do {
+    //           bVar2 = *pbVar7;
+    //           bVar12 = bVar2 < *pbVar10;
+    //           if (bVar2 != *pbVar10) {
+    //             uVar8 = -bVar12 | 1;
+    //             goto LAB_0042d7c5;
+    //           }
+    //           if (bVar2 == 0) break;
+    //           bVar2 = pbVar7[1];
+    //           bVar12 = bVar2 < pbVar10[1];
+    //           if (bVar2 != pbVar10[1]) {
+    //             uVar8 = -bVar12 | 1;
+    //             goto LAB_0042d7c5;
+    //           }
+    //           pbVar7 = pbVar7 + 2;
+    //           pbVar10 = pbVar10 + 2;
+    //         } while (bVar2 != 0);
+    //     } else {
+    //     LAB_0042d7c5:
+    //         iVar4 = *(int *)((int)CURRENT_STAGE_DATA->boss_data + (i == -1) * 4 + -0xc);
+    //         if ((SUPERVISOR.config._40_1_ & 0x10) != 0) {
+    //             SoundManager::sub_4662e0((zSoundManager *)&SOUND_MANAGER,4,0,"dummy");
+    //         }
+    //         SoundManager::sub_4662e0((zSoundManager *)&SOUND_MANAGER,2,(i == -1),"dummy");
+    //         (&SCOREFILE_PTR->field_0x2d16e)[iVar4] = 1;
+    //         GUI_PTR->stage_logo_anmloaded->create_effect((i == -1) + 1);
+    //     }
+    // } else if (i == -2) {
+    //     if (!(SPELLCARD_PTR->flags & 0x80)) {
+    //         GameThread::end_stage();
+    //     } else {
+    //         PauseMenu::open_submenu2();
+    //     }
+    // } else {
+    if (i >= 0) {
+        if (GUI_PTR->msg) delete GUI_PTR->msg;
+        uint64_t ora = reinterpret_cast<uint64_t>(GUI_PTR->msg_file_data);
+        int off = *reinterpret_cast<int*>(&GUI_PTR->msg_file_data[i * 8 + 4]);
+        GUI_PTR->msg =
+            new GuiMsgVm_t(reinterpret_cast<MsgIns_t*>(off + ora));
+        GUI_PTR->msg->field_0x0 = i;
+    }
+    BULLET_MANAGER_PTR->cancel_all(false);
+    LASER_MANAGER_PTR->cancel_all(false);
+    EnemyManager::GetInstance()->EnmKillAll(this);
 
-    _ins(519, dialogueWait) _args _notImpl;
-    // TODO
+    _ins(519, dialogueWait) _args
+    if (GUI_PTR->msg) {
+        if (GUI_PTR->msg->__dword_incremented_by_enemyAppear == 0) {
+            cont->time--;
+            _ret;
+        }
+    }
 
     _ins(520, bossWait) _args
     if (isBoss_) {

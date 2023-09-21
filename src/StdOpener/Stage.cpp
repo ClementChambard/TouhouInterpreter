@@ -264,7 +264,6 @@ void Stage::run_std() {
         inner.rocking_timer.set(0x200);
       else
         inner.rocking_timer.set(0);
-      std::cout << "ROCK " << inner.rocking_mode << "\n";
       break;
     case 13: /* BG COLOR */
       {
@@ -277,7 +276,6 @@ void Stage::run_std() {
       }
       break;
     case 14: /* SPRITE */
-      std::cout << "SPRIT" << IARG(0) << "=" << IARG(1) << "=" << IARG(2) << "\n";
       if (IARG(1) == -2) {
         inner.vms[IARG(0)].bitflags.visible = false;
       } else if (IARG(1) == -1) {
@@ -294,7 +292,6 @@ void Stage::run_std() {
     case 17: /* DISTORTION */
       if (inner.distortion.fog_ptr)
         delete inner.distortion.fog_ptr;
-      std::cout << "DISTORTION " << IARG(0) << "\n";
       inner.distortion.fog_ptr = NULL;
       inner.distortion.r_target = 112.0;
       inner.distortion.r = 192.0;
@@ -311,7 +308,6 @@ void Stage::run_std() {
                               IARG(0), IARG(1));
       break;
     case 19: /* INTERRUPT ANMS */
-      std::cout << "INT" << IARG(0) << "\n";
       for (int i = 0; i < 8; i++) {
         if (inner.vms[i].instr_offset < 0) continue;
         inner.vms[i].interrupt(IARG(0) + 7);
@@ -878,7 +874,7 @@ void Stage::create_face_vms() {
 }
 
 void Stage::interrupt(unsigned int i) {
-    std::cout << "INTERRUPT!\n";
+    std::cout << "STD INTERRUPT " << i << "!\n";
     int off = 0;
     auto instr = reinterpret_cast<StdOpener::std_instr_t *>(
         reinterpret_cast<uint64_t>(beginning_of_script) + off);

@@ -1,5 +1,6 @@
 #include "ShtFile.h"
 #include "EnemyManager.h"
+#include "Gui.hpp"
 #include "Hardcoded.h"
 #include "Player.h"
 
@@ -286,8 +287,8 @@ int sht_on_tick_2(PlayerBullet_t* bullet) {
     }
 
     if (bullet->active == 1) {
-        if (PLAYER_PTR->inner.shoot_key_short_timer > -1 && ((/*((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) || */ !(shooter.option & 0xf) || shooter.option - 1 < PLAYER_PTR->inner.power) && ((/*((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) && (GLOBALS.inner.field44_0xe0 == 3 || GLOBALS.inner.field44_0xe0 == 1)*/ true) || !PLAYER_PTR->inner.focusing)) && PLAYER_PTR->inner.state != 2 && PLAYER_PTR->inner.state != 4) {
-            if (((((PLAYER_PTR->inner.unique_bullets[(shooter.option < 0x10) ? shooter.option & 0xf : shooter.option >> 4] == GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL) && !PLAYER_PTR->inner.focusing) && !(PLAYER_PTR->flags & 0x40)) /*&& (!GUI_PTR || !GUI_PTR->msg)*/) && EnemyManager::GetInstance()) {
+        if (PLAYER_PTR->inner.shoot_key_short_timer > -1 && ((((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) || !(shooter.option & 0xf) || shooter.option - 1 < PLAYER_PTR->inner.power) && ((((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) && (GLOBALS.inner.HYPER_TYPE == 3 || GLOBALS.inner.HYPER_TYPE == 1)) || !PLAYER_PTR->inner.focusing)) && PLAYER_PTR->inner.state != 2 && PLAYER_PTR->inner.state != 4) {
+            if (((((PLAYER_PTR->inner.unique_bullets[(shooter.option < 0x10) ? shooter.option & 0xf : shooter.option >> 4] == GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL) && !PLAYER_PTR->inner.focusing) && !(PLAYER_PTR->flags & 0x40)) && (!GUI_PTR || !GUI_PTR->msg)) && EnemyManager::GetInstance()) {
                 bullet->hitting = 0;
                 return 0;
             }

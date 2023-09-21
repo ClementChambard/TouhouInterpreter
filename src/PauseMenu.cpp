@@ -310,7 +310,7 @@ int PauseMenu::f_on_tick() {
           // GAME_SPEED = 1.0;
           // saved_dat_524778 = DAT_00524778;
           // DAT_00524778 = 0;
-          // if (GUI_PTR->msg) GUI_PTR->msg->hide_anms();
+          if (GUI_PTR->msg) GUI_PTR->msg->hideVms();
 
           auto vm = AnmManager::getVM(GUI_PTR->th15_chapter_end_anmid);
           if (vm) vm->clear_flag_1_rec();
@@ -930,7 +930,7 @@ void PauseMenu::update_submenus() {
         GAME_PAUSED = false;
         if (vm = AnmManager::getVM(GUI_PTR->th15_chapter_end_anmid); vm)
             vm->set_flag_1_rec();
-        // if (GUI_PTR->msg) GUI_PTR->msg->unhide_anms();
+        if (GUI_PTR->msg) GUI_PTR->msg->unhideVms();
         // GAME_SPEED = saved_game_speed;
         // DAT_00524778 = saved_dat_524778;
       } else if (field_1ec == 2 || field_1ec == 3) {
@@ -985,7 +985,7 @@ void PauseMenu::update_submenus() {
             //           (SOUND_MANAGER,2,0xffffffff,&field73_0x2f0);
             // while (sound_related_465660());
             // FUN_00478610(DAT_00529e88);
-            // if (GUI_PTR->msg) GUI_PTR->msg->unhide_anms();
+            if (GUI_PTR->msg) GUI_PTR->msg->unhideVms();
             // Gui::activate_chapter_end_vm();
             // GAME_SPEED = saved_game_speed;
             // DAT_00524778 = saved_dat_524778;
@@ -1146,8 +1146,8 @@ void PauseMenu::open_submenu3() {
   // GAME_SPEED = 1.0;
   // saved_dat_524778 = DAT_00524778;
   // DAT_00524778 = 1;
-  // if (GUI_PTR->msg) GUI_PTR->msg->hide_anms();
-  // if (auto vm = AnmManager::getVM(GUI_PTR->th15_chapter_end_anmid); vm) vm->clear_flag_1_rec();
+  if (GUI_PTR->msg) GUI_PTR->msg->hideVms();
+  if (auto vm = AnmManager::getVM(GUI_PTR->th15_chapter_end_anmid); vm) vm->clear_flag_1_rec();
   flags_3f0 |= 4;
   return;
 }

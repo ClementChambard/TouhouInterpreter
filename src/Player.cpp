@@ -415,7 +415,7 @@ int Player::_on_tick() {
     inner.time_in_stage++;
     inner.__time_in_stage__copy_3c++;
 
-    if (/*!GUI_PTR->msg && */
+    if (!GUI_PTR->msg &&
         ENEMY_MANAGER_PTR && ENEMY_MANAGER_PTR->enemy_count_real &&
         /*!(GAME_THREAD_PTR->flags & 0x4000U) && */
         inner.time_in_stage >= 20 && (~(flags >> 2) & 1) != 0 && !(flags & 0x10U)) {

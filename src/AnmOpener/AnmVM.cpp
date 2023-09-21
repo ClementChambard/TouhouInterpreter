@@ -646,9 +646,13 @@ glm::vec3 AnmVM::get_own_transformed_pos() {
 }
 
 float getSlowdown(AnmVM *vm) {
-  while (vm->__root_vm__or_maybe_not && !vm->bitflags.noParent)
-    vm = vm->__root_vm__or_maybe_not;
-  return vm->slowdown;
+    if (!vm->__root_vm__or_maybe_not || vm->bitflags.noParent) {
+        return vm->slowdown;
+    } else {
+        while (vm->__root_vm__or_maybe_not && !vm->bitflags.noParent)
+          vm = vm->__root_vm__or_maybe_not;
+        return vm->slowdown;
+    }
 }
 
 void AnmVM::clear_flag_1_rec() {
@@ -712,7 +716,91 @@ void AnmVM::reset() {
   __wierd_list = {this, nullptr, nullptr};
 }
 
-int AnmVM::run() { return update(); }
+static constexpr int SUCCESS = 0;
+static constexpr int FAILURE = 1;
+static constexpr int WAIT = 2;
+static constexpr int CONTINUE = 3;
+
+int AnmVM::run() {
+  return update();
+    float gamespeed_real = GAME_SPEED;
+    if (bitflags.noSlowdown) NSEngine::getInstance()->setGameSpeed(1.0);
+    float slow = getSlowdown(this);
+    if (slow > 0.0) {
+        NSEngine::getInstance()
+            ->setGameSpeed(gamespeed_real - slow * gamespeed_real);
+        if (GAME_SPEED < 0) NSEngine::getInstance()->setGameSpeed(0.0);
+    }
+    if (index_of_on_tick && AnmFuncs::on_tick(index_of_on_tick)(this)) {
+        NSEngine::getInstance()->setGameSpeed(gamespeed_real);
+        return FAILURE;
+    }
+    if (instr_offset < 0x0 || bitflags.f530_20) {
+        NSEngine::getInstance()->setGameSpeed(gamespeed_real);
+        return SUCCESS;
+    }
+    __timer_1c++;
+    using Ins = AnmOpener::anm_instr_t;
+    if (pending_interrupt) {
+        int offset = 0;
+        Ins* scr = reinterpret_cast<Ins*>(
+            AnmManager::getLoaded(anm_loaded_index)->getScript(script_id));
+        Ins* m1IntIns = nullptr;
+        int m1IntOffset = 0;
+        while (1) {
+            if (scr->type == static_cast<uint16_t>(-1)) break;
+            if (scr->type == 5) {
+                if (pending_interrupt ==
+                    *reinterpret_cast<int32_t*>(&scr->data[0])) break;
+                if (*reinterpret_cast<int32_t*>(&scr->data[0]) == -0x1) {
+                    m1IntIns = scr;
+                    m1IntOffset = offset;
+                }
+            }
+            offset += scr->length;
+            scr = reinterpret_cast<Ins*>(
+                reinterpret_cast<int64_t>(scr) + scr->length);
+        }
+        bitflags.f530_14 = 0;
+        pending_interrupt = 0;
+        if (scr->type != 5) {
+            scr = m1IntIns;
+            if (scr == 0) {
+                time_in_script--;
+                return wait(gamespeed_real);
+            }
+            offset = m1IntOffset;
+        }
+        interrupt_return_time = time_in_script;
+        // dword ptr [EBX + 0x14] = dword ptr [EBX + 0x28];
+        time_in_script = scr->time;
+        instr_offset = offset + scr->length;
+        bitflags.visible = true;
+    } else {
+    // if (bitflags.f534_14_15 == 1 && GAME_THREAD_PTR &&
+    //     GAME_THREAD_PTR->field_0x8c & 0x2) {
+    //    GAME_SPEED = local_20;
+    //    return 0;
+    // }
+    }
+    while (true) {
+        auto instr = &AnmManager::getLoaded(anm_loaded_index)
+            ->getScript(script_id)[instr_offset];
+
+        if (reinterpret_cast<Ins*>(instr)->time > time_in_script)
+            return wait(gamespeed_real);
+        auto res = exec_instruction(instr);
+
+        if (res == CONTINUE) {
+            continue;
+        } else if (res == WAIT) {
+            return wait(gamespeed_real);
+        } else {
+            NSEngine::getInstance()->setGameSpeed(gamespeed_real);
+            return res;
+        }
+    }
+}
 
 void AnmVM::step_interpolators() {
   if (pos_i.end_time) {
@@ -985,4 +1073,35 @@ void AnmVM::write_texture_circle_vertices() {
   default:
     return;
   }
+}
+
+int AnmVM::wait(float old_game_speed) {
+    if (bitflags.hasGrowth) {
+        update_variables_growth();
+    }
+    if (bitflags.f530_15) {
+        entity_pos += AnmManager::_3d_camera->__vec3_104;
+    }
+    if (bitflags.ins419) {
+        glm::vec4 temp_quad[4];
+        write_sprite_corners_2d(temp_quad);
+        uv_quad_of_sprite[0].x = fmax(0.f, temp_quad[0].x / 640.0);
+        uv_quad_of_sprite[0].y = fmax(0.f, temp_quad[0].y / 480.0);
+        uv_quad_of_sprite[1].x = fmax(0.f, temp_quad[1].x / 640.0);
+        uv_quad_of_sprite[1].y = fmax(0.f, temp_quad[1].y / 480.0);
+        uv_quad_of_sprite[2].x = fmax(0.f, temp_quad[2].x / 640.0);
+        uv_quad_of_sprite[2].y = fmax(0.f, temp_quad[2].y / 480.0);
+        uv_quad_of_sprite[3].x = fmax(0.f, temp_quad[3].x / 640.0);
+        uv_quad_of_sprite[3].y = fmax(0.f, temp_quad[3].y / 480.0);
+    }
+    step_interpolators();
+    write_texture_circle_vertices();
+    if (index_of_on_wait && AnmFuncs::on_wait(index_of_on_wait) &&
+        AnmFuncs::on_wait(index_of_on_wait)(this) == 0) {
+        NSEngine::getInstance()->setGameSpeed(old_game_speed);
+        return 1;
+    }
+    time_in_script++;
+    NSEngine::getInstance()->setGameSpeed(old_game_speed);
+    return 0;
 }

@@ -19,7 +19,7 @@ Bomb* BOMB_PTR = nullptr;
 bool player_is_trying_to_bomb() {
     return (BOMB_PTR && !BOMB_PTR->active && GOAST_MANAGER_PTR &&
       !(GLOBALS.inner.HYPER_FLAGS & 6) && GUI_PTR &&
-     /*!GUI_PTR->msg == NULL &&*/
+      !GUI_PTR->msg &&
       ENEMY_MANAGER_PTR && ENEMY_MANAGER_PTR->enemy_count_real);
 }
 

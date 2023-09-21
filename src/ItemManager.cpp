@@ -6,6 +6,7 @@
 #include "./Input.h"
 #include "./Player.h"
 #include "./AsciiPopupManager.hpp"
+#include "Bomb.hpp"
 #include "Gui.hpp"
 #include <math/Random.h>
 
@@ -366,6 +367,10 @@ int ItemManager::_on_tick() {
                     PLAYER_PTR->sht_file->header.grazebox_u;
                 item->state = 3;
             }
+
+            // TODO: put this somewhere
+            // if (((BOMB_PTR->active == 1) && (BOMB_PTR->timer_0x34 < 0x3c)) ||
+            //    (GUI_PTR->msg != NULL))
 
             item->velocity = {
                 math::lengthdir_vec(item->velocity_magnitude_towards_player,

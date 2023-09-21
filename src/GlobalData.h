@@ -9,7 +9,8 @@ struct GlobalsInner_t {
     // undefined4
     int32_t CURRENT_CHAPTER = 0;
     int32_t TIME_IN_STAGE = 0;
-    // undefined4[2]
+    // undefined4
+    int32_t field_0x14 = 0;
     int32_t CHARACTER = 0;
     int32_t SHOTTYPE = 0;
     int32_t CURRENT_SCORE = 0;

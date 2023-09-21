@@ -1,6 +1,7 @@
 #include "./shiftjis.h"
 #include "./Spellcard.h"
 #include "./AnmOpener/AnmManager.h"
+#include "./AnmOpener/Text.hpp"
 #include "./AsciiManager.hpp"
 #include "./EnemyManager.h"
 #include "./Gui.hpp"
@@ -267,11 +268,8 @@ void Spellcard::Init(int id, int time, int mode, std::string name) {
   text_anmid_14 = SUPERVISOR.text_anm->createEffect(2);
   ascii_anmid_18 = ASCII_MANAGER_PTR->ascii_anm->createEffect(1);
 
-  // vm = ANM_MANAGER_PTR->get_vm_with_id(this->_text_anmid_14.value);
-  // if (!vm) {
-  //   _text_anmid_14.value = 0;
-  // }
-  // ANM_MANAGER_PTR->FUN_00475120(vm, 0xffffff, 0, 0, 0, param_3);
+  auto vm = AnmManager::getVM(text_anmid_14);
+  FUN_00475120(vm, c_white, c_black, 0, 0, sj2utf8(name), name.size());
 
   // SoundManager::play_sound_centered(0x21);
 

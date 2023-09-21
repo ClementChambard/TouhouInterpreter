@@ -22,7 +22,7 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
     if (!dospawn)
         sub = "";
     if (enemyCount >= enemy_limit) {
-        std::cout << "Can't spawn " << sub << ": Too much enemies.\n";
+        std::cout << "ERROR: Can't spawn " << sub << ": Too much enemies.\n";
         return nullptr;
     }
     auto e = ListUtil::listInsertAfter(active_enemy_list_head,
@@ -40,7 +40,6 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
     e->update();
     if (e->enemy.deathScr == 0) {
         e->enemy.deathScr = 0x2c;
-        std::cout << e->enemy.anm0anmID << "\n";
         if (e->enemy.anm0anmID == 2) {
             switch (e->enemy.anm0scr) {
             case 5:
@@ -73,8 +72,8 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
     last_enemy_id = next_enemy_id;
     next_enemy_id++;
     enemyCount++;
-    std::cout << "Spawning " << sub << " at (" << x << ',' << y
-              << ") ID=" << e->enemyId << " -> total: " << enemyCount << "\n";
+    // std::cout << "Spawning " << sub << " at (" << x << ',' << y
+    //           << ") ID=" << e->enemyId << " -> total: " << enemyCount << "\n";
     return e;
 }
 

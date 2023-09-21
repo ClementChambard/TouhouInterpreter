@@ -120,6 +120,9 @@ public:
   int write_sprite_corners__mode_4();
 
   void write_texture_circle_vertices();
+
+  int wait(float old_gamespeed = 1.f);
+  
   static int cnt;
 
   // PREFIX

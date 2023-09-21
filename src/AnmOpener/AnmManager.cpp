@@ -353,8 +353,9 @@ void AnmManager::deleteVM(uint32_t id) {
 void AnmManager::deleteVM(AnmVM *vm) {
   if (!vm)
     return;
-  if (vm->bitflags.f534_27_31)
+  if (vm->bitflags.f534_27_31) {
     return;
+  }
   vm->bitflags.activeFlags = 0b01;
   for (auto node = vm->list_of_children.next; node; node = node->next) {
     deleteVM(node->value);

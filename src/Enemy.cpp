@@ -387,7 +387,7 @@ int EnemyData::step_game_logic() {
         if ((PLAYER_PTR->inner.state == 2) || (PLAYER_PTR->inner.state == 0))
             totalDamage /= 5;
 
-        // if (GUI_PTR->msg) totalDamage = 0;
+        if (GUI_PTR->msg) totalDamage = 0;
 
         if (totalDamage > 0) {
             if (!ret) ENEMY_MANAGER_PTR->field_0xb0 += totalDamage;

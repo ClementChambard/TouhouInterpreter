@@ -39,7 +39,8 @@ find_package(imgui REQUIRED)
 # link the NSEngine library. All the dependencies are added directly to the engine
 target_link_libraries(ecl PUBLIC NSEngine
                                  -ljsoncpp
-                                 imgui::imgui)
+                                 imgui::imgui
+                                 -lSDL2_ttf)
 
 # TODO do this better (copy assets in build directory)
 file(COPY assets DESTINATION ${PROJECT_BINARY_DIR})
