@@ -33,7 +33,7 @@ public:
     glm::vec3 velocity{};
     float velocity_magnitude = 0.f;
     float velocity_angle = 0.f;
-    int32_t time = 0;
+    ns::Timer_t time = 0;
     // undefined4[4]
     int32_t field_0xc54 = 0;
     int32_t state = 0;

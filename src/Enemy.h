@@ -81,8 +81,8 @@ struct EnemyData {
     glm::vec3 lastDmgPos = {};
     int32_t ecl_int_vars[4] = {};
     float ecl_float_vars[8] = {};
-    int32_t timeInEcl = 0;
-    int32_t timeAlive = 0;
+    ns::Timer_t timeInEcl = 0;
+    ns::Timer_t timeAlive = 0;
     float slowdown = 0;
     EnemyList_t* node = nullptr;
     InterpStrange abs_pos_i = {};
@@ -111,9 +111,9 @@ struct EnemyData {
     int32_t deathScr = 0;
     int32_t frBefNxtHurtFx = 0;
     int32_t hitSnd = -1;
-    int32_t invFrame = 0;
-    int32_t noHbFrame = 0;
-    int32_t timerCountDown = 0;
+    ns::Timer_t invFrame = 0;
+    ns::Timer_t noHbFrame = 0;
+    ns::Timer_t timerCountDown = 0;
     float bombDmgMul = 1;
     EnemyDropSeason_t dropsSeason = {};
     uint64_t flags = 0;

@@ -122,7 +122,7 @@ void VM::getParentData(glm::vec3 &pos, glm::vec3 &rot, glm::vec2 &scale) {
 
 int VM::update(bool /*printInstr*/) {
   /* VM IS NOT RUNNING */
-  if (bitflags.activeFlags == ANMVM_DELETE && time_in_script != -1)
+  if (bitflags.activeFlags == ANMVM_DELETE && !time_in_script.had_value(-1))
     return 1;
   cnt++;
 
@@ -226,7 +226,7 @@ int VM::update(bool /*printInstr*/) {
       return 1;
     int16_t instime = *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
     while (instime <= time_in_script &&
-           (bitflags.activeFlags == ANMVM_ACTIVE || time_in_script == -1)) {
+           (bitflags.activeFlags == ANMVM_ACTIVE || time_in_script.had_value(-1))) {
       int ret = exec_instruction(&(instructions[instr_offset]));
       if (ret == 1)
         return 0;
@@ -687,12 +687,8 @@ void VM::reset() {
   uv_scale = {1.0, 1.0};
   color_1 = {255, 255, 255, 255};
   __matrix_1 = glm::mat4(1.0);
-  time_in_script = 0;
-  // time_in_script.previous = -999999;
-  // reset_neg999999
-  __timer_1c = 0;
-  // __timer_1c.previous = -999999;
-  // reset_neg999999
+  time_in_script.reset_neg999999();
+  __timer_1c.reset_neg999999();
   pos_i.end_time = 0;
   rgb1_i.end_time = 0;
   alpha1_i.end_time = 0;

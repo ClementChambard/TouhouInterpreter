@@ -140,7 +140,7 @@ int BombReimu::method_10() {
     auto buffer = reinterpret_cast<Buffer_t*>(ptr_0x70);
     for (int i = 0; i < 0x18; i++) {
         if (buffer->orbs[i].field28) {
-            if (timer_0x34.current % 8 == (i % 8)) {
+            if (timer_0x34.had_true([i](i32 a){ return a % 8 == (i % 8); })) {
                 BULLET_MANAGER_PTR->cancel_radius_as_bomb(buffer->orbs[i].pos.pos, 0, 64.0);
                 LASER_MANAGER_PTR->cancel_in_radius(buffer->orbs[i].pos.pos, 0, 1, 64.0);
             }
@@ -213,7 +213,7 @@ void BombReimu::Buffer_t::Orb_t::update() {
         } else if (time_alive < ((id + 9) * 10)) {
             pos.velocity = PLAYER_PTR->inner.pos;
             pos.angle += field36;
-        } else if (time_alive == ((id + 9) * 10)) {
+        } else if (time_alive.had_value(((id + 9) * 10))) {
             pos.flags &= 0xfffffff0;
             pos.angle = math::point_direction({0,0}, velocity);
             pos.speed = math::point_distance(0, 0, velocity.x, velocity.y);
@@ -289,14 +289,14 @@ int BombReimu::f_on_tick_() {
             }
         }
     }
-    if (timer_0x34.current == ((GLOBALS.inner.SHOTTYPE == 1) * 200 + 200)) {
+    if (timer_0x34.had_value((GLOBALS.inner.SHOTTYPE == 1) * 200 + 200)) {
       buffer->explode_all();
       anm::interrupt_tree(anmid_0x64, 1);
       new ScreenEffect(1, 8, 6, 6, 0, 0);
       return 0;
     }
     if (timer_0x34.current != timer_0x34.previous) {
-        if (timer_0x34.current == 0) {
+        if (timer_0x34.had_value(0)) {
             for (int i = 0; i < 8; i++) {
                 auto orb = &buffer->orbs[i];
                 orb->init(i, PLAYER_PTR->inner.pos, 15);
@@ -309,7 +309,7 @@ int BombReimu::f_on_tick_() {
                 PLAYER_PTR->inner.damage_sources[orb->ds - 1].field_0x7c = 400;
             }
         } else if (GLOBALS.inner.SHOTTYPE == 1) {
-            if (timer_0x34 == 0x50) {
+            if (timer_0x34.had_value(0x50)) {
                 // SoundManager::play_sound_at_position(0x2c);
                 for (int i = 0; i < 8; i++) {
                     auto orb = &buffer->orbs[i + 8];
@@ -322,7 +322,7 @@ int BombReimu::f_on_tick_() {
                     orb->field36 = -PI / 30.f;
                     PLAYER_PTR->inner.damage_sources[orb->ds - 1].field_0x7c = 400;
                 }
-            } else if (timer_0x34 == 0xa0) {
+            } else if (timer_0x34.had_value(0xa0)) {
                 // SoundManager::play_sound_at_position(0x2c);
                 for (int i = 0; i < 8; i++) {
                     auto orb = &buffer->orbs[i + 16];
@@ -405,7 +405,7 @@ int BombMarisa::f_on_tick_() {
     }
     int time = (300 + (GLOBALS.inner.SHOTTYPE == 1) * 150);
     if (timer_0x34 > time) return 0;
-    if (timer_0x34 == time) {
+    if (timer_0x34.had_value(time)) {
         anm::interrupt_tree(anmid_0x5c, 1);
         anm::interrupt_tree(anmid_0x64, 1);
         PLAYER_PTR->flags &= 0xfffffffb;
@@ -420,8 +420,7 @@ int BombMarisa::f_on_tick_() {
     }
     PLAYER_PTR->speed_multiplier = 0.5;
     field_0x14 = PLAYER_PTR->inner.pos;
-    if (timer_0x34.current != timer_0x34.previous &&
-          (timer_0x34.current % 3) == 0) {
+    if (timer_0x34.was_modulo(3)) {
         glm::vec3 pos = math::lengthdir_vec3(208, field_0x2c) + field_0x14;
         int ds = create_damage_source(pos, field_0x2c, 0, 50, 512.0, 32.0);
         PLAYER_PTR->inner.damage_sources[ds - 1].flags |= 4;

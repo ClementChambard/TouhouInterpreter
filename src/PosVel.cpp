@@ -1,5 +1,8 @@
 #include "./PosVel.h"
 #include <math/math.h>
+#include <NSEngine.hpp>
+
+#define GAME_SPEED ns::getInstance()->gameSpeed()
 
 void PosVel::Update() {
     // pos.update();
@@ -42,18 +45,18 @@ PosVel operator+(PosVel const& a, PosVel const& b) {
 void PosVel::update_velocities() {
     switch (flags & 0xf) {
         case 0:
-            velocity = {math::lengthdir_vec(speed, angle), 0.f};
+            velocity = {math::lengthdir_vec(speed * GAME_SPEED, angle), 0.f};
             return;
         case 2:
         case 3:
-            circle_radius += circle_radial_speed;
-            angle += speed;
+            circle_radius += circle_radial_speed * GAME_SPEED;
+            angle += speed * GAME_SPEED;
             math::angle_normalize(angle);
           return;
         case 4:
-            some_angle2 += circle_radial_speed;
+            some_angle2 += circle_radial_speed * GAME_SPEED;
             math::angle_normalize(some_angle2);
-            velocity = {math::lengthdir_vec(speed, some_angle1), 0.f};
+            velocity = {math::lengthdir_vec(speed * GAME_SPEED, some_angle1), 0.f};
     }
     return;
 }
@@ -84,7 +87,7 @@ void PosVel::update_position() {
     saved_pos = pos;
     __another_pos += velocity;
     pos = __another_pos + glm::vec3(math::lengthdir_vec(sinf(some_angle2) *
-                                circle_radius, some_angle1 + PI1_2), 0.f);
+                                circle_radius * GAME_SPEED, some_angle1 + PI1_2), 0.f);
     angle += math::point_direction(saved_pos.x, saved_pos.y, pos.x, pos.y);
     math::angle_normalize(angle);
   }

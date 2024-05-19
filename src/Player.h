@@ -37,9 +37,9 @@ struct PlayerBullet_t {
     // undefined1[3]
     int32_t id = 0;
     anm::ID anmId {};
-    int32_t __field_c = 0;
-    int32_t __field_20 = 0;
-    int32_t __field_34 = 0;
+    ns::Timer_t __field_c = 0;
+    ns::Timer_t __field_20 = 0;
+    ns::Timer_t __field_34 = 0;
     PosVel pos {};
     int32_t active = 0;
     int32_t targeted_entity = 0;
@@ -82,9 +82,9 @@ struct PlayerDamageSource_t {
 struct PlayerInner_t {
     glm::vec3 pos { 0.f, 400.f, 0.f };
     glm::vec<2, int32_t> integer_pos { 0, 0xc800 };
-    int32_t time_in_state = 0;
-    int32_t time_in_stage = 0;
-    int32_t __time_in_stage__copy_3c = 0;
+    ns::Timer_t time_in_state = 0;
+    ns::Timer_t time_in_stage = 0;
+    ns::Timer_t __time_in_stage__copy_3c = 0;
     PlayerOption_t options[4] {};
     PlayerOption_t subseason_options[8] {};
     PlayerBullet_t bullets[256] {};
@@ -93,14 +93,14 @@ struct PlayerInner_t {
     int32_t state = 0;
     anm::ID focus_eff_anmId = 0;
     uint32_t maybe_th15_graze_snowflake = 0;
-    int32_t __timer_187ac = 0;
+    ns::Timer_t __timer_187ac = 0;
     int32_t focusing = false;
-    int32_t shoot_key_short_timer = -1;
-    int32_t shoot_key_long_timer = -1;
+    ns::Timer_t shoot_key_short_timer = -1;
+    ns::Timer_t shoot_key_long_timer = -1;
     int32_t power = 0;
     int32_t unique_bullets[16] = {};
     // undefined4[14]
-    int32_t iframes = 0;
+    ns::Timer_t iframes = 0;
 };
 
 class Player {
@@ -161,7 +161,7 @@ public:
     ns::Interp<float> player_scale_i {};
     float player_scale__requires_flag_0x10__from_ddc = 1.f;
     float damage_multiplier__used_by_winter_in_th16 = 1.f;
-    int32_t field_0x19080 = 0;  // zTimer
+    ns::Timer_t field_0x19080 = 0;
     anm::ID extra_anm_id {};
     glm::vec3 field_0x19098 {};
     BoundingBox3_t item_collect_box {};

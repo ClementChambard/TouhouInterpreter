@@ -6,6 +6,9 @@
 #include "../Hardcoded.h"
 #include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
+#include <NSEngine.hpp>
+
+#define GAME_SPEED ns::getInstance()->gameSpeed()
 
 LaserLine::LaserLine() {
     vm1.sprite_id = -1;
@@ -123,7 +126,7 @@ int LaserLine::on_tick() {
         if (flags & 0x10) {
             if (ex_angle.aim_type == 0) {
                 if (ex_angle.timer >= ex_angle.duration) {
-                    laser_speed = { math::lengthdir_vec(speed - (ex_angle.timer * speed) / (float)ex_angle.duration, angle), 0.f };
+                    laser_speed = { math::lengthdir_vec(speed - (ex_angle.timer.current_f * speed) / (float)ex_angle.duration, angle), 0.f };
                 } else {
                     // if (-1 < inner.shot_transform_sfx) SoundManager::play_sound_centered(inner.shot_transform_sfx);
                     ex_angle.turns_so_far++;

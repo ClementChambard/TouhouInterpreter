@@ -180,8 +180,8 @@ void Stage::run_std() {
   auto instr = reinterpret_cast<StdOpener::std_instr_t *>(
       reinterpret_cast<uint64_t>(beginning_of_script) + inner.instr_offset);
   while (
-      instr->time <=
-      inner.time_in_script) { // conditionnal jump depends on unitialized value
+      static_cast<i32>(instr->time) <=
+      inner.time_in_script.current) { // conditionnal jump depends on unitialized value
     switch (instr->type) {    // invalid read of size 2 ???
     case 0:                   /* STOP */
       goto update_rest;

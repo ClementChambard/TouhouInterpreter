@@ -13,6 +13,7 @@
 #include "../Laser/LaserManager.h"
 #include "../Gui.hpp"
 #include "../Spellcard.h"
+#include <NSEngine.hpp>
 #include <math/Random.h>
 inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _insNop
@@ -324,7 +325,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.flags = (enemy.flags ^ (enemy.flags ^ (s << 0x1c))) & 0x10000000;
 
     _ins(547, gameSpeed) _f(s) _args
-    GAME_SPEED = s;
+    ns::getInstance()->setGameSpeed(s);
 
     _ins(548, diffWait) _S(e) _S(n) _S(h) _S(l) _args
     context.currentContext->time -= Diff(e, n, h, l);

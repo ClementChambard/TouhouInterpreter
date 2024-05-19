@@ -34,7 +34,7 @@ public:
     anm::ID text_anmid_14 = 0;
     anm::ID ascii_anmid_18 = 0;
 
-    int __timer_20 = 0;
+    ns::Timer_t __timer_20 = 0;
     int duration = 1;
 
     int spell_id = 0;

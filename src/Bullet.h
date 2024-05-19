@@ -76,13 +76,13 @@ public:
     ns::Interp<glm::vec3> pos_i = {};
     ns::Interp<float> scale_i = {};
     float scale = 1.f;
-    int32_t __timer_e24 = 0;
-    int32_t __timer_e38 = 0;
+    ns::Timer_t __timer_e24 = 0;
+    ns::Timer_t __timer_e38 = 0;
     // undefined4 __unknown;
     uint16_t state = 0;
     // undefined2 __unknown;
-    int32_t __timer_e54 = 0;
-    int32_t __timer_e68 = 0;
+    ns::Timer_t __timer_e54 = 0;
+    ns::Timer_t __timer_e68 = 0;
     Json::Value sprite_data;
     int16_t type = 0;
     int16_t color = 0;

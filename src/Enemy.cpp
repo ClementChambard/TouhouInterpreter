@@ -12,8 +12,9 @@
 #include "Bomb.hpp"
 #include <DrawFuncs.h>
 #include <math/Random.h>
+#include <NSEngine.hpp>
 
-namespace ns { extern int DEBUG_LAYER_ID; }
+#define GAME_SPEED ns::getInstance()->gameSpeed()
 
 Enemy::Enemy() {
     fileManager = EclFileManager::GetInstance();
@@ -323,9 +324,9 @@ int EnemyData::step_game_logic() {
         if (interrupts[i].life >= 0 && interrupts[i].time > 0) {
             if (flags & 0x800000) {
                 GUI_PTR->remaining_spell_time_seconds =
-                  (interrupts[i].time - timeInEcl) / 0x3c;
+                  (interrupts[i].time - timeInEcl.current) / 0x3c;
                 GUI_PTR->remaining_spell_time_centiseconds =
-                  (((interrupts[i].time - timeInEcl) % 0x3c) * 100) / 0x3c;
+                  (((interrupts[i].time - timeInEcl.current) % 0x3c) * 100) / 0x3c;
                 if (GUI_PTR->remaining_spell_time_seconds > 99) {
                   GUI_PTR->remaining_spell_time_seconds = 99;
                   GUI_PTR->remaining_spell_time_centiseconds = 99;
@@ -349,7 +350,7 @@ int EnemyData::step_game_logic() {
                     ENEMY_MANAGER_PTR->can_still_capture_spell = 0;
                 } else if ((SPELLCARD_PTR->flags & 9) == 9) {
                     flags &= 0xfeffffff;
-                    // GLOBALS.inner.field32_0x80 += __bool_cleared_by_ecl_570;
+                    GLOBALS.inner.cnt_80 += __bool_cleared_by_ecl_570;
                 }
                 __bool_cleared_by_ecl_570 = 0;
 
@@ -358,9 +359,7 @@ int EnemyData::step_game_logic() {
                     enemy->clear_async_contexts();
                     enemy->reset_ecl();
                     enemy->set_sub(interrupts[i].subTimeout);
-                    // param: (float *)(&PTR_GAME_SPEED)
-                    // [(int)(enemy->time_in_ecl).__game_speed__disused]
-                    if (enemy->ecl_run())
+                    if (enemy->ecl_run(GAME_SPEED))
                         return -1;
                 }
             }
@@ -437,8 +436,7 @@ int EnemyData::step_game_logic() {
                     if (life.current <= interrupts[i].life) {
                         if (__bool_cleared_by_ecl_570 &&
                             own_chapter == GLOBALS.inner.CURRENT_CHAPTER) {
-                            // GLOBALS.inner.field32_0x80 +=
-                            // __bool_cleared_by_ecl_570;
+                            GLOBALS.inner.cnt_80 += __bool_cleared_by_ecl_570;
                             __bool_cleared_by_ecl_570 = 0;
                         }
                         life.current = interrupts[i].life;
@@ -449,9 +447,7 @@ int EnemyData::step_game_logic() {
                             enemy->clear_async_contexts();
                             enemy->reset_ecl();
                             enemy->set_sub(interrupts[i].subNext);
-                            // param: (float *)(&PTR_GAME_SPEED)
-                            // [(int)(enemy->time_in_ecl).__game_speed__disused]
-                            if (enemy->ecl_run())
+                            if (enemy->ecl_run(GAME_SPEED))
                                 return -1;
                         }
                     }
@@ -488,8 +484,7 @@ int EnemyData::step_game_logic() {
                 // a = enemy_collide_player_rectangle(pvVar10, &zStack_14,
                 //  rotation, 0, hitbox_size.x, hitbox_size.y);
             }
-            if (((flags & 0x200) && a == 2) &&
-                timeInEcl % 6 == 0)
+            if (((flags & 0x200) && a == 2) && timeInEcl.was_modulo(6))
                 PLAYER_PTR->do_graze(PLAYER_PTR->inner.pos);
         } else {
             hitbox_func(this);
@@ -512,7 +507,7 @@ int EnemyData::step_game_logic() {
     }
 
     if (flags & 0x80000000) {
-        if (abs(timeInEcl) % 4 == 0) {
+        if (timeInEcl.ticked() && abs(timeInEcl.current) % 4 == 0) {
             vm0->color_2 = { 255, 0, 255, 255 };
             vm0->bitflags.colmode = 0b01;
         } else {
@@ -521,7 +516,7 @@ int EnemyData::step_game_logic() {
     }
 
     if (!(flags & 0x200000) || (flags & 0x2000)) {
-        if (abs(timeInEcl) % 4 == 0) {
+        if (timeInEcl.ticked() && abs(timeInEcl.current) % 4 == 0) {
             if ((flags & 0x40800000) && (SPELLCARD_PTR->flags & 9) != 9) {
                 if (!(SPELLCARD_PTR->flags & 1)) {
                     if (life.curAtk >= 500)
@@ -624,7 +619,7 @@ int EnemyData::update() {
 
         // param: (float *)(&PTR_GAME_SPEED)
         // [(int)(enemy->time_in_ecl).__game_speed__disused]
-        if (step_interpolators() || enemy->ecl_run() ||
+        if (step_interpolators() || enemy->ecl_run(GAME_SPEED) ||
             (func_from_ecl_func_set && func_from_ecl_func_set(this)) ||
             step_game_logic()) {
             enemy->Die();
@@ -677,11 +672,11 @@ int Enemy::update() {
 
         if (GAME_SPEED - enemy.slowdown * GAME_SPEED >= 0) {
             if (GAME_SPEED - enemy.slowdown * GAME_SPEED <= 1.0)
-                GAME_SPEED = GAME_SPEED - enemy.slowdown * GAME_SPEED;
+                ns::getInstance()->setGameSpeed(GAME_SPEED - enemy.slowdown * GAME_SPEED);
             else
-                GAME_SPEED = 1.f;
+                ns::getInstance()->setGameSpeed(1.f);
         } else {
-            GAME_SPEED = 0.f;
+            ns::getInstance()->setGameSpeed(0.f);
         }
 
         for (size_t i = 0; i < 16; i++) {
@@ -693,7 +688,7 @@ int Enemy::update() {
 
         int ret = enemy.update();
         enemy.flags |= 0x100000000;
-        GAME_SPEED = saved_game_speed;
+        ns::getInstance()->setGameSpeed(saved_game_speed);
         return ret;
     }
     if (enemy.flags & 0x100000000) {

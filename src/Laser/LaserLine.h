@@ -3,6 +3,7 @@
 
 #include "./Laser.h"
 #include "../AnmOpener/AnmVM.h"
+#include "../Bullet.h"
 
 struct LaserLineInner_t {
     glm::vec3 start_pos = {};

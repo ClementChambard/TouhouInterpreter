@@ -3,6 +3,9 @@
 #include "./AsciiManager.hpp"
 #include "./Player.h"
 #include "Hardcoded.h"
+#include <NSEngine.hpp>
+
+#define GAME_SPEED ns::getInstance()->gameSpeed()
 
 AsciiPopupManager *POPUP_MANAGER_PTR = nullptr;
 
@@ -31,8 +34,6 @@ AsciiPopupManager::~AsciiPopupManager() {
     UPDATE_FUNC_REGISTRY->unregister(on_draw);
   POPUP_MANAGER_PTR = nullptr;
 }
-
-extern float GAME_SPEED;
 
 int AsciiPopupManager::f_on_tick() {
   for (int i = 0; i < 0xd; i++) {
@@ -73,10 +74,10 @@ int AsciiPopupManager::f_on_draw() {
       continue;
     float size = 8;
     if (popups[i].time < 8) {
-      if (popups[i].time == 0)
+      if (popups[i].time.had_value(0))
         size = 0;
       else
-        size /= static_cast<float>(popups[i].time);
+        size /= popups[i].time.current_f;
     }
     vm.entity_pos.x = popups[i].pos.x - popups[i].nb_nums * size * 0.5;
     vm.entity_pos.y = popups[i].pos.y;

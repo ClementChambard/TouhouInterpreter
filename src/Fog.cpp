@@ -1,8 +1,10 @@
 #include "./Fog.hpp"
 #include "AnmOpener/AnmManager.h"
 #include "Enemy.h"
-#include "GlobalData.h"
 #include "Supervisor.h"
+#include <NSEngine.hpp>
+
+#define GAME_SPEED ns::getInstance()->gameSpeed()
 
 anm::ID fog_init_sub_anms(int count) {
   anm::VM *vm;

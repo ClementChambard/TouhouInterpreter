@@ -120,7 +120,7 @@ struct VM {
   static i32 cnt;
 
   // PREFIX
-  i32 interrupt_return_time = -99;
+  ns::Timer_t interrupt_return_time = -99;
   i32 interrupt_return_offset = 0;
   u32 layer = 0;
   i32 anm_loaded_index = 0;
@@ -184,8 +184,8 @@ struct VM {
   // SUFFIX
   ID id = 0;
   i32 fast_id = 0;
-  i32 time_in_script = 0;  // zTimer
-  i32 __timer_1c = 0;      // zTimer
+  ns::Timer_t time_in_script = 0;
+  ns::Timer_t __timer_1c = 0;
   VMList_t node_in_global_list = {this, nullptr, nullptr};
   VMList_t __node_as_child = {this, nullptr, nullptr};
   VMList_t list_of_children = {};

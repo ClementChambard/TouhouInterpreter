@@ -9,6 +9,9 @@
 #include "AnmOpener/AnmManager.h"
 #include "Gui.hpp"
 #include <math/Random.h>
+#include <NSEngine.hpp>
+
+#define GAME_SPEED ns::getInstance()->gameSpeed()
 
 ItemManager* ITEM_MANAGER_PTR = nullptr;
 

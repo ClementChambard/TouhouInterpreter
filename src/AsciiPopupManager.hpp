@@ -10,7 +10,7 @@ struct AsciiPopupString_t {
     glm::vec3 pos = {0, 0, 0};
     float __field_18;
     ns::Color color = {0, 0, 0, 0};
-    int32_t time = 0;
+    ns::Timer_t time = 0;
     // undefined4
     int32_t __field_32__was_1281 = 0;
     char active = 0;

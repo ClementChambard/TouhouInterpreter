@@ -19,9 +19,9 @@ struct Token_t {
     int32_t token_type = 0;
     glm::vec3 pos {};
     glm::vec3 speed {};
-    int32_t __timer_30 = 0;
-    int32_t __timer_44 = 0;
-    int32_t __timer_58 = 0;
+    ns::Timer_t __timer_30 = 0;
+    ns::Timer_t __timer_44 = 0;
+    ns::Timer_t __timer_58 = 0;
     int32_t flags = 0;
 
     int update();

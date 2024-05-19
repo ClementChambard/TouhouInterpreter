@@ -6,6 +6,7 @@
 #include "./math/Random.h"
 #include "./math/math.h"
 #include "AnmOpener/AnmManager.h"
+#include <NSEngine.hpp>
 
 extern int BULLET_ADDITIONAL_CANCEL_SCR[18];
 
@@ -38,7 +39,7 @@ int Bullet::on_tick() {
         }
     }
 
-    float game_speed = 1.0f;
+    float game_speed = ns::getInstance()->gameSpeed();
     /* seems like state 2 is spawn anim */
     if (state == 2) {
         pos += velocity * game_speed * 0.5f;
@@ -68,7 +69,7 @@ int Bullet::on_tick() {
                     ended_ex++;
                 } else {
                     velocity = cartesian3_from_polar(angle,
-                                5.0 - ex_speedup.timer * 5.0 * 0.0625 + speed);
+                                5.0 - ex_speedup.timer.current_f * 5.0 * 0.0625 + speed);
                     ex_speedup.timer++;
                 }
             }
@@ -105,7 +106,7 @@ int Bullet::on_tick() {
             if (active_ex_flags & 0x00000010) {
                 float spd;
                 if ((ex_angle).timer < ex_angle.duration) {
-                    spd = speed - (ex_angle.timer * speed) /
+                    spd = speed - (ex_angle.timer.current_f * speed) /
                         static_cast<float>(ex_angle.duration);
                 } else {
                     // SoundManager::play_sound_centered(transform_sound);
@@ -218,7 +219,7 @@ int Bullet::on_tick() {
                     active_ex_flags = active_ex_flags & 0xfffdffff;
                     ended_ex++;
                 } else {
-                    if (ex_move.timer == 0)
+                    if (ex_move.timer.had_value(0))
                         pos_i.initial = pos_i.current;
                     pos_i.step();
                     velocity = pos_i.current - pos;

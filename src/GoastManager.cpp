@@ -11,6 +11,7 @@
 #include "Laser/LaserManager.h"
 #include <math/Random.h>
 #include <InputManager.h>
+#include <NSEngine.hpp>
 
 GoastManager* GOAST_MANAGER_PTR = nullptr;
 
@@ -197,7 +198,7 @@ int GoastManager::FUN_0040e920() {
 int Token_t::update() {
     if (flags & 1) {
         speed = (PLAYER_PTR->inner.pos - pos) * 0.25f;
-        pos += speed;
+        pos += speed * ns::getInstance()->gameSpeed();
         if (__timer_30 >= 10) {
             anm::deleteVM(anm_id);
             anm_id = 0;
@@ -244,7 +245,7 @@ int Token_t::update() {
             }
         }
 
-        if (__timer_58 == 0x3c) {
+        if (__timer_58.had_value(0x3c)) {
             anm::interrupt_tree(anm_id, 2);
         } else if (__timer_58 < 1) {
             __timer_58 = 0xb4;
@@ -265,8 +266,8 @@ int Token_t::update() {
     } else {
         __timer_44 = 0;
     }
-    pos += ((d2_to_pl <= 3600.0) ? 0.5f : 1.0f) * speed;
-    if (__timer_30 == 0x1e78) anm::interrupt_tree(anm_id, 9);
+    pos += ((d2_to_pl <= 3600.0) ? 0.5f : 1.0f) * speed * ns::getInstance()->gameSpeed();
+    if (__timer_30.had_value(0x1e78)) anm::interrupt_tree(anm_id, 9);
     if (__timer_30 < 0x20d0) {
         bool bounced = false;
         if (pos.x <= -180.0 && speed.x < 0) { speed.x *= -1; bounced = true; }
@@ -475,7 +476,7 @@ LAB_0040ef69:
   if (!field_0x40) return;
   PlayerDamageSource_t* ds = &PLAYER_PTR->inner.damage_sources[field_0x40 - 1];
   if (!ds) return;
-  float fVar18 = 1.0 - (1.0 - GLOBALS.inner.HYPER_TIME / 40.0);
+  float fVar18 = 1.0 - (1.0 - GLOBALS.inner.HYPER_TIME.current_f / 40.0);
   fVar18 = (1.0 - fVar18 * fVar18 * fVar18 * fVar18) * 200.0;
   ds->field_0x4 = fVar18;
   BULLET_MANAGER_PTR->cancel_radius_as_bomb(ds->pos.pos,
@@ -698,7 +699,7 @@ int GoastManager::hyper_start() {
   anm::deleteVM(hyper_time_bar_anmid2);
   hyper_time_bar_anmid2 = anm_file->createEffect(0x1f, -1, &vm);
   vm->bitflags.scaled = true;
-  vm->sprite_size.x = GLOBALS.inner.HYPER_TIME * 0.125;
+  vm->sprite_size.x = GLOBALS.inner.HYPER_TIME.current_f * 0.125;
   if (GLOBALS.inner.HYPER_TYPE == 2) {
     create_otter_hyper_anms();
   } else {
@@ -757,7 +758,7 @@ void GoastManager::update_hyper_bar() {
     hyper_time_bar_anmid2 = 0;
   } else {
     vm->bitflags.scaled = true;
-    vm->sprite_size.x = GLOBALS.inner.HYPER_TIME * 0.125;
+    vm->sprite_size.x = GLOBALS.inner.HYPER_TIME.current_f * 0.125;
   }
 }
 

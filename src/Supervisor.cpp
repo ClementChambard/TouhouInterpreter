@@ -459,7 +459,7 @@ static int supervisor_on_registration() {
   //   if (SUPERVISOR.field107_0xa24 == nullptr)
   //     ns::error("データのバージョンが違います");
   // }
-  GAME_SPEED = 1.0;
+  ns::getInstance()->setGameSpeed(1.0);
   SUPERVISOR.background_color = {0, 0, 0, 255};
   SUPERVISOR.init_cameras();
   // SUPERVISOR.rng_seed_from_time = timeGetTime();

@@ -196,7 +196,7 @@ int VM::exec_instruction(bytes ins) {
             int s = S(0);
             if (s < 0) anm::getLoaded(2)->setSprite(this, 258);
             else anm::getLoaded(anm_loaded_index)->setSprite(this, s);
-            __time_of_last_sprite_set__unused = time_in_script;
+            __time_of_last_sprite_set__unused = time_in_script.current;
             break; }
         case 301: {// spriteRand
             bitflags.visible = true;
@@ -205,7 +205,7 @@ int VM::exec_instruction(bytes ins) {
             else s = rand();
             if (s < 0) anm::getLoaded(2)->setSprite(this, 258);
             else anm::getLoaded(anm_loaded_index)->setSprite(this, s);
-            __time_of_last_sprite_set__unused = time_in_script;
+            __time_of_last_sprite_set__unused = time_in_script.current;
             break; }
         case 302: // type
             bitflags.rendermode = S(0);

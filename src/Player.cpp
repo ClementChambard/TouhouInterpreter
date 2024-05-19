@@ -231,7 +231,7 @@ int Player::_on_tick() {
     // movement state
     switch (inner.state) {
     case 0:  // Respawning
-        inner.integer_pos.y = 61440 - (inner.time_in_state * 512) / 3;
+        inner.integer_pos.y = 61440 - (inner.time_in_state.current_f * 512) / 3;
         inner.pos.y = inner.integer_pos.y * 0.0078125;
         inner.options[0].move_instantly = true;
         inner.options[1].move_instantly = true;
@@ -242,8 +242,8 @@ int Player::_on_tick() {
             prev_pos[i] = inner.integer_pos;
 
         if (inner.time_in_state < 30) {
-            LASER_MANAGER_PTR->cancel_in_radius(death_pos, 0, 1, ((float)inner.time_in_state * 512.0) / 30.0 + 64.0);
-            LASER_MANAGER_PTR->cancel_in_radius(death_pos, 0, 0, ((float)inner.time_in_state * 512.0) / 120.0 + 16.0);
+            LASER_MANAGER_PTR->cancel_in_radius(death_pos, 0, 1, (inner.time_in_state.current_f * 512.0) / 30.0 + 64.0);
+            LASER_MANAGER_PTR->cancel_in_radius(death_pos, 0, 0, (inner.time_in_state.current_f * 512.0) / 120.0 + 16.0);
         } else {
             // if ((SPELLCARD_PTR->flags & 1) && (SPELLCARD_PTR->field_0x74 == 100)) {
             //     BulletManager::GetInstance()->cancel_radius(&inner.pos,0,128.0);
@@ -283,7 +283,7 @@ int Player::_on_tick() {
         }
         [[fallthrough]];
     case 2: // Dying
-        if (inner.time_in_state == 3) {
+        if (inner.time_in_state.had_value(3)) {
             GLOBALS.inner.CURRENT_POWER -= GLOBALS.inner.POWER_PER_LEVEL / 2;
             if (GLOBALS.inner.CURRENT_POWER < GLOBALS.inner.POWER_PER_LEVEL)
                 GLOBALS.inner.CURRENT_POWER = GLOBALS.inner.POWER_PER_LEVEL;
@@ -298,7 +298,7 @@ int Player::_on_tick() {
             FUN_00449630(&inner);
         }
         if (inner.time_in_state > 30) {
-            if (GLOBALS.inner.CURRENT_LIVES < 0 && inner.time_in_state == 31) {
+            if (GLOBALS.inner.CURRENT_LIVES < 0 && inner.time_in_state.had_value(31)) {
                 // if (REPLAY_MANAGER_PTR->field3_0xc != 1) FUN_004447e0();
                 inner.time_in_state++;
             } else {
@@ -321,7 +321,7 @@ int Player::_on_tick() {
         }
         break;
     case 3: // IDK
-        if (inner.time_in_state == 15) {
+        if (inner.time_in_state.had_value(15)) {
             LASER_MANAGER_PTR->cancel_all(1);
         }
     }
@@ -348,7 +348,7 @@ int Player::_on_tick() {
         vm.bitflags.colmode = 0b00;
         if (!(flags & 0x20)) {
             if (speed_multiplier > 1.01) {
-                if (abs(inner.time_in_state) % 8 < 4) {
+                if (inner.time_in_state.had_true([](i32 i){ return abs(i) % 8 < 4; })) {
                     vm.color_2 = { 255, 255, 0, 255 };
                     vm.bitflags.colmode = 0b01;
                 }
@@ -357,7 +357,7 @@ int Player::_on_tick() {
                 playerAnm->setSprite(vm, this->vm.sprite_id);
             }
         } else {
-            if (abs(inner.time_in_state) % 8 < 4) {
+            if (inner.time_in_state.had_true([](i32 i){ return abs(i) % 8 < 4; })) {
                 vm.color_2 = { 255, 0, 0, 255 };
                 vm.bitflags.colmode = 0b01;
             }
@@ -394,7 +394,7 @@ int Player::_on_tick() {
             player_scale__requires_flag_0x10__from_ddc = player_scale_i.step();
         }
 
-        if ((player_scale_i.end_time == 0) || (inner.time_in_state % 3))
+        if ((player_scale_i.end_time == 0) || inner.time_in_state.was_modulo(3))
             vm.scale.x = vm.scale.y = player_scale__requires_flag_0x10__from_ddc;
         else
             vm.scale = { 1.f, 1.f };
@@ -554,7 +554,7 @@ void Player::check_shoot()
         field_0x19040 = 0;
         field_0x19044 = 0;
 
-        if (field_0x19080 == 0) {
+        if (field_0x19080.had_value(0)) {
             return;
         }
 
@@ -577,7 +577,7 @@ void Player::check_shoot()
                 if (!inner.focusing)
                     goto LAB_0044ab18;
                 if ((INPUT_STRUCT.input & 1) && field_0x19080 >= 0) {
-                    if (field_0x19080 == 0) {
+                    if (field_0x19080.had_value(0)) {
                         //                    SoundManager::play_sound_at_position(31);
                         if (GLOBALS.inner.SHOTTYPE == 0)
                             extra_anm_id = PLAYER_PTR->playerAnm->createEffectPos(20, 0, inner.pos);
@@ -587,7 +587,7 @@ void Player::check_shoot()
                     field_0x19080++;
                     //                FUN_004655a0(31, inner.pos.x);
                     //                FUN_004655a0(55, inner.pos.x);
-                    if (field_0x19080 == 60) {
+                    if (field_0x19080.had_value(60)) {
                         //                    FUN_004655d0(31);
                         //                    SoundManager::play_sound_at_position(55);
                         anm::interrupt_tree(extra_anm_id, 2);
@@ -619,7 +619,7 @@ void Player::check_shoot()
             }
             glm::vec3 old_pos = inner.pos;
             set_pos(field_0x19098);
-            shoot(field_0x19080 + 40, 0);
+            shoot(field_0x19080.current + 40, 0);
             set_pos(old_pos);
             field_0x19080++;
             if (field_0x19080 < 0)
@@ -634,7 +634,7 @@ void Player::check_shoot()
                 inner.focusing = 1;
                 glm::vec3 old_pos = inner.pos;
                 set_pos(field_0x19098);
-                shoot(field_0x19080 + 40, 0);
+                shoot(field_0x19080.current + 40, 0);
                 set_pos(old_pos);
                 inner.focusing = temp;
                 field_0x19080++;
@@ -664,19 +664,21 @@ void Player::check_shoot()
         }
         inner.shoot_key_short_timer = 0;
     }
-    shoot(inner.shoot_key_short_timer, inner.shoot_key_long_timer);
+
+    if (inner.shoot_key_short_timer.ticked())
+        shoot(inner.shoot_key_short_timer.current, inner.shoot_key_long_timer.current);
 
     if (inner.shoot_key_short_timer < 14) {
         inner.shoot_key_short_timer++;
     } else if (INPUT_STRUCT.input & 1) {
-        inner.shoot_key_short_timer -= 14;
+        inner.shoot_key_short_timer.add_nogamespeed(-14);
     } else {
         inner.shoot_key_short_timer = -1;
     }
 
     if (inner.shoot_key_long_timer > 0x76) {
         if (INPUT_STRUCT.input & 1)
-            inner.shoot_key_long_timer -= 0x77;
+            inner.shoot_key_long_timer.add_nogamespeed(-0x77);
         else
             inner.shoot_key_long_timer = -1;
     } else if (inner.shoot_key_long_timer >= 0)
@@ -1003,7 +1005,7 @@ void Player::move()
     // move according to speed
     speed.x = xspd;
     speed.y = yspd;
-    last_movement = { speed * GAME_SPEED, 0 };
+    last_movement = { speed * ns::getInstance()->gameSpeed(), 0 };
     last_movement_cpy = last_movement;
     if (direction != 0)
         last_movement_no_zero = last_movement;

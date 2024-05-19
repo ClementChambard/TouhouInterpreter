@@ -349,7 +349,7 @@ static bool menu_confirm() {
 #define child_interrupt(cid, inte) vm = anm::getVM(menu_anmid)->search_children(cid, 0); if (vm) vm->interrupt(inte);
 void PauseMenu::update_submenus() {
     anm::VM* vm;
-    if (timer4_0xc.current % 60 == 0 && (SUPERVISOR.flags & 0x400U)) {
+    if (timer4_0xc.ticked() && timer4_0xc.was_modulo(60) && (SUPERVISOR.flags & 0x400U)) {
       // Supervisor::sub_463c90_inputRelated();
     }
     switch (submenu) {
@@ -583,7 +583,7 @@ void PauseMenu::update_submenus() {
     case 7:
     case 9:
       if (timer4_0xc < 0x14) break;
-      if (timer4_0xc == 0x14) {
+      if (timer4_0xc.had_value(0x14)) {
         menu_helper.push_selection();
         menu_helper.num_choices = 2;
         menu_helper.option_wrapping = 1;
@@ -591,7 +591,7 @@ void PauseMenu::update_submenus() {
         anm::interrupt_tree(menu_anmid, 14);
       }
       if (timer4_0xc < 0x1e) break;
-      if (timer4_0xc == 0x1e) {
+      if (timer4_0xc.had_value(0x1e)) {
         anm::interrupt_tree(menu_anmid, menu_helper.selection + 15);
       }
       menu_helper.current_selection = menu_helper.selection;
@@ -908,7 +908,7 @@ void PauseMenu::update_submenus() {
       // Soundplay_sound_centered(7);
       return;
     case 0xe:
-      if (timer4_0xc == 0x14) {
+      if (timer4_0xc.had_value(0x14)) {
         anm::getVM(menu_anmid)->clear_flag_1_rec();
         // HelpManual::operator_new();
         // HELP_MANUAL_PTR->field74_0x128 = 0x42000000;

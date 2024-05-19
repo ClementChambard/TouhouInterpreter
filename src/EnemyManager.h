@@ -74,7 +74,7 @@ public:
     int32_t enemy_limit = 999999;
     int32_t next_enemy_id = 1;
     int32_t last_enemy_id = 0;
-    int32_t time_in_stage = 0;
+    ns::Timer_t time_in_stage = 0;
     int32_t field_0xac = 0;
     int32_t field_0xb0 = 0;
     // lots of unknown

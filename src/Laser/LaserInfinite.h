@@ -3,6 +3,7 @@
 
 #include "../AnmOpener/AnmVM.h"
 #include "./Laser.h"
+#include "../Bullet.h"
 
 struct LaserInfiniteInner_t {
     glm::vec3 start_pos = {};

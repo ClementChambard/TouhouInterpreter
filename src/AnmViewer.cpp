@@ -325,8 +325,8 @@ void anm_view_window(AnmView *v) {
   ImGui::SameLine();
   ImGui::Text("Slot: %d, Script: %d", vm->anm_loaded_index, vm->script_id);
   ImGui::Text("Instr: %d@%d, return: %d@%d", vm->instr_offset,
-              vm->time_in_script, vm->interrupt_return_offset,
-              vm->interrupt_return_time);
+              vm->time_in_script.current, vm->interrupt_return_offset,
+              vm->interrupt_return_time.current);
   if (ImGui::Button("Interrupt")) {
     ImGui::OpenPopup("InterruptVM");
   }
@@ -692,6 +692,11 @@ void main_menu_window(bool *open) {
   if (ImGui::Button("screen effect")) {
     screff_w_open = !screff_w_open;
   }
+
+  float gs = ns::getInstance()->gameSpeed();
+  float ogs = gs;
+  ImGui::SliderFloat("Game speed", &gs, 0.0, 2.0);
+  if (ogs != gs) ns::getInstance()->setGameSpeed(gs);
 
   ImGui::InputFloat("RESOLUTION_MULT", &anm::RESOLUTION_MULT);
   if (ImGui::Button("ADD_ARCADE")) {

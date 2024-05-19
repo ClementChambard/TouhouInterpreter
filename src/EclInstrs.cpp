@@ -16,6 +16,7 @@
 #include "./AsciiPopupManager.hpp"
 #include "./ScreenEffect.hpp"
 #include <math/Random.h>
+#include <NSEngine.hpp>
 
 #define __INCLUDE_PARTS__
 

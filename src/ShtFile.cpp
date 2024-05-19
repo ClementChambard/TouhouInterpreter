@@ -473,14 +473,14 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
             param_1->hitbox.x = xx;
             PLAYER_PTR->inner.damage_sources[param_1->damageSourceId - 1].hitbox.x = xx + 16.0;
         }
-        if (!(param_1->__field_c & 1)) {
+        if (!(param_1->__field_c.current & 1)) {
             anm::VM* vm;
             PLAYER_PTR->playerAnm->createEffectPos(8, 0, glm::vec3 { math::lengthdir_vec(param_1->hitbox.x, param_1->pos.angle), 0.f } + param_1->pos.pos, -1, &vm);
             vm->rotation.z = param_1->pos.angle;
             vm->pos_i.start({ 0, 0, 0 }, { math::lengthdir_vec(64.f, param_1->pos.angle), 0.f }, 20, 4);
             // put in effectmanager
         }
-        if (abs(param_1->__field_c) % 4 == 0) {
+        if (abs(param_1->__field_c.current) % 4 == 0) {
             if (GLOBALS.inner.HYPER_FLAGS & 2)
                 PLAYER_PTR->field_0x190ec += 100;
             if (param_1->damageSourceId != 0)

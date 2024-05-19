@@ -10,6 +10,7 @@
 #include "./Bomb.hpp"
 #include "./GlobalData.h"
 #include <Error.h>
+#include <NSEngine.hpp>
 
 Spellcard *SPELLCARD_PTR = nullptr;
 
@@ -42,7 +43,7 @@ int Spellcard::on_tick() {
   }
 
   if (__timer_20 >= 300 && !(flags & 8)) {
-    bonus = ((bonus - (bonus_max * 2 / 3) / (duration - 300)) / 10) * 10;
+    bonus = ((bonus - (bonus_max * 2 / 3) / (duration - 300) * ns::getInstance()->gameSpeed()) / 10) * 10; // IN ORIGINAL, not mult by gamespeed
   }
 
   __timer_20++;

@@ -1,9 +1,7 @@
 # required
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 
 # set some flags
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "Debug")
 
@@ -27,6 +25,10 @@ file(GLOB IMGUIIMPLSRCS imgui/*.cpp)
 
 # add the executable
 add_executable(ecl ${SRCS} ${INCLUDES} ${IMGUIIMPLSRCS})
+
+# set executable props
+set_property(TARGET ecl PROPERTY CXX_STANDARD 20)
+set_property(TARGET ecl PROPERTY CXX_STANDARD_REQUIRED True)
 
 # add the build directory as an include directory (for the config header)
 target_include_directories(ecl PUBLIC

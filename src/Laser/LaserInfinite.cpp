@@ -5,6 +5,9 @@
 #include "../Hardcoded.h"
 #include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
+#include <NSEngine.hpp>
+
+#define GAME_SPEED ns::getInstance()->gameSpeed()
 
 LaserInfinite::LaserInfinite()
 {
@@ -126,7 +129,7 @@ int LaserInfinite::on_tick()
         break;
     case 4:
         if (__timer_18 < inner.laser_trans_1) {
-            laser_st_width = (__timer_18 * inner.laser_new_arg4) / (float)inner.laser_trans_1;
+            laser_st_width = (__timer_18.current_f * inner.laser_new_arg4) / (float)inner.laser_trans_1;
             break;
         }
         __timer_18 = 0;
@@ -140,14 +143,14 @@ int LaserInfinite::on_tick()
             if (__timer_18 >= inner.laser_trans_2) {
                 return 1;
             }
-            laser_st_width = inner.laser_new_arg4 - (__timer_18 * inner.laser_new_arg4) / (float)inner.laser_trans_2;
+            laser_st_width = inner.laser_new_arg4 - (__timer_18.current_f * inner.laser_new_arg4) / (float)inner.laser_trans_2;
         }
         break;
     case 5:
         if (__timer_18 >= inner.laser_trans_2) {
             return 1;
         }
-        laser_st_width = inner.laser_new_arg4 - (__timer_18 * inner.laser_new_arg4) / (float)inner.laser_trans_2;
+        laser_st_width = inner.laser_new_arg4 - (__timer_18.current_f * inner.laser_new_arg4) / (float)inner.laser_trans_2;
     }
 
     if (((__field_10__set_to_3_by_ex_delete == 4) || (__field_10__set_to_3_by_ex_delete == 2)) && (16.0 < laser_inf_current_length)) {

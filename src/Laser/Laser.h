@@ -2,7 +2,8 @@
 #define LASER_H_
 
 #include <glm/glm.hpp>
-#include "../Bullet.h"
+#include <Timer.hpp>
+#include "../BulletEx.h"
 
 class Laser {
 public:
@@ -37,9 +38,9 @@ public:
     uint32_t some_flags = 0;
     int32_t __field_10__set_to_3_by_ex_delete = 0;
     int32_t kind = 0;
-    int32_t __timer_18 = 0;
-    int32_t __timer_2c = 0;
-    int32_t time_alive = 0;
+    ns::Timer_t __timer_18 = 0;
+    ns::Timer_t __timer_2c = 0;
+    ns::Timer_t time_alive = 0;
     glm::vec3 laser_offset = {};
     glm::vec3 laser_speed = {};
     float angle = 0.f;
@@ -60,8 +61,8 @@ public:
     int32_t et_ex_index = 0;
     int32_t flags = 0;
     // undefined4
-    int32_t inv_timer = 0;
-    int32_t ex_offscreen__timer = 0;
+    ns::Timer_t inv_timer = 0;
+    ns::Timer_t ex_offscreen__timer = 0;
     int32_t ex_invuln__remaining_frames = 0;
     int32_t bullet_type = 0;
     int32_t bullet_color = 0;

@@ -4,6 +4,9 @@
 #include "../Hardcoded.h"
 #include "../Player.h"
 #include "../AnmOpener/AnmManager.h"
+#include <NSEngine.hpp>
+
+#define GAME_SPEED ns::getInstance()->gameSpeed()
 
 LaserCurve::LaserCurve()
 {
@@ -179,13 +182,13 @@ int LaserCurve::initialize(void* arg) {
     }
 
     for (int i = 0; i < inner.laser_time_start; i++) {
-        int node_time_alive = time_alive - i;
+        int node_time_alive = time_alive.current - i;
         for (LaserCurveTransform_t* trans = &transforms; trans; trans = trans->next) {
             if (node_time_alive >= trans->start_time && node_time_alive < trans->end_time) {
                 if (i == 0) {
-                    trans->posvel(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, time_alive - i);
+                    trans->posvel(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, time_alive.current - i);
                 } else {
-                    trans->posvel_from_prev(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, nodes[i - 1].pos, nodes[i - 1].speed, nodes[i - 1].angle, time_alive - i);
+                    trans->posvel_from_prev(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, nodes[i - 1].pos, nodes[i - 1].speed, nodes[i - 1].angle, time_alive.current - i);
                 }
                 break;
             }
@@ -237,7 +240,7 @@ int LaserCurve::on_tick()
         if (flags & 0x10) {
             if (ex_angle.aim_type == 0) {
                 if (ex_angle.timer < ex_angle.duration)
-                    laser_speed = { math::lengthdir_vec(speed - (ex_angle.timer * speed) / (float)ex_angle.duration, angle), 0.f };
+                    laser_speed = { math::lengthdir_vec(speed - (ex_angle.timer.current_f * speed) / (float)ex_angle.duration, angle), 0.f };
                 else {
                     // if (inner.shot_transform_sfx >= 0) SoundManager::play_sound_centered(inner.shot_transform_sfx);
                     ex_angle.turns_so_far++;
@@ -275,18 +278,18 @@ int LaserCurve::on_tick()
 
     if (!(some_flags & 0x10)) {
         for (int i = 0; i < inner.laser_time_start; i++) {
-            if (time_alive - i < 0) {
+            if (time_alive.current - i < 0) {
                 nodes[i].pos = inner.start_pos;
                 nodes[i].v_speed = { 0, 0, 0 };
                 nodes[i].angle = inner.ang_aim;
                 nodes[i].speed = inner.spd_1;
             } else {
                 for (auto thi = &transforms; thi; thi = thi->next) {
-                    if ((time_alive - i >= thi->start_time) && (time_alive - i < thi->end_time)) {
+                    if ((time_alive.current - i >= thi->start_time) && (time_alive.current - i < thi->end_time)) {
                         if (i == 0.0)
-                            thi->posvel(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, time_alive - i);
+                            thi->posvel(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, time_alive.current - i);
                         else
-                            thi->posvel_from_prev(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, nodes[i - 1].pos, nodes[i - 1].speed, nodes[i - 1].angle, time_alive - i);
+                            thi->posvel_from_prev(&nodes[i].pos, &nodes[i].speed, &nodes[i].angle, nodes[i - 1].pos, nodes[i - 1].speed, nodes[i - 1].angle, time_alive.current - i);
                     }
                 }
             }
@@ -376,7 +379,7 @@ void LaserCurve::run_ex()
             switch (inner.ex[et_ex_index].type) {
             case 1:
                 flags |= 1;
-                ex_speedup.timer = 0.0;
+                ex_speedup.timer = 0;
                 break;
             default:
                 break;
