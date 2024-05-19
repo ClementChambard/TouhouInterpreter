@@ -1,9 +1,11 @@
 #include "./LaserManager.h"
+#include "../Hardcoded.h"
 #include "../AnmOpener/AnmFuncs.h"
+#include "../AnmOpener/AnmManager.h"
 
 LaserManager* LASER_MANAGER_PTR = nullptr;
 
-int32_t on_sprite_set_laser(AnmVM* vm, int32_t v) {
+int32_t on_sprite_set_laser(anm::VM* vm, int32_t v) {
     auto b = reinterpret_cast<Laser*>(vm->getEntity());
     if (BULLET_TYPE_TABLE[b->bullet_type]["colors"][0]
         ["main_sprite_id"].asInt() < 0)
@@ -20,7 +22,7 @@ int32_t on_sprite_set_laser(AnmVM* vm, int32_t v) {
     return v;
 }
 
-int32_t on_sprite_set_laser_curve(AnmVM* vm, int32_t) {
+int32_t on_sprite_set_laser_curve(anm::VM* vm, int32_t) {
     return reinterpret_cast<Laser*>(vm->getEntity())
         ->bullet_color + LASER_DATA["laser_curve"]["sprite_first"].asInt();
 }
@@ -28,13 +30,13 @@ int32_t on_sprite_set_laser_curve(AnmVM* vm, int32_t) {
 LaserManager::LaserManager() {
     if (LASER_MANAGER_PTR)
         delete LASER_MANAGER_PTR;
-    AnmFuncs::set_on_sprite_set(LASER_ON_SPRITE_SET_FUNC, on_sprite_set_laser);
-    AnmFuncs::set_on_sprite_set(LASER_CURVE_ON_SPRITE_SET_FUNC,
+    anm::Funcs::set_on_sprite_set(LASER_ON_SPRITE_SET_FUNC, on_sprite_set_laser);
+    anm::Funcs::set_on_sprite_set(LASER_CURVE_ON_SPRITE_SET_FUNC,
                                 on_sprite_set_laser_curve);
     current_id = 0x10000;
     LASER_MANAGER_PTR = this;
 
-    bullet_anm = AnmManager::LoadFile(7, "bullet.anm");
+    bullet_anm = anm::loadFile(7, "bullet.anm");
     // if (bullet_anm == NULL) {
     // sub_4025a0_logs_debug_message(this_00,(int)&OUTPUT_BUF_FOR_STRINGS,&DAT_004a145c);
     // delete this;

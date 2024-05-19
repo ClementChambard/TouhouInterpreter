@@ -1,20 +1,17 @@
 #ifndef __INCLUDE_PARTS__
-#include <cstdint>
 #include "../EclInstrMacros.h"
 #include "../AsciiPopupManager.hpp"
 #include "../EclContext.h"
 #include "../Enemy.h"
 #include "../EnemyManager.h"
 #include "../StdOpener/Stage.hpp"
-#include "../Spellcard.h"
 #include "../Laser/LaserManager.h"
-#include "../AnmOpener/AnmManager.h"
 #include "../Player.h"
+#include "../GlobalData.h"
 #include <math/Random.h>
 #include <string>
 #include "../BulletManager.h"
 #include "./EclFuncs.hpp"
-#define PRINT false
 inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _insNop
 #endif

@@ -66,10 +66,10 @@ public:
 
 private:
     LaserCurveInner_t inner;
-    AnmVM vm1;
-    AnmVM vm2;
+    anm::VM vm1;
+    anm::VM vm2;
     LaserCurveNode_t* nodes = nullptr;
-    NSEngine::Vertex* vertices = nullptr;
+    ns::Vertex* vertices = nullptr;
     LaserCurveTransform_t transforms = {};
     int offscreen_timer = 0;
 };

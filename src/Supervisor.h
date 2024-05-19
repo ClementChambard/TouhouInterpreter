@@ -27,22 +27,22 @@ struct Supervisor_t {
     // main_window
     glm::mat4 __unknown_view_matrix = glm::mat4(1.f);
     glm::mat4 __unknown_projection_matrix = glm::mat4(1.f);
-    Viewport_t __unknown_viewport = {};
+    anm::Viewport_t __unknown_viewport = {};
     // present_parameters
     // lot undefined
     // display_mode
-    NSEngine::FrameBuffer* surface_atR_0 = nullptr;
-    NSEngine::FrameBuffer* surface_atR_1 = nullptr;
+    ns::FrameBuffer* surface_atR_0 = nullptr;
+    ns::FrameBuffer* surface_atR_1 = nullptr;
     // back_buffer
     // undefined4
-    AnmVM* arcade_vm_0 = nullptr;
-    AnmVM* arcade_vm_1 = nullptr;
-    AnmVM* arcade_vm_2__handles_upscaling = nullptr;
-    AnmVM* arcade_vm_3__handles_seija = nullptr;
+    anm::VM* arcade_vm_0 = nullptr;
+    anm::VM* arcade_vm_1 = nullptr;
+    anm::VM* arcade_vm_2__handles_upscaling = nullptr;
+    anm::VM* arcade_vm_3__handles_seija = nullptr;
     // undefined4
     // undefined4
     // config
-    Camera_t cameras[4];
+    anm::Camera_t cameras[4];
     // moved to AnmManager
     //   Camera_t* current_camera = &cameras[0];
     // unused
@@ -51,7 +51,7 @@ struct Supervisor_t {
     int32_t gamemode_to_switch_to = 0;
     int32_t gamemode_prev = 0;
     // lot undefined
-    AnmFile* text_anm = nullptr;
+    anm::File* text_anm = nullptr;
     // undefined4
     int32_t flags = 0;
     int32_t rng_seed_from_time = 0;
@@ -64,7 +64,7 @@ struct Supervisor_t {
     //   int32_t fog_enabled = 0;
     //   int32_t zwrite_enabled = 0;
     // lot undefined
-    NSEngine::Color background_color;
+    ns::Color background_color;
 
     void init_cameras();
     void setup_special_anms();

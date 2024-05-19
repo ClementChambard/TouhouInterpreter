@@ -4,6 +4,7 @@
 #include "./Bullet.h"
 #include "./BulletHandler.h"
 #include "./UpdateFuncRegistry.h"
+#include "AnmOpener/AnmFile.h"
 #include <glm/glm.hpp>
 
 class BulletManager {
@@ -69,7 +70,7 @@ public:
     // undefined4 __unknown;
     BulletList_t* iter_current = nullptr;
     BulletList_t* iter_next = nullptr;
-    AnmFile* bullet_anm = nullptr;
+    anm::File* bullet_anm = nullptr;
 
     // no lolk ?
     // struct zBullet __lolk_snapshot_bullets[max_bullet];

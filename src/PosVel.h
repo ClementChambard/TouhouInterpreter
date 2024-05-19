@@ -2,7 +2,6 @@
 #define POSVEL_H_
 
 #include <glm/glm.hpp>
-#include <Interpolator.h>
 
 struct PosVel {
     void setVel(float speed, float angle);

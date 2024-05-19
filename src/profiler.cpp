@@ -9,7 +9,7 @@ unsigned int __ti = 0;
 std::chrono::time_point<std::chrono::high_resolution_clock> __begin_time;
 
 #include <cmath>
-NSEngine::Color hsv(float H, float S, float V) {
+ns::Color hsv(float H, float S, float V) {
     float C = V * S;
 
     float X = C * (1 - fabs((std::fmod((H / 60.f), 2) - 1)));

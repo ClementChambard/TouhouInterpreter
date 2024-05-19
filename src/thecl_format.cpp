@@ -1,6 +1,5 @@
 #include "thecl_format.h"
-
-#include <iostream>
+#include "Error.h"
 
 static const std::pair<int, std::string> th10_fmts[] = {
     { 0, "" },
@@ -703,13 +702,12 @@ const std::string thecl_find_format(unsigned int version, unsigned int id,
         ret = find_format(th10_fmts, id);
         break;
     default:
-        std::cerr << "thecl: unsupported version: " << version << "\n";
+        ns::error("thecl: unsupported version:", version);
         return "NOTFOUND";
     }
 
     if (ret == "NOTFOUND")
-        std::cerr << "thecl: id " << id <<
-            " was not found in the format table\n";
+        ns::error("thecl: id", id, "was not found in the format table");
 
     return ret;
 }

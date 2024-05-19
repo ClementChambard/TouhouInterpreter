@@ -3,7 +3,8 @@
 
 #include "./EclRaw.h"
 #include <vector>
-#include <string>
+#include <defines.h>
+#include <cstring>
 
 class EclFileManager {
 public:
@@ -11,23 +12,22 @@ public:
 
     ~EclFileManager() { CloseEcl(); }
 
-    void LoadEcl(std::string file);
+    void LoadEcl(cstr file);
     void CloseEcl();
-    void ListSubs();
 
-    size_t getSubId(std::string const& subName) {
-        for (size_t i = 0; i < loaded_subs.size(); i++)
-            if (subName == loaded_subs[i].name)
+    usize getSubId(cstr subName) {
+        for (usize i = 0; i < loaded_subs.size(); i++)
+            if (strcmp(subName, loaded_subs[i].name) == 0)
                 return i;
         return -1;
     }
-    const char* getSubStartPtr(size_t id) {
+    cstr getSubStartPtr(usize id) {
         if (id >= loaded_subs.size())
             return nullptr;
-        return reinterpret_cast<const char*>(loaded_subs[id].subHeader)
+        return reinterpret_cast<cstr>(loaded_subs[id].subHeader)
                + sizeof(EclRawSub_t);
     }
-    std::string getSubName(size_t id) {
+    cstr getSubName(usize id) {
         if (id >= loaded_subs.size())
             return "void";
         return loaded_subs[id].name;
@@ -36,7 +36,7 @@ public:
 private:
     EclFileManager() { }
 
-    void LoadEcli(std::string const& file);
+    void LoadEcli(cstr file);
 
     std::vector<EclSubPtr_t> loaded_subs;
     std::vector<EclRaw_t*> loaded_files;

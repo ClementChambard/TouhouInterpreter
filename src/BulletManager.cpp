@@ -1,7 +1,8 @@
 #include "./BulletManager.h"
 #include "./Player.h"
 #include "./AnmOpener/AnmFuncs.h"
-#include <NSEngine.h>
+#include "./AnmOpener/AnmManager.h"
+#include "./Hardcoded.h"
 #include <math/Random.h>
 
 int BULLET_ADDITIONAL_CANCEL_SCR[18] = {
@@ -11,7 +12,7 @@ int BULLET_ADDITIONAL_CANCEL_SCR[18] = {
 
 BulletManager* BULLET_MANAGER_PTR = nullptr;
 
-static int32_t on_sprite_set_bullet(AnmVM* vm, int32_t v) {
+static int32_t on_sprite_set_bullet(anm::VM* vm, int32_t v) {
     auto b = reinterpret_cast<Bullet*>(vm->getEntity());
     if (b->sprite_data["colors"][0]["main_sprite_id"].asInt() < 0)
         return v;
@@ -28,7 +29,7 @@ constexpr int BULLET_ON_SPRITE_SET = 1;
 
 BulletManager::BulletManager() {
     BULLET_MANAGER_PTR = this;
-    AnmFuncs::set_on_sprite_set(BULLET_ON_SPRITE_SET, on_sprite_set_bullet);
+    anm::Funcs::set_on_sprite_set(BULLET_ON_SPRITE_SET, on_sprite_set_bullet);
     BulletList_t* pred = &freelist_head;
     BulletList_t* current = nullptr;
     for (size_t i = 0; i < max_bullet; i++) {
@@ -39,7 +40,7 @@ BulletManager::BulletManager() {
         pred = current;
         bullets[i].tick_list_node.value = &bullets[i];
     }
-    bullet_anm = AnmManager::LoadFile(7, "bullet.anm");
+    bullet_anm = anm::loadFile(7, "bullet.anm");
     f_on_tick = new UpdateFunc([this]() { return this->on_tick(); });
     f_on_draw = new UpdateFunc([this]() { return this->on_draw(); });
     UPDATE_FUNC_REGISTRY->register_on_tick(f_on_tick, 29);
@@ -149,7 +150,7 @@ int BulletManager::on_draw() {
             }
             // bullet->vm.setLayer(17);
             // bullet->vm.draw();
-            AnmManager::drawVM(&bullet->vm);
+            anm::drawVM(&bullet->vm);
         }
         layer_head++;
     }
@@ -235,8 +236,7 @@ void BulletManager::Shoot(EnemyBulletShooter_t* bh) {
             }
         }
     }
-    // NSEngine::AudioEngine::PlaySound(snd1);
-    // std::cout << "Shooting " << bh->cnt_count * bh->cnt_layers << " : {\n";
+    // ns::AudioEngine::PlaySound(snd1);
 }
 
 void BulletManager::ShootSingle(EnemyBulletShooter_t* bh,

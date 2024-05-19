@@ -1,5 +1,7 @@
 #include "./FogShader.h"
 
+namespace anm {
+
 const char* FogShader::VERTEX_SHADER_PATH = "assets/shaders/fogVertexShader";
 const char* FogShader::FRAGMENT_SHADER_PATH = "assets/shaders/fogFragmentShader";
 
@@ -35,3 +37,5 @@ void FogShader::SetFog(float min, float max, const glm::vec4& color) {
     loadFloat(location_fogMax, max);
     loadVec4(location_fogColor, color);
 }
+
+} // namespace anm

@@ -31,7 +31,7 @@ public:
 
 private:
     LaserBeamInner_t inner {};
-    AnmVM vm;
+    anm::VM vm;
     // undefined4 x 0x400
 };
 

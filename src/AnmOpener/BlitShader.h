@@ -3,7 +3,9 @@
 
 #include <ShaderProgram.h>
 
-class BlitShader : public NSEngine::ShaderProgram {
+namespace anm {
+
+class BlitShader : public ns::ShaderProgram {
     public:
         BlitShader() : ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH) { bindAttributes(); getAllUniformLocation(); };
 
@@ -18,8 +20,10 @@ class BlitShader : public NSEngine::ShaderProgram {
         static const char* VERTEX_SHADER_PATH;
         static const char* FRAGMENT_SHADER_PATH;
 
-        GLuint location_projectionMatrix;
-        GLuint location_viewMatrix;
+        GLuint location_projectionMatrix = 0;
+        GLuint location_viewMatrix = 0;
 };
+
+} // namespace anm
 
 #endif

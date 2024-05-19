@@ -4,6 +4,7 @@
 #include "Hardcoded.h"
 #include "UpdateFuncRegistry.h"
 #include <TextureManager.h>
+#include <NSEngine.hpp>
 
 Supervisor_t SUPERVISOR{};
 
@@ -14,8 +15,8 @@ float GAME_REGION_Y = 0.0;
 
 void Supervisor_t::init() {  // temporary
   initialize();
-  text_anm = AnmManager::LoadFile(0, "text.anm");
-  AnmManager::LoadFile(1, "sig.anm");
+  text_anm = anm::loadFile(0, "text.anm");
+  anm::loadFile(1, "sig.anm");
 }
 
 Supervisor_t::~Supervisor_t() {
@@ -34,8 +35,8 @@ void Supervisor_t::init_cameras() {
   cameras[2].fov_y = 0.5235988;
   cameras[2].viewport.X = 0;
   cameras[2].viewport.Y = 0;
-  cameras[2].viewport.Width = BACK_BUFFER_SIZE.x;
-  cameras[2].viewport.Height = BACK_BUFFER_SIZE.y;
+  cameras[2].viewport.Width = anm::BACK_BUFFER_SIZE.x;
+  cameras[2].viewport.Height = anm::BACK_BUFFER_SIZE.y;
   cameras[2].viewport.MinZ = 0.0;
   cameras[2].viewport.MaxZ = 1.0;
   // fullscreen ?
@@ -43,34 +44,34 @@ void Supervisor_t::init_cameras() {
   //   cameras[2].viewport.Height = 960;
   // }
   cameras[2].camera_index = 2;
-  cameras[2].window_resolution.x = BACK_BUFFER_SIZE.x;
-  cameras[2].window_resolution.y = BACK_BUFFER_SIZE.y;
+  cameras[2].window_resolution.x = anm::BACK_BUFFER_SIZE.x;
+  cameras[2].window_resolution.y = anm::BACK_BUFFER_SIZE.y;
   cameras[2].as_2d_matrix();
   cameras[0] = cameras[2];
   cameras[0].camera_index = 0;
-  cameras[0].viewport.X = static_cast<int>(RESOLUTION_MULT * 32.0);
-  cameras[0].viewport.Y = static_cast<int>(RESOLUTION_MULT * 16.0);
-  cameras[0].viewport.Width = static_cast<int>(RESOLUTION_MULT * 384.0);
-  cameras[0].viewport.Height = static_cast<int>(RESOLUTION_MULT * 448.0);
+  cameras[0].viewport.X = static_cast<int>(anm::RESOLUTION_MULT * 32.0);
+  cameras[0].viewport.Y = static_cast<int>(anm::RESOLUTION_MULT * 16.0);
+  cameras[0].viewport.Width = static_cast<int>(anm::RESOLUTION_MULT * 384.0);
+  cameras[0].viewport.Height = static_cast<int>(anm::RESOLUTION_MULT * 448.0);
   cameras[0].as_2d_matrix();
   cameras[1] = cameras[2];
   cameras[1].camera_index = 1;
-  cameras[1].viewport.X = static_cast<int>(RESOLUTION_MULT * 128.0);
-  cameras[1].viewport.Y = static_cast<int>(RESOLUTION_MULT * 16.0);
-  cameras[1].viewport.Width = static_cast<int>(RESOLUTION_MULT * 384.0);
-  cameras[1].viewport.Height = static_cast<int>(RESOLUTION_MULT * 448.0);
+  cameras[1].viewport.X = static_cast<int>(anm::RESOLUTION_MULT * 128.0);
+  cameras[1].viewport.Y = static_cast<int>(anm::RESOLUTION_MULT * 16.0);
+  cameras[1].viewport.Width = static_cast<int>(anm::RESOLUTION_MULT * 384.0);
+  cameras[1].viewport.Height = static_cast<int>(anm::RESOLUTION_MULT * 448.0);
   cameras[1].as_2d_matrix();
   cameras[3] = cameras[2];
   cameras[3].camera_index = 3;
-  cameras[3].viewport.X = static_cast<int>((BACK_BUFFER_SIZE.x - 408.0) * 0.5);
-  cameras[3].viewport.Y = static_cast<int>((BACK_BUFFER_SIZE.y - 472.0) * 0.5);
+  cameras[3].viewport.X = static_cast<int>((anm::BACK_BUFFER_SIZE.x - 408.0) * 0.5);
+  cameras[3].viewport.Y = static_cast<int>((anm::BACK_BUFFER_SIZE.y - 472.0) * 0.5);
   cameras[3].viewport.Width = 408;
   cameras[3].viewport.Height = 472;
   cameras[3].as_2d_matrix();
-  AnmManager::origins[2].x = BACK_BUFFER_SIZE.x / 2;
-  AnmManager::origins[2].y = static_cast<int>(RESOLUTION_MULT * 16.0);
-  AnmManager::origins[1].x = BACK_BUFFER_SIZE.x / 2;
-  AnmManager::origins[1].y = (BACK_BUFFER_SIZE.y + -448) / 2;
+  anm::origin(2).x = anm::BACK_BUFFER_SIZE.x / 2;
+  anm::origin(2).y = static_cast<int>(anm::RESOLUTION_MULT * 16.0);
+  anm::origin(1).x = anm::BACK_BUFFER_SIZE.x / 2;
+  anm::origin(1).y = (anm::BACK_BUFFER_SIZE.y + -448) / 2;
   return;
 }
 
@@ -84,17 +85,17 @@ void Supervisor_t::setup_special_anms() {
   // }
   // text_anm->d3d[2].texture->GetSurfaceLevel(0, &surface_atR_0);
   // text_anm->d3d[3].texture->GetSurfaceLevel(0, &surface_atR_1);
-  surface_atR_0 = NSEngine::TextureManager::GetTexture(
+  surface_atR_0 = ns::TextureManager::GetTexture(
     text_anm->textures.find("@R0")->second)->getFramebuffer();
-  surface_atR_1 = NSEngine::TextureManager::GetTexture(
+  surface_atR_1 = ns::TextureManager::GetTexture(
     text_anm->textures.find("@R1")->second)->getFramebuffer();
   if (!arcade_vm_0->bitflags.visible) {
     int i = -1;
-    if (BACK_BUFFER_SIZE.x == 640) {
+    if (anm::BACK_BUFFER_SIZE.x == 640) {
       i = 0;
-    } else if (BACK_BUFFER_SIZE.x == 960) {
+    } else if (anm::BACK_BUFFER_SIZE.x == 960) {
       i = 1;
-    } else if (BACK_BUFFER_SIZE.x >= 1280) {
+    } else if (anm::BACK_BUFFER_SIZE.x >= 1280) {
       i = 2;
     }
     if (i >= 0) {
@@ -129,177 +130,134 @@ void Supervisor_t::setup_special_anms() {
       arcade_vm_3__handles_seija->scale_2.y = -1;
     }
   }
-  if (RESOLUTION_MULT == 1.5)
+  if (anm::RESOLUTION_MULT == 1.5)
     arcade_vm_2__handles_upscaling->bitflags.resampleMode = 0;
   return;
 }
 
 static int supervisor_on_draw_01() {
   if (SUPERVISOR.surface_atR_0 == nullptr) {
-    glClearColor(SUPERVISOR.background_color.r / 255.f,
-                 SUPERVISOR.background_color.g / 255.f,
-                 SUPERVISOR.background_color.b / 255.f,
-                 SUPERVISOR.background_color.a / 255.f);
-    glClearDepth(1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    anm::clear_framebuffer(SUPERVISOR.background_color);
   } else {
-    glClearColor(1.f, 1.f, 1.f, 1.f);
-    glClearDepth(1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    anm::clear_framebuffer(c_white);
     SUPERVISOR.surface_atR_0->bind();
-    glViewport(SUPERVISOR.cameras[3].viewport.X,
-               SUPERVISOR.cameras[3].viewport.Y,
-               SUPERVISOR.cameras[3].viewport.Width,
-               SUPERVISOR.cameras[3].viewport.Height);
-    glClearColor(SUPERVISOR.background_color.r / 255.f,
-                 SUPERVISOR.background_color.g / 255.f,
-                 SUPERVISOR.background_color.b / 255.f,
-                 SUPERVISOR.background_color.a / 255.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    anm::set_viewport(SUPERVISOR.cameras[3]);
+    anm::clear_framebuffer(SUPERVISOR.background_color);
     GAME_REGION_WIDTH = 384;
     GAME_REGION_HEIGHT = 448;
-    AnmManager::origins[1].x = BACK_BUFFER_SIZE.x / 2;
-    AnmManager::origins[1].y = (BACK_BUFFER_SIZE.y - 448) / 2;
-    GAME_REGION_X = AnmManager::origins[1].x - GAME_REGION_WIDTH / 2;
-    GAME_REGION_Y = AnmManager::origins[1].y - GAME_REGION_HEIGHT / 2;
+    anm::origin(1).x = anm::BACK_BUFFER_SIZE.x / 2;
+    anm::origin(1).y = (anm::BACK_BUFFER_SIZE.y - 448) / 2;
+    GAME_REGION_X = anm::origin(1).x - GAME_REGION_WIDTH / 2;
+    GAME_REGION_Y = anm::origin(1).y - GAME_REGION_HEIGHT / 2;
   }
-  AnmManager::some_positions[0] = 0.0;
-  AnmManager::last_used_texture = -1;
-  AnmManager::last_used_blendmode = 10;
-  AnmManager::field_0x18607c9 = 255;
-  AnmManager::field_0x18607cb = 255;
-  AnmManager::field_0x18607cc = 255;
-  AnmManager::use_custom_color_1c90a4c = 0;
-  AnmManager::custom_color_1c90a48.b = 128;
-  AnmManager::custom_color_1c90a48.g = 128;
-  AnmManager::custom_color_1c90a48.r = 128;
-  AnmManager::custom_color_1c90a48.a = 128;
-  AnmManager::last_used_resamplemode = 255;
-  AnmManager::field_0x18607cf = 255;
-  AnmManager::cam_vec2_fc_y = 0.0;
-  AnmManager::cam_vec2_fc_x = 0.0;
-  AnmManager::field_0x18607ca = 255;
-  AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+  anm::reset_batch_state();
+  anm::set_camera(&SUPERVISOR.cameras[2]);
   return 1;
 }
 
 static int supervisor_on_draw_0e() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
-  AnmManager::flush_vbos();
+  anm::flush_vbos();
   SUPERVISOR.surface_atR_1->bind();
-  glViewport(SUPERVISOR.cameras[3].viewport.X,
-             SUPERVISOR.cameras[3].viewport.Y,
-             SUPERVISOR.cameras[3].viewport.Width,
-             SUPERVISOR.cameras[3].viewport.Height);
-  glClearDepth(1.0f);
-  glClear(GL_DEPTH_BUFFER_BIT);
+  anm::set_viewport(SUPERVISOR.cameras[3]);
+  anm::clear_framebuffer_depth();
   return 1;
 }
 
 static int supervisor_on_draw_0f() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
-  glBlendEquation(GL_FUNC_ADD);
-  AnmManager::disable_atest();
-  AnmManager::disable_zwrite();
-  AnmManager::set_camera(&SUPERVISOR.cameras[3]);
+  anm::reset_blend_eq();
+  anm::disable_atest();
+  anm::disable_zwrite();
+  anm::set_camera(&SUPERVISOR.cameras[3]);
   if (SUPERVISOR.arcade_vm_0->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_0->bitflags.anchorY = SUPERVISOR.arcade_vm_0->bitflags.anchorY % 2 + 1;
-  AnmManager::drawVM(SUPERVISOR.arcade_vm_0);
+  anm::drawVM(SUPERVISOR.arcade_vm_0);
   if (SUPERVISOR.arcade_vm_0->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_0->bitflags.anchorY = SUPERVISOR.arcade_vm_0->bitflags.anchorY % 2 + 1;
   SUPERVISOR.arcade_vm_0->color_1 = c_white;
-  AnmManager::render_layer(34);
-  AnmManager::flush_vbos();
-  AnmManager::enable_atest();
+  anm::render_layer(34);
+  anm::flush_vbos();
+  anm::enable_atest();
   return 1;
 }
 
 static int supervisor_on_draw_19() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
-  AnmManager::flush_vbos();
+  anm::flush_vbos();
   SUPERVISOR.surface_atR_0->bind();
-  glViewport(SUPERVISOR.cameras[3].viewport.X,
-             SUPERVISOR.cameras[3].viewport.Y,
-             SUPERVISOR.cameras[3].viewport.Width,
-             SUPERVISOR.cameras[3].viewport.Height);
-  glClearDepth(1.0f);
-  glClear(GL_DEPTH_BUFFER_BIT);
+  anm::set_viewport(SUPERVISOR.cameras[3]);
+  anm::clear_framebuffer_depth();
   return 1;
 }
 
 static int supervisor_on_draw_1a() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
-  glBlendEquation(GL_FUNC_ADD);
-  AnmManager::disable_atest();
-  AnmManager::disable_zwrite();
-  AnmManager::set_camera(&SUPERVISOR.cameras[3]);
+  anm::reset_blend_eq();
+  anm::disable_atest();
+  anm::disable_zwrite();
+  anm::set_camera(&SUPERVISOR.cameras[3]);
   if (SUPERVISOR.arcade_vm_1->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_1->bitflags.anchorY = SUPERVISOR.arcade_vm_1->bitflags.anchorY % 2 + 1;
-  AnmManager::drawVM(SUPERVISOR.arcade_vm_1);
+  anm::drawVM(SUPERVISOR.arcade_vm_1);
   if (SUPERVISOR.arcade_vm_1->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_1->bitflags.anchorY = SUPERVISOR.arcade_vm_1->bitflags.anchorY % 2 + 1;
   SUPERVISOR.arcade_vm_1->color_1 = c_white;
-  AnmManager::enable_atest();
+  anm::enable_atest();
   return 1;
 }
 
 static int supervisor_on_draw_2c() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
-  AnmManager::flush_vbos();
+  anm::flush_vbos();
   SUPERVISOR.surface_atR_1->bind();
-  glViewport(SUPERVISOR.cameras[1].viewport.X,
-             SUPERVISOR.cameras[1].viewport.Y,
-             SUPERVISOR.cameras[1].viewport.Width,
-             SUPERVISOR.cameras[1].viewport.Height);
-  glClearDepth(1.0f);
-  glClear(GL_DEPTH_BUFFER_BIT);
-  GAME_REGION_WIDTH = RESOLUTION_MULT * 384.0;
-  GAME_REGION_HEIGHT = RESOLUTION_MULT * 448.0;
-  GAME_REGION_X = AnmManager::origins[2].x - GAME_REGION_WIDTH / 2;
-  GAME_REGION_Y = AnmManager::origins[2].y - GAME_REGION_HEIGHT / 2;
+  anm::set_viewport(SUPERVISOR.cameras[1]);
+  anm::clear_framebuffer_depth();
+  GAME_REGION_WIDTH = anm::RESOLUTION_MULT * 384.0;
+  GAME_REGION_HEIGHT = anm::RESOLUTION_MULT * 448.0;
+  GAME_REGION_X = anm::origin(2).x - GAME_REGION_WIDTH / 2;
+  GAME_REGION_Y = anm::origin(2).y - GAME_REGION_HEIGHT / 2;
   return 1;
 }
 
 static int supervisor_on_draw_2d() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
-  glBlendEquation(GL_FUNC_ADD);
-  AnmManager::disable_atest();
-  AnmManager::disable_zwrite();
-  AnmManager::set_camera(&SUPERVISOR.cameras[1]);
+  anm::reset_blend_eq();
+  anm::disable_atest();
+  anm::disable_zwrite();
+  anm::set_camera(&SUPERVISOR.cameras[1]);
   if (SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY = SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY % 2 + 1;
-  AnmManager::drawVM(SUPERVISOR.arcade_vm_2__handles_upscaling);
+  anm::drawVM(SUPERVISOR.arcade_vm_2__handles_upscaling);
   if (SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY = SUPERVISOR.arcade_vm_2__handles_upscaling->bitflags.anchorY % 2 + 1;
   SUPERVISOR.arcade_vm_2__handles_upscaling->color_1 = c_white;
-  AnmManager::enable_atest();
+  anm::enable_atest();
   return 1;
 }
 
 static int supervisor_on_draw_39() {
-  AnmManager::flush_vbos();
-  NSEngine::FrameBuffer::unbindFramebuffer();
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClearDepth(1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  anm::flush_vbos();
+  ns::FrameBuffer::unbindFramebuffer();
+  anm::clear_framebuffer();
   return 1;
 }
 
 static int supervisor_on_draw_3a() {
   if (SUPERVISOR.surface_atR_0 == nullptr) return 1;
-  AnmManager::disable_atest();
+  anm::disable_atest();
   if (SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY = SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY % 2 + 1;
-  AnmManager::drawVM(SUPERVISOR.arcade_vm_3__handles_seija);
+  anm::drawVM(SUPERVISOR.arcade_vm_3__handles_seija);
   if (SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY != 0)
     SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY = SUPERVISOR.arcade_vm_3__handles_seija->bitflags.anchorY % 2 + 1;
   SUPERVISOR.arcade_vm_3__handles_seija->color_1 = c_white;
-  AnmManager::enable_atest();
+  anm::enable_atest();
   return 1;
 }
 
 static int supervisor_on_draw_56() {
-  AnmManager::flush_vbos();
+  anm::flush_vbos();
   SUPERVISOR.cameras[3].screen_shake.x = 0.0;
   SUPERVISOR.cameras[3].screen_shake.y = 0.0;
   SUPERVISOR.cameras[1].screen_shake.x = 0.0;
@@ -384,10 +342,8 @@ struct FpsCounter {
   }
 };
 
-#include <Engine.hpp>
-
 static int supervisor_on_tick() {
-  if (FPS_COUNTER_PTR) FPS_COUNTER_PTR->current_fps = NSEngine::getInstance()->fps();
+  if (FPS_COUNTER_PTR) FPS_COUNTER_PTR->current_fps = ns::getInstance()->fps();
   return 1;
 //   void *pvVar1;
 //   zAnmLoaded *anmloaded;
@@ -455,7 +411,7 @@ static int supervisor_on_tick() {
 //     if (anmloaded != NULL) {
 //       if (anmloaded->field11_0x12c == 0) {
 //         if (anmloaded->load_wait != 0) {
-//           piVar2 = AnmManager::fullyLoadFile(ANM_MANAGER_PTR_,anmloaded);
+//           piVar2 = anm::fullyLoadFile(ANM_MANAGER_PTR_,anmloaded);
 //           if (piVar2 == NULL) {
 //             return 4;
 //           }
@@ -464,7 +420,7 @@ static int supervisor_on_tick() {
 //       }
 //       else {
 //         if (-1 < (int)uVar4) {
-//           AnmManager::_unload_file(ANM_MANAGER_PTR_,uVar4);
+//           anm::_unload_file(ANM_MANAGER_PTR_,uVar4);
 //           anmloaded = (pzVar5->by_name).text;
 //         }
 //         anmloaded->field11_0x12c = 0;
@@ -482,8 +438,8 @@ static int supervisor_on_tick() {
 //     if (iVar3 != 1) {
 //       return iVar3;
 //     }
-//     SURF_ORIGIN_ECL_X = BACK_BUFFER_SIZE.x / 2;
-//     SURF_ORIGIN_ECL_Y = (BACK_BUFFER_SIZE.y + -448) / 2;
+//     SURF_ORIGIN_ECL_X = anm::BACK_BUFFER_SIZE.x / 2;
+//     SURF_ORIGIN_ECL_Y = (anm::BACK_BUFFER_SIZE.y + -448) / 2;
 //   }
 //   else if (pvVar1 == (void *)0x2) {
 //     return 4;
@@ -494,14 +450,14 @@ static int supervisor_on_tick() {
 
 static int supervisor_on_registration() {
   // if (!OpenDatFile()) {
-  //   NSEngine::error("データファイルが存在しません");
+  //   ns::error("データファイルが存在しません");
   // } else {
   //   char str_buff[128];
   //   snprintf(str_buff, sizeof(str_buff), "th17_%.4x%c.ver", 256, 'b');
   //   SUPERVISOR.field107_0xa24 = reads_file_into_new_allocation_4020d0(str_buff,&local_8c,0);
   //   SUPERVISOR.field106_0xa20 = local_8c;
   //   if (SUPERVISOR.field107_0xa24 == nullptr)
-  //     NSEngine::error("データのバージョンが違います");
+  //     ns::error("データのバージョンが違います");
   // }
   GAME_SPEED = 1.0;
   SUPERVISOR.background_color = {0, 0, 0, 255};
@@ -517,168 +473,167 @@ static int supervisor_on_registration() {
   // SUPERVISOR.create_vertex_buffers();
   // SUPERVISOR.load_fonts();
 
-  SUPERVISOR.arcade_vm_0 = new AnmVM();
-  SUPERVISOR.arcade_vm_1 = new AnmVM();
-  SUPERVISOR.arcade_vm_2__handles_upscaling = new AnmVM();
-  SUPERVISOR.arcade_vm_3__handles_seija = new AnmVM();
+  SUPERVISOR.arcade_vm_0 = new anm::VM();
+  SUPERVISOR.arcade_vm_1 = new anm::VM();
+  SUPERVISOR.arcade_vm_2__handles_upscaling = new anm::VM();
+  SUPERVISOR.arcade_vm_3__handles_seija = new anm::VM();
   // SUPERVISOR_DRAW_0F_FNPTR = 0;
   // SUPERVISOR_ON_DRAW_1A_FNPTR = 0;
   return 0;
 }
 
 static void anmmanager_updatefuncs() {
-  AnmManager::_3d_camera = &SUPERVISOR.cameras[3];
+  anm::set_3d_camera(&SUPERVISOR.cameras[3]);
   UpdateFunc* func;
-  func = new UpdateFunc(AnmManager::on_tick_world);
+  func = new UpdateFunc(anm::on_tick_world);
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_tick(func, 35);
-  func = new UpdateFunc(AnmManager::on_tick_ui);
+  func = new UpdateFunc(anm::on_tick_ui);
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_tick(func, 10);
-  func = new UpdateFunc([](){return AnmManager::render_layer(0);});
+  func = new UpdateFunc([](){return anm::render_layer(0);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 5);
-  func = new UpdateFunc([](){return AnmManager::render_layer(1);});
+  func = new UpdateFunc([](){return anm::render_layer(1);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 7);
-  func = new UpdateFunc([](){return AnmManager::render_layer(2);});
+  func = new UpdateFunc([](){return anm::render_layer(2);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 9);
-  func = new UpdateFunc([](){return AnmManager::render_layer(4);});
+  func = new UpdateFunc([](){return anm::render_layer(4);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 11);
   func = new UpdateFunc([](){
-    AnmManager::set_camera(SUPERVISOR.cameras[3].as_2d_matrix());
-    AnmManager::disable_fog();
-    return AnmManager::render_layer(3);
+    anm::set_camera(SUPERVISOR.cameras[3].as_2d_matrix());
+    anm::disable_fog();
+    return anm::render_layer(3);
   });
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 10);
-  func = new UpdateFunc([](){return AnmManager::render_layer(5);});
+  func = new UpdateFunc([](){return anm::render_layer(5);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 13);
-  func = new UpdateFunc([](){return AnmManager::render_layer(6);});
+  func = new UpdateFunc([](){return anm::render_layer(6);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 16);
-  func = new UpdateFunc([](){return AnmManager::render_layer(7);});
+  func = new UpdateFunc([](){return anm::render_layer(7);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 18);
-  func = new UpdateFunc([](){return AnmManager::render_layer(8);});
+  func = new UpdateFunc([](){return anm::render_layer(8);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 20);
-  func = new UpdateFunc([](){return AnmManager::render_layer(9);});
+  func = new UpdateFunc([](){return anm::render_layer(9);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 21);
-  func = new UpdateFunc([](){return AnmManager::render_layer(10);});
+  func = new UpdateFunc([](){return anm::render_layer(10);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 22);
-  func = new UpdateFunc([](){return AnmManager::render_layer(11);});
+  func = new UpdateFunc([](){return anm::render_layer(11);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 24);
-  func = new UpdateFunc([](){return AnmManager::render_layer(12);});
+  func = new UpdateFunc([](){return anm::render_layer(12);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 27);
-  func = new UpdateFunc([](){return AnmManager::render_layer(13);});
+  func = new UpdateFunc([](){return anm::render_layer(13);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 28);
-  func = new UpdateFunc([](){return AnmManager::render_layer(14);});
+  func = new UpdateFunc([](){return anm::render_layer(14);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 31);
-  func = new UpdateFunc([](){return AnmManager::render_layer(15);});
+  func = new UpdateFunc([](){return anm::render_layer(15);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 32);
-  func = new UpdateFunc([](){return AnmManager::render_layer(16);});
+  func = new UpdateFunc([](){return anm::render_layer(16);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 35);
-  func = new UpdateFunc([](){return AnmManager::render_layer(17);});
+  func = new UpdateFunc([](){return anm::render_layer(17);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 37);
-  func = new UpdateFunc([](){return AnmManager::render_layer(18);});
+  func = new UpdateFunc([](){return anm::render_layer(18);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 40);
-  func = new UpdateFunc([](){return AnmManager::render_layer(19);});
+  func = new UpdateFunc([](){return anm::render_layer(19);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 43);
   func = new UpdateFunc([](){
-    AnmManager::set_camera(&SUPERVISOR.cameras[1]);
-    AnmManager::disable_zwrite();
-    AnmManager::disable_ztest();
-    return AnmManager::render_layer(20);
+    anm::set_camera(&SUPERVISOR.cameras[1]);
+    anm::disable_zwrite();
+    anm::disable_ztest();
+    return anm::render_layer(20);
   });
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 46);
-  func = new UpdateFunc([](){return AnmManager::render_layer(21);});
+  func = new UpdateFunc([](){return anm::render_layer(21);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 47);
-  func = new UpdateFunc([](){return AnmManager::render_layer(22);});
+  func = new UpdateFunc([](){return anm::render_layer(22);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 53);
-  func = new UpdateFunc([](){return AnmManager::render_layer(23);});
+  func = new UpdateFunc([](){return anm::render_layer(23);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 55);
-  func = new UpdateFunc([](){return AnmManager::render_layer(26);});
+  func = new UpdateFunc([](){return anm::render_layer(26);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 62);
-  func = new UpdateFunc([](){return AnmManager::render_layer(27);});
+  func = new UpdateFunc([](){return anm::render_layer(27);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 63);
-  func = new UpdateFunc([](){return AnmManager::render_layer(29);});
+  func = new UpdateFunc([](){return anm::render_layer(29);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 78);
-  func = new UpdateFunc([](){return AnmManager::render_layer(30);});
+  func = new UpdateFunc([](){return anm::render_layer(30);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 80);
-  func = new UpdateFunc([](){return AnmManager::render_layer(31);});
+  func = new UpdateFunc([](){return anm::render_layer(31);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 83);
-  func = new UpdateFunc([](){return AnmManager::render_layer(25);});
+  func = new UpdateFunc([](){return anm::render_layer(25);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 60);
   func = new UpdateFunc([](){
-    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
-    AnmManager::disable_zwrite();
-    AnmManager::disable_ztest();
-    AnmManager::cam_vec2_fc_x = 0.0f;
-    AnmManager::cam_vec2_fc_y = 0.0f;
-    return AnmManager::render_layer(24);
+    anm::set_camera(&SUPERVISOR.cameras[2]);
+    anm::disable_zwrite();
+    anm::disable_ztest();
+    anm::_set_cam_vec2_fc({0.0f, 0.0f});
+    return anm::render_layer(24);
   });
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 59);
   func = new UpdateFunc([](){
-    AnmManager::set_camera(&SUPERVISOR.cameras[0]);
-    return AnmManager::render_layer(28);
-    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+    anm::set_camera(&SUPERVISOR.cameras[0]);
+    return anm::render_layer(28);
+    anm::set_camera(&SUPERVISOR.cameras[2]);
   });
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 65);
   func = new UpdateFunc([](){
-    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
-    AnmManager::disable_zwrite();
-    AnmManager::disable_ztest();
-    return AnmManager::render_layer(36);
+    anm::set_camera(&SUPERVISOR.cameras[2]);
+    anm::disable_zwrite();
+    anm::disable_ztest();
+    return anm::render_layer(36);
   });
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 56);
-  func = new UpdateFunc([](){return AnmManager::render_layer(37);});
+  func = new UpdateFunc([](){return anm::render_layer(37);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 61);
-  func = new UpdateFunc([](){return AnmManager::render_layer(38);});
+  func = new UpdateFunc([](){return anm::render_layer(38);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 64);
   func = new UpdateFunc([](){
-    AnmManager::set_camera(&SUPERVISOR.cameras[0]);
-    return AnmManager::render_layer(39);
-    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+    anm::set_camera(&SUPERVISOR.cameras[0]);
+    return anm::render_layer(39);
+    anm::set_camera(&SUPERVISOR.cameras[2]);
   });
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 66);
-  func = new UpdateFunc([](){return AnmManager::render_layer(40);});
+  func = new UpdateFunc([](){return anm::render_layer(40);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 79);
-  func = new UpdateFunc([](){return AnmManager::render_layer(41);});
+  func = new UpdateFunc([](){return anm::render_layer(41);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 81);
-  func = new UpdateFunc([](){return AnmManager::render_layer(42);});
+  func = new UpdateFunc([](){return anm::render_layer(42);});
   func->flags |= 2;
   UPDATE_FUNC_REGISTRY->register_on_draw(func, 84);
 }

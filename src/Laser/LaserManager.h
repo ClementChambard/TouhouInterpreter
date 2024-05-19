@@ -2,6 +2,7 @@
 #define LASERMANAGER_H_
 
 #include "../UpdateFuncRegistry.h"
+#include "../AnmOpener/AnmFile.h"
 #include "./Laser.h"
 #include "./LaserBeam.h"
 #include "./LaserCurve.h"
@@ -36,7 +37,7 @@ public:
     int32_t current_id = 0;
     glm::vec3 cancel_rectangle_p1 = {};
     glm::vec3 cancel_rectangle_p2 = {};
-    AnmFile* bullet_anm = nullptr;
+    anm::File* bullet_anm = nullptr;
     // undefined4
     // undefined4
 

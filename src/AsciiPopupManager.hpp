@@ -9,7 +9,7 @@ struct AsciiPopupString_t {
     glm::vec3* pos_ptr = nullptr;
     glm::vec3 pos = {0, 0, 0};
     float __field_18;
-    NSEngine::Color color = {0, 0, 0, 0};
+    ns::Color color = {0, 0, 0, 0};
     int32_t time = 0;
     // undefined4
     int32_t __field_32__was_1281 = 0;
@@ -26,7 +26,7 @@ public:
     ~AsciiPopupManager();
 
     void generate_small_score_popup(glm::vec3 const &pos, int nb,
-                                    NSEngine::Color color);
+                                    ns::Color color);
 private:
     int f_on_tick();
     int f_on_draw();
@@ -35,10 +35,10 @@ public:
     uint32_t flags = 2;
     UpdateFunc* on_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
-    AnmFile* anm_ascii = nullptr;
+    anm::File* anm_ascii = nullptr;
     int32_t next_index = 0;
     int32_t next_index2 = 0;
-    AnmVM vm = {};
+    anm::VM vm = {};
     AsciiPopupString_t popups[36] = {};
 };
 

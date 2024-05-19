@@ -7,8 +7,9 @@
 #include "./Gui.hpp"
 #include "./Player.h"
 #include "./Supervisor.h"
-#include "Bomb.hpp"
-#include "StdOpener/Stage.hpp"
+#include "./Bomb.hpp"
+#include "./GlobalData.h"
+#include <Error.h>
 
 Spellcard *SPELLCARD_PTR = nullptr;
 
@@ -50,7 +51,7 @@ int Spellcard::on_tick() {
       EnemyManager::GetInstance()->boss_ids[0]);
   if (e)
     boss0_pos = (e->getData()->final_pos.pos - boss0_pos) * 0.05f + boss0_pos;
-  auto vm = AnmManager::getVM(spell_circle_anmid);
+  auto vm = anm::getVM(spell_circle_anmid);
   if (vm) {
     vm->entity_pos = boss0_pos;
   }
@@ -64,32 +65,32 @@ int Spellcard::on_tick() {
   if (flags & 4) {
     if (flags & 0x100) {
       if (PLAYER_PTR->inner.pos.y < 320.0) {
-        AnmManager::interrupt_tree(ascii_anmid_10, 2);
-        AnmManager::interrupt_tree(text_anmid_14, 2);
-        AnmManager::interrupt_tree(ascii_anmid_18, 2);
+        anm::interrupt_tree(ascii_anmid_10, 2);
+        anm::interrupt_tree(text_anmid_14, 2);
+        anm::interrupt_tree(ascii_anmid_18, 2);
         flags &= 0xfffffffb;
       }
     } else {
       if (PLAYER_PTR->inner.pos.y > 128.0) {
-        AnmManager::interrupt_tree(ascii_anmid_10, 2);
-        AnmManager::interrupt_tree(text_anmid_14, 2);
-        AnmManager::interrupt_tree(ascii_anmid_18, 2);
+        anm::interrupt_tree(ascii_anmid_10, 2);
+        anm::interrupt_tree(text_anmid_14, 2);
+        anm::interrupt_tree(ascii_anmid_18, 2);
         flags &= 0xfffffffb;
       }
     }
   } else {
     if (flags & 0x100) {
       if (PLAYER_PTR->inner.pos.y > 352.0) {
-        AnmManager::interrupt_tree(ascii_anmid_10, 3);
-        AnmManager::interrupt_tree(text_anmid_14, 3);
-        AnmManager::interrupt_tree(ascii_anmid_18, 3);
+        anm::interrupt_tree(ascii_anmid_10, 3);
+        anm::interrupt_tree(text_anmid_14, 3);
+        anm::interrupt_tree(ascii_anmid_18, 3);
         flags |= 4;
       }
     } else {
       if (PLAYER_PTR->inner.pos.y < 96.0) {
-        AnmManager::interrupt_tree(ascii_anmid_10, 3);
-        AnmManager::interrupt_tree(text_anmid_14, 3);
-        AnmManager::interrupt_tree(ascii_anmid_18, 3);
+        anm::interrupt_tree(ascii_anmid_10, 3);
+        anm::interrupt_tree(text_anmid_14, 3);
+        anm::interrupt_tree(ascii_anmid_18, 3);
         flags |= 4;
       }
     }
@@ -100,7 +101,7 @@ int Spellcard::on_tick() {
 int Spellcard::on_draw() {
   if (!(flags & 1))
     return 1;
-  auto anm__18 = AnmManager::getVM(ascii_anmid_18);
+  auto anm__18 = anm::getVM(ascii_anmid_18);
   if (!anm__18) {
     ascii_anmid_18 = 0;
     return 1;
@@ -143,16 +144,16 @@ void Spellcard::Stop() {
     return;
   }
   // STAGE_PTR->flags |= 1;
-  AnmManager::interrupt_tree(ascii_anmid_10, 1);
-  AnmManager::interrupt_tree(text_anmid_14, 1);
-  AnmManager::interrupt_tree(ascii_anmid_18, 1);
+  anm::interrupt_tree(ascii_anmid_10, 1);
+  anm::interrupt_tree(text_anmid_14, 1);
+  anm::interrupt_tree(ascii_anmid_18, 1);
   flags &= 0xfffffffe;
-  AnmManager::deleteVM(spell_bg_anm_id);
+  anm::deleteVM(spell_bg_anm_id);
   spell_bg_anm_id = 0;
   flags &= 0xffffffdf;
   GUI_PTR->vm_timer_digit_hi->interrupt(3);
   GUI_PTR->vm_timer_digit_lo->interrupt(3);
-  AnmManager::deleteVM(spell_circle_anmid);
+  anm::deleteVM(spell_circle_anmid);
   spell_circle_anmid = 0;
   if (!(flags & 2)) {
     GUI_PTR->midScreenInfo(0, 1);
@@ -268,15 +269,15 @@ void Spellcard::Init(int id, int time, int mode, std::string name) {
   text_anmid_14 = SUPERVISOR.text_anm->createEffect(2);
   ascii_anmid_18 = ASCII_MANAGER_PTR->ascii_anm->createEffect(1);
 
-  auto vm = AnmManager::getVM(text_anmid_14);
-  FUN_00475120(vm, c_white, c_black, 0, 0, sj2utf8(name), name.size());
+  auto vm = anm::getVM(text_anmid_14);
+  anm::text::FUN_00475120(vm, c_white, c_black, 0, 0, sj2utf8(name), name.size());
 
   // SoundManager::play_sound_centered(0x21);
 
-  spell_circle_anmid = AnmManager::getLoaded(8)->createEffect(13);
+  spell_circle_anmid = anm::getLoaded(8)->createEffect(13);
   auto boss_0 = ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]);
   boss0_pos = boss_0->getData()->final_pos.pos;
-  auto spell_circle = AnmManager::getVM(spell_circle_anmid);
+  auto spell_circle = anm::getVM(spell_circle_anmid);
   if (!spell_circle) {
     spell_circle_anmid = 0;
   } else {
@@ -288,7 +289,7 @@ void Spellcard::Init(int id, int time, int mode, std::string name) {
   int bonuses[] = {500000, 1000000, 1500000, 2000000, 1000000};
   bonus = bonuses[GLOBALS.inner.DIFFICULTY] * GLOBALS.inner.STAGE_NUM;
   bonus_max = fmin(this->bonus, 999999999);
-  AnmManager::getLoaded(8)->createEffect(20);
+  anm::getLoaded(8)->createEffect(20);
   if (mode < 0 || mode > 3)
     return;
   auto bossdata = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][mode];
@@ -305,6 +306,6 @@ void Spellcard::Init(int id, int time, int mode, std::string name) {
            ((bossdata["stage_bg_visible_during_spell"].asInt() << 9) ^ flags)) &
           0x200;
   GLOBALS.inner.HYPER_FLAGS &= 0xfffff7ff;
-  std::cout << "Spell card " << sj2utf8(name) << "  -> " << time << "\n";
+  ns::info("Spell card", sj2utf8(name), " ->", time);
   flags |= 3;
 }

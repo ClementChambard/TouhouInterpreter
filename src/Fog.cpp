@@ -4,17 +4,17 @@
 #include "GlobalData.h"
 #include "Supervisor.h"
 
-AnmID fog_init_sub_anms(int count) {
-  AnmVM *vm;
-  AnmID id = SUPERVISOR.text_anm->createEffect(59, 34, &vm);
+anm::ID fog_init_sub_anms(int count) {
+  anm::VM *vm;
+  anm::ID id = SUPERVISOR.text_anm->createEffect(59, 34, &vm);
   vm->special_vertex_buffer_size = count * 0x38;
-  vm->special_vertex_buffer_data = malloc(count * 2 * sizeof(RenderVertex_t));
+  vm->special_vertex_buffer_data = malloc(count * 2 * sizeof(anm::RenderVertex_t));
   if (count < 3) {
     vm->bitflags.rendermode = 0;
   } else {
     vm->int_script_vars[0] = count;
     vm->bitflags.rendermode = 12;
-    auto cursor = reinterpret_cast<RenderVertex_t*>
+    auto cursor = reinterpret_cast<anm::RenderVertex_t*>
       (vm->special_vertex_buffer_data);
     for (int i = 0; i < count * 2; i++) {
       cursor[i].transformed_pos.z = 0.f;
@@ -39,11 +39,11 @@ Fog_t::Fog_t(int count) {
   }
   vm_count = 17;
   vertex_count = count;
-  anmid_array = new AnmID[vm_count - 1];
-  vm_array = new AnmVM*[vm_count - 1];
-  vertex_array = new RenderVertex_t[vertex_count * vm_count];
+  anmid_array = new anm::ID[vm_count - 1];
+  vm_array = new anm::VM*[vm_count - 1];
+  vertex_array = new anm::RenderVertex_t[vertex_count * vm_count];
   pos_array = new glm::vec3[vertex_count * vm_count];
-  AnmVM* vm;
+  anm::VM* vm;
   anmid = SUPERVISOR.text_anm->createEffect(59, 34, &vm);
   // TODO: why mine is showing when it is not in the og
   vm->color_1.a = 0;
@@ -54,7 +54,7 @@ Fog_t::Fog_t(int count) {
   vm->associated_game_entity = this;
   for (int i = 0; i < vm_count - 1; i++) {
     anmid_array[i] = fog_init_sub_anms(vertex_count);
-    vm_array[i] = AnmManager::getVM(anmid_array[i]);
+    vm_array[i] = anm::getVM(anmid_array[i]);
     vm_array[i]->bitflags.blendmode &= 0b1100;
     vm_array[i]->bitflags.originMode = 0;
   }
@@ -62,7 +62,7 @@ Fog_t::Fog_t(int count) {
 }
 
 Fog_t::~Fog_t() {
-  AnmManager::deleteVM(anmid);
+  anm::deleteVM(anmid);
   if (vertex_array) {
     delete[] vertex_array;
   }
@@ -70,7 +70,7 @@ Fog_t::~Fog_t() {
     delete[] pos_array;
   }
   for (int i = 0; i < vm_count - 1; i++) {
-    AnmManager::deleteVM(anmid_array[i]);
+    anm::deleteVM(anmid_array[i]);
   }
   if (anmid_array) {
     delete[] anmid_array;
@@ -83,15 +83,12 @@ Fog_t::~Fog_t() {
 void Fog_t::set_vm_vertices() {
   if (vm_count != 0) {
     auto cursor = vertex_array;
-    //std::cout << "A \n";
     for (int i = 0; i + 1 < vm_count; i++) {
-      auto vmverts = reinterpret_cast<RenderVertex_t*>
+      auto vmverts = reinterpret_cast<anm::RenderVertex_t*>
           (vm_array[i]->special_vertex_buffer_data);
       for (int j = 0; j < vertex_count; j++) {
           vmverts[2*j+0] = cursor[0];
-          //std::cout << cursor[0].transformed_pos.x << " " << cursor[0].transformed_pos.y << " - ";
           vmverts[2*j+1] = cursor[vertex_count];
-          //std::cout << cursor[field_0x4_some_count].transformed_pos.x << " " << cursor[field_0x4_some_count].transformed_pos.y << "\n";
           cursor++;
       }
     }
@@ -102,9 +99,9 @@ void Fog_t::set_vm_vertices() {
 void Fog_t::reset_area(float some_x, float some_y,
                          float width, float height) {
   if (vm_count == 0) return;
-  float pos_x = AnmManager::origins[1].x + some_x;
+  float pos_x = anm::origin(1).x + some_x;
   for (int i = 0; i < vm_count; i++) {
-      float pos_y = AnmManager::origins[1].y + some_y;
+      float pos_y = anm::origin(1).y + some_y;
       for (int j = 0; j < vertex_count; j++) {
           auto& p = pos_array[j + i * vertex_count];
           auto& v = vertex_array[j + i * vertex_count];
@@ -116,8 +113,8 @@ void Fog_t::reset_area(float some_x, float some_y,
           v.transformed_pos.z = 0.0;
           v.transformed_pos.w = 1.0;
           // should invert:
-          v.texture_uv.x = p.x / BACK_BUFFER_SIZE.x;
-          v.texture_uv.y = (BACK_BUFFER_SIZE.y - p.y) / BACK_BUFFER_SIZE.y;
+          v.texture_uv.x = p.x / anm::BACK_BUFFER_SIZE.x;
+          v.texture_uv.y = (anm::BACK_BUFFER_SIZE.y - p.y) / anm::BACK_BUFFER_SIZE.y;
           if (v.texture_uv.x < 0.0) v.texture_uv.x = 0.0;
           if (v.texture_uv.y < 0.0) v.texture_uv.y = 0.0;
           v.diffuse_color = c_white;
@@ -148,8 +145,8 @@ void EnemyData::update_distorsion() {
               [i * fog.fog_ptr->vertex_count + j];
           // vertex position recentered so that it is centered around 0
           glm::vec2 local_18 = {
-             p.x - AnmManager::origins[1].x - final_pos.pos.x,
-             p.y - AnmManager::origins[1].y - final_pos.pos.y,
+             p.x - anm::origin(1).x - final_pos.pos.x,
+             p.y - anm::origin(1).y - final_pos.pos.y,
           };
           float dst_in_circle = fog.r * fog.r - math::veclensq(local_18);
           if (dst_in_circle < 0.0) {
@@ -172,7 +169,7 @@ void EnemyData::update_distorsion() {
           math::angle_normalize(osc_x);
           osc_y -= 0.04908739;
           math::angle_normalize(osc_y);
-          const float GAME_REGION_X = AnmManager::origins[1].x - 384.0 / 2.f;
+          const float GAME_REGION_X = anm::origin(1).x - 384.0 / 2.f;
           if (p.x <= GAME_REGION_X) {
             v.transformed_pos.x = GAME_REGION_X + 1.0;
             p.x = GAME_REGION_X + 1.0;
@@ -180,15 +177,15 @@ void EnemyData::update_distorsion() {
             v.transformed_pos.x = GAME_REGION_X + 383.0;
             p.x = GAME_REGION_X + 383.0;
           }
-          if (p.y <= AnmManager::origins[1].y) {
-            v.transformed_pos.y = AnmManager::origins[1].y + 1.0;
-            p.y = AnmManager::origins[1].y + 1.0;
-          } else if (p.y >= AnmManager::origins[1].y + 448.0) {
-            v.transformed_pos.y = AnmManager::origins[1].y + 447.0;
-            p.y = AnmManager::origins[1].y + 447.0;
+          if (p.y <= anm::origin(1).y) {
+            v.transformed_pos.y = anm::origin(1).y + 1.0;
+            p.y = anm::origin(1).y + 1.0;
+          } else if (p.y >= anm::origin(1).y + 448.0) {
+            v.transformed_pos.y = anm::origin(1).y + 447.0;
+            p.y = anm::origin(1).y + 447.0;
           }
-          v.texture_uv.x = p.x / BACK_BUFFER_SIZE.x;
-          v.texture_uv.y = (BACK_BUFFER_SIZE.y - p.y) / BACK_BUFFER_SIZE.y;
+          v.texture_uv.x = p.x / anm::BACK_BUFFER_SIZE.x;
+          v.texture_uv.y = (anm::BACK_BUFFER_SIZE.y - p.y) / anm::BACK_BUFFER_SIZE.y;
           if (v.texture_uv.x < 0.0) v.texture_uv.x = 0.0;
           if (v.texture_uv.y < 0.0) v.texture_uv.y = 0.0;
       }

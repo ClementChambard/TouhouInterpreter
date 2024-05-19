@@ -1,14 +1,12 @@
 #ifndef ECLVM_H_
 #define ECLVM_H_
-#include "./AnmOpener/AnmManager.h"
 #include "./BulletHandler.h"
 #include "./EclContext.h"
 #include "./EclFileManager.h"
-#include <Interp.hpp>
 #include "./PosVel.h"
-#include "Fog.hpp"
-#include <iostream>
-#include <string>
+#include "./Fog.hpp"
+
+#include <Interp.hpp>
 
 class Enemy;
 struct EnemyList_t {
@@ -37,7 +35,7 @@ struct EnemyFog_t {
     Fog_t* fog_ptr = nullptr;
     float fog_radius = 0.f;
     float r = 0.0;
-    NSEngine::Color fog_color = {0, 0, 0, 0};
+    ns::Color fog_color = {0, 0, 0, 0};
     float oscillate_x = 0.f;
     float oscillate_y = 0.f;
 };
@@ -45,8 +43,8 @@ struct EnemyFog_t {
 struct EnemyInterrupt_t {
     int32_t life = -1;
     int32_t time = -1;
-    std::string subNext = "";
-    std::string subTimeout = "";
+    char subNext[0x40] = "";
+    char subTimeout[0x40] = "";
 };
 
 struct EnemyLife_t {
@@ -59,8 +57,8 @@ struct EnemyLife_t {
     int32_t isSpell;
 };
 
-using NSEngine::Interp;
-using NSEngine::InterpStrange;
+using ns::Interp;
+using ns::InterpStrange;
 struct EnemyData {
     PosVel prev_final_pos = {};
     PosVel final_pos = {};
@@ -69,7 +67,7 @@ struct EnemyData {
     glm::vec2 hurtbox_size = {};
     glm::vec2 hitbox_size = {};
     float rotation = 0.f;
-    AnmID anmIds[16] = {};
+    anm::ID anmIds[16] = {};
     glm::vec3 anmPos[16] = {};
     int32_t anmRelated[16] = { -1, -1, -1, -1, -1, -1, -1, -1,
                                -1, -1, -1, -1, -1, -1, -1, -1 };
@@ -126,7 +124,7 @@ struct EnemyData {
     EnemyInterrupt_t interrupts[8] = {};
     Enemy* enemy = nullptr;
     EnemyFog_t fog;
-    std::string setDeath = "";
+    char setDeath[0x40] = "";
     std::function<int(EnemyData*)> func_from_ecl_func_set = nullptr;
     uint32_t is_func_set_2 = 0;
     std::function<int(EnemyData*, int)> func_from_ecl_flag_ext_dmg = nullptr;
@@ -146,7 +144,7 @@ public:
     Enemy();
     ~Enemy();
 
-    void Init(std::string const& sub);
+    void Init(cstr sub);
     void Tick();
     void Die();
     int update();
@@ -159,7 +157,7 @@ public:
     int ecl_run(float speed = 1.f);
     void clear_async_contexts();
     void reset_ecl();
-    void set_sub(std::string const& sub);
+    void set_sub(cstr sub);
 
     int updateContext(EclRunContext_t* cont, float speed = 1.f);
     int execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr);

@@ -1,13 +1,12 @@
 #include "./BulletManager.h"
 #include "./EnemyManager.h"
-#include "./Laser/LaserManager.h"
 #include "./AnmViewer.hpp"
-#include <Engine.hpp>
+#include <NSEngine.hpp>
 
 #define WINDOW_WIDTH  (/*1920*/1280/*640*/)
 #define WINDOW_HEIGHT (/*1080*/960 /*480*/)
 
-class App : public NSEngine::IEngine {
+class App : public ns::IEngine {
 public:
     App(int argc, char** argv)
         : IEngine(WINDOW_WIDTH, WINDOW_HEIGHT, "ecl viewer")
@@ -26,6 +25,5 @@ private:
 
     EnemyManager* em = nullptr;
     BulletManager* bm = nullptr;
-    LaserManager lm {};
     AnmViewer anmViewer;
 };

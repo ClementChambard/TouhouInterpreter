@@ -1,14 +1,13 @@
 #include "./Stage.hpp"
 #include "../AnmOpener/AnmManager.h"
-#include "../Spellcard.h"
-#include "../ScreenEffect.hpp"
 #include "../GlobalData.h"
 #include "../Hardcoded.h"
+#include "../ScreenEffect.hpp"
+#include "../Supervisor.h"
 #include <FileOpener.h>
-#include <NSEngine.h>
-#include <math/Random.h>
 #include <cstring>
 #include <ctime>
+#include <math/Random.h>
 
 Stage *STAGE_PTR = nullptr;
 Stage *ANOTHER_STAGE_PTR = nullptr;
@@ -49,14 +48,14 @@ Stage::Stage() {
   //     return -1;
   //   }
   // }
-  NSEngine::FileOpener::readFileToBuffer(
-      STAGE_DATA_TABLE[stage_num]["std_filename"].asString(), std_file,
+  ns::FileOpener::readFileToBuffer(
+      STAGE_DATA_TABLE[stage_num]["std_filename"].asString().c_str(), std_file,
       std_file_size);
   this->std_file_data =
       reinterpret_cast<StdOpener::std_header_10_t *>(malloc(std_file_size));
   memcpy(std_file_data, std_file, std_file_size);
   /* load anm from string at offset 0x10 in std file */
-  stage_anm = AnmManager::LoadFile(stage_num % 2 + 3, std_file_data->anm_name);
+  stage_anm = anm::loadFile(stage_num % 2 + 3, std_file_data->anm_name);
   // if (!stage_anm) {
   //   sub_4025a0_logs_debug_message(&OUTPUT_BUF_FOR_STRINGS,
   //                                 &DAT_004a136c);
@@ -77,10 +76,10 @@ Stage::Stage() {
   beginning_of_script = reinterpret_cast<StdOpener::std_instr_t *>(
       reinterpret_cast<uint64_t>(std_file_data) + std_file_data->script_offset);
 
-  faces_vms = new AnmVM[std_file_data->nb_faces];
+  faces_vms = new anm::VM[std_file_data->nb_faces];
   // same for lolk
   this->inner.full = this;
-  memcpy(&inner.camera, &SUPERVISOR.cameras[3], sizeof(Camera_t));
+  memcpy(&inner.camera, &SUPERVISOR.cameras[3], sizeof(anm::Camera_t));
   inner.camera.position = {0.0, 0.0, -600.0};
   inner.camera.facing = {0.0, 300.0, 600.0};
   inner.camera.up = {0.0, 1.0, 0.0};
@@ -175,37 +174,38 @@ int Stage::f_on_tick() {
   return 1;
 }
 
-#define IARG(id) (*reinterpret_cast<int32_t *>(&instr->args[id*4]))
-#define FARG(id) (*reinterpret_cast<float *>(&instr->args[id*4]))
+#define IARG(id) (*reinterpret_cast<int32_t *>(&instr->args[id * 4]))
+#define FARG(id) (*reinterpret_cast<float *>(&instr->args[id * 4]))
 void Stage::run_std() {
   auto instr = reinterpret_cast<StdOpener::std_instr_t *>(
       reinterpret_cast<uint64_t>(beginning_of_script) + inner.instr_offset);
-  while (instr->time <= inner.time_in_script) { // conditionnal jump depends on unitialized value
-    switch (instr->type) { // invalid read of size 2 ???
-    case 0: /* STOP */
+  while (
+      instr->time <=
+      inner.time_in_script) { // conditionnal jump depends on unitialized value
+    switch (instr->type) {    // invalid read of size 2 ???
+    case 0:                   /* STOP */
       goto update_rest;
-    case 1: /* JUMP */
-      inner.instr_offset = IARG(0); // Before stage3 boss spawn th16 TODO: Use of uninitialised value of size 8
+    case 1:                         /* JUMP */
+      inner.instr_offset = IARG(0); // Before stage3 boss spawn th16 TODO: Use
+                                    // of uninitialised value of size 8
       inner.time_in_script = IARG(1);
       instr = beginning_of_script + inner.instr_offset;
       continue; // invalid read of size 4 ???
-    case 2: /* POS */
+    case 2:     /* POS */
       inner.camera.__vec3_104 = inner.camera.position;
       inner.camera.position = {FARG(0), FARG(1), FARG(2)};
       inner.camera.__vec3_104 = inner.camera.position - inner.camera.__vec3_104;
       break;
     case 3: /* POS TIME */
       inner.camera_pos_i.start(inner.camera.position,
-                               {FARG(2), FARG(3), FARG(4)}, IARG(0),
-                               IARG(1));
+                               {FARG(2), FARG(3), FARG(4)}, IARG(0), IARG(1));
       break;
     case 4: /* FACING */
       inner.camera.facing = {FARG(0), FARG(1), FARG(2)};
       break;
     case 5: /* FACING TIME */
-      inner.camera_facing_i.start(inner.camera.facing,
-                                  {FARG(2), FARG(3), FARG(4)}, IARG(0),
-                                  IARG(1));
+      inner.camera_facing_i.start(
+          inner.camera.facing, {FARG(2), FARG(3), FARG(4)}, IARG(0), IARG(1));
       break;
     case 6: /* UP */
       inner.camera.up = {FARG(0), FARG(1), FARG(2)};
@@ -227,7 +227,7 @@ void Stage::run_std() {
       break;
     case 9: /* FOG TIME */
     {
-      CameraSky_t goal;
+      anm::CameraSky_t goal;
       int arg2 = IARG(2);
       goal.color_components[0] = (arg2 >> 0) & 0xff;
       goal.color_components[1] = (arg2 >> 8) & 0xff;
@@ -239,20 +239,17 @@ void Stage::run_std() {
       goal.color.a = goal.color_components[3];
       goal.begin_distance = FARG(3);
       goal.end_distance = FARG(4);
-      inner.camera_sky_i.start(inner.camera.sky, goal, IARG(0),
-                               IARG(1));
+      inner.camera_sky_i.start(inner.camera.sky, goal, IARG(0), IARG(1));
     } break;
     case 10: /* POS BEZIER */
       inner.camera_pos_i.start_bezier(
           inner.camera.position, {FARG(4), FARG(5), FARG(6)},
-          {FARG(1), FARG(2), FARG(3)}, {FARG(7), FARG(8), FARG(9)},
-          IARG(0));
+          {FARG(1), FARG(2), FARG(3)}, {FARG(7), FARG(8), FARG(9)}, IARG(0));
       break;
     case 11: /* FACING BEZIER */
       inner.camera_facing_i.start_bezier(
           inner.camera.facing, {FARG(4), FARG(5), FARG(6)},
-          {FARG(1), FARG(2), FARG(3)}, {FARG(7), FARG(8), FARG(9)},
-          IARG(0));
+          {FARG(1), FARG(2), FARG(3)}, {FARG(7), FARG(8), FARG(9)}, IARG(0));
       break;
     case 12: /* ROCKING MODE */
       inner.rocking_mode = IARG(0);
@@ -266,15 +263,14 @@ void Stage::run_std() {
         inner.rocking_timer.set(0);
       break;
     case 13: /* BG COLOR */
-      {
-        NSEngine::Color c;
-        c.b = (IARG(0) >> 0) & 0xff;
-        c.g = (IARG(0) >> 8) & 0xff;
-        c.r = (IARG(0) >> 16) & 0xff;
-        c.a = (IARG(0) >> 24) & 0xff;
-        SUPERVISOR.background_color = c;
-      }
-      break;
+    {
+      ns::Color c;
+      c.b = (IARG(0) >> 0) & 0xff;
+      c.g = (IARG(0) >> 8) & 0xff;
+      c.r = (IARG(0) >> 16) & 0xff;
+      c.a = (IARG(0) >> 24) & 0xff;
+      SUPERVISOR.background_color = c;
+    } break;
     case 14: /* SPRITE */
       if (IARG(1) == -2) {
         inner.vms[IARG(0)].bitflags.visible = false;
@@ -300,8 +296,7 @@ void Stage::run_std() {
       inner.distortion.oy = 0.0;
       inner.distortion.time = 0;
       inner.distortion.mode = IARG(0);
-      inner.distortion.fog_ptr =
-        new Fog_t(inner.distortion.mode != 1 ? 17 : 7);
+      inner.distortion.fog_ptr = new Fog_t(inner.distortion.mode != 1 ? 17 : 7);
       break;
     case 18: /* UP TIME */
       inner.camera_up_i.start(inner.camera.up, {FARG(2), FARG(3), FARG(4)},
@@ -309,7 +304,8 @@ void Stage::run_std() {
       break;
     case 19: /* INTERRUPT ANMS */
       for (int i = 0; i < 8; i++) {
-        if (inner.vms[i].instr_offset < 0) continue;
+        if (inner.vms[i].instr_offset < 0)
+          continue;
         inner.vms[i].interrupt(IARG(0) + 7);
         inner.vms[i].run();
       }
@@ -324,8 +320,7 @@ void Stage::run_std() {
       inner.draw_distance_sq = FARG(0) * FARG(0);
       break;
     case 21: /* FOV TIME */
-      inner.camera_fov_i.start(inner.camera.fov_y, FARG(2), IARG(0),
-                               IARG(1));
+      inner.camera_fov_i.start(inner.camera.fov_y, FARG(2), IARG(0), IARG(1));
       break;
     }
     inner.instr_offset += instr->size; // invalid read of size 2 ???
@@ -378,8 +373,7 @@ update_rest:
     inner.camera.__rocking_vector_1.x =
         sin((inner.rocking_timer.current % 0x400) * PI / 0x200) * intensity;
     inner.camera.__rocking_vector_2.x =
-        (sin((inner.rocking_timer.current % 0x400) * PI / 0x200) *
-         intensity) /
+        (sin((inner.rocking_timer.current % 0x400) * PI / 0x200) * intensity) /
         -10.0;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x800)
@@ -413,11 +407,9 @@ update_rest:
     inner.camera.__rocking_vector_1.y = 0.0;
     inner.camera.__rocking_vector_1.z = 0.0;
     inner.camera.__rocking_vector_1.x =
-        sin((inner.rocking_timer.current % 0x400) * PI / 0x200) *
-        intensity;
+        sin((inner.rocking_timer.current % 0x400) * PI / 0x200) * intensity;
     inner.camera.__rocking_vector_2.x =
-        (sin((inner.rocking_timer.current % 0x400) * PI / 0x200) *
-         intensity) /
+        (sin((inner.rocking_timer.current % 0x400) * PI / 0x200) * intensity) /
         -10.0;
     inner.rocking_timer.increment();
     inner.rocking_6_timer.increment();
@@ -426,37 +418,29 @@ update_rest:
     break;
   case 9:
     inner.camera.__rocking_vector_1.x =
-        sin(((inner.rocking_timer.current_f * PI) / 0x400 - PI)) *
-        70.0;
+        sin(((inner.rocking_timer.current_f * PI) / 0x400 - PI)) * 70.0;
     inner.camera.__rocking_vector_1.z =
-        sin(2 *
-            ((inner.rocking_timer.current_f * PI) / 0x400 - PI)) *
-        200.0;
+        sin(2 * ((inner.rocking_timer.current_f * PI) / 0x400 - PI)) * 200.0;
     inner.camera.up.x =
-        sin(((inner.rocking_timer.current_f * PI) / 0x400 - PI)) *
-        -0.1;
+        sin(((inner.rocking_timer.current_f * PI) / 0x400 - PI)) * -0.1;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x800)
       inner.rocking_timer.set(0);
     break;
   case 10:
     inner.camera.__rocking_vector_1.x =
-        sin((inner.rocking_timer.current_f * PI) / 0x200 - PI) *
-        -50.0;
+        sin((inner.rocking_timer.current_f * PI) / 0x200 - PI) * -50.0;
     inner.camera.up.x =
-        sin((inner.rocking_timer.current_f * PI) / 0x200 - PI) *
-        -0.1;
+        sin((inner.rocking_timer.current_f * PI) / 0x200 - PI) * -0.1;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x400)
       inner.rocking_timer.set(0);
     break;
   case 11:
     inner.camera.__rocking_vector_1.x =
-        sin((inner.rocking_timer.current_f * PI) / 0x100 - PI) *
-        -15.0;
+        sin((inner.rocking_timer.current_f * PI) / 0x100 - PI) * -15.0;
     inner.camera.up.x =
-        sin((inner.rocking_timer.current_f * PI) / 0x100 - PI) *
-        -0.01;
+        sin((inner.rocking_timer.current_f * PI) / 0x100 - PI) * -0.01;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x200)
       inner.rocking_timer.set(0);
@@ -464,7 +448,7 @@ update_rest:
   }
 }
 
-void CameraSkyInterp_t::start(CameraSky_t const &begin, CameraSky_t const &end,
+void CameraSkyInterp_t::start(anm::CameraSky_t const &begin, anm::CameraSky_t const &end,
                               int32_t time, int32_t mode) {
   begin_dist.start(begin.begin_distance, end.begin_distance, time, mode);
   end_dist.start(begin.end_distance, end.end_distance, time, mode);
@@ -473,14 +457,17 @@ void CameraSkyInterp_t::start(CameraSky_t const &begin, CameraSky_t const &end,
   end_time = time;
 }
 
-    glm::vec4 color_components{};
-    NSEngine::Color color{};
-CameraSky_t CameraSkyInterp_t::step() {
-  if (begin_dist.end_time > 0) begin_dist.step();
-  if (end_dist.end_time > 0) end_dist.step();
-  if (color.end_time > 0) color.step();
+glm::vec4 color_components{};
+ns::Color color{};
+anm::CameraSky_t CameraSkyInterp_t::step() {
+  if (begin_dist.end_time > 0)
+    begin_dist.step();
+  if (end_dist.end_time > 0)
+    end_dist.step();
+  if (color.end_time > 0)
+    color.step();
   end_time = begin_dist.end_time;
-  CameraSky_t out = {};
+  anm::CameraSky_t out = {};
   out.begin_distance = begin_dist.current;
   out.end_distance = end_dist.current;
   out.color.r = static_cast<uint8_t>(color.current.r);
@@ -492,7 +479,8 @@ CameraSky_t CameraSkyInterp_t::step() {
 }
 
 void StageInner_t::update_distortion() {
-  if (distortion.fog_ptr == nullptr) return;
+  if (distortion.fog_ptr == nullptr)
+    return;
   if (distortion.mode == 1) {
     // if (SPELLCARD_PTR && !(SPELLCARD_PTR->flags & 1)) {
     //   distortion.time++;
@@ -504,13 +492,13 @@ void StageInner_t::update_distortion() {
     float oy = distortion.oy;
     for (int j = 0; j < distortion.fog_ptr->vm_count; j++) {
       for (int i = 0; i < distortion.fog_ptr->vertex_count; i++) {
-        auto& v = distortion.fog_ptr->vertex_array
-          [i + j * distortion.fog_ptr->vertex_count];
+        auto &v = distortion.fog_ptr
+                      ->vertex_array[i + j * distortion.fog_ptr->vertex_count];
         v.diffuse_color.a = 128;
-        if (j != 0 && i != 0 && j != distortion.fog_ptr->vm_count - 1
-           && i != distortion.fog_ptr->vertex_count - 1) {
-          float strength = (i * magnitude) /
-            (distortion.fog_ptr->vertex_count - 1);
+        if (j != 0 && i != 0 && j != distortion.fog_ptr->vm_count - 1 &&
+            i != distortion.fog_ptr->vertex_count - 1) {
+          float strength =
+              (i * magnitude) / (distortion.fog_ptr->vertex_count - 1);
           v.transformed_pos.x += sin(ox) * strength;
           v.transformed_pos.y += sin(oy) * strength;
         }
@@ -528,19 +516,17 @@ void StageInner_t::update_distortion() {
     if (distortion.r_target <= distortion.r)
       distortion.r -= 2.0;
     distortion.fog_ptr->reset_area(-distortion.r, 224.0 - distortion.r,
-                    2 * distortion.r, 2 * distortion.r);
+                                   2 * distortion.r, 2 * distortion.r);
     float ox = distortion.ox;
     float oy = distortion.oy;
     for (int i = 0; i < distortion.fog_ptr->vm_count; i++) {
       for (int j = 0; j < distortion.fog_ptr->vertex_count; j++) {
-        auto& p = distortion.fog_ptr->pos_array
-          [j + i * distortion.fog_ptr->vertex_count];
-        auto& v = distortion.fog_ptr->vertex_array
-          [j + i * distortion.fog_ptr->vertex_count];
-        glm::vec2 local_18 = {
-          p.x - BACK_BUFFER_SIZE.x / 2.f,
-          p.y - BACK_BUFFER_SIZE.y / 2.f
-        };
+        auto &p = distortion.fog_ptr
+                      ->pos_array[j + i * distortion.fog_ptr->vertex_count];
+        auto &v = distortion.fog_ptr
+                      ->vertex_array[j + i * distortion.fog_ptr->vertex_count];
+        glm::vec2 local_18 = {p.x - anm::BACK_BUFFER_SIZE.x / 2.f,
+                              p.y - anm::BACK_BUFFER_SIZE.y / 2.f};
         float distin = distortion.r * distortion.r - math::veclensq(local_18);
         if (distin < 0.0) {
           v.diffuse_color.a = 0;
@@ -568,24 +554,23 @@ void StageInner_t::update_distortion() {
 }
 
 int Stage::f_on_draw_1() {
-  NSEngine::toggleCulling(false);
-
-  glEnable(GL_BLEND);
+  anm::enable_culling(false);
+  anm::enable_blending();
   glm::vec4 viewport_rect;
-  NSEngine::Color color;
+  ns::Color color;
 
   if (flags & 8)
     return 1;
   if (!(flags & 4) || some_countdown_timer < 60) {
-    AnmManager::flush_vbos();
+    anm::flush_vbos();
     inner.camera.screen_shake = SUPERVISOR.cameras[3].screen_shake;
     SUPERVISOR.cameras[3] = inner.camera;
-    AnmManager::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
-    AnmManager::enable_zwrite();
-    AnmManager::enable_ztest();
-    AnmManager::set_fog_params(inner.camera.sky.color,
-                             inner.camera.sky.begin_distance,
-                             inner.camera.sky.end_distance);
+    anm::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
+    anm::enable_zwrite();
+    anm::enable_ztest();
+    anm::set_fog_params(inner.camera.sky.color,
+                               inner.camera.sky.begin_distance,
+                               inner.camera.sky.end_distance);
     if (!(flags & 4) || 33 < num_ticks_alive_2)
       color = inner.camera.sky.color;
     else
@@ -597,9 +582,7 @@ int Stage::f_on_draw_1() {
     viewport_rect.w = SUPERVISOR.cameras[3].viewport.Y +
                       SUPERVISOR.cameras[3].viewport.Height;
     // SUPERVISOR.d3d_device->Clear(1, &viewport_rect, 3, color, 1.0f, 0);
-    glClearColor(color.r/255.f, color.g/255.f, color.b/255.f, 1.0f);
-    glClearDepth(1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    anm::clear_framebuffer({color.r, color.g, color.b, 255});
   }
 
   if (flags & 4) {
@@ -613,16 +596,14 @@ int Stage::f_on_draw_1() {
     }
   }
   if (inner.some_bg_color_unrelated_to_ins_13.a != 0) {
-    AnmManager::use_custom_color_1c90a4c = 1;
-    AnmManager::custom_color_1c90a48 =
-       inner.some_bg_color_unrelated_to_ins_13;
+    anm::use_custom_color(inner.some_bg_color_unrelated_to_ins_13);
     inner.some_bg_color_unrelated_to_ins_13.a = 0;
   }
   num_ticks_alive = 0;
   num_vms_outside_draw_distance = 0;
   num_vms_drawn = 0;
   if (flags & 1) {
-    AnmManager::enable_fog();
+    anm::enable_fog();
     draw_layer(0);
     draw_layer(1);
     draw_layer(2);
@@ -631,12 +612,11 @@ int Stage::f_on_draw_1() {
     draw_layer(5);
     draw_layer(6);
     draw_layer(7);
-    AnmManager::flush_vbos();
+    anm::flush_vbos();
   }
-  AnmManager::use_custom_color_1c90a4c = 0;
-  AnmManager::custom_color_1c90a48 = {128, 128, 128, 128};
-  AnmManager::disable_zwrite();
-  AnmManager::disable_ztest();
+  anm::unuse_custom_color();
+  anm::disable_zwrite();
+  anm::disable_ztest();
   return 1;
 }
 
@@ -644,33 +624,32 @@ int Stage::f_on_draw_2() {
   if (flags & 8)
     return 1;
   if (!(flags & 4) || some_countdown_timer < 60) {
-    AnmManager::flush_vbos();
+    anm::flush_vbos();
     inner.camera.screen_shake = SUPERVISOR.cameras[3].screen_shake;
     SUPERVISOR.cameras[3] = inner.camera;
-    AnmManager::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
-    AnmManager::disable_fog();
-    AnmManager::disable_zwrite();
-    AnmManager::disable_ztest();
-    AnmManager::render_layer(32);
-    AnmManager::enable_ztest();
-    AnmManager::render_layer(33);
-    AnmManager::set_fog_params(inner.camera.sky.color,
-                             inner.camera.sky.begin_distance,
-                             inner.camera.sky.end_distance);
+    anm::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
+    anm::disable_fog();
+    anm::disable_zwrite();
+    anm::disable_ztest();
+    anm::render_layer(32);
+    anm::enable_ztest();
+    anm::render_layer(33);
+    anm::set_fog_params(inner.camera.sky.color,
+                               inner.camera.sky.begin_distance,
+                               inner.camera.sky.end_distance);
   }
   if ((flags & 4) && some_countdown_timer >= 30)
     inner.some_bg_color_unrelated_to_ins_13.a = 0;
   if (flags & 1) {
-    AnmManager::enable_zwrite();
-    AnmManager::enable_fog();
+    anm::enable_zwrite();
+    anm::enable_fog();
     draw_layer(8);
     draw_layer(9);
     draw_layer(10);
     draw_layer(11);
-    AnmManager::flush_vbos();
+    anm::flush_vbos();
   }
-  AnmManager::use_custom_color_1c90a4c = false;
-  AnmManager::custom_color_1c90a48 = {128, 128, 128, 128};
+  anm::unuse_custom_color();
   if (some_countdown_timer > 0) {
     some_countdown_timer--;
     if (some_countdown_timer < 1) {
@@ -680,16 +659,16 @@ int Stage::f_on_draw_2() {
       flags &= 0xfffffff9;
     }
   }
-  AnmManager::disable_zwrite();
-  AnmManager::disable_ztest();
-  AnmManager::disable_fog();
+  anm::disable_zwrite();
+  anm::disable_ztest();
+  anm::disable_fog();
   return 1;
 }
 
 const float SCREEN_START_X = 0.0;
 const float SCREEN_START_Y = 0.0;
 bool shouldBeCulledAt(StdOpener::std_entry_header_t *ent,
-                      glm::vec3 const &face_pos, Camera_t const &cam,
+                      glm::vec3 const &face_pos, anm::Camera_t const &cam,
                       float draw_dstce) {
   return false;
   glm::vec3 fcam = (face_pos + glm::vec3(ent->x, ent->y, ent->z)) -
@@ -783,23 +762,23 @@ bool shouldBeCulledAt(StdOpener::std_entry_header_t *ent,
 }
 
 void Stage::draw_layer(int layer) {
-  AnmManager::set_camera(SUPERVISOR.cameras[3].as_2d_matrix());
-  AnmManager::disable_fog();
-  AnmManager::disable_zwrite();
-  AnmManager::disable_ztest();
+  anm::set_camera(SUPERVISOR.cameras[3].as_2d_matrix());
+  anm::disable_fog();
+  anm::disable_zwrite();
+  anm::disable_ztest();
   for (int i = 0; i < 8; i++) {
     if (inner.anm_layers[i] != layer)
       continue;
     // if (this->inner.vms[i].sprite_id > 0)
     //   continue;
-    AnmManager::drawVM(&this->inner.vms[i]);
+    anm::drawVM(&this->inner.vms[i]);
     // inner.vms[i].draw();
   }
-  AnmManager::enable_ztest();
-  AnmManager::enable_zwrite();
-  AnmManager::enable_fog();
-  AnmManager::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
-  AnmManager::field_0x18607cc = 1;
+  anm::enable_ztest();
+  anm::enable_zwrite();
+  anm::enable_fog();
+  anm::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
+  // anm::field_0x18607cc = 1; TODO: Find out what that does
   for (auto face = std_faces; face->object_id != static_cast<uint16_t>(-1);
        face++) {
     if (std_object_ptrs[face->object_id]->layer != layer)
@@ -832,17 +811,17 @@ void Stage::draw_layer(int layer) {
       }
       // 3d plane && 3d cylinder (no 3d ring(25) ?)
       if (vm->bitflags.rendermode == 8 || vm->bitflags.rendermode == 24) {
-        AnmManager::enable_fog();
+        anm::enable_fog();
       } else {
-        AnmManager::disable_fog();
+        anm::disable_fog();
       }
       if (vm->bitflags.zwritedis) {
-        AnmManager::disable_zwrite();
+        anm::disable_zwrite();
       } else {
-        AnmManager::enable_zwrite();
+        anm::enable_zwrite();
       }
 
-      AnmManager::drawVM(vm);
+      anm::drawVM(vm);
       // vm->draw();
       num_vms_drawn++;
     }
@@ -850,43 +829,42 @@ void Stage::draw_layer(int layer) {
     num_ticks_alive++;
   }
 
-  AnmManager::disable_zwrite();
+  anm::disable_zwrite();
   return;
 }
 
 void Stage::create_face_vms() {
-    int anm_i = 0;
-    for (int i = 0; i < STAGE_PTR->std_file_data->nb_objects; i++) {
-        STAGE_PTR->std_object_ptrs[i]->vmAliveBits = 0x1;
-        for (auto obj = STAGE_PTR->std_object_ptrs[i]->quads;
-               obj->unknown != static_cast<uint16_t>(-1);
-               obj = reinterpret_cast<StdOpener::std_object_t*>(
-                     reinterpret_cast<uint64_t>(obj) + obj->size)) {
-            STAGE_PTR->stage_anm->copyFromLoaded(
-                &STAGE_PTR->faces_vms[anm_i], obj->script_index);
-            STAGE_PTR->faces_vms[anm_i].parent_vm = nullptr;
-            STAGE_PTR->faces_vms[anm_i].__root_vm__or_maybe_not = nullptr;
-            STAGE_PTR->faces_vms[anm_i].run();
-            obj->vmid = anm_i;
-            anm_i++;
-        }
+  int anm_i = 0;
+  for (int i = 0; i < STAGE_PTR->std_file_data->nb_objects; i++) {
+    STAGE_PTR->std_object_ptrs[i]->vmAliveBits = 0x1;
+    for (auto obj = STAGE_PTR->std_object_ptrs[i]->quads;
+         obj->unknown != static_cast<uint16_t>(-1);
+         obj = reinterpret_cast<StdOpener::std_object_t *>(
+             reinterpret_cast<uint64_t>(obj) + obj->size)) {
+      STAGE_PTR->stage_anm->copyFromLoaded(&STAGE_PTR->faces_vms[anm_i],
+                                           obj->script_index);
+      STAGE_PTR->faces_vms[anm_i].parent_vm = nullptr;
+      STAGE_PTR->faces_vms[anm_i].__root_vm__or_maybe_not = nullptr;
+      STAGE_PTR->faces_vms[anm_i].run();
+      obj->vmid = anm_i;
+      anm_i++;
     }
+  }
 }
 
 void Stage::interrupt(unsigned int i) {
-    std::cout << "STD INTERRUPT " << i << "!\n";
-    int off = 0;
-    auto instr = reinterpret_cast<StdOpener::std_instr_t *>(
-        reinterpret_cast<uint64_t>(beginning_of_script) + off);
-    while (static_cast<int32_t>(instr->time) > -1) {
-        if (instr->type == 0x10 && instr->args[0] == i) {
-            inner.instr_offset = reinterpret_cast<uint64_t>(instr) -
-                reinterpret_cast<uint64_t>(beginning_of_script);
-            inner.time_in_script = instr->time;
-            return;
-        }
-        off += instr->size;
-        instr = reinterpret_cast<StdOpener::std_instr_t *>(
-            reinterpret_cast<uint64_t>(beginning_of_script) + off);
+  int off = 0;
+  auto instr = reinterpret_cast<StdOpener::std_instr_t *>(
+      reinterpret_cast<uint64_t>(beginning_of_script) + off);
+  while (static_cast<int32_t>(instr->time) > -1) {
+    if (instr->type == 0x10 && instr->args[0] == i) {
+      inner.instr_offset = reinterpret_cast<uint64_t>(instr) -
+                           reinterpret_cast<uint64_t>(beginning_of_script);
+      inner.time_in_script = instr->time;
+      return;
     }
+    off += instr->size;
+    instr = reinterpret_cast<StdOpener::std_instr_t *>(
+        reinterpret_cast<uint64_t>(beginning_of_script) + off);
+  }
 }

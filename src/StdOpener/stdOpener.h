@@ -2,7 +2,6 @@
 #define STDOPENER_H
 
 #include <vector>
-#include <iostream>
 #include <string>
 #include <cstdint>
 
@@ -100,7 +99,6 @@ struct thstd_t {
 
 extern thstd_t* std_read_file(std::string const& filename);
 extern void std_free(thstd_t* std);
-extern void std_dump(const thstd_t* std);
 
 }  // namespace StdOpener
 

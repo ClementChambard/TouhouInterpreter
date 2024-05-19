@@ -1,10 +1,10 @@
 #ifndef BULLET_H_
 #define BULLET_H_
 
-#include "./AnmOpener/AnmManager.h"
 #include "./BulletEx.h"
 #include "./BulletHandler.h"
-#include "./Hardcoded.h"
+#include "AnmOpener/AnmVM.h"
+#include <json/json.h>
 #include <Interp.hpp>
 
 class Bullet;
@@ -34,7 +34,7 @@ public:
     BulletList_t tick_list_node = {};
     int32_t flags = 0;
     int32_t ex_invuln__remaining_frames = 0;
-    AnmVM vm = {};
+    anm::VM vm = {};
     int32_t anm_extra_id = 0;
     glm::vec3 pos = {};
     glm::vec3 velocity = {};
@@ -73,8 +73,8 @@ public:
     BulletExState_Delay_t ex_delay {};
     // undefined4 __unknown;
     // Interpolator for position
-    NSEngine::Interp<glm::vec3> pos_i = {};
-    NSEngine::Interp<float> scale_i = {};
+    ns::Interp<glm::vec3> pos_i = {};
+    ns::Interp<float> scale_i = {};
     float scale = 1.f;
     int32_t __timer_e24 = 0;
     int32_t __timer_e38 = 0;

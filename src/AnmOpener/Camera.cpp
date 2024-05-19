@@ -2,6 +2,8 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+namespace anm {
+
 void CameraSky_t::init(float beg, float end, float c0,
                        float c1, float c2, float c3) {
     begin_distance = beg;
@@ -41,3 +43,5 @@ Camera_t* Camera_t::as_3d_matrix() {
   right = glm::normalize(right);
   return this;
 }
+
+} // namespace anm

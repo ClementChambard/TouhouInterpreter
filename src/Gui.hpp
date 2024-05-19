@@ -12,7 +12,7 @@ struct BossBar {
   float current_life = 0.0;
   // undefined4
   float markers[8] = {};
-  AnmID anm_ids[7] = {};
+  anm::ID anm_ids[7] = {};
   int vms_created = false;
   int vms_hidden_by_player = false;
 };
@@ -30,31 +30,31 @@ public:
   // undefined4
   UpdateFunc *on_tick = nullptr;
   UpdateFunc *on_draw_52 = nullptr;
-  AnmID life_meter_anmids[8] = {};
-  AnmID bomb_meter_anmids[8] = {};
-  AnmID timer_digit_hi_anmid = 0;
-  AnmID timer_digit_lo_anmid = 0;
-  AnmVM *life_meter_vms[8] = {};
-  AnmVM *bomb_meter_vms[8] = {};
-  AnmVM *vm_timer_digit_hi = nullptr;
-  AnmVM *vm_timer_digit_lo = nullptr;
-  AnmID boss_marker_anmid = 0;
-  AnmID spellcard_score_anmids[10] = {};
-  AnmID some_anmid_0xc8 = 0;
-  AnmID some_anmid_0xcc = 0;
+  anm::ID life_meter_anmids[8] = {};
+  anm::ID bomb_meter_anmids[8] = {};
+  anm::ID timer_digit_hi_anmid = 0;
+  anm::ID timer_digit_lo_anmid = 0;
+  anm::VM *life_meter_vms[8] = {};
+  anm::VM *bomb_meter_vms[8] = {};
+  anm::VM *vm_timer_digit_hi = nullptr;
+  anm::VM *vm_timer_digit_lo = nullptr;
+  anm::ID boss_marker_anmid = 0;
+  anm::ID spellcard_score_anmids[10] = {};
+  anm::ID some_anmid_0xc8 = 0;
+  anm::ID some_anmid_0xcc = 0;
   // undefined4
   // undefined4
-  AnmID boss_name_anmid = 0;
-  AnmID stars_anmids[10] = {};
-  AnmID difficuty_screen_anmid = 0;
-  AnmID difficuty_side_anmid = 0;
-  AnmID player_shottype_anmid = 0;
-  AnmID anmid_0x110_msgRelated = 0;
+  anm::ID boss_name_anmid = 0;
+  anm::ID stars_anmids[10] = {};
+  anm::ID difficuty_screen_anmid = 0;
+  anm::ID difficuty_side_anmid = 0;
+  anm::ID player_shottype_anmid = 0;
+  anm::ID anmid_0x110_msgRelated = 0;
   // undefined4
-  AnmID stage_clear_anmid = 0;
-  AnmID some_anmid_0x11c = 0;
-  AnmID anmid_0x120_spellTimeShowEnd = 0;
-  AnmID th15_chapter_end_anmid = 0;
+  anm::ID stage_clear_anmid = 0;
+  anm::ID some_anmid_0x11c = 0;
+  anm::ID anmid_0x120_spellTimeShowEnd = 0;
+  anm::ID th15_chapter_end_anmid = 0;
   int32_t th15_chapter_graze = 0;
   float th15_chapter_kill_pc = 0;
   float field_0x130 = 0;
@@ -63,13 +63,13 @@ public:
   int32_t field_0x13c = 0;
   int32_t th15_chapter_retry_count = 0;
   int32_t field_0x144_spellcard_related = 0;
-  AnmID frame_anmid = 0;
+  anm::ID frame_anmid = 0;
   int32_t __timer_14c = 0;
   UpdateFunc *on_draw_49 = nullptr;
   // undefined4
   int32_t current_score = 0;
   // undefined4
-  AnmFile *stage_logo_anmloaded = nullptr;
+  anm::File *stage_logo_anmloaded = nullptr;
   // undefined4
   // undefined4
   // undefined4
@@ -91,7 +91,7 @@ public:
   int32_t remaining_spell_time_centiseconds = 0;
   int32_t old_remaining_spell_time_seconds = 0;
   BossBar boss_bars[3] = {};
-  AnmFile *front_anm = nullptr;
+  anm::File *front_anm = nullptr;
   int32_t stage_clear_bonus = 0;
   // undefined4
 

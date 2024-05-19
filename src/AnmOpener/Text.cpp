@@ -5,9 +5,9 @@
 #include <SDL2/SDL_surface.h>
 #include <codecvt>
 #include <cstdio>
-#include <iostream>
 #include <locale>
 #include <string>
+#include <Error.h>
 
 #include <cstdarg>
 #include <cwchar>
@@ -16,6 +16,8 @@
 
 #include <SDL2/SDL_ttf.h>
 
+namespace anm::text {
+
 static TTF_Font* fonts[] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
@@ -23,7 +25,7 @@ static TTF_Font* fonts[] = {
 static SDL_Surface* fontRenderSurf = nullptr;
 
 void surf_to_texture(SDL_Surface* surf,
-                     NSEngine::Texture* tex,
+                     ns::Texture* tex,
                      int tex_x,
                      int tex_y,
                      int tex_w,
@@ -40,8 +42,8 @@ void surf_to_texture(SDL_Surface* surf,
   SDL_Rect dst {0, 0, w, h};
   SDL_BlitSurface(surf, &src, rgba, &dst);
 
-  AnmManager::flush_vbos();
-  AnmManager::last_used_texture = -1;
+  anm::flush_vbos();
+  anm::reset_texture();
   tex->use();
   glTexSubImage2D(GL_TEXTURE_2D, 0, tex_x, tex_y, tex_w, tex_h,
                   GL_RGBA, GL_UNSIGNED_BYTE, rgba->pixels);
@@ -51,15 +53,14 @@ void surf_to_texture(SDL_Surface* surf,
 }
 
 void render_text(int font_id, int x, int y,
-                 std::string text, NSEngine::Color col) {
+                 std::string text, ns::Color col) {
   if (!fontRenderSurf) return;
   if (font_id < 0 || font_id > 9 || fonts[font_id] == 0) return;
 
   auto surf = TTF_RenderUTF8_Blended(fonts[font_id], text.c_str(),
                 {col.r, col.g, col.b, col.a});
   if (!surf) {
-    std::cout << "failed to render text " << text << " with font "
-              << font_id << "\n";
+    ns::error("failed to render text", text, "with font", font_id);
     return;
   }
 
@@ -130,10 +131,10 @@ int decodeUTF8Character(const std::string& str, size_t& index) {
 void write_text_on_framebuffer([[maybe_unused]] glm::vec4 const& dest_rect,
                                [[maybe_unused]] int32_t xoffset,
                                [[maybe_unused]] int param_3,
-                               [[maybe_unused]] NSEngine::Color text_color,
-                               [[maybe_unused]] NSEngine::Color shadow_color,
+                               [[maybe_unused]] ns::Color text_color,
+                               [[maybe_unused]] ns::Color shadow_color,
                                [[maybe_unused]] std::string str,
-                               [[maybe_unused]] NSEngine::Texture* texture,
+                               [[maybe_unused]] ns::Texture* texture,
                                [[maybe_unused]] int font_id,
                                [[maybe_unused]] int chr_spacing,
                                [[maybe_unused]] int shadow) {
@@ -316,9 +317,9 @@ static const int DAT_004a11b8[] = {
     0x11, 0x11, 0x11, 0x11, 0x15, 0x15, 0x15, 0x15, 0xE, 0xC, 0, 0, 0, 0
 };
 
-void FUN_00475000(AnmVM *vm,
-                  NSEngine::Color text_color,
-                  NSEngine::Color shadow_color,
+void FUN_00475000(VM *vm,
+                  ns::Color text_color,
+                  ns::Color shadow_color,
                   int font_id,
                   int h_x_offset,
                   int h_sep_w,
@@ -340,16 +341,16 @@ void FUN_00475000(AnmVM *vm,
         text_color,
         shadow_color,
         string,
-        NSEngine::TextureManager::GetTexture(spr.texID),
+        ns::TextureManager::GetTexture(spr.texID),
         font_id,
         h_sep_w * 2,
         !vm->bitflags.f534_12);
     vm->bitflags.visible = true;
 }
 
-void FUN_00475120(AnmVM *vm,
-                  NSEngine::Color text_color,
-                  NSEngine::Color shadow_color,
+void FUN_00475120(VM *vm,
+                  ns::Color text_color,
+                  ns::Color shadow_color,
                   int font_id,
                   int h_chr_spacing,
                   std::string const& string,
@@ -371,16 +372,16 @@ void FUN_00475120(AnmVM *vm,
                               text_color,
                               shadow_color,
                               string,
-                              NSEngine::TextureManager::GetTexture(spr.texID),
+                              ns::TextureManager::GetTexture(spr.texID),
                               font_id,
                               h_chr_spacing * 2,
                               !vm->bitflags.f534_12);
     vm->bitflags.visible = true;
 }
 
-void TextRenderer::init() {
+void init() {
     if (TTF_Init() < 0) {
-        std::cerr << "ERROR: Couldn't initialize TTF " << SDL_GetError() << "\n";
+        ns::error("Couldn't initialize TTF:", SDL_GetError());
         return;
     }
     std::string gothic = "assets/fonts/togoshi-gothic.ttf";
@@ -409,7 +410,7 @@ void TextRenderer::init() {
                           0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 }
 
-void TextRenderer::cleanup() {
+void cleanup() {
     if (!TTF_WasInit()) return;
     if (fonts[0]) TTF_CloseFont(fonts[0]);
     if (fonts[1]) TTF_CloseFont(fonts[1]);
@@ -424,3 +425,5 @@ void TextRenderer::cleanup() {
     TTF_Quit();
     SDL_FreeSurface(fontRenderSurf);
 }
+
+} // namespace anm::text

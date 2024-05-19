@@ -1,15 +1,15 @@
 #include "./EnemyManager.h"
 #include "./GlobalData.h"
 #include "./Player.h"
-#include <NSlist.h>
+#include <ListUtil.h>
 #include <InputManager.h>
-#include <sstream>
+#include <NSEngine.hpp>
 
 EnemyManager* ENEMY_MANAGER_PTR = nullptr;
 
 bool dospawn = true;
 
-void EnemyManager::Start(std::string const& eclFile, std::string const& sub) {
+void EnemyManager::Start(cstr eclFile, cstr sub) {
     fileManager->LoadEcl(eclFile);
 
     SpawnEnemy(sub, 0, 0, 40, 1000, 0);
@@ -17,12 +17,12 @@ void EnemyManager::Start(std::string const& eclFile, std::string const& sub) {
     ENEMY_MANAGER_PTR = this;
 }
 
-Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
+Enemy* EnemyManager::SpawnEnemy(cstr sub, float x, float y, int life,
                                 int score, int item) {
     if (!dospawn)
         sub = "";
     if (enemyCount >= enemy_limit) {
-        std::cout << "ERROR: Can't spawn " << sub << ": Too much enemies.\n";
+        ns::error("Can't spawn", sub, ": Too much enemies.");
         return nullptr;
     }
     auto e = ListUtil::listInsertAfter(active_enemy_list_head,
@@ -72,8 +72,6 @@ Enemy* EnemyManager::SpawnEnemy(std::string sub, float x, float y, int life,
     last_enemy_id = next_enemy_id;
     next_enemy_id++;
     enemyCount++;
-    // std::cout << "Spawning " << sub << " at (" << x << ',' << y
-    //           << ") ID=" << e->enemyId << " -> total: " << enemyCount << "\n";
     return e;
 }
 
@@ -158,7 +156,7 @@ int EnemyManager::on_tick() {
 }
 
 int EnemyManager::on_draw() {
-    if (NSEngine::getInstance()->flags().flags.debugInfo)
+    if (ns::getInstance()->flags().flags.debugInfo)
         on_draw_debug();
     return 1;
 }

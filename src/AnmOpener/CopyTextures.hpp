@@ -1,37 +1,17 @@
 #ifndef COPYTEXTURES_INCLUDED_H
 #define COPYTEXTURES_INCLUDED_H
 
-#include "./CopyShader.h"
+#include <glm/glm.hpp>
 
-struct CopyTextures {
-    static void init();
-    static void cleanup();
-    static void doCopy(int src_glid, int dst_glid, glm::vec4 const &src_uvs,
-                       glm::vec4 const &dst_uvs);
+namespace anm::cptex {
 
- private:
-    struct Vbo {
-        Vbo();
-        ~Vbo();
-        Vbo(Vbo&) = delete;
-        Vbo(Vbo&&) = delete;
-        Vbo& operator=(Vbo&) = delete;
-        Vbo& operator=(Vbo&&) = delete;
-        struct Vertex {
-            glm::vec2 dstUV{};
-            glm::vec2 srcUV{};
-        };
-        void setData(Vertex quad[4]);
-        void bind();
-        void unbind();
-        void draw();
+void init();
+void cleanup();
 
-     private:
-        GLuint vboId;
-    };
+// TODO: detach usage from opengl
+void doCopy(int src_glid, int dst_glid, glm::vec4 const &src_uvs,
+                   glm::vec4 const &dst_uvs);
 
-    static CopyShader* shader;
-    static Vbo* vbo;
-};
+}; // namespace anm::cptex
 
 #endif // COPYTEXTURES_INCLUDED_H

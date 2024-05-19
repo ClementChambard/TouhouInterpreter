@@ -3,21 +3,19 @@
 
 #include "./anmTypes.h"
 
-#define FORMAT_RGBA8888 ((format_t)-1)
+namespace anm::opener {
 
-namespace AnmOpener {
+    u32 format_Bpp(format_t format);
 
-    unsigned int format_Bpp(format_t format);
-
-    unsigned char* format_to_rgba( const unsigned char* data, unsigned int pixels, format_t format);
+    bytes format_to_rgba(robytes data, u32 pixels, format_t format);
 
     struct image_t {
-        unsigned char* data;
-        unsigned int width;
-        unsigned int height;
+        bytes data;
+        u32 width;
+        u32 height;
         format_t format;
     };
 
-}
+} // namespace anm::opener
 
 #endif // IMAGE_H_

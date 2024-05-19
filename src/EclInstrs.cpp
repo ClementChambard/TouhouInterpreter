@@ -17,7 +17,6 @@
 #include "./ScreenEffect.hpp"
 #include <math/Random.h>
 
-#define PRINT false
 #define __INCLUDE_PARTS__
 
 int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {

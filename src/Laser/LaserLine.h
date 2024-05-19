@@ -2,7 +2,6 @@
 #define LASERLINE_H_
 
 #include "./Laser.h"
-#include "../BulletEx.h"
 #include "../AnmOpener/AnmVM.h"
 
 struct LaserLineInner_t {
@@ -43,7 +42,7 @@ public:
 
 private:
     LaserLineInner_t inner;
-    AnmVM vm1, vm2, vm3;
+    anm::VM vm1, vm2, vm3;
 };
 
 #endif // LASERLINE_H_

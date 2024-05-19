@@ -19,12 +19,12 @@ public:
   int32_t flags_0 = 0;
   UpdateFunc* on_tick = nullptr;
   UpdateFunc* on_draw = nullptr;
-  NSEngine::Timer_t timer4_0xc = {};
-  NSEngine::Timer_t timer5_0x20 = {};
+  ns::Timer_t timer4_0xc = {};
+  ns::Timer_t timer5_0x20 = {};
   MenuHelper_t menu_helper = {};
   MenuHelper_t keyboard_menu_helper = {};
-  AnmID menu_anmid = 0;
-  AnmID pause_blur_anmid = 0;
+  anm::ID menu_anmid = 0;
+  anm::ID pause_blur_anmid = 0;
   int32_t field_1ec = 0;
   int32_t field_1f0_old_1ec = 0;
   int32_t submenu = 0;
@@ -39,7 +39,7 @@ public:
   // saved game speed
   // lots undefined
   int32_t flags_3f0 = 0;
-  AnmFile* front_anm = nullptr;
+  anm::File* front_anm = nullptr;
 
 private:
   int f_on_tick();

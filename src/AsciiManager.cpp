@@ -3,20 +3,20 @@
 #include "Hardcoded.h"
 #include "Supervisor.h"
 #include <cstdarg>
-#include <cstdio>
 #include <cstring>
+#include <Error.h>
 
 AsciiManager *ASCII_MANAGER_PTR = nullptr;
 
 AsciiManager::AsciiManager() {
   // Should refer to a variable inside SUPERVISOR
-  int resolution = math::clamp(static_cast<int>(RESOLUTION_MULT * 2 - 2), 0, 2);
+  int resolution = math::clamp(static_cast<int>(anm::RESOLUTION_MULT * 2 - 2), 0, 2);
   ASCII_MANAGER_PTR = this;
   const char *anms[] = {"ascii.anm", "ascii_960.anm", "ascii_1280.anm"};
   if (TOUHOU_VERSION < 14) anms[1] = anms[2] = anms[0];
-  ascii_anm = AnmManager::LoadFile(2, anms[resolution]);
+  ascii_anm = anm::loadFile(2, anms[resolution]);
   if (!ascii_anm) {
-    std::cerr << "データが壊れています\n";
+    ns::error("データが壊れています");
   }
 
   on_tick = new UpdateFunc([this]() { return this->f_on_tick(); });
@@ -28,21 +28,21 @@ AsciiManager::AsciiManager() {
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 82);
 
   on_draw_2 = new UpdateFunc([this]() {
-    AnmManager::set_camera(&SUPERVISOR.cameras[0]);
+    anm::set_camera(&SUPERVISOR.cameras[0]);
     this->__vm_1.bitflags.originMode = 2;
     this->render_group(1);
     this->__vm_1.bitflags.originMode = 0;
-    AnmManager::flush_vbos();
-    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+    anm::flush_vbos();
+    anm::set_camera(&SUPERVISOR.cameras[2]);
     return 1;
   });
   on_draw_2->flags &= 0xfffffffd;
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_2, 54);
 
   on_draw_3 = new UpdateFunc([this]() {
-    AnmManager::set_camera(&SUPERVISOR.cameras[0]);
+    anm::set_camera(&SUPERVISOR.cameras[0]);
     this->render_group(2);
-    AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+    anm::set_camera(&SUPERVISOR.cameras[2]);
     return 1;
   });
   on_draw_3->flags &= 0xfffffffd;
@@ -66,8 +66,8 @@ AsciiManager::~AsciiManager() {
     UPDATE_FUNC_REGISTRY->unregister(on_draw_2);
   if (on_draw_3)
     UPDATE_FUNC_REGISTRY->unregister(on_draw_3);
-  AnmManager::getLoaded(2)->Cleanup();
-  AnmManager::getLoaded(0)->Cleanup();
+  anm::getLoaded(2)->Cleanup();
+  anm::getLoaded(0)->Cleanup();
   ASCII_MANAGER_PTR = NULL;
 }
 
@@ -76,7 +76,7 @@ int AsciiManager::render_group(int gid) {
     if (strings[i].render_group == gid)
       render_string(strings[i]);
   }
-  AnmManager::set_camera(&SUPERVISOR.cameras[2]);
+  anm::set_camera(&SUPERVISOR.cameras[2]);
   return 1;
 }
 
@@ -153,21 +153,21 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
       c = str.text;
       while (*c != 0) {
         if ((*c == '.' && str.font_id < 4) || (str.font_id > 3 && *c == ',')) {
-          __vm_1.pos.x -= str.scale.x * 4.0 * factor * RESOLUTION_MULT;
+          __vm_1.pos.x -= str.scale.x * 4.0 * factor * anm::RESOLUTION_MULT;
         } else {
-          __vm_1.pos.x -= font_width * factor * RESOLUTION_MULT;
+          __vm_1.pos.x -= font_width * factor * anm::RESOLUTION_MULT;
         }
         c++;
       }
     } else {
-      __vm_1.pos.x -= strlen(str.text) * font_width * factor * RESOLUTION_MULT;
+      __vm_1.pos.x -= strlen(str.text) * font_width * factor * anm::RESOLUTION_MULT;
     }
   }
   if (str.align_v == 0) {
-    __vm_1.pos.y -= font_height / 2.f * RESOLUTION_MULT;
+    __vm_1.pos.y -= font_height / 2.f * anm::RESOLUTION_MULT;
   }
   if (str.align_v == 2) {
-    __vm_1.pos.y -= RESOLUTION_MULT * font_height;
+    __vm_1.pos.y -= anm::RESOLUTION_MULT * font_height;
   }
 
   float next_char_pos = font_width;
@@ -177,60 +177,60 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
       return;
     }
     if (*c == '\n') {
-      __vm_1.pos.y += str.scale.y * font_height * RESOLUTION_MULT;
+      __vm_1.pos.y += str.scale.y * font_height * anm::RESOLUTION_MULT;
       __vm_1.pos.x = str.pos.x;
       c++;
       continue;
     }
     if (*c == ' ') {
-      __vm_1.pos.x += RESOLUTION_MULT * next_char_pos;
+      __vm_1.pos.x += anm::RESOLUTION_MULT * next_char_pos;
       c++;
       continue;
     }
     switch (str.font_id) {
     case 0:
-      AnmManager::getLoaded(__vm_1.anm_loaded_index)
+      anm::getLoaded(__vm_1.anm_loaded_index)
           ->setSprite(&__vm_1, CHRP2INT(c) - 0x20);
       break;
     case 1:
-      AnmManager::getLoaded(__vm_1.anm_loaded_index)
+      anm::getLoaded(__vm_1.anm_loaded_index)
           ->setSprite(&__vm_1, CHRP2INT(c) + 0x42);
       break;
     case 2:
     case 3:
       next_char_pos = str.scale.x * 7.0;
       if (*c == '/') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xce);
       } else if (*c == ':') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xcf);
       } else if (*c == '-') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xd0);
       } else if (*c == '*') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xd1);
       } else if (*c == '%') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xd2);
       } else if (*c == '$') {
         // "Failed" sprite
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0x101);
       } else if (*c == '.') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xd3);
         next_char_pos = str.scale.x * 4.0;
       } else if (*c == '+') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xd4);
       } else if (*c >= 'a' && *c <= 'z') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, CHRP2INT(c) + 0x74);
       } else {
         // Only numbers
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, CHRP2INT(c) + 0x94);
       }
       break;
@@ -239,25 +239,25 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
       __vm_1.pos.y = str.pos.y;
       next_char_pos = str.scale.x * 12.0;
       if (*c == '/') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xf9);
       } else if (*c == '.') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xfa);
       } else if (*c == 's') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xfb);
       } else if (*c == '*') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xfc);
       } else if (*c == ',') {
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, 0xfd);
         next_char_pos = str.scale.x * 4.0;
-        __vm_1.pos.y = RESOLUTION_MULT * 3.0 + str.pos.y;
+        __vm_1.pos.y = anm::RESOLUTION_MULT * 3.0 + str.pos.y;
       } else {
         // Only numbers
-        AnmManager::getLoaded(__vm_1.anm_loaded_index)
+        anm::getLoaded(__vm_1.anm_loaded_index)
             ->setSprite(&__vm_1, CHRP2INT(c) + 0xbf);
       }
       break;
@@ -266,30 +266,30 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
     if (str.draw_shadows) {
       __vm_1.color_1 = {0, 0, 0, (uint8_t)(__vm_1.color_1.a / 2)};
       __vm_1.bitflags.resampleMode = str.scale.x != 1.0;
-      __vm_1.pos.x += RESOLUTION_MULT * 2.f;
-      __vm_1.pos.y += RESOLUTION_MULT * 2.f;
+      __vm_1.pos.x += anm::RESOLUTION_MULT * 2.f;
+      __vm_1.pos.y += anm::RESOLUTION_MULT * 2.f;
 
       __vm_1.write_sprite_corners__without_rot(
-          SPRITE_TEMP_BUFFER[0].transformed_pos,
-          SPRITE_TEMP_BUFFER[1].transformed_pos,
-          SPRITE_TEMP_BUFFER[2].transformed_pos,
-          SPRITE_TEMP_BUFFER[3].transformed_pos);
-      AnmManager::draw_vm__modes_0_1_2_3(&__vm_1, 1);
+          anm::SPRITE_TEMP_BUFFER[0].transformed_pos,
+          anm::SPRITE_TEMP_BUFFER[1].transformed_pos,
+          anm::SPRITE_TEMP_BUFFER[2].transformed_pos,
+          anm::SPRITE_TEMP_BUFFER[3].transformed_pos);
+      anm::draw_vm__modes_0_1_2_3(&__vm_1, 1);
       // __vm_1.draw();
 
-      __vm_1.pos.x -= RESOLUTION_MULT * 2.f;
-      __vm_1.pos.y -= RESOLUTION_MULT * 2.f;
+      __vm_1.pos.x -= anm::RESOLUTION_MULT * 2.f;
+      __vm_1.pos.y -= anm::RESOLUTION_MULT * 2.f;
       __vm_1.color_1 = str.color;
     }
 
     __vm_1.write_sprite_corners__without_rot(
-        SPRITE_TEMP_BUFFER[0].transformed_pos,
-        SPRITE_TEMP_BUFFER[1].transformed_pos,
-        SPRITE_TEMP_BUFFER[2].transformed_pos,
-        SPRITE_TEMP_BUFFER[3].transformed_pos);
-    AnmManager::draw_vm__modes_0_1_2_3(&__vm_1, 1);
+        anm::SPRITE_TEMP_BUFFER[0].transformed_pos,
+        anm::SPRITE_TEMP_BUFFER[1].transformed_pos,
+        anm::SPRITE_TEMP_BUFFER[2].transformed_pos,
+        anm::SPRITE_TEMP_BUFFER[3].transformed_pos);
+    anm::draw_vm__modes_0_1_2_3(&__vm_1, 1);
     // __vm_1.draw();
-    __vm_1.pos.x += RESOLUTION_MULT * next_char_pos;
+    __vm_1.pos.x += anm::RESOLUTION_MULT * next_char_pos;
     c++;
   }
 }
@@ -299,7 +299,7 @@ void AsciiManager::create_string(glm::vec3 const &pos, const char* str) {
   if (num_strings >= 320)
     return;
   memcpy(strings[num_strings].text, str, 256);
-  strings[num_strings].pos = pos * RESOLUTION_MULT;
+  strings[num_strings].pos = pos * anm::RESOLUTION_MULT;
   strings[num_strings].render_group = group;
   strings[num_strings].color = color;
   strings[num_strings].scale = scale;

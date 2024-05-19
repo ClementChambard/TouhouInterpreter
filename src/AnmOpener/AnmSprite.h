@@ -1,16 +1,19 @@
 #ifndef ANMSPRITE_H_
 #define ANMSPRITE_H_
 
-#include <cstdint>
-#include <iostream>
+#include <defines.h>
 
-struct AnmSprite {
-    uint32_t texID = 0;  // Right now it uses TextureManager's texID
-    float x = 0, y = 0, w = 0, h = 0;
-    float u1 = 0, v1 = 0, u2 = 0, v2 = 0;
+namespace anm {
 
-    uint32_t opengl_texid = 0;
-    void genTexCoords(float w, float h);
+struct Sprite {
+    u32 texID = 0;  // Right now it uses TextureManager's texID
+    f32 x = 0, y = 0, w = 0, h = 0;
+    f32 u1 = 0, v1 = 0, u2 = 0, v2 = 0;
+
+    u32 opengl_texid = 0;
+    void genTexCoords(f32 w, f32 h);
 };
+
+} // namespace anm
 
 #endif

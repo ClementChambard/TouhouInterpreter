@@ -1,7 +1,7 @@
 #ifndef ITEM_H_
 #define ITEM_H_
 
-#include "./AnmOpener/AnmManager.h"
+#include "./AnmOpener/AnmVM.h"
 
 class Item;
 struct ItemListHead_t {
@@ -27,8 +27,8 @@ public:
 
 public:
     ItemList_t node_in_free_list{};
-    AnmVM anm_vm_1{};
-    AnmVM anm_vm_2{};
+    anm::VM anm_vm_1{};
+    anm::VM anm_vm_2{};
     glm::vec3 position{};
     glm::vec3 velocity{};
     float velocity_magnitude = 0.f;

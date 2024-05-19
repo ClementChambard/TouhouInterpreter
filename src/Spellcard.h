@@ -30,9 +30,9 @@ private:
 public:
     UpdateFunc* f_on_tick;
     UpdateFunc* f_on_draw;
-    AnmID ascii_anmid_10 = 0;
-    AnmID text_anmid_14 = 0;
-    AnmID ascii_anmid_18 = 0;
+    anm::ID ascii_anmid_10 = 0;
+    anm::ID text_anmid_14 = 0;
+    anm::ID ascii_anmid_18 = 0;
 
     int __timer_20 = 0;
     int duration = 1;

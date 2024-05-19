@@ -3,10 +3,8 @@
 
 #include "./EclFileManager.h"
 #include "./Enemy.h"
-#include "./GlobalData.h"
 #include "./UpdateFuncRegistry.h"
-#include <Engine.hpp>
-#include <string>
+#include "AnmOpener/AnmFile.h"
 
 // TODO check macros
 // XXX -600 XXX -200 XXX 200 XXX 600 XXX
@@ -32,21 +30,18 @@ public:
         return inst;
     }
     static void Cleanup() { delete GetInstance(); }
-    void Start(std::string const& eclFile, std::string const& sub = "main");
+    void Start(cstr eclFile, cstr sub = "main");
     void Update();
-    Enemy* SpawnEnemy(std::string sub, float x, float y, int life, int score,
+    Enemy* SpawnEnemy(cstr sub, float x, float y, int life, int score,
                       int item);
     int32_t closest_enemy_id(glm::vec2 pos);
     void EnmKillAll(const Enemy* caller = nullptr, bool byDialog = false);
     Enemy* EnmFind(int id) {
-        // std::cout << "\n finding " << id << "...\n";
         for (auto n = active_enemy_list_head->next;
              n != active_enemy_list_tail; n = n->next)
             if (n->value && n->value->enemyId == id) {
-                // std::cout << "found!\n";
                 return n->value;
             }
-        // std::cout << "not found!\n";
         return nullptr;
     }
     int getBoss(int id) {
@@ -83,7 +78,7 @@ public:
     int32_t field_0xac = 0;
     int32_t field_0xb0 = 0;
     // lots of unknown
-    AnmFile* loadedAnms[6] = {};
+    anm::File* loadedAnms[6] = {};
     EclFileManager* fileManager = nullptr;
     EnemyList_t* active_enemy_list_head = nullptr;
     EnemyList_t* active_enemy_list_tail = nullptr;

@@ -1,4 +1,5 @@
 #include "./Item.h"
+#include "AnmOpener/AnmManager.h"
 
 Item::Item() {
     anm_vm_1.id = 0;
@@ -41,12 +42,12 @@ void Item::reset() {
 int Item::FUN_00434b80() {
     if (item_type == 4 || item_type == 6 || item_type == 15 ||
         item_type == 5 || item_type == 7) {
-        AnmManager::getLoaded(8)->createEffectPos(0x65, 0, position);
+        anm::getLoaded(8)->createEffectPos(0x65, 0, position);
         // if (item_type != 4 && item_type != 5)
         //     SoundManager::play_sound_centered(0x30);
         // else SoundManager::play_sound_centered(0x4a);
     } else if (item_type == 1 || item_type == 2) {
-        AnmManager::getLoaded(8)->createEffectPos(0x65, 0, position);
+        anm::getLoaded(8)->createEffectPos(0x65, 0, position);
         // if (appear_sound >= 0)
         //     SoundManager::play_sound_centered(appear_sound);
         return 0;

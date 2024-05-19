@@ -5,10 +5,12 @@
 #include "AnmVM.h"
 #include <color.h>
 
+namespace anm::text {
+
 void FUN_00475000(
-  AnmVM *vm,
-  NSEngine::Color color,
-  NSEngine::Color shadow_color,
+  VM *vm,
+  ns::Color color,
+  ns::Color shadow_color,
   int font_id,
   int h_x_offset,
   int h_sep_w,
@@ -16,18 +18,18 @@ void FUN_00475000(
 );
 
 void FUN_00475120(
-  AnmVM *vm,
-  NSEngine::Color text_color,
-  NSEngine::Color shadow_color,
+  VM *vm,
+  ns::Color text_color,
+  ns::Color shadow_color,
   int font_id,
   int h_chr_spacing,
   std::string const& string,
   size_t str_siz
 );
 
-struct TextRenderer {
-    static void init();
-    static void cleanup();
-};
+void init();
+void cleanup();
+
+} // namespace anm::text
 
 #endif // !TEXT_INCLUDED_H

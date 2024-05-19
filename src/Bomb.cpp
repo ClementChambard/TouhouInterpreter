@@ -36,9 +36,9 @@ Bomb::Bomb() {
 }
 
 Bomb::~Bomb() {
-    AnmManager::deleteVM(anmid_0x5c);
-    AnmManager::deleteVM(anmid_0x60);
-    AnmManager::deleteVM(anmid_0x64);
+    anm::deleteVM(anmid_0x5c);
+    anm::deleteVM(anmid_0x60);
+    anm::deleteVM(anmid_0x64);
     if (on_tick) UPDATE_FUNC_REGISTRY->unregister(on_tick);
     if (on_draw) UPDATE_FUNC_REGISTRY->unregister(on_draw);
     if (ptr_0x70) free(ptr_0x70);
@@ -71,7 +71,7 @@ int Bomb::f_on_draw() {
             field_0x94 = PLAYER_PTR->inner.pos;
             field_0x94.y -= 32.0;
         }
-        static const NSEngine::Color TEXT_COLORS[] = {
+        static const ns::Color TEXT_COLORS[] = {
             {0x60, 0x60, 0x60, 0x60},
             {0xa0, 0xb0, 0xb0, 0x80},
             {0xb0, 0xb8, 0xb8, 0x80},
@@ -127,7 +127,7 @@ void Bomb::start() {
 
 void BombReimu::cleanup() {
     reinterpret_cast<Buffer_t*>(ptr_0x70)->explode_all();
-    AnmManager::interrupt_tree(anmid_0x64, 1);
+    anm::interrupt_tree(anmid_0x64, 1);
     if (ptr_0x70) {
         free(ptr_0x70);
         ptr_0x70 = nullptr;
@@ -192,14 +192,14 @@ void BombReimu::Buffer_t::Orb_t::explode() {
             int ds = create_damage_source_3(pos.pos, 0xb, 100, 64.0, 8.0);
             PLAYER_PTR->inner.damage_sources[ds - 1].flags |= 4;
         }
-        AnmManager::interrupt_tree(anmid, 1);
+        anm::interrupt_tree(anmid, 1);
         field28 = 0;
         if (ds) {
             PLAYER_PTR->inner.damage_sources[ds - 1].flags &= 0xfe;
         }
         ds = 0;
     } else {
-        AnmManager::deleteVM(anmid);
+        anm::deleteVM(anmid);
         anmid = 0;
     }
 }
@@ -254,7 +254,7 @@ void BombReimu::Buffer_t::Orb_t::update() {
     glm::vec3 oldpos = pos.pos;
     pos.update_velocities();
     pos.update_position();
-    if (auto vm = AnmManager::getVM(anmid); vm) {
+    if (auto vm = anm::getVM(anmid); vm) {
         vm->entity_pos = pos.pos;
     }
     velocity = pos.pos - oldpos;
@@ -269,18 +269,18 @@ void BombReimu::Buffer_t::explode_all() {
 
 int BombReimu::f_on_tick_() {
     PLAYER_PTR->inner.iframes = 40;
-    if (auto vm = AnmManager::getVM(anmid_0x64); vm) {
+    if (auto vm = anm::getVM(anmid_0x64); vm) {
         vm->entity_pos = PLAYER_PTR->inner.pos;
     }
     auto buffer = reinterpret_cast<Buffer_t*>(ptr_0x70);
     if (timer_0x34 > 0x77) {
         int i = 0;
-        AnmVM* vm;
-        while (vm = AnmManager::getVM(buffer->orbs[i].anmid), !vm) {
+        anm::VM* vm;
+        while (vm = anm::getVM(buffer->orbs[i].anmid), !vm) {
             buffer->orbs[i].anmid = 0;
             i++;
             if (i > 0x17) {
-                AnmManager::interrupt_tree(anmid_0x64, 1);
+                anm::interrupt_tree(anmid_0x64, 1);
                 if (ptr_0x70) {
                     free(ptr_0x70);
                     ptr_0x70 = 0;
@@ -291,7 +291,7 @@ int BombReimu::f_on_tick_() {
     }
     if (timer_0x34.current == ((GLOBALS.inner.SHOTTYPE == 1) * 200 + 200)) {
       buffer->explode_all();
-      AnmManager::interrupt_tree(anmid_0x64, 1);
+      anm::interrupt_tree(anmid_0x64, 1);
       new ScreenEffect(1, 8, 6, 6, 0, 0);
       return 0;
     }
@@ -381,8 +381,8 @@ void BombMarisa::begin() {
 int BombMarisa::method_10() {
     int i = 0;
     int scr = 28 + (GLOBALS.inner.SHOTTYPE == 1) * 7;
-    AnmVM* vm;
-    while (vm = AnmManager::getVM(anmid_0x5c), vm) {
+    anm::VM* vm;
+    while (vm = anm::getVM(anmid_0x5c), vm) {
         vm = vm->search_children(scr, i);
         if (!vm) return 0;
         glm::vec2 scale = vm->scale * glm::vec2(48.0, 160.0);
@@ -397,17 +397,17 @@ int BombMarisa::method_10() {
 
 int BombMarisa::f_on_tick_() {
     PLAYER_PTR->inner.iframes = 40;
-    auto vm = AnmManager::getVM(anmid_0x5c);
+    auto vm = anm::getVM(anmid_0x5c);
     if (vm == NULL) {
         anmid_0x5c = 0;
-        AnmManager::interrupt_tree(anmid_0x64, 1);
+        anm::interrupt_tree(anmid_0x64, 1);
         return -1;
     }
     int time = (300 + (GLOBALS.inner.SHOTTYPE == 1) * 150);
     if (timer_0x34 > time) return 0;
     if (timer_0x34 == time) {
-        AnmManager::interrupt_tree(anmid_0x5c, 1);
-        AnmManager::interrupt_tree(anmid_0x64, 1);
+        anm::interrupt_tree(anmid_0x5c, 1);
+        anm::interrupt_tree(anmid_0x64, 1);
         PLAYER_PTR->flags &= 0xfffffffb;
         PLAYER_PTR->speed_multiplier = 1.0;
     }
@@ -436,10 +436,10 @@ int BombMarisa::f_on_tick_() {
             PLAYER_PTR->inner.damage_sources[ds - 1].ds_on_hit = 3;
         }
     }
-    if (auto vm = AnmManager::getVM(anmid_0x5c); vm) {
+    if (auto vm = anm::getVM(anmid_0x5c); vm) {
         vm->entity_pos = field_0x14;
     }
-    if (auto vm = AnmManager::getVM(anmid_0x64); vm) {
+    if (auto vm = anm::getVM(anmid_0x64); vm) {
         vm->entity_pos = field_0x14;
     }
     method_10();
@@ -461,7 +461,7 @@ void BombYoumu::begin() {
     ENEMY_MANAGER_PTR->bomb_count++;
     new ScreenEffect(8, 1, 6,
         GLOBALS.inner.SHOTTYPE != 1 ? 0xe6 : 0x140, 0x1e, 0);
-    AnmVM* vm;
+    anm::VM* vm;
     anmid_0x64 = PLAYER_PTR->playerAnm->createEffectPos(0x1e,
                                           0, field_0x14, -1, &vm);
     vm->color_1.a = 0xe0;
@@ -475,7 +475,7 @@ void BombYoumu::begin() {
 int BombYoumu::f_on_tick_() {
     PLAYER_PTR->inner.iframes = 40;
     if (0x104 + 0x5a * (GLOBALS.inner.SHOTTYPE == 1) < timer_0x34) {
-        AnmManager::interrupt_tree(anmid_0x64, 1);
+        anm::interrupt_tree(anmid_0x64, 1);
         return -1;
     }
     static const float FLOATS_004a0434[] = {
@@ -510,7 +510,7 @@ int BombYoumu::f_on_tick_() {
     }
     timer2088--;
     for (int i = 0; i < 0x104; i++) {
-        auto vm = AnmManager::getVM(anmids[i]);
+        auto vm = anm::getVM(anmids[i]);
         if (vm == NULL) {
             anmids[i] = 0;
         } else {

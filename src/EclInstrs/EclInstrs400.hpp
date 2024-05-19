@@ -4,10 +4,7 @@
 #include "../EclContext.h"
 #include "../Enemy.h"
 #include "../EnemyManager.h"
-#include "../Spellcard.h"
-#include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
-#define PRINT false
 inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _insNop
 #endif

@@ -3,7 +3,9 @@
 
 #include <ShaderProgram.h>
 
-class FogShader : public NSEngine::ShaderProgram {
+namespace anm {
+
+class FogShader : public ns::ShaderProgram {
     public:
         FogShader() : ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH) { bindAttributes(); getAllUniformLocation(); };
 
@@ -20,13 +22,15 @@ class FogShader : public NSEngine::ShaderProgram {
         static const char* VERTEX_SHADER_PATH;
         static const char* FRAGMENT_SHADER_PATH;
 
-        GLuint location_projectionMatrix;
-        GLuint location_viewMatrix;
-        GLuint location_cameraPosition;
-        GLuint location_fogColor;
-        GLuint location_fogMin;
-        GLuint location_fogMax;
+        GLuint location_projectionMatrix = 0;
+        GLuint location_viewMatrix = 0;
+        GLuint location_cameraPosition = 0;
+        GLuint location_fogColor = 0;
+        GLuint location_fogMin = 0;
+        GLuint location_fogMax = 0;
 
 };
+
+} // namespace anm
 
 #endif

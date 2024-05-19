@@ -2,6 +2,7 @@
 #include "./BulletHandler.h"
 #include "./BulletManager.h"
 #include "./ItemManager.h"
+#include "AnmOpener/AnmManager.h"
 
 Bullet::Bullet() {}
 Bullet::~Bullet() {}
@@ -82,10 +83,10 @@ void Bullet::_delete() {
 int Bullet::cancel(bool item) {
     vm.interrupt(1);
     vm.update();
-    AnmManager::interrupt_tree(anm_extra_id, 1);
+    anm::interrupt_tree(anm_extra_id, 1);
     if ((flags & 0x200) == 0) {
         if (-1 < cancel_sprite_id) {
-            AnmVM* vm;
+            anm::VM* vm;
             BULLET_MANAGER_PTR->bullet_anm->createEffectPos(
                     cancel_sprite_id, 0, pos, -1, &vm);
             // BULLET_MANAGER_PTR->anm_ids[index_in_bullet_array] = id;

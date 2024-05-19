@@ -7,6 +7,7 @@
 #include "./Player.h"
 #include "./Spellcard.h"
 
+#include <Error.h>
 #include <FileOpener.h>
 #include <cstdlib>
 #include <cstring>
@@ -23,19 +24,19 @@ Gui::Gui() {
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_49, 49);
   on_draw_52 = new UpdateFunc([]() { return 1; });
   UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_52, 52);
-  front_anm = AnmManager::LoadFile(5, "front.anm");
-  std::string stage_logo_filename =
+  front_anm = anm::loadFile(5, "front.anm");
+  cstr stage_logo_filename =
       STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["stage_logo_anm_filename"]
-          .asString();
-  stage_logo_anmloaded = AnmManager::LoadFile(6, stage_logo_filename);
+          .asCString();
+  stage_logo_anmloaded = anm::loadFile(6, stage_logo_filename);
 
   if (DAT_0052a320 == NULL) {
     auto fname = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["msg_filenames"]
       [PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["msg"].asInt()].asString();
     std::vector<uint8_t> buffer;
-    NSEngine::FileOpener::readFileToBuffer(fname, buffer);
+    ns::FileOpener::readFileToBuffer(fname.c_str(), buffer);
     msg_file_data = reinterpret_cast<uint8_t*>(malloc(buffer.size()));
-    std::cout << "opened " << fname << ": " << buffer.size() << " bytes\n";
+    ns::info("opened", fname, ":", buffer.size(), "bytes");
     memcpy(msg_file_data, buffer.data(), buffer.size());
   } else {
     msg_file_data = DAT_0052a320;
@@ -52,28 +53,28 @@ Gui::Gui() {
 
 Gui::~Gui() {
   for (int i = 0; i < 8; i++) {
-    AnmManager::deleteVM(life_meter_anmids[i]);
-    AnmManager::deleteVM(bomb_meter_anmids[i]);
+    anm::deleteVM(life_meter_anmids[i]);
+    anm::deleteVM(bomb_meter_anmids[i]);
   }
-  AnmManager::deleteVM(timer_digit_hi_anmid);
-  AnmManager::deleteVM(timer_digit_lo_anmid);
-  AnmManager::deleteVM(boss_marker_anmid);
+  anm::deleteVM(timer_digit_hi_anmid);
+  anm::deleteVM(timer_digit_lo_anmid);
+  anm::deleteVM(boss_marker_anmid);
   for (int i = 0; i < 10; i++) {
-    AnmManager::deleteVM(spellcard_score_anmids[i]);
-    AnmManager::deleteVM(stars_anmids[i]);
+    anm::deleteVM(spellcard_score_anmids[i]);
+    anm::deleteVM(stars_anmids[i]);
   }
-  AnmManager::deleteVM(some_anmid_0xc8);
-  AnmManager::deleteVM(some_anmid_0xcc);
-  AnmManager::deleteVM(boss_name_anmid);
-  AnmManager::deleteVM(difficuty_screen_anmid);
-  AnmManager::deleteVM(difficuty_side_anmid);
-  AnmManager::deleteVM(player_shottype_anmid);
-  AnmManager::deleteVM(anmid_0x110_msgRelated);
-  AnmManager::deleteVM(stage_clear_anmid);
-  AnmManager::deleteVM(some_anmid_0x11c);
-  AnmManager::deleteVM(anmid_0x120_spellTimeShowEnd);
-  AnmManager::deleteVM(th15_chapter_end_anmid);
-  AnmManager::deleteVM(frame_anmid);
+  anm::deleteVM(some_anmid_0xc8);
+  anm::deleteVM(some_anmid_0xcc);
+  anm::deleteVM(boss_name_anmid);
+  anm::deleteVM(difficuty_screen_anmid);
+  anm::deleteVM(difficuty_side_anmid);
+  anm::deleteVM(player_shottype_anmid);
+  anm::deleteVM(anmid_0x110_msgRelated);
+  anm::deleteVM(stage_clear_anmid);
+  anm::deleteVM(some_anmid_0x11c);
+  anm::deleteVM(anmid_0x120_spellTimeShowEnd);
+  anm::deleteVM(th15_chapter_end_anmid);
+  anm::deleteVM(frame_anmid);
 
   stage_logo_anmloaded->Cleanup();
   front_anm->Cleanup();
@@ -112,14 +113,14 @@ int Gui::f_on_tick() {
       }
     }
     if (th15_some_time_value_1bc <= timer_chapter_end) {
-      AnmManager::interrupt_tree(th15_chapter_end_anmid, 1);
+      anm::interrupt_tree(th15_chapter_end_anmid, 1);
       timer_chapter_end = 0;
       some_flags_1a4 &= 0xffffe7ff;
     }
   }
 
   if (field_0x144_spellcard_related &&
-      !AnmManager::getVM(anmid_0x120_spellTimeShowEnd)) {
+      !anm::getVM(anmid_0x120_spellTimeShowEnd)) {
     anmid_0x120_spellTimeShowEnd = 0;
     field_0x144_spellcard_related = 0;
   }
@@ -190,10 +191,10 @@ int Gui::f_on_tick() {
       vm_timer_digit_lo->interrupt(7);
     }
     if (remaining_spell_time_seconds != old_remaining_spell_time_seconds) {
-      AnmManager::getLoaded(vm_timer_digit_hi->anm_loaded_index)
+      anm::getLoaded(vm_timer_digit_hi->anm_loaded_index)
           ->setSprite(vm_timer_digit_hi,
                       remaining_spell_time_seconds / 10 + 239);
-      AnmManager::getLoaded(vm_timer_digit_lo->anm_loaded_index)
+      anm::getLoaded(vm_timer_digit_lo->anm_loaded_index)
           ->setSprite(vm_timer_digit_lo,
                       remaining_spell_time_seconds % 10 + 239);
     }
@@ -212,13 +213,13 @@ int Gui::f_on_tick() {
         boss_bars[bbid].markers[6] = 0;
         if (boss_bars[bbid].vms_created) {
           for (int i = 0; i < 7; i++) {
-            AnmManager::deleteVM(boss_bars[bbid].anm_ids[i]);
+            anm::deleteVM(boss_bars[bbid].anm_ids[i]);
             boss_bars[bbid].anm_ids[i] = 0;
           }
           boss_bars[bbid].vms_created = false;
         }
         if (bbid == 0) {
-          AnmManager::deleteVM(boss_name_anmid);
+          anm::deleteVM(boss_name_anmid);
           boss_name_anmid = 0;
         }
       } else {
@@ -254,26 +255,26 @@ int Gui::f_on_tick() {
             boss_bars[bbid].vms_created = true;
           }
           create_boss_name();
-          AnmVM *bbvm = AnmManager::getVM(boss_bars[bbid].anm_ids[0]);
+          anm::VM *bbvm = anm::getVM(boss_bars[bbid].anm_ids[0]);
           if (!bbvm) {
             boss_bars[bbid].anm_ids[0] = 0;
           }
           bbvm->bitflags.rotated = true;
           bbvm->rotation.x = boss_bars[bbid].visual_bar_pc * -PI2;
           bbvm->entity_pos = boss->getData()->final_pos.pos * 2.f;
-          bbvm = AnmManager::getVM(boss_bars[bbid].anm_ids[1]);
+          bbvm = anm::getVM(boss_bars[bbid].anm_ids[1]);
           if (!bbvm) {
             boss_bars[bbid].anm_ids[1] = 0;
           }
           bbvm->entity_pos = boss->getData()->final_pos.pos * 2.f;
-          bbvm = AnmManager::getVM(boss_bars[bbid].anm_ids[2]);
+          bbvm = anm::getVM(boss_bars[bbid].anm_ids[2]);
           if (!bbvm) {
             boss_bars[bbid].anm_ids[2] = 0;
           }
           bbvm->entity_pos = boss->getData()->final_pos.pos * 2.f;
           for (int i = 3; i < 7; i++) {
             float pc = boss_bars[bbid].markers[(i - 3) * 2];
-            bbvm = AnmManager::getVM(boss_bars[bbid].anm_ids[i]);
+            bbvm = anm::getVM(boss_bars[bbid].anm_ids[i]);
             if (!bbvm) {
               boss_bars[bbid].anm_ids[i] = 0;
             }
@@ -294,7 +295,7 @@ int Gui::f_on_tick() {
                                         boss->getData()->final_pos.pos) <
                 6400.0) {
               for (int i = 0; i < 7; i++) {
-                AnmManager::interrupt_tree(boss_bars[bbid].anm_ids[i], 3);
+                anm::interrupt_tree(boss_bars[bbid].anm_ids[i], 3);
               }
               boss_bars[bbid].vms_hidden_by_player = 1;
             }
@@ -303,7 +304,7 @@ int Gui::f_on_tick() {
                                         boss->getData()->final_pos.pos) >=
                 9216.0) {
               for (int i = 0; i < 7; i++) {
-                AnmManager::interrupt_tree(boss_bars[bbid].anm_ids[i], 2);
+                anm::interrupt_tree(boss_bars[bbid].anm_ids[i], 2);
               }
               boss_bars[bbid].vms_hidden_by_player = 0;
             }
@@ -311,7 +312,7 @@ int Gui::f_on_tick() {
         } else {
           if (boss_bars[bbid].vms_created) {
             for (int i = 0; i < 7; i++) {
-              AnmManager::deleteVM(boss_bars[bbid].anm_ids[i]);
+              anm::deleteVM(boss_bars[bbid].anm_ids[i]);
             }
             boss_bars[bbid].vms_created = 0;
           }
@@ -329,7 +330,7 @@ int Gui::f_on_tick() {
       }
     } else {
       if (stars_anmids[i].val != 0) {
-        AnmManager::interrupt_tree(stars_anmids[i], 1);
+        anm::interrupt_tree(stars_anmids[i], 1);
         stars_anmids[i] = 0;
       }
     }
@@ -351,7 +352,7 @@ int Gui::f_on_tick() {
     return 1;
 
   Enemy *boss0 = ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]);
-  AnmVM *vmBossMarker = AnmManager::getVM(boss_marker_anmid);
+  anm::VM *vmBossMarker = anm::getVM(boss_marker_anmid);
   if (boss0 && (~(boss0->getData()->flags >> 5) & 1) &&
       (~boss0->getData()->flags & 1)) {
     vmBossMarker->set_flag_1_rec();
@@ -418,7 +419,7 @@ int Gui::f_on_tick() {
 }
 
 int Gui::f_on_draw() {
-  AnmVM *stage_clear_vm = AnmManager::getVM(stage_clear_anmid);
+  anm::VM *stage_clear_vm = anm::getVM(stage_clear_anmid);
   if (!stage_clear_vm) {
     stage_clear_anmid = 0;
   } else {
@@ -432,7 +433,7 @@ int Gui::f_on_draw() {
                                               stage_clear_bonus);
   }
 
-  AnmVM *th15_chapter_end_vm = AnmManager::getVM(th15_chapter_end_anmid);
+  anm::VM *th15_chapter_end_vm = anm::getVM(th15_chapter_end_anmid);
   if (!th15_chapter_end_vm) {
     th15_chapter_end_anmid = 0;
   } else {
@@ -466,13 +467,13 @@ int Gui::f_on_draw() {
   }
 
   if (field_0x144_spellcard_related != 0) {
-    AnmVM *pzVar7 = AnmManager::getVM(anmid_0x120_spellTimeShowEnd);
+    anm::VM *pzVar7 = anm::getVM(anmid_0x120_spellTimeShowEnd);
     if (pzVar7 == NULL) {
       anmid_0x120_spellTimeShowEnd = 0;
     }
     if (SPELLCARD_PTR == NULL) {
       field_0x144_spellcard_related = 0;
-      AnmManager::deleteVM(anmid_0x120_spellTimeShowEnd);
+      anm::deleteVM(anmid_0x120_spellTimeShowEnd);
       anmid_0x120_spellTimeShowEnd = 0;
     } else if (pzVar7 == NULL) {
       field_0x144_spellcard_related = 0;
@@ -521,7 +522,7 @@ int Gui::f_on_draw() {
     }
   }
 
-  AnmVM *vm = life_meter_vms[0];
+  anm::VM *vm = life_meter_vms[0];
 
   ASCII_MANAGER_PTR->scale = {1.0, 1.0};
   ASCII_MANAGER_PTR->color = {0x80, 0x80, 0x80, vm->color_1.a};
@@ -676,15 +677,15 @@ int Gui::f_on_draw() {
 void Gui::midScreenInfo(int bonus, int type) {
   switch (type) {
   case 0: {
-    AnmManager::deleteVM(some_anmid_0xc8);
+    anm::deleteVM(some_anmid_0xc8);
     some_anmid_0xc8 =
         front_anm->createEffect(GUI_ANMS["get_spell_card_bonus"].asInt());
     bool fstnumfound = false;
     int pow10 = 10000000;
     int curbonus = bonus;
-    AnmVM *vm;
+    anm::VM *vm;
     for (int i = 0; i < 8; i++) {
-      AnmManager::deleteVM(spellcard_score_anmids[i]);
+      anm::deleteVM(spellcard_score_anmids[i]);
 
       spellcard_score_anmids[i] =
           ASCII_MANAGER_PTR->ascii_anm->createEffect(i + 4, -1, &vm);
@@ -692,7 +693,7 @@ void Gui::midScreenInfo(int bonus, int type) {
         fstnumfound = true;
       }
 
-      AnmManager::getLoaded(vm->anm_loaded_index)
+      anm::getLoaded(vm->anm_loaded_index)
           ->setSprite(vm, 0xef + curbonus / pow10);
       if (!fstnumfound) {
         vm->clear_flag_1_rec();
@@ -703,45 +704,45 @@ void Gui::midScreenInfo(int bonus, int type) {
       pow10 /= 10;
     }
 
-    AnmManager::deleteVM(spellcard_score_anmids[8]);
+    anm::deleteVM(spellcard_score_anmids[8]);
     spellcard_score_anmids[8] = 0;
     if (999999 < bonus) {
       spellcard_score_anmids[8] =
           ASCII_MANAGER_PTR->ascii_anm->createEffect(0xc, -1, &vm);
-      AnmManager::getLoaded(vm->anm_loaded_index)->setSprite(vm, 0xfd);
+      anm::getLoaded(vm->anm_loaded_index)->setSprite(vm, 0xfd);
     }
-    AnmManager::deleteVM(spellcard_score_anmids[9]);
+    anm::deleteVM(spellcard_score_anmids[9]);
     spellcard_score_anmids[9] = 0;
     if (999 < bonus) {
       spellcard_score_anmids[9] =
           ASCII_MANAGER_PTR->ascii_anm->createEffect(0xd, -1, &vm);
-      AnmManager::getLoaded(vm->anm_loaded_index)->setSprite(vm, 0xfd);
+      anm::getLoaded(vm->anm_loaded_index)->setSprite(vm, 0xfd);
     }
     field_0x144_spellcard_related = 1;
     anmid_0x120_spellTimeShowEnd =
         front_anm->createEffect(GUI_ANMS["spellcard_endtime"].asInt());
   } break;
   case 1:
-    AnmManager::deleteVM(some_anmid_0xc8);
+    anm::deleteVM(some_anmid_0xc8);
     some_anmid_0xc8 = front_anm->createEffect(GUI_ANMS["bonus_failed"].asInt());
     field_0x144_spellcard_related = 1;
     anmid_0x120_spellTimeShowEnd =
         front_anm->createEffect(GUI_ANMS["spellcard_endtime"].asInt());
     break;
   case 2:
-    AnmManager::deleteVM(some_anmid_0xcc);
+    anm::deleteVM(some_anmid_0xcc);
     some_anmid_0xcc = front_anm->createEffect(GUI_ANMS["full_power"].asInt());
     break;
   case 3:
-    AnmManager::deleteVM(some_anmid_0xcc);
+    anm::deleteVM(some_anmid_0xcc);
     some_anmid_0xcc = front_anm->createEffect(GUI_ANMS["high_score"].asInt());
     break;
   case 4:
-    AnmManager::deleteVM(some_anmid_0xcc);
+    anm::deleteVM(some_anmid_0xcc);
     some_anmid_0xcc = front_anm->createEffect(GUI_ANMS["extend"].asInt());
     break;
   case 6:
-    AnmManager::deleteVM(some_anmid_0xc8);
+    anm::deleteVM(some_anmid_0xc8);
     some_anmid_0xc8 =
         front_anm->createEffect(GUI_ANMS["challenge_next_stage"].asInt());
     break;
@@ -801,7 +802,7 @@ void Gui::FUN_0042a400() {
   if (GLOBALS.inner.STAGE_NUM == 1 &&
       /* GAME_THREAD_PTR->field18_0xa8 == 0 && */
       GLOBALS.inner.CONTINUES_USED == 0) {
-    AnmVM *vm;
+    anm::VM *vm;
     front_anm->createEffect(GUI_ANMS["item_get_border_line"].asInt(), -1, &vm);
     if (vm)
       vm->entity_pos.y = (GLOBALS.inner.CHARACTER == 1) ? 0x94 : 0x80;
@@ -811,7 +812,7 @@ void Gui::FUN_0042a400() {
   // if (SUPERVISOR.field61_0x700) {
   difficuty_screen_anmid = front_anm->createEffect(
       GLOBALS.inner.DIFFICULTY + GUI_ANMS["difficulty_top_first"].asInt());
-  AnmManager::interrupt_tree(difficuty_screen_anmid, 3);
+  anm::interrupt_tree(difficuty_screen_anmid, 3);
   // }
 
   difficuty_side_anmid = front_anm->createEffect(
@@ -826,7 +827,7 @@ void Gui::FUN_0042a400() {
   boss_bars[2].vms_created = 0;
   stars_nb = 0;
   if (anmid_0x110_msgRelated) {
-    AnmManager::interrupt_tree(anmid_0x110_msgRelated, 1);
+    anm::interrupt_tree(anmid_0x110_msgRelated, 1);
     anmid_0x110_msgRelated = 0;
   }
   return;
@@ -879,7 +880,7 @@ void Gui::set_life_meter(int lives, int life_pieces) {
 }
 
 void Gui::create_boss_name() {
-  auto vm = AnmManager::getVM(boss_name_anmid);
+  auto vm = anm::getVM(boss_name_anmid);
   if (!vm) {
     boss_name_anmid = 0;
     int id;

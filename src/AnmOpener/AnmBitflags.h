@@ -1,255 +1,67 @@
 #ifndef ANMBITFLAGS_H_
 #define ANMBITFLAGS_H_
 
-#include <cstdint>
+#include <defines.h>
 
-#define ANMVM_BIT_VISIBLE (1 << 0)
-#define ANMVM_BIT_530_1 (1 << 1)
-#define ANMVM_BIT_ROTATED (1 << 2)
-#define ANMVM_BIT_SCALED (1 << 3)
-#define ANMVM_BIT_ZOOMED (1 << 4)
-#define ANMVM_BIT_BLEND0 (1 << 5)
-#define ANMVM_BIT_BLEND1 (1 << 6)
-#define ANMVM_BIT_BLEND2 (1 << 7)
-#define ANMVM_BIT_BLEND3 (1 << 8)
-#define ANMVM_BIT_530_9 (1 << 9)
-#define ANMVM_BIT_ALTPOS (1 << 10)
-#define ANMVM_BIT_FLIP_X (1 << 11)
-#define ANMVM_BIT_FLIP_Y (1 << 12)
-#define ANMVM_BIT_ZWRITDI (1 << 13)
-#define ANMVM_BIT_530_14 (1 << 14)
-#define ANMVM_BIT_530_15 (1 << 15)
-#define ANMVM_BIT_530_16 (1 << 16)
-#define ANMVM_BIT_COLMOD0 (1 << 17)
-#define ANMVM_BIT_COLMOD1 (1 << 18)
-#define ANMVM_BIT_530_19 (1 << 19)
-#define ANMVM_BIT_530_20 (1 << 20)
-#define ANMVM_BIT_ANCHOR0 (1 << 21)
-#define ANMVM_BIT_ANCHOR1 (1 << 22)
-#define ANMVM_BIT_ANCHOR2 (1 << 23)
-#define ANMVM_BIT_ANCHOR3 (1 << 24)
-#define ANMVM_BIT_MODE0 (1 << 25)
-#define ANMVM_BIT_MODE1 (1 << 26)
-#define ANMVM_BIT_MODE2 (1 << 27)
-#define ANMVM_BIT_MODE3 (1 << 28)
-#define ANMVM_BIT_MODE4 (1 << 29)
-#define ANMVM_BIT_SCROLY0 (1 << 30)
-#define ANMVM_BIT_SCROLY1 (1 << 31)
-
-#define ANMVM_BIT_SCROLX0 (1 << 0)
-#define ANMVM_BIT_SCROLX1 (1 << 1)
-#define ANMVM_BIT_ROTMOD0 (1 << 2)
-#define ANMVM_BIT_ROTMOD1 (1 << 3)
-#define ANMVM_BIT_ROTMOD2 (1 << 4)
-#define ANMVM_BIT_ACTIVE1 (1 << 5)
-#define ANMVM_BIT_ACTIVE2 (1 << 6)
-#define ANMVM_BIT_AUTOROT (1 << 7)
-#define ANMVM_BIT_534_8 (1 << 8)
-#define ANMVM_BIT_534_9 (1 << 9)
-#define ANMVM_BIT_RANDMOD (1 << 10)
-#define ANMVM_BIT_RESAMPL (1 << 11)
-#define ANMVM_BIT_534_12 (1 << 12)
-#define ANMVM_BIT_534_13 (1 << 13)
-#define ANMVM_BIT_534_14 (1 << 14)
-#define ANMVM_BIT_534_15 (1 << 15)
-#define ANMVM_BIT_NOPAREN (1 << 16)
-#define ANMVM_BIT_534_17 (1 << 17)
-#define ANMVM_BIT_ORIGIN0 (1 << 18)
-#define ANMVM_BIT_ORIGIN1 (1 << 19)
-#define ANMVM_BIT_RESMOD0 (1 << 20)
-#define ANMVM_BIT_RESMOD1 (1 << 21)
-#define ANMVM_BIT_RESMOD2 (1 << 22)
-#define ANMVM_BIT_PAR_ROT (1 << 23)
-#define ANMVM_BIT_HAS_VEL (1 << 24)
-#define ANMVM_BIT_COL_CHI (1 << 25)
-#define ANMVM_BIT_534_26 (1 << 26)
-#define ANMVM_BIT_534_27 (1 << 27)
-#define ANMVM_BIT_534_28 (1 << 28)
-#define ANMVM_BIT_534_29 (1 << 29)
-#define ANMVM_BIT_534_30 (1 << 30)
-#define ANMVM_BIT_534_31 (1 << 31)
-
-struct AnmVM_flags_t {
-    AnmVM_flags_t() {
-        // *reinterpret_cast<uint64_t*>(this) = 0;
-        visible = false;
-        f530_1 = false;
-        rotated = false;
-        scaled = false;
-        zoomed = false;
-        blendmode = 0;
-        f530_9 = 0;
-        alt_pos = false;
-        flip_x = false;
-        flip_y = false;
-        zwritedis = false;
-        f530_14 = 0;
-        f530_15 = 0;
-        f530_16 = 0;
-        colmode = 0;
-        f530_19 = 0;
-        f530_20 = 0;
-        anchorX = 0;
-        anchorY = 0;
-        rendermode = 0;
-        scrollY = 0;
-        scrollX = 0;
-        rotationMode = 0;
-        activeFlags = 0;
-        autoRotate = false;
-        f534_8 = 0;
-        noSlowdown = false;
-        randomMode = false;
-        resampleMode = 0;
-        f534_12 = 0;
-        ins419 = 0;
-        f534_14_15 = 0;
-        noParent = false;
-        f534_17 = 0;
-        originMode = 0;
-        resolutionMode = 0;
-        parRotate = false;
-        hasGrowth = false;
-        colorizeChildren = false;
-        f534_26 = 0;
-        f534_27_31 = 0;
-        fadeNearCamera = 0;
-    }
-    uint32_t visible : 1; /* 0x00000001  |  0xfffffffe */
-    uint32_t f530_1 : 1; /* 0x00000002  |  0xfffffffd */
-    uint32_t rotated : 1; /* 0x00000004  |  0xfffffffb */
-    uint32_t scaled : 1; /* 0x00000008  |  0xfffffff7 */
-    uint32_t zoomed : 1; /* 0x00000010  |  0xffffffef */
-    uint32_t blendmode : 4; /* 0x000001e0  |  0xfffffe1f */
-    uint32_t f530_9 : 1; /* 0x00000200  |  0xfffffdff */
-    uint32_t alt_pos : 1; /* 0x00000400  |  0xfffffbff */
-    uint32_t flip_x : 1; /* 0x00000800  |  0xfffff7ff */
-    uint32_t flip_y : 1; /* 0x00001000  |  0xffffefff */
-    uint32_t zwritedis : 1; /* 0x00002000  |  0xffffdfff */
-    uint32_t f530_14 : 1; /* 0x00004000  |  0xffffbfff */
-    uint32_t f530_15 : 1; /* 0x00008000  |  0xffff7fff */
-    uint32_t f530_16 : 1; /* 0x00010000  |  0xfffeffff */
-    uint32_t colmode : 2; /* 0x00060000  |  0xfff9ffff */
-    uint32_t f530_19 : 1; /* 0x00080000  |  0xfff7ffff */
-    uint32_t f530_20 : 1; /* 0x00100000  |  0xffefffff */
-    uint32_t anchorX : 2; /* 0x00600000  |  0xff9fffff */
-    uint32_t anchorY : 2; /* 0x01800000  |  0xfe7fffff */
-    uint32_t rendermode : 5; /* 0x3e000000  |  0xc1ffffff */
-    uint32_t scrollY : 2; /* 0xc0000000  |  0x3fffffff */
-
-    uint32_t scrollX : 2;
-    uint32_t rotationMode : 3;
-    uint32_t activeFlags : 2;
-    uint32_t autoRotate : 1;
-    uint32_t f534_8 : 1;
-    uint32_t noSlowdown : 1;
-    uint32_t randomMode : 1;
-    uint32_t resampleMode : 1;
-    uint32_t f534_12 : 1;
-    uint32_t ins419 : 1;
-    uint32_t f534_14_15 : 2;
-    uint32_t noParent : 1;
-    uint32_t f534_17 : 1;
-    uint32_t originMode : 2;
-    uint32_t resolutionMode : 3;
-    uint32_t parRotate : 1;
-    uint32_t hasGrowth : 1;
-    uint32_t colorizeChildren : 1;
-    uint32_t f534_26 : 1;
-    uint32_t f534_27_31 : 4;
-    uint32_t fadeNearCamera : 1;
-};
-
-#define RESET_FLAGS(f, r, n) f &= ~(n << r)
-
-#define ANMVM_GET_VISIBLE ((bitflags_lo & ANMVM_BIT_VISIBLE) != 0)
-#define ANMVM_GET_ROTATED ((bitflags_lo & ANMVM_BIT_ROTATED) != 0)
-#define ANMVM_GET_SCALED ((bitflags_lo & ANMVM_BIT_SCALED) != 0)
-#define ANMVM_GET_ZOOMED ((bitflags_lo & ANMVM_BIT_ZOOMED) != 0)
-#define ANMVM_GET_ALTPOS ((bitflags_lo & ANMVM_BIT_ALTPOS) != 0)
-#define ANMVM_GET_FLIPX ((bitflags_lo & ANMVM_BIT_FLIPX) != 0)
-#define ANMVM_GET_FLIPY ((bitflags_lo & ANMVM_BIT_FLIPY) != 0)
-
-#define ANMVM_GETL(flagname) ((bitflags_lo & ANMVM_BIT_##flagname##) != 0)
-#define ANMVM_GETH(flagname) ((bitflags_hi & ANMVM_BIT_##flagname##) != 0)
-
-#define ANMVM_SET_BLEND(v)               \
-    {                                    \
-        RESET_FLAGS(bitflags_lo, 5, 15); \
-        bitflags_lo |= ((v & 15) << 5);  \
-    }
-#define ANMVM_GET_BLEND ((bitflags_lo >> 5) & 15)
-
-#define ANMVM_SET_COLMO(v)               \
-    {                                    \
-        RESET_FLAGS(bitflags_lo, 17, 3); \
-        bitflags_lo |= ((v & 3) << 17);  \
-    }
-#define ANMVM_GET_COLMO ((bitflags_lo >> 17) & 3)
-
-#define ANMVM_SET_ANCHORH(v)             \
-    {                                    \
-        RESET_FLAGS(bitflags_lo, 21, 3); \
-        bitflags_lo |= ((v & 3) << 21);  \
-    }
-#define ANMVM_SET_ANCHORV(v)             \
-    {                                    \
-        RESET_FLAGS(bitflags_lo, 23, 3); \
-        bitflags_lo |= ((v & 3) << 23);  \
-    }
-#define ANMVM_GET_ANCHORH ((bitflags_lo >> 21) & 3)
-#define ANMVM_GET_ANCHORV ((bitflags_lo >> 23) & 3)
-
-#define ANMVM_SET_MODE(v)                 \
-    {                                     \
-        RESET_FLAGS(bitflags_lo, 25, 31); \
-        bitflags_lo |= ((v & 31) << 25);  \
-    }
-#define ANMVM_GET_MODE ((bitflags_lo >> 25) & 31)
-
-#define ANMVM_SET_SCROLY(v)              \
-    {                                    \
-        RESET_FLAGS(bitflags_lo, 30, 3); \
-        bitflags_lo |= ((v & 3) << 30);  \
-    }
-#define ANMVM_SET_SCROLX(v)             \
-    {                                   \
-        RESET_FLAGS(bitflags_hi, 0, 3); \
-        bitflags_hi |= ((v & 3) << 0);  \
-    }
-#define ANMVM_GET_SCROLY ((bitflags_lo >> 30) & 3)
-#define ANMVM_GET_SCROLX ((bitflags_hi >> 0) & 3)
-
-#define ANMVM_SET_ROTMOD(v)             \
-    {                                   \
-        RESET_FLAGS(bitflags_hi, 2, 7); \
-        bitflags_hi |= ((v & 7) << 2);  \
-    }
-#define ANMVM_GET_ROTMOD ((bitflags_hi >> 2) & 7)
-
-#define ANMVM_SET_ACTIVE(v)             \
-    {                                   \
-        RESET_FLAGS(bitflags_hi, 5, 3); \
-        bitflags_hi |= ((v & 3) << 5);  \
-    }
-#define ANMVM_GET_ACTIVE ((bitflags_hi >> 5) & 3)
 #define ANMVM_DELETE 0b01
 #define ANMVM_DELETING 0b10
 #define ANMVM_ACTIVE 0b00
 #define ANMVM_FROZEN 0b11
 
-#define ANMVM_SET_ORIGIN(v)              \
-    {                                    \
-        RESET_FLAGS(bitflags_hi, 18, 3); \
-        bitflags_hi |= ((v & 3) << 18);  \
-    }
-#define ANMVM_GET_ORIGIN ((bitflags_hi >> 18) & 3)
+namespace anm {
 
-#define ANMVM_SET_RESMOD(v)              \
-    {                                    \
-        RESET_FLAGS(bitflags_hi, 20, 7); \
-        bitflags_hi |= ((v & 7) << 20);  \
-    }
-#define ANMVM_GET_RESMOD ((bitflags_hi >> 20) & 7)
+struct VM_flags_t {
+  VM_flags_t() { flagsvalue = 0; }
+  union {
+    u64 flagsvalue;
+    struct {
+      u32 visible : 1;    /* 0x00000001  |  0xfffffffe */
+      u32 f530_1 : 1;     /* 0x00000002  |  0xfffffffd */
+      u32 rotated : 1;    /* 0x00000004  |  0xfffffffb */
+      u32 scaled : 1;     /* 0x00000008  |  0xfffffff7 */
+      u32 zoomed : 1;     /* 0x00000010  |  0xffffffef */
+      u32 blendmode : 4;  /* 0x000001e0  |  0xfffffe1f */
+      u32 f530_9 : 1;     /* 0x00000200  |  0xfffffdff */
+      u32 alt_pos : 1;    /* 0x00000400  |  0xfffffbff */
+      u32 flip_x : 1;     /* 0x00000800  |  0xfffff7ff */
+      u32 flip_y : 1;     /* 0x00001000  |  0xffffefff */
+      u32 zwritedis : 1;  /* 0x00002000  |  0xffffdfff */
+      u32 f530_14 : 1;    /* 0x00004000  |  0xffffbfff */
+      u32 f530_15 : 1;    /* 0x00008000  |  0xffff7fff */
+      u32 f530_16 : 1;    /* 0x00010000  |  0xfffeffff */
+      u32 colmode : 2;    /* 0x00060000  |  0xfff9ffff */
+      u32 f530_19 : 1;    /* 0x00080000  |  0xfff7ffff */
+      u32 f530_20 : 1;    /* 0x00100000  |  0xffefffff */
+      u32 anchorX : 2;    /* 0x00600000  |  0xff9fffff */
+      u32 anchorY : 2;    /* 0x01800000  |  0xfe7fffff */
+      u32 rendermode : 5; /* 0x3e000000  |  0xc1ffffff */
+      u32 scrollY : 2;    /* 0xc0000000  |  0x3fffffff */
+
+      u32 scrollX : 2;
+      u32 rotationMode : 3;
+      u32 activeFlags : 2;
+      u32 autoRotate : 1;
+      u32 f534_8 : 1;
+      u32 noSlowdown : 1;
+      u32 randomMode : 1;
+      u32 resampleMode : 1;
+      u32 f534_12 : 1;
+      u32 ins419 : 1;
+      u32 f534_14_15 : 2;
+      u32 noParent : 1;
+      u32 f534_17 : 1;
+      u32 originMode : 2;
+      u32 resolutionMode : 3;
+      u32 parRotate : 1;
+      u32 hasGrowth : 1;
+      u32 colorizeChildren : 1;
+      u32 f534_26 : 1;
+      u32 f534_27_31 : 4;
+      u32 fadeNearCamera : 1;
+    };
+  };
+};
+
+} // namespace anm
 
 #endif // ANMBITFLAGS_H_

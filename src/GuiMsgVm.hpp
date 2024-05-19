@@ -14,19 +14,19 @@ struct MsgIns_t {
 
 struct GuiMsgVm_t {
     int32_t field_0x0 = 0;
-    NSEngine::Timer_t __timer_4 = 0;
-    NSEngine::Timer_t time_in_script = 0;
-    NSEngine::Timer_t pause_timer = 0;
-    AnmID anm_id_player_face = 0;
-    AnmID anm_id_enemy_face[4] = {};
-    AnmID __anm_id_idfk = 0;
-    AnmID anm_id_text_line_1 = 0;
-    AnmID anm_id_text_line_2 = 0;
-    AnmID anm_id_furigana_1 = 0;
-    AnmID anm_id_furigana_2 = 0;
-    AnmID anm_id_intro = 0;
-    AnmID anm_id_speechBubble = 0;
-    AnmID __anm_id_70 = 0;
+    ns::Timer_t __timer_4 = 0;
+    ns::Timer_t time_in_script = 0;
+    ns::Timer_t pause_timer = 0;
+    anm::ID anm_id_player_face = 0;
+    anm::ID anm_id_enemy_face[4] = {};
+    anm::ID __anm_id_idfk = 0;
+    anm::ID anm_id_text_line_1 = 0;
+    anm::ID anm_id_text_line_2 = 0;
+    anm::ID anm_id_furigana_1 = 0;
+    anm::ID anm_id_furigana_2 = 0;
+    anm::ID anm_id_intro = 0;
+    anm::ID anm_id_speechBubble = 0;
+    anm::ID __anm_id_70 = 0;
     int32_t __unused_menu_time = 0;
     int32_t __unused_menu_state = 0;
     MenuHelper_t __unused_menu_control = {};
@@ -41,7 +41,7 @@ struct GuiMsgVm_t {
     int32_t next_text_line = 0;
     int32_t field_0x198 = 0;
     int32_t active_side = 0;
-    NSEngine::Color text_colors[4] {c_black, c_black, c_black, c_black};
+    ns::Color text_colors[4] {c_black, c_black, c_black, c_black};
     glm::vec3 callout_pos{384.0, 640.0, 0.0};
     float speechBubbleLength = 320.f;
     int32_t field_0x1c0 = 0;

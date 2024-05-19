@@ -1,24 +1,27 @@
 #include "./AnmBitflags.h"
 #include "./AnmVM.h"
-#include "./AnmFuncs.h"
 #include "./AnmManager.h"
 #include <math/Random.h>
+#include <Error.h>
 
-#define argS(x) *reinterpret_cast<int32_t*>(&(ins[8+4*x]))
-#define argf(x) *reinterpret_cast<float*>(&(ins[8+4*x]))
+#define argS(x) *reinterpret_cast<i32*>(&(ins[8+4*x]))
+#define argf(x) *reinterpret_cast<f32*>(&(ins[8+4*x]))
 #define S(x) check_val(argS(x))
-#define u8S(x) static_cast<uint8_t>(S(x))
+#define u8S(x) static_cast<u8>(S(x))
 #define f(x) check_val(argf(x))
 #define rS(x) check_ref(argS(x))
 #define rf(x) check_ref(argf(x))
 #define jump(n, t) {instr_offset = n; time_in_script = t; return 0;}
-int AnmVM::exec_instruction(int8_t* ins) {
-    uint16_t type = *reinterpret_cast<uint16_t*>(ins);
+
+namespace anm {
+
+int VM::exec_instruction(bytes ins) {
+    u16 type = *reinterpret_cast<u16*>(ins);
     switch (type) {
         case   0: // nop
             break;
         case   1: // destroy
-            AnmManager::deleteVM(this);
+            anm::deleteVM(this);
             // bitflags.activeFlags = ANMVM_DELETE;
             break;
         case   2: // freeze
@@ -139,8 +142,8 @@ int AnmVM::exec_instruction(int8_t* ins) {
             rf(1) = f(3) * sin(f(2));
             break;
         case 131: {// circlePosRand
-            float tempvar1 = f(2) + (f(3)-f(2)) * Random::Float01();
-            float tempvar2 = Random::Angle();
+            f32 tempvar1 = f(2) + (f(3)-f(2)) * Random::Float01();
+            f32 tempvar2 = Random::Angle();
             rf(0) = tempvar1 * cos(tempvar2);
             rf(1) = tempvar1 * sin(tempvar2);
             break;}
@@ -191,8 +194,8 @@ int AnmVM::exec_instruction(int8_t* ins) {
         case 300: { // sprite
             bitflags.visible = true;
             int s = S(0);
-            if (s < 0) AnmManager::getLoaded(2)->setSprite(this, 258);
-            else AnmManager::getLoaded(anm_loaded_index)->setSprite(this, s);
+            if (s < 0) anm::getLoaded(2)->setSprite(this, 258);
+            else anm::getLoaded(anm_loaded_index)->setSprite(this, s);
             __time_of_last_sprite_set__unused = time_in_script;
             break; }
         case 301: {// spriteRand
@@ -200,8 +203,8 @@ int AnmVM::exec_instruction(int8_t* ins) {
             int s = S(0);
             if (index_of_sprite_mapping_func == 0) s += rand() % S(1);
             else s = rand();
-            if (s < 0) AnmManager::getLoaded(2)->setSprite(this, 258);
-            else AnmManager::getLoaded(anm_loaded_index)->setSprite(this, s);
+            if (s < 0) anm::getLoaded(2)->setSprite(this, 258);
+            else anm::getLoaded(anm_loaded_index)->setSprite(this, s);
             __time_of_last_sprite_set__unused = time_in_script;
             break; }
         case 302: // type
@@ -406,41 +409,41 @@ int AnmVM::exec_instruction(int8_t* ins) {
             break;
 
         case 500: // scriptNew
-            AnmManager::getLoaded(anm_loaded_index)
+            anm::getLoaded(anm_loaded_index)
                 ->create_child_vm(S(0), this, 0);
             break;
         case 501: // scriptNewUI
-            AnmManager::getLoaded(anm_loaded_index)
+            anm::getLoaded(anm_loaded_index)
                 ->create_child_vm(S(0), this, 4);
             break;
         case 502: // scriptNewFront
-            AnmManager::getLoaded(anm_loaded_index)
+            anm::getLoaded(anm_loaded_index)
                 ->create_child_vm(S(0), this, 2);
             break;
         case 503: // scriptNewFrontUI
-            AnmManager::getLoaded(anm_loaded_index)
+            anm::getLoaded(anm_loaded_index)
                 ->create_child_vm(S(0), this, 6);
             break;
         case 504: {// scriptNewRoot
-            AnmManager::getLoaded(anm_loaded_index)->new_root(S(0), this);
+            anm::getLoaded(anm_loaded_index)->new_root(S(0), this);
             break;}
         case 505: {// scriptNewPos
-            auto id = AnmManager::getLoaded(anm_loaded_index)
+            auto id = anm::getLoaded(anm_loaded_index)
                 ->create_child_vm(S(0), this, 0);
-            auto vm = AnmManager::getVM(id);
+            auto vm = anm::getVM(id);
             vm->__pos_2 = { f(1), f(2), 0.f };
             break; }
         case 506: {// scriptNewPosRoot
-            auto id = AnmManager::getLoaded(anm_loaded_index)
+            auto id = anm::getLoaded(anm_loaded_index)
                 ->new_root(S(0), this);
-            auto vm = AnmManager::getVM(id);
+            auto vm = anm::getVM(id);
             vm->__pos_2 = { f(1), f(2), 0.f };
             break;}
         case 507: // ins_507 (ignore parent)
             bitflags.noParent = S(0);
             break;
         case 508: // effectNew
-            AnmManager::createVM508(S(0), this);
+            anm::createVM508(S(0), this);
             break;
         case 509: // copyVars
             if (parent_vm == nullptr) break;
@@ -531,13 +534,16 @@ int AnmVM::exec_instruction(int8_t* ins) {
             //sprite_size.y = f(1);
             break;
         default:
-            std::cout << "[ERROR]: Wierd anm instruction " << type << ": Deleting VM\n";
+            ns::error("Weird anm instruction", type, ": Deleting VM");
             return 1;
     }
-    uint16_t ins_len = *reinterpret_cast<uint16_t *>(ins + 2);
+    u16 ins_len = *reinterpret_cast<u16 *>(ins + 2);
     instr_offset += ins_len;
     return 0;
 }
+
+} // namespace anm
+
 #undef u8S
 #undef S
 #undef f

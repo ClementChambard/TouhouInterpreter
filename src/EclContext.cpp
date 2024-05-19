@@ -6,55 +6,43 @@
 
 void eclStackPush(EclStack_t* stack, int32_t val) {
     if (stack->stackOffset >= 199) {
-        NSEngine::pr("\n\e[31mFATAL ERROR:\e[0m",
+        ns::pr("\n\e[31mFATAL ERROR:\e[0m",
                      "Stack overflow", "\n");
         drawStackFrame(stack);
-        NSEngine::FatalErrorQuit();
+        ns::FatalErrorQuit();
     }
     stack->data[stack->stackOffset].asInt = val;
     stack->data[stack->stackOffset].asFloat = static_cast<float>(val);
     stack->stackOffset++;
-//    std::cout << "\npush :::    ";
-//    drawStackFrame(stack);
-//    std::cout << "\n";
 }
 
 void eclStackPush(EclStack_t* stack, float val) {
     if (stack->stackOffset >= 199) {
-        NSEngine::pr("\n\e[31mFATAL ERROR:\e[0m",
+        ns::pr("\n\e[31mFATAL ERROR:\e[0m",
                      "Stack overflow", "\n");
         drawStackFrame(stack);
-        NSEngine::FatalErrorQuit();
+        ns::FatalErrorQuit();
     }
     stack->data[stack->stackOffset].asFloat = val;
     stack->data[stack->stackOffset].asInt = static_cast<int>(val);
     stack->stackOffset++;
-//    std::cout << "\npush :::    ";
-//    drawStackFrame(stack);
-//    std::cout << "\n";
 }
 
 void eclStackPop(EclStack_t* stack, int32_t& val, bool f) {
     if (!f && stack->stackOffset <= stack->baseOffset) {
-        std::cerr << "Pop int: no value in stack, returning 0\n";
+        ns::error("Pop int: no value in stack, returning 0");
         val = 0; return;
     }
     stack->stackOffset--;
     val = stack->data[stack->stackOffset].asInt;
-//    std::cout << "\npop :::    ";
-//    drawStackFrame(stack);
-//    std::cout << "\n";
 }
 void eclStackPop(EclStack_t* stack, float& val, bool f) {
     if (!f && stack->stackOffset <= stack->baseOffset) {
-        std::cerr << "Pop float: no value in stack, returning 0\n";
+        ns::error("Pop float: no value in stack, returning 0");
         val = 0; return;
     }
     stack->stackOffset--;
     val = stack->data[stack->stackOffset].asFloat;
-//    std::cout << "\npop :::    ";
-//    drawStackFrame(stack);
-//    std::cout << "\n";
 }
 
 void eclAllocVariables(EclRunContext_t *cont, int32_t nb) {
@@ -134,7 +122,7 @@ static void print_stack_trace_rec(EclStack_t* st, int bp) {
 
     auto name = EclFileManager::GetInstance()->getSubName(sub_id);
 
-    printf("%d@%d in sub %s\n", offset, time, name.c_str());
+    printf("%d@%d in sub %s\n", offset, time, name);
 
     print_stack_trace_rec(st, oldBp);
 }
@@ -164,6 +152,6 @@ void drawStackFrame(EclStack_t* stack) {
             printf("%3d:           %8d %4.4f\n", i, stack->data[i].asInt,
                    stack->data[i].asFloat);
     }
-    std::cout << "\n";
+    printf("\n");
     print_stack_trace(stack);
 }

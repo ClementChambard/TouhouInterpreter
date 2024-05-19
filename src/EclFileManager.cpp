@@ -4,48 +4,48 @@
 #include "./BulletManager.h"
 #include "./EclRaw.h"
 #include "./Hardcoded.h"
-#include <algorithm>
 #include <sys/stat.h>
+#include <string>
+#include <Error.h>
 
 EclFileManager* EclFileManager::GetInstance() {
     static EclFileManager* instance = new EclFileManager();
     return instance;
 }
 
-inline bool file_exists(const std::string& name) {
+inline bool file_exists(cstr name) {
     struct stat buffer;
-    return (stat(name.c_str(), &buffer) == 0);
+    return (stat(name, &buffer) == 0);
 }
 
-void EclFileManager::LoadEcl(std::string file) {
+void EclFileManager::LoadEcl(cstr file) {
+    std::string f = file;
     if (!file_exists(file))
-        file = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]
+        f = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]
             ["ecl_filename"].asString();
 
-    std::cout << "LOADING " << file << "\n";
+    ns::info("LOADING", f);
     CloseEcl();
-    LoadEcli(file);
-    std::cout << "DONE     loaded " << loaded_subs.size()
-        << " subs in " << loaded_files.size() << " file\n";
+    LoadEcli(f.c_str());
+    ns::info("DONE     loaded", loaded_subs.size(), "subs in", loaded_files.size(), "file");
 
     ENEMY_MANAGER_PTR->loadedAnms[0] = BulletManager::GetInstance()->bullet_anm;
-    ENEMY_MANAGER_PTR->loadedAnms[1] = AnmManager::getLoaded(8);
+    ENEMY_MANAGER_PTR->loadedAnms[1] = anm::getLoaded(8);
 }
 
-void EclFileManager::LoadEcli(std::string const& file) {
+void EclFileManager::LoadEcli(cstr file) {
     EclRaw_t* ecl = ecl_open(file);
     if (!ecl)
         return;
     loaded_files.push_back(ecl);
-    std::cout << "  --> " << ecl->subs.size() <<
-        " subs loaded in file " << file << "\n";
+    ns::info("  -->", ecl->subs.size(), "subs loaded in file", file);
     for (auto e : ecl->subs)
         loaded_subs.push_back(e);
     for (auto ecli : ecl->ecli_list)
         LoadEcli(ecli);
     for (size_t i = 0; i < ecl->anim_list.size(); i++)
         ENEMY_MANAGER_PTR->loadedAnms[2+i] =
-            AnmManager::LoadFile(i + 10, ecl->anim_list[i]);
+            anm::loadFile(i + 10, ecl->anim_list[i]);
 }
 
 void EclFileManager::CloseEcl() {
@@ -53,22 +53,4 @@ void EclFileManager::CloseEcl() {
     for (auto f : loaded_files)
         ecl_close(f);
     loaded_files.clear();
-}
-
-void EclFileManager::ListSubs() {
-    int i = 0;
-    for (EclSubPtr_t s : loaded_subs) {
-        std::string sn = s.name;
-        while (sn.length() < 30) {
-            sn = " " + sn;
-            if (sn.length() < 30)
-                sn = sn + " ";
-        }
-        std::cout << sn;
-        if (!(++i % 5))
-            std::cout << "\n";
-        else
-            std::cout << "---";
-    }
-    std::cout << "\n";
 }

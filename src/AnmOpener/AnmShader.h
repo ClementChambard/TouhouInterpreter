@@ -3,9 +3,11 @@
 
 #include <ShaderProgram.h>
 
-class AnmShader : public NSEngine::ShaderProgram {
+namespace anm {
+
+class BaseShader : public ns::ShaderProgram {
     public:
-        AnmShader() : ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH) { bindAttributes(); getAllUniformLocation(); };
+        BaseShader() : ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH) { bindAttributes(); getAllUniformLocation(); };
 
         void SetProjectionMatrix(const glm::mat4& mat);
         void SetViewMatrix(const glm::mat4& mat);
@@ -18,9 +20,11 @@ class AnmShader : public NSEngine::ShaderProgram {
         static const char* VERTEX_SHADER_PATH;
         static const char* FRAGMENT_SHADER_PATH;
 
-        GLuint location_projectionMatrix;
-        GLuint location_viewMatrix;
+        GLuint location_projectionMatrix = 0;
+        GLuint location_viewMatrix = 0;
 
 };
+
+} // namespace anm
 
 #endif

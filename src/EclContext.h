@@ -3,7 +3,6 @@
 
 #include <Interp.hpp>
 #include <array>
-#include <iostream>
 
 class Enemy;
 struct EclRunContext_t;
@@ -50,7 +49,7 @@ struct EclRunContext_t {
     int32_t variable_stack_offset[8];
     int32_t int_vars[8];
     float float_vars[8];
-    NSEngine::Interp<float> float_i[8] {}; // XXX
+    ns::Interp<float> float_i[8] {}; // XXX
     float float_interps_locs[8] {}; // XXX
     // float_i
     // float_i_locs

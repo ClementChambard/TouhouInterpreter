@@ -46,9 +46,9 @@ extern std::chrono::time_point<std::chrono::high_resolution_clock> __begin_time;
                float __hue = 0.f; \
                float __hueInc = 360.f / static_cast<float>(__nToDr); \
                float __y0 = __Y0 - __SIZY; \
-               NSEngine::draw_rectangle_color(__X0, __Y0, __X0 + __SIZX, \
+               ns::draw_rectangle_color(__X0, __Y0, __X0 + __SIZX, \
                                     __Y0 + __SIZY, __BG, __BG, __BG, __BG); \
-               NSEngine::draw_rectangle_color(__X0 + __SIZX + __SIZY * 0.5 -1, \
+               ns::draw_rectangle_color(__X0 + __SIZX + __SIZY * 0.5 -1, \
                                               __Y0 -1, __X0 + __SIZX + __SIZY \
                                               * 1.5 + __SIZY * (__nToDr - 1) * \
                                               1.5 + 1, __Y0 + __SIZY +1, __BG, \
@@ -56,23 +56,23 @@ extern std::chrono::time_point<std::chrono::high_resolution_clock> __begin_time;
                for (int i = 0; i < __nToDr; i++) { \
                    float __end = __x0 + __SIZX / 16666666.66 * __times[i]; \
                    auto __col = hsv(__hue, 1, 1); \
-                   NSEngine::draw_rectangle_color(fmin(__x0, __X0+__SIZX), \
+                   ns::draw_rectangle_color(fmin(__x0, __X0+__SIZX), \
                         __Y0, fmin(__end, __X0+__SIZX), __Y0+__SIZY, __col, \
                             __col, __col, __col); \
                    __x0 = __end; \
                    __hue += __hueInc; \
-                   NSEngine::draw_rectangle_color(__X0+__SIZX + __SIZY * 0.5 + \
+                   ns::draw_rectangle_color(__X0+__SIZX + __SIZY * 0.5 + \
                        __SIZY * i * 1.5, __Y0, __X0 + __SIZX + __SIZY * 1.5 + \
                         __SIZY*i*1.5, __Y0+__SIZY, __col, __col, __col, __col);\
                }
 
 #define __MONITOR(v, c) \
-             NSEngine::draw_rectangle_color(__X0, __y0, __X0+__SIZX, __y0+ \
+             ns::draw_rectangle_color(__X0, __y0, __X0+__SIZX, __y0+ \
                                             __SIZY, __BG, __BG, __BG, __BG); \
-             NSEngine::draw_rectangle_color(__X0, __y0, __X0+__SIZX*fmin(v, 1)\
+             ns::draw_rectangle_color(__X0, __y0, __X0+__SIZX*fmin(v, 1)\
                                             , __y0+__SIZY, c, c, c, c); \
              __y0 -= __SIZY;
 
-NSEngine::Color hsv(float H, float S, float V);
+ns::Color hsv(float H, float S, float V);
 
 #endif

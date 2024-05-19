@@ -20,7 +20,7 @@ public:
   int field_0x20 = 0; // color
   int field_0x24 = 0;
   int field_0x28 = 0;
-  NSEngine::Timer_t time = {};
+  ns::Timer_t time = {};
 
 private:
   int f_on_tick_1();

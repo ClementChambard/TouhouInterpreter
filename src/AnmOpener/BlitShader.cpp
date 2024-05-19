@@ -1,5 +1,7 @@
 #include "./BlitShader.h"
 
+namespace anm {
+
 const char* BlitShader::VERTEX_SHADER_PATH = "assets/shaders/blitVertexShader";
 const char* BlitShader::FRAGMENT_SHADER_PATH = "assets/shaders/blitFragmentShader";
 
@@ -20,3 +22,5 @@ void BlitShader::SetProjectionMatrix(const glm::mat4& mat) {
 void BlitShader::SetViewMatrix(const glm::mat4& mat) {
     loadMat4(location_viewMatrix, mat);
 }
+
+} // namespace anm

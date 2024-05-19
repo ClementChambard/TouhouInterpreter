@@ -31,7 +31,7 @@ PauseMenu::~PauseMenu() {
     // do {
     //   ptr = *ppzVar3;
     //   if (ptr != NULL) {
-    //     ReplayManager::destructor(ptr);
+    //     Replaydestructor(ptr);
     //     ::operator_delete(ptr);
     //   }
     //   ppzVar3 = ppzVar3 + 1;
@@ -103,20 +103,20 @@ void PauseMenu::draw_save_replay() { /*
     }
     local_18.y = 64.0 + 15.0 * i;
     if (field70_0x20c[i] == 0) {
-      AsciiManager::create_string_f
+      Asciicreate_string_f
                 (local_18,"No.%.2d -------- --/--/-- ------- -- St-",i);
     } else {
       iVar1 = *(int *)(field70_0x20c[i] + 0x1c);
       ptVar5 = __localtime64((__time64_t *)(iVar1 + 0x10));
       if ((*(byte *)(iVar1 + 10) & 2) == 0) {
-        AsciiManager::create_string_f
+        Asciicreate_string_f
                   (local_18,"No.%.2d %s %.2d/%.2d/%.2d %s %s %s",i,iVar1,
                    ptVar5->tm_year % 100,ptVar5->tm_mon + 1,ptVar5->tm_mday,
                    (&CHAR_NAMES)[*(int *)(iVar1 + 0x88) * 3 + *(int *)(iVar1 + 0x8c)],
                    (&DIFF_ABREV)[*(int *)(iVar1 + 0x90)],
                    (&PTR_s_tst_004a0eb0)[*(int *)(iVar1 + 0x94)]);
       } else {
-        AsciiManager::create_string_f
+        Asciicreate_string_f
                   (ASCII_MANAGER_PTR,&local_18,"No.%.2d %s %.2d/%.2d/%.2d %s Sp %3d",i,iVar1,
                    ptVar5->tm_year % 100,ptVar5->tm_mon + 1,ptVar5->tm_mday,
                    (&CHAR_NAMES)[*(int *)(iVar1 + 0x88) * 3 + *(int *)(iVar1 + 0x8c)],
@@ -188,14 +188,14 @@ void PauseMenu::draw_thing_w_keyboard() { /*
   *(undefined *)(REPLAY_MANAGER_PTR->field7_0x1c + 1) = 0;
   tm *ptVar1 = __localtime64((__time64_t *)(REPLAY_MANAGER_PTR->field7_0x1c + 0x10));
   if ((*(byte *)(REPLAY_MANAGER_PTR->field7_0x1c + 10) & 2) == 0) {
-    AsciiManager::create_string_f
+    Asciicreate_string_f
               (ASCII_MANAGER_PTR,zVar4,"No.%.2d %s %.2d/%.2d/%.2d %s %s %s",menu_helper.selection + 1,REPLAY_MANAGER_PTR->field7_0x1c,
                ptVar1->tm_year % 100,ptVar1->tm_mon + 1,ptVar1->tm_mday,
                (&CHAR_NAMES)[*(int *)(REPLAY_MANAGER_PTR->field7_0x1c + 0x88) * 3 + *(int *)(REPLAY_MANAGER_PTR->field7_0x1c + 0x8c)],
                (&DIFF_ABREV)[*(int *)(REPLAY_MANAGER_PTR->field7_0x1c + 0x90)],
                (&PTR_s_tst_004a0eb0)[*(int *)(REPLAY_MANAGER_PTR->field7_0x1c + 0x94)]);
   } else {
-    AsciiManager::create_string_f
+    Asciicreate_string_f
               (ASCII_MANAGER_PTR,zVar4,"No.%.2d %s %.2d/%.2d/%.2d %s Sp %3d",menu_helper.selection + 1,REPLAY_MANAGER_PTR->field7_0x1c,
                ptVar1->tm_year % 100,ptVar1->tm_mon + 1,ptVar1->tm_mday,
                (&CHAR_NAMES)[*(int *)(REPLAY_MANAGER_PTR->field7_0x1c + 0x88) * 3 + *(int *)(REPLAY_MANAGER_PTR->field7_0x1c + 0x8c)],
@@ -219,7 +219,7 @@ static bool check_input(int i) {
 
 int PauseMenu::f_on_draw() {
   ASCII_MANAGER_PTR->draw_shadows = 1;
-  auto vm = AnmManager::getVM(pause_blur_anmid);
+  auto vm = anm::getVM(pause_blur_anmid);
   if (!vm) {
     pause_blur_anmid = 0;
   } else {
@@ -288,19 +288,19 @@ int PauseMenu::f_on_tick() {
           timer5_0x20 = 0;
           // GAME_THREAD_PTR->flags |= 0x10;
           front_anm = GUI_PTR->front_anm;
-          AnmManager::deleteVM(menu_anmid);
+          anm::deleteVM(menu_anmid);
           // if (GAME_THREAD_PTR->field18_0xa8 == 0) {
           menu_anmid = front_anm->new_vm_ui_back(0x9f);
           // } else {
           //   menu_anmid = front_anm->new_vm_ui_back(0xa1);
           // }
-          AnmManager::interrupt_tree(menu_anmid, 3);
+          anm::interrupt_tree(menu_anmid, 3);
 
           // FUN_00432660(extraout_ECX);
 
-          // SoundManager::play_sound_centered(14);
+          // Soundplay_sound_centered(14);
           // if (((byte)GLOBALS.FLAGS & 0x30) != 0x20) {
-          //   SoundManager::sub_4662e0(SOUND_MANAGER,6,0,"Pause");
+          //   Soundsub_4662e0(SOUND_MANAGER,6,0,"Pause");
           // }
           // while (sound_related_465660());
 
@@ -312,7 +312,7 @@ int PauseMenu::f_on_tick() {
           // DAT_00524778 = 0;
           if (GUI_PTR->msg) GUI_PTR->msg->hideVms();
 
-          auto vm = AnmManager::getVM(GUI_PTR->th15_chapter_end_anmid);
+          auto vm = anm::getVM(GUI_PTR->th15_chapter_end_anmid);
           if (vm) vm->clear_flag_1_rec();
           flags_3f0 &= 0xfffffffb;
         }
@@ -323,21 +323,21 @@ int PauseMenu::f_on_tick() {
 }
 
 void PauseMenu::init_pause_blur_effect() {
-  AnmManager::deleteVM(pause_blur_anmid);
-  AnmVM* vm;
+  anm::deleteVM(pause_blur_anmid);
+  anm::VM* vm;
   int a = 52;
   if (TOUHOU_VERSION == 18) a = 59;
   pause_blur_anmid = SUPERVISOR.text_anm->new_vm_ui_back(a, &vm);
-  auto srcTexId = NSEngine::TextureManager::
+  auto srcTexId = ns::TextureManager::
     GetTextureNSIDByOpengl(SUPERVISOR.surface_atR_1->getColorTexture());
-  auto texsiz = NSEngine::TextureManager::GetTexture(srcTexId)->getSize();
+  auto texsiz = ns::TextureManager::GetTexture(srcTexId)->getSize();
   auto spr = vm->getSprite();
-  AnmManager::flush_vbos();
-  CopyTextures::doCopy(srcTexId, spr.opengl_texid, {
-      (AnmManager::origins[2].x - RESOLUTION_MULT * 384.0 * 0.5)       / texsiz.x,
-      (AnmManager::origins[2].y)                                       / texsiz.y,
-      (AnmManager::origins[2].x + RESOLUTION_MULT * 384.0 * 0.5 - 1.0) / texsiz.x,
-      (AnmManager::origins[2].y + RESOLUTION_MULT * 448.0 - 1.0)       / texsiz.y
+  anm::flush_vbos();
+  anm::cptex::doCopy(srcTexId, spr.opengl_texid, {
+      (anm::origin(2).x - anm::RESOLUTION_MULT * 384.0 * 0.5)       / texsiz.x,
+      (anm::origin(2).y)                                       / texsiz.y,
+      (anm::origin(2).x + anm::RESOLUTION_MULT * 384.0 * 0.5 - 1.0) / texsiz.x,
+      (anm::origin(2).y + anm::RESOLUTION_MULT * 448.0 - 1.0)       / texsiz.y
       }, { spr.u1, spr.v1, spr.u2, spr.v2 });
 }
 
@@ -346,9 +346,9 @@ static bool menu_confirm() {
     return Inputs::Keyboard().Pressed(NSK_w) || Inputs::Keyboard().Pressed(NSK_return);
 }
 
-#define child_interrupt(cid, inte) vm = AnmManager::getVM(menu_anmid)->search_children(cid, 0); if (vm) vm->interrupt(inte);
+#define child_interrupt(cid, inte) vm = anm::getVM(menu_anmid)->search_children(cid, 0); if (vm) vm->interrupt(inte);
 void PauseMenu::update_submenus() {
-    AnmVM* vm;
+    anm::VM* vm;
     if (timer4_0xc.current % 60 == 0 && (SUPERVISOR.flags & 0x400U)) {
       // Supervisor::sub_463c90_inputRelated();
     }
@@ -363,14 +363,14 @@ void PauseMenu::update_submenus() {
       // }
       if (0 < GLOBALS.inner.CONTINUES_USED) {
         menu_helper.disable_option(2);
-        AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+        anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
         child_interrupt(0x85, 5)
         child_interrupt(0x8e, 5)
         child_interrupt(0x9a, 5)
       }
       menu_helper.option_wrapping = 1;
       menu_helper.select(0);
-      AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+      anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
       prev_submenu = 0;
       return;
     case 1:
@@ -382,7 +382,7 @@ void PauseMenu::update_submenus() {
       menu_helper.disable_option(0);
       menu_helper.option_wrapping = 1;
       menu_helper.select(1);
-      AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+      anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
       prev_submenu = 1;
       return;
     case 2:
@@ -451,7 +451,7 @@ void PauseMenu::update_submenus() {
           //   keyboard_entry_size = iVar15;
           //   field_200 = 0;
           //   go_to_submenu(15);
-          //   AnmManager::getVM(menu_anmid)->clear_flag_1();
+          //   anm::getVM(menu_anmid)->clear_flag_1();
           //   return;
           // }
         } else {
@@ -479,14 +479,14 @@ void PauseMenu::update_submenus() {
         menu_helper.disable_option(3);
         menu_helper.select(0);
         if (flags_3f0 & 4) {
-            AnmManager::interrupt_tree_run(menu_anmid, 3);
-            AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+            anm::interrupt_tree_run(menu_anmid, 3);
+            anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
             return;
         }
       }
       menu_helper.select(4);
-      AnmManager::interrupt_tree_run(menu_anmid, 3);
-      AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+      anm::interrupt_tree_run(menu_anmid, 3);
+      anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
       return;
     case 6:
       menu_helper.current_selection = menu_helper.selection;
@@ -497,15 +497,15 @@ void PauseMenu::update_submenus() {
         menu_helper.select_rel(1);
       }
       if (menu_helper.current_selection != menu_helper.selection) {
-        AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
-        // SoundManager::play_sound_centered(10);
+        anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+        // Soundplay_sound_centered(10);
       }
       if (menu_confirm()) {
-        // SoundManager::play_sound_centered(7);
+        // Soundplay_sound_centered(7);
         switch (menu_helper.selection) {
         case 0:
-          AnmManager::interrupt_tree(pause_blur_anmid, 1);
-          AnmManager::interrupt_tree(menu_anmid, 1);
+          anm::interrupt_tree(pause_blur_anmid, 1);
+          anm::interrupt_tree(menu_anmid, 1);
           go_to_submenu(16);
           break;
         case 1:
@@ -567,15 +567,15 @@ void PauseMenu::update_submenus() {
         //   } while (i < menu_helper.disabled_option_count);
         // }
         if (Inputs::Keyboard().Pressed(NSK_escape)) {
-          AnmManager::interrupt_tree(pause_blur_anmid, 1);
-          AnmManager::interrupt_tree(menu_anmid, 1);
+          anm::interrupt_tree(pause_blur_anmid, 1);
+          anm::interrupt_tree(menu_anmid, 1);
           menu_helper.select(0);
           go_to_submenu(16);
           return;
         }
       }
       if (!Inputs::Keyboard().Pressed(NSK_q)) break;
-      // SoundManager::play_sound_centered(7);
+      // Soundplay_sound_centered(7);
       child_interrupt(0x84, 6)
       menu_helper.select(1);
       go_to_submenu(16);
@@ -588,11 +588,11 @@ void PauseMenu::update_submenus() {
         menu_helper.num_choices = 2;
         menu_helper.option_wrapping = 1;
         menu_helper.select(1);
-        AnmManager::interrupt_tree(menu_anmid, 14);
+        anm::interrupt_tree(menu_anmid, 14);
       }
       if (timer4_0xc < 0x1e) break;
       if (timer4_0xc == 0x1e) {
-        AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 15);
+        anm::interrupt_tree(menu_anmid, menu_helper.selection + 15);
       }
       menu_helper.current_selection = menu_helper.selection;
       if (check_input(0x10) != 0) {
@@ -602,25 +602,25 @@ void PauseMenu::update_submenus() {
         menu_helper.select_rel(1);
       }
       if (menu_helper.current_selection != menu_helper.selection) {
-        AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 15);
-        // SoundManager::play_sound_centered(10);
+        anm::interrupt_tree(menu_anmid, menu_helper.selection + 15);
+        // Soundplay_sound_centered(10);
       }
       if (menu_confirm()) {
         if (menu_helper.selection == 0) {
           child_interrupt(0x9d, 6)
           go_to_submenu((submenu == 9) * 2 + 8);
-          // SoundManager::play_sound_centered(7);
+          // Soundplay_sound_centered(7);
         } else if (menu_helper.selection == 1) {
           child_interrupt(0x9e, 6)
           go_to_submenu(8);
-          // SoundManager::play_sound_centered(9);
+          // Soundplay_sound_centered(9);
         }
       }
       if (Inputs::Keyboard().Pressed(NSK_escape) || Inputs::Keyboard().Pressed(NSK_x)) {
-        // SoundManager::play_sound_centered(9);
+        // Soundplay_sound_centered(9);
         if (menu_helper.selection == 0) {
           menu_helper.select(1);
-          AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 15);
+          anm::interrupt_tree(menu_anmid, menu_helper.selection + 15);
         } else if (menu_helper.selection == 1) {
           child_interrupt(0x9e, 6)
           go_to_submenu(8);
@@ -628,8 +628,8 @@ void PauseMenu::update_submenus() {
       }
       if (!Inputs::Keyboard().Pressed(NSK_escape) || (field_1ec != 1))
         break;
-      AnmManager::interrupt_tree(pause_blur_anmid, 1);
-      AnmManager::interrupt_tree(menu_anmid, 1);
+      anm::interrupt_tree(pause_blur_anmid, 1);
+      anm::interrupt_tree(menu_anmid, 1);
       menu_helper.select(0);
       go_to_submenu(16);
       return;
@@ -639,11 +639,11 @@ void PauseMenu::update_submenus() {
         if (menu_helper.selection != 1) break;
         menu_helper.pop_selection();
         if (0 < GLOBALS.inner.CONTINUES_USED) menu_helper.disable_option(2);
-        AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+        anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
         go_to_submenu(6);
         return;
       }
-      AnmManager::interrupt_tree(menu_anmid, 1);
+      anm::interrupt_tree(menu_anmid, 1);
       menu_helper.pop_selection();
       go_to_submenu(16);
       return;
@@ -651,7 +651,7 @@ void PauseMenu::update_submenus() {
       if (timer4_0xc < 0x14) break;
       flags_3f0 = (flags_3f0 & 0xfffffffd) | 1;
       go_to_submenu(11);
-      AnmManager::getVM(menu_anmid)->clear_flag_1_rec();
+      anm::getVM(menu_anmid)->clear_flag_1_rec();
       menu_helper.push_selection();
       menu_helper.num_choices = 0x19;
       menu_helper.option_wrapping = 1;
@@ -676,7 +676,7 @@ void PauseMenu::update_submenus() {
         menu_helper.select_rel(1);
       }
       if (menu_helper.current_selection != menu_helper.selection) {
-        // SoundManager::play_sound_centered(10);
+        // Soundplay_sound_centered(10);
       }
       if (!menu_confirm()) {
         if (Inputs::Keyboard().Pressed(NSK_escape) || Inputs::Keyboard().Pressed(NSK_x)) {
@@ -684,13 +684,13 @@ void PauseMenu::update_submenus() {
           menu_helper.pop_selection();
           menu_helper.num_choices = 5;
           menu_helper.option_wrapping = 1;
-          AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+          anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
           // ppzVar21 = (zReplayManager **)&this->field17_0x20c;
           // local_54 = 0x19;
           // do {
           //   local_58 = *ppzVar21;
           //   if (local_58 != NULL) {
-          //     ReplayManager::destructor(local_58);
+          //     Replaydestructor(local_58);
           //     ::operator_delete(local_58);
           //   }
           //   *ppzVar21 = NULL;
@@ -700,16 +700,16 @@ void PauseMenu::update_submenus() {
           if (field_1ec == 1) {
             go_to_submenu(16);
             menu_helper.select(1);
-            // SoundManager::play_sound_centered(9);
+            // Soundplay_sound_centered(9);
             return;
           }
           go_to_submenu(6);
-          AnmManager::getVM(menu_anmid)->set_flag_1_rec();
+          anm::getVM(menu_anmid)->set_flag_1_rec();
           if (GLOBALS.FLAGS & 0x30U) {
             menu_helper.disable_option(0);
             menu_helper.disable_option(3);
           }
-          // SoundManager::play_sound_centered(9);
+          // Soundplay_sound_centered(9);
           return;
         }
         break;
@@ -764,7 +764,7 @@ void PauseMenu::update_submenus() {
       //   iVar15 += -1;
       // } while (0 < iVar15);
       // keyboard_entry_size = iVar15;
-      // SoundManager::play_sound_centered(7);
+      // Soundplay_sound_centered(7);
       return;
     case 0xc:
     case 0xf:
@@ -791,11 +791,11 @@ void PauseMenu::update_submenus() {
         }
       }
       if (keyboard_menu_helper.current_selection != keyboard_menu_helper.selection) {
-        // SoundManager::play_sound_centered(10);
+        // Soundplay_sound_centered(10);
       }
       if (!menu_confirm()) {
         if (Inputs::Keyboard().Pressed(NSK_escape) || Inputs::Keyboard().Pressed(NSK_x)) {
-          // SoundManager::play_sound_centered(9);
+          // Soundplay_sound_centered(9);
           if (keyboard_entry_size != 0) {
             keyboard_entry_size--;
             keyboard_entry[keyboard_entry_size - 1] = ' ';
@@ -812,7 +812,7 @@ void PauseMenu::update_submenus() {
       if (keyboard_menu_helper.selection < 0x58) {
         if (7 < keyboard_entry_size) {
           keyboard_entry[keyboard_entry_size - 1] = KB_CHARS[keyboard_menu_helper.selection];
-          // SoundManager::play_sound_centered(7);
+          // Soundplay_sound_centered(7);
           return;
         }
         keyboard_entry[keyboard_entry_size] = KB_CHARS[keyboard_menu_helper.selection];
@@ -822,20 +822,20 @@ void PauseMenu::update_submenus() {
             if (keyboard_entry_size != 0) {
               keyboard_entry_size--;
               keyboard_entry[keyboard_entry_size - 1] = ' ';
-              // SoundManager::play_sound_centered(9);
+              // Soundplay_sound_centered(9);
               return;
             }
             break;
           }
           if (keyboard_menu_helper.selection != 0x5a) {
-              // SoundManager::play_sound_centered(7);
+              // Soundplay_sound_centered(7);
               return;
           }
           if (submenu == 12) {
             flags_3f0 = (flags_3f0 & 0xfffffffd) | 1;
-            // SoundManager::play_sound_centered(0x11);
+            // Soundplay_sound_centered(0x11);
             // sprintf(local_50, "th17_%.2d.rpy", menu_helper.selection + 1);
-            // ReplayManager::operator_delete ((void *)(&this->field17_0x20c)[(this->menu_helper).selection]);
+            // Replayoperator_delete ((void *)(&this->field17_0x20c)[(this->menu_helper).selection]);
             // FUN_0044e6f0((DWORD)local_50,this->keyboard_entry_0x2d4,0,1);
             // iVar15 = (this->menu_helper).selection;
             // pvVar11 = FUN_0044e530(local_50);
@@ -848,10 +848,10 @@ void PauseMenu::update_submenus() {
             //   pcVar17[(int)pzVar9 + (0x2d154 - (int)this->keyboard_entry_0x2d4)] = cVar2;
             //   pcVar17 = pcVar17 + 1;
             // } while (cVar2 != '\0');
-            // SoundManager::play_sound_centered(7);
+            // Soundplay_sound_centered(7);
             return;
           }
-          // SoundManager::play_sound_centered(7);
+          // Soundplay_sound_centered(7);
           // pcVar1 = keyboard_entry;
           // pcVar18 = (char *)((int)&SCOREFILE_PTR->shottype
           //                          [GLOBALS.inner.SHOTTYPE + GLOBALS.inner.CHARACTER * 3].field7_0x1c
@@ -884,19 +884,19 @@ void PauseMenu::update_submenus() {
             menu_helper.disable_option(3);
             menu_helper.select(0);
             if (flags_3f0 & 4) {
-                AnmManager::interrupt_tree_run(menu_anmid, 3);
-                AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+                anm::interrupt_tree_run(menu_anmid, 3);
+                anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
                 return;
             }
           }
           menu_helper.select(4);
-          AnmManager::interrupt_tree_run(menu_anmid, 3);
-          AnmManager::interrupt_tree(menu_anmid, menu_helper.selection + 7);
+          anm::interrupt_tree_run(menu_anmid, 3);
+          anm::interrupt_tree(menu_anmid, menu_helper.selection + 7);
           return;
         }
         if (7 < keyboard_entry_size) {
           keyboard_entry[keyboard_entry_size - 1] = ' ';
-          // SoundManager::play_sound_centered(7);
+          // Soundplay_sound_centered(7);
           return;
         }
         keyboard_entry[keyboard_entry_size] = ' ';
@@ -905,18 +905,18 @@ void PauseMenu::update_submenus() {
       if (7 < keyboard_entry_size) {
         keyboard_menu_helper.select(0x5a);
       }
-      // SoundManager::play_sound_centered(7);
+      // Soundplay_sound_centered(7);
       return;
     case 0xe:
       if (timer4_0xc == 0x14) {
-        AnmManager::getVM(menu_anmid)->clear_flag_1_rec();
+        anm::getVM(menu_anmid)->clear_flag_1_rec();
         // HelpManual::operator_new();
         // HELP_MANUAL_PTR->field74_0x128 = 0x42000000;
       // }
       // if (HELP_MANUAL_PTR && (HELP_MANUAL_PTR->field73_0x124 != 0)) {
       //   delete HELP_MANUAL_PTR;
         go_to_submenu(6);
-        AnmManager::getVM(menu_anmid)->set_flag_1_rec();
+        anm::getVM(menu_anmid)->set_flag_1_rec();
         return;
       }
       break;
@@ -928,7 +928,7 @@ void PauseMenu::update_submenus() {
         // }
         // GAME_THREAD_PTR->flags = GAME_THREAD_PTR->flags & 0xffffffef;
         GAME_PAUSED = false;
-        if (vm = AnmManager::getVM(GUI_PTR->th15_chapter_end_anmid); vm)
+        if (vm = anm::getVM(GUI_PTR->th15_chapter_end_anmid); vm)
             vm->set_flag_1_rec();
         if (GUI_PTR->msg) GUI_PTR->msg->unhideVms();
         // GAME_SPEED = saved_game_speed;
@@ -937,14 +937,14 @@ void PauseMenu::update_submenus() {
         // if (GAME_THREAD_PTR->field18_0xa8 == 0) {
         //   GLOBALS.inner.field49_0xf4 = sub_462710_get_runtime();
         // }
-        AnmManager::interrupt_tree(pause_blur_anmid, 1);
-        AnmManager::interrupt_tree(menu_anmid, 1);
+        anm::interrupt_tree(pause_blur_anmid, 1);
+        anm::interrupt_tree(menu_anmid, 1);
         // GAME_SPEED = saved_game_speed;
       }
       if (menu_helper.selection == 0) {
         if (field_1ec == 1) {
           // FUN_00446120();
-          // SoundManager::sub_4662e0((zSoundManager *)&SOUND_MANAGER,7,0,"UnPause");
+          // Soundsub_4662e0((zSoundManager *)&SOUND_MANAGER,7,0,"UnPause");
         } else if (field_1ec == 2) {
           if (field_1fc != 0) {
             SUPERVISOR.gamemode_to_switch_to = 10;
@@ -981,7 +981,7 @@ void PauseMenu::update_submenus() {
             GAME_PAUSED = false;
             // GAME_THREAD_PTR->flags = GAME_THREAD_PTR->flags & 0xffffffef;
             // FUN_00446120();
-            // SoundManager::sub_4662e0
+            // Soundsub_4662e0
             //           (SOUND_MANAGER,2,0xffffffff,&field73_0x2f0);
             // while (sound_related_465660());
             // FUN_00478610(DAT_00529e88);
@@ -992,13 +992,13 @@ void PauseMenu::update_submenus() {
           }
         }
       } else if (menu_helper.selection == 1) {
-        AnmManager::interrupt_tree(pause_blur_anmid, 1);
-        AnmManager::interrupt_tree(menu_anmid, 1);
+        anm::interrupt_tree(pause_blur_anmid, 1);
+        anm::interrupt_tree(menu_anmid, 1);
         // SUPERVISOR.gamemode_to_switch_to =
         // (-(uint)((SUPERVISOR.flags & 0x2000U) != 0) & 0xfffffffe) + 4;
       } else if (menu_helper.selection == 4) {
-        AnmManager::deleteVM(pause_blur_anmid);
-        AnmManager::deleteVM(menu_anmid);
+        anm::deleteVM(pause_blur_anmid);
+        anm::deleteVM(menu_anmid);
         pause_blur_anmid = 0;
         menu_anmid = 0;
         // if (GAME_THREAD_PTR->field18_0xa8 == 0) {
@@ -1025,11 +1025,11 @@ void PauseMenu::open_submenu1_finish_replay() {
   // GAME_THREAD_PTR->flags |= 0x10;
   init_pause_blur_effect();
   front_anm = GUI_PTR->front_anm;
-  AnmManager::deleteVM(menu_anmid);
+  anm::deleteVM(menu_anmid);
   menu_anmid = front_anm->new_vm_ui_back(0xa2);
-  AnmManager::interrupt_tree(menu_anmid, 3);
+  anm::interrupt_tree(menu_anmid, 3);
   // FUN_00432660(extraout_ECX);
-  // SoundManager::sub_4662e0((zSoundManager *)&SOUND_MANAGER,6,0,"Pause");
+  // Soundsub_4662e0((zSoundManager *)&SOUND_MANAGER,6,0,"Pause");
   // saved_game_speed = GAME_SPEED;
   // GAME_SPEED = 1.0;
   // saved_dat_524778 = DAT_00524778;
@@ -1052,9 +1052,9 @@ void PauseMenu::open_submenu2() {
   GAME_PAUSED = true;
   // GAME_THREAD_PTR->flags |= 0x10;
   // FUN_00432660(extraout_ECX);
-  // SoundManager::play_sound_centered(0xe);
+  // Soundplay_sound_centered(0xe);
   // if ((GLOBALS.FLAGS & 0x30) != 0x20) {
-  //   SoundManager::sub_4662e0((zSoundManager *)&SOUND_MANAGER,6,0,"Pause");
+  //   Soundsub_4662e0((zSoundManager *)&SOUND_MANAGER,6,0,"Pause");
   // }
   // while (sound_related_465660());
   init_pause_blur_effect();
@@ -1071,9 +1071,9 @@ void PauseMenu::open_submenu2() {
   //   *(double *)&this->field46_0x2e8 = dVar5;
   //   song_related_442040(0,"th128_08");
   //   if ((SUPERVISOR.config._40_1_ & 0x10) != 0) {
-  //     SoundManager::sub_4662e0((zSoundManager *)&SOUND_MANAGER,4,0,"dummy");
+  //     Soundsub_4662e0((zSoundManager *)&SOUND_MANAGER,4,0,"dummy");
   //   }
-  //   SoundManager::sub_4662e0((zSoundManager *)&SOUND_MANAGER,2,0,"dummy");
+  //   Soundsub_4662e0((zSoundManager *)&SOUND_MANAGER,2,0,"dummy");
   //   SCOREFILE_PTR->field_0x2d16e = 1;
   // }
   field_1fc = 0;
@@ -1104,24 +1104,24 @@ void PauseMenu::open_submenu3() {
     submenu = 5;
   }
   // if (!(GLOBALS.FLAGS & 0x30)) {
-  //   p_vm_0x34_id = AnmLoaded::new_vm_ui_back(SUPERVISOR.text_anm,0x34);
+  //   p_vm_0x34_id = anm::Loaded::new_vm_ui_back(SUPERVISOR.text_anm,0x34);
   //   vm_0x34_id = p_vm_0x34_id->value;
   //   (this->text_vm_52_0x34_id_pause_effect).value = vm_0x34_id;
   //   fVar7 = RESOLUTION_MULT * 448.0;
   //   fVar8 = RESOLUTION_MULT * 384.0;
   //   scaled_32 = RESOLUTION_MULT * 32.0;
   //   scaled_16 = RESOLUTION_MULT * 16.0;
-  //   pzVar6 = AnmManager::get_vm_with_id(vm_0x34_id);
+  //   pzVar6 = anm::get_vm_with_id(vm_0x34_id);
   //   iVar4 = (pzVar6->prefix).anm_loaded_index;
   //   sprite_id = (pzVar6->prefix).sprite_id;
-  //   sprites = *(zAnmLoadedSprite **)(*(int *)((int)&anm_mgr->preloaded + iVar4 * 4) + 0x11c);
+  //   sprites = *(zanm::LoadedSprite **)(*(int *)((int)&anm_mgr->preloaded + iVar4 * 4) + 0x11c);
   //   iVar5 = sprites[sprite_id].image_file_num_in_anm;
   //   fVar1 = sprites[sprite_id].sprite_height;
   //   fVar2 = sprites[sprite_id].sprite_width;
   //   fVar3 = sprites[sprite_id].start_pixel_inclusive.y;
   //   s_startx = sprites[sprite_id].start_pixel_inclusive.x;
   //   i = 0;
-  //   val = AnmManager::pause_related;
+  //   val = anm::pause_related;
   //   do {
   //     if (val->anm_loaded < 0) {
   //       anm_mgr->pause_related[i].anm_loaded = iVar4;
@@ -1147,7 +1147,7 @@ void PauseMenu::open_submenu3() {
   // saved_dat_524778 = DAT_00524778;
   // DAT_00524778 = 1;
   if (GUI_PTR->msg) GUI_PTR->msg->hideVms();
-  if (auto vm = AnmManager::getVM(GUI_PTR->th15_chapter_end_anmid); vm) vm->clear_flag_1_rec();
+  if (auto vm = anm::getVM(GUI_PTR->th15_chapter_end_anmid); vm) vm->clear_flag_1_rec();
   flags_3f0 |= 4;
   return;
 }

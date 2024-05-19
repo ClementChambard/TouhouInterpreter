@@ -4,12 +4,14 @@
 #include <color.h>
 #include <glm/glm.hpp>
 
+namespace anm {
+
 struct CameraSky_t {
     void init(float beg, float eng, float c0, float c1, float c2, float c3);
     float begin_distance = 0.f;
     float end_distance = 0.f;
     glm::vec4 color_components{};
-    NSEngine::Color color{};
+    ns::Color color{};
 };
 
 struct Viewport_t {
@@ -42,5 +44,7 @@ struct Camera_t {
     Camera_t* as_2d_matrix();
     Camera_t* as_3d_matrix();
 };
+
+} // namespace anm
 
 #endif  // !CAMERA_INCLUDED_H

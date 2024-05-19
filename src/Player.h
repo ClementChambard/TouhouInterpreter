@@ -19,8 +19,8 @@ struct PlayerOption_t {
     glm::vec<2, int> scaled_cur_pos { 0, -0xc800 };
     glm::vec<2, int> scaled_prefered_pos_rel_to_player[2] {};
     // undefined4[15]
-    AnmID anmId1 {};
-    AnmID anmId2 {};
+    anm::ID anmId1 {};
+    anm::ID anmId2 {};
     // undefined4[5]
     int32_t focusing = false;
     int32_t id = 0;
@@ -36,7 +36,7 @@ struct PlayerBullet_t {
     uint8_t flags = 0;
     // undefined1[3]
     int32_t id = 0;
-    AnmID anmId {};
+    anm::ID anmId {};
     int32_t __field_c = 0;
     int32_t __field_20 = 0;
     int32_t __field_34 = 0;
@@ -91,7 +91,7 @@ struct PlayerInner_t {
     int32_t last_created_damage_source_index = 0;
     PlayerDamageSource_t damage_sources[257] {};
     int32_t state = 0;
-    AnmID focus_eff_anmId = 0;
+    anm::ID focus_eff_anmId = 0;
     uint32_t maybe_th15_graze_snowflake = 0;
     int32_t __timer_187ac = 0;
     int32_t focusing = false;
@@ -130,8 +130,8 @@ private:
     UpdateFunc* on_game_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
 public:
-    AnmFile* playerAnm =  nullptr;
-    AnmVM vm {};
+    anm::File* playerAnm =  nullptr;
+    anm::VM vm {};
     PlayerInner_t inner {};
     int32_t flags = 0;
     float speed_unfocus = 0.f;
@@ -158,11 +158,11 @@ public:
     ShtFile_t* sht_file = nullptr;
     int32_t field_0x19040 = 0;
     int32_t field_0x19044 = 0;
-    NSEngine::Interp<float> player_scale_i {};
+    ns::Interp<float> player_scale_i {};
     float player_scale__requires_flag_0x10__from_ddc = 1.f;
     float damage_multiplier__used_by_winter_in_th16 = 1.f;
     int32_t field_0x19080 = 0;  // zTimer
-    AnmID extra_anm_id {};
+    anm::ID extra_anm_id {};
     glm::vec3 field_0x19098 {};
     BoundingBox3_t item_collect_box {};
     BoundingBox3_t item_attract_box_focused {};

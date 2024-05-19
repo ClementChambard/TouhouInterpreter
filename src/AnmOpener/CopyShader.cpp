@@ -1,5 +1,7 @@
 #include "./CopyShader.h"
 
+namespace anm {
+
 const char* CopyShader::VERTEX_SHADER_PATH = "assets/shaders/copyVertexShader";
 const char* CopyShader::FRAGMENT_SHADER_PATH = "assets/shaders/copyFragmentShader";
 
@@ -21,3 +23,5 @@ void CopyShader::SetTint(const glm::vec4& tint) {
     loadVec4(location_tint, tint);
     last_tint = tint;
 }
+
+} // namespace anm

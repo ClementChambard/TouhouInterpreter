@@ -2,10 +2,10 @@
 
 UpdateFuncRegistry* const UPDATE_FUNC_REGISTRY = new UpdateFuncRegistry();
 
-int UpdateFuncRegistry::run_all_on_tick() {
+i32 UpdateFuncRegistry::run_all_on_tick() {
     UpdateFunc* current_update_func;
     UpdateFuncList_t* cur_node = on_game_tick_list_head.list_node.next;
-    int ret = 0;
+    i32 ret = 0;
     do {
         do {
             /* check the next non-empty func */
@@ -58,9 +58,9 @@ int UpdateFuncRegistry::run_all_on_tick() {
     } while (true);
 }
 
-int UpdateFuncRegistry::run_all_on_draw() {
+i32 UpdateFuncRegistry::run_all_on_draw() {
     UpdateFunc* func;
-    int ret = 0;
+    i32 ret = 0;
     UpdateFuncList_t* cur_node = on_draw_list_head.list_node.next;
     do {
         do {
@@ -95,8 +95,8 @@ int UpdateFuncRegistry::run_all_on_draw() {
     } while (true);
 }
 
-int UpdateFuncRegistry::register_on_tick(UpdateFunc* func, int32_t priority) {
-    int ret = 0;
+i32 UpdateFuncRegistry::register_on_tick(UpdateFunc* func, i32 priority) {
+    i32 ret = 0;
     if (func->on_registration != nullptr) {
         ret = func->on_registration();
         func->on_registration = nullptr;
@@ -117,8 +117,8 @@ int UpdateFuncRegistry::register_on_tick(UpdateFunc* func, int32_t priority) {
     return ret;
 }
 
-int UpdateFuncRegistry::register_on_draw(UpdateFunc* func, int32_t priority) {
-    int ret = 0;
+i32 UpdateFuncRegistry::register_on_draw(UpdateFunc* func, i32 priority) {
+    i32 ret = 0;
     if (func->on_registration != nullptr) {
         ret = func->on_registration();
         func->on_registration = nullptr;

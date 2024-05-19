@@ -3,6 +3,8 @@
 #include "../BulletManager.h"
 #include "../ItemManager.h"
 #include "../Player.h"
+#include "../Hardcoded.h"
+#include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
 
 LaserLine::LaserLine() {
@@ -204,15 +206,15 @@ int LaserLine::on_draw() {
     vm1.bitflags.rotated = true;
     vm1.rotation.z = vmAngle;
     // vm1.draw();
-    AnmManager::drawVM(&vm1);
+    anm::drawVM(&vm1);
     vm3.pos = laser_offset + glm::vec3(
         math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
     // vm3.draw();
-    AnmManager::drawVM(&vm3);
+    anm::drawVM(&vm3);
     if (__field_7c__sometimes_0p01_or_0f == 0.0) {
         vm2.pos = laser_offset;
         // vm2.draw();
-        AnmManager::drawVM(&vm2);
+        anm::drawVM(&vm2);
     }
     return 0;
 }

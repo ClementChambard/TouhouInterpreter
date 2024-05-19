@@ -2,19 +2,22 @@
 #include "./AnmBitflags.h"
 #include "./AnmFuncs.h"
 #include "./AnmManager.h"
-#include <Engine.hpp>
-#include <NSlist.h>
+#include "./anmTypes.h"
+#include <NSEngine.hpp>
+#include <ListUtil.h>
 #include <math/Random.h>
 #include <vertex.h>
 #include <cstring>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/matrix.hpp>
 
-int AnmVM::cnt = 0;
+namespace anm {
 
-#define GAME_SPEED NSEngine::getInstance()->gameSpeed()
+int VM::cnt = 0;
 
-void AnmVM::setLayer(uint32_t i) {
+#define GAME_SPEED ns::getInstance()->gameSpeed()
+
+void VM::setLayer(u32 i) {
   layer = i;
   if (i < 3) {
     bitflags.originMode = 0;
@@ -31,40 +34,40 @@ void AnmVM::setLayer(uint32_t i) {
   }
 }
 
-void AnmVM::interrupt(int i) {
-  if (index_of_on_interrupt && AnmFuncs::on_switch(index_of_on_interrupt)) {
-    AnmFuncs::on_switch(index_of_on_interrupt)(this, i);
+void VM::interrupt(int i) {
+  if (index_of_on_interrupt && Funcs::on_switch(index_of_on_interrupt)) {
+    Funcs::on_switch(index_of_on_interrupt)(this, i);
   }
   pending_interrupt = i;
 }
 
-void AnmVM::interruptRun(int i) {
-  if (index_of_on_interrupt && AnmFuncs::on_switch(index_of_on_interrupt)) {
-    AnmFuncs::on_switch(index_of_on_interrupt)(this, i);
+void VM::interruptRun(int i) {
+  if (index_of_on_interrupt && Funcs::on_switch(index_of_on_interrupt)) {
+    Funcs::on_switch(index_of_on_interrupt)(this, i);
   }
   pending_interrupt = i;
   update();  // run
 }
 
-void AnmVM::interruptRec(int i) {
+void VM::interruptRec(int i) {
   interrupt(i);
-  for (AnmVMList_t *child = list_of_children.next; child != nullptr;
+  for (VMList_t *child = list_of_children.next; child != nullptr;
        child = child->next) {
     if (child->value)
       child->value->interruptRec(i);
   }
 }
 
-void AnmVM::interruptRecRun(int i) {
+void VM::interruptRecRun(int i) {
   interruptRun(i);
-  for (AnmVMList_t *child = list_of_children.next; child != nullptr;
+  for (VMList_t *child = list_of_children.next; child != nullptr;
        child = child->next) {
     if (child->value)
       child->value->interruptRecRun(i);
   }
 }
 
-AnmVM::AnmVM(uint32_t script_id, uint32_t anim_slot) {
+VM::VM(u32 script_id, u32 anim_slot) {
   reset();
   anm_loaded_index = anim_slot;
   script_id_2 = script_id;
@@ -81,24 +84,24 @@ AnmVM::AnmVM(uint32_t script_id, uint32_t anim_slot) {
   update();
 }
 
-enum class bytefields : uint32_t {};
+enum class bytefields : u32 {};
 std::ostream &operator<<(std::ostream &left, bytefields bf) {
   for (int i = 31; i >= 0; i--)
-    left << (((uint32_t)bf & (1 << i)) != 0);
+    left << (((u32)bf & (1 << i)) != 0);
   return left;
 }
 
-AnmVM::~AnmVM() {
+VM::~VM() {
   if (special_vertex_buffer_data)
     free(special_vertex_buffer_data);
   destroy();
 }
 
-AnmSprite AnmVM::getSprite() const {
-  return AnmManager::loadedFiles[anm_loaded_index].getSprite(sprite_id);
+Sprite VM::getSprite() const {
+  return anm::getLoaded(anm_loaded_index)->getSprite(sprite_id);
 }
 
-void AnmVM::getParentData(glm::vec3 &pos, glm::vec3 &rot, glm::vec2 &scale) {
+void VM::getParentData(glm::vec3 &pos, glm::vec3 &rot, glm::vec2 &scale) {
   if (parent_vm) {
     parent_vm->getParentData(pos, rot, scale);
     pos.x += parent_vm->pos.x + parent_vm->entity_pos.x;
@@ -117,7 +120,7 @@ void AnmVM::getParentData(glm::vec3 &pos, glm::vec3 &rot, glm::vec2 &scale) {
   }
 }
 
-int AnmVM::update(bool /*printInstr*/) {
+int VM::update(bool /*printInstr*/) {
   /* VM IS NOT RUNNING */
   if (bitflags.activeFlags == ANMVM_DELETE && time_in_script != -1)
     return 1;
@@ -126,8 +129,8 @@ int AnmVM::update(bool /*printInstr*/) {
   if (bitflags.activeFlags == ANMVM_FROZEN || !bitflags.f530_1)
     return 0;
 
-  if (index_of_on_tick && AnmFuncs::on_tick(index_of_on_tick)) {
-    if (AnmFuncs::on_tick(index_of_on_tick)(this)) {
+  if (index_of_on_tick && Funcs::on_tick(index_of_on_tick)) {
+    if (Funcs::on_tick(index_of_on_tick)(this)) {
       return 1;
     }
   }
@@ -141,7 +144,7 @@ int AnmVM::update(bool /*printInstr*/) {
   /* if flag_set_by_ins306 is set */
   // I believe it will teleport the anm when the camera teleports
   if (bitflags.f530_15) {
-    entity_pos += AnmManager::_3d_camera->__vec3_104;
+    entity_pos += anm::get_3d_camera()->__vec3_104;
   }
 
   /* if ins419 flag is set */
@@ -168,8 +171,8 @@ int AnmVM::update(bool /*printInstr*/) {
   // // GAME_SPEED = saved_game_speed;
   // return 0;
 
-  int8_t *instructions =
-      AnmManager::loadedFiles[anm_loaded_index].getScript(script_id);
+  bytes instructions =
+      anm::getLoaded(anm_loaded_index)->getScript(script_id);
   if (instructions == nullptr)
     return 1;
 
@@ -180,7 +183,7 @@ int AnmVM::update(bool /*printInstr*/) {
   if (pending_interrupt != 0) {
     // find label
     int32_t offset = 0;
-    while (instructions[offset] != -1) {
+    while (instructions[offset] != 0xff) {
       uint16_t instype = *reinterpret_cast<uint16_t *>(&(instructions[offset]));
       uint16_t inslength =
           *reinterpret_cast<uint16_t *>(&(instructions[offset + 2]));
@@ -219,7 +222,7 @@ int AnmVM::update(bool /*printInstr*/) {
 
   /* RUN INSTRUCTIONS */
   if (instr_offset >= 0) {
-    if (instructions[instr_offset] == -1)
+    if (instructions[instr_offset] == 0xff)
       return 1;
     int16_t instime = *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
     while (instime <= time_in_script &&
@@ -230,7 +233,7 @@ int AnmVM::update(bool /*printInstr*/) {
       if (ret == 2)
         return 0;
 
-      if (instructions[instr_offset] == -1)
+      if (instructions[instr_offset] == 0xff)
         return 1;
       instime = *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
     }
@@ -239,15 +242,15 @@ int AnmVM::update(bool /*printInstr*/) {
 
   return 0;
 }
-int AnmVM::getMode() const { return bitflags.rendermode; }
-int AnmVM::getZdis() const {
+int VM::getMode() const { return bitflags.rendermode; }
+int VM::getZdis() const {
   return bitflags.zwritedis || bitflags.blendmode != 0;
 }
 
-void AnmVM::getSpriteCorners2D(glm::vec2 *corners) {
+void VM::getSpriteCorners2D(glm::vec2 *corners) {
   glm::vec4 pos4 = glm::vec4(pos, 0);
 
-  auto s = AnmManager::loadedFiles[anm_loaded_index].getSprite(sprite_id);
+  auto s = anm::getLoaded(anm_loaded_index)->getSprite(sprite_id);
   float XS = scale.x * scale_2.x;
   float YS = scale.y * scale_2.y;
   float l = bitflags.anchorX != 0 ? -(bitflags.anchorX - 1) : -0.5f;
@@ -273,13 +276,9 @@ void AnmVM::getSpriteCorners2D(glm::vec2 *corners) {
                                           0)};
 }
 
-void AnmVM::destroy() {
-  if (id.val && (id.val & AnmID::fastIdMask) != AnmID::fastIdMask) {
-    // I am a fast vm
-    AnmManager::fastArray[id.val & AnmID::fastIdMask].isAlive = false;
-    ListUtil::listInsertAfter(
-        &AnmManager::freelist_head,
-        &AnmManager::fastArray[id.val & AnmID::fastIdMask].freelistNode);
+void VM::destroy() {
+  if (id.val && (id.val & ID::fastIdMask) != ID::fastIdMask) {
+    anm::_destroyFastVM(this);
   }
 
   bitflags = {};
@@ -327,7 +326,7 @@ void AnmVM::destroy() {
 }
 
 
-glm::vec3 AnmVM::get_pos_with_root() {
+glm::vec3 VM::get_pos_with_root() {
   glm::vec3 p = pos + entity_pos + __pos_2;
   auto root = __root_vm__or_maybe_not;
   if (root && !bitflags.noParent) {
@@ -341,7 +340,7 @@ glm::vec3 AnmVM::get_pos_with_root() {
   return p;
 }
 
-void AnmVM::write_sprite_corners_2d(glm::vec4 *corners) {
+void VM::write_sprite_corners_2d(glm::vec4 *corners) {
   switch (bitflags.rendermode) {
   case 0:
   case 2:
@@ -357,7 +356,7 @@ void AnmVM::write_sprite_corners_2d(glm::vec4 *corners) {
   return;
 }
 
-void AnmVM::write_sprite_corners__without_rot(glm::vec4 &tl, glm::vec4 &tr,
+void VM::write_sprite_corners__without_rot(glm::vec4 &tl, glm::vec4 &tr,
                                               glm::vec4 &bl, glm::vec4 &br) {
   tl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
   tr.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
@@ -419,7 +418,7 @@ void AnmVM::write_sprite_corners__without_rot(glm::vec4 &tl, glm::vec4 &tr,
 }
 
 
-glm::vec3 AnmVM::getRotation() {
+glm::vec3 VM::getRotation() {
   __rotation_related = rotation;
   if (__root_vm__or_maybe_not && !bitflags.noParent) {
     glm::vec3 parentRot = __root_vm__or_maybe_not->getRotation();
@@ -431,7 +430,7 @@ glm::vec3 AnmVM::getRotation() {
   return __rotation_related;
 }
 
-void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
+void VM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
                                              glm::vec4 &bl, glm::vec4 &br) {
   tl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
   tr.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
@@ -502,12 +501,12 @@ void AnmVM::write_sprite_corners__with_z_rot(glm::vec4 &tl, glm::vec4 &tr,
   br += glm::vec4(p, 0);
 }
 
-int AnmVM::write_sprite_corners__mode_4() {
+int VM::write_sprite_corners__mode_4() {
   glm::vec3 pp = {pos + __pos_2 + entity_pos};
   glm::vec2 s = scale * scale_2 * sprite_size / 2.f;
 
   // Good enough for now
-  auto& vwmx = AnmManager::current_camera->view_matrix;
+  auto& vwmx = anm::get_camera()->view_matrix;
   glm::vec3 ViewZ = glm::vec3(vwmx[0][2], vwmx[1][2], vwmx[2][2]);
   glm::mat4 rot = glm::rotate(glm::mat4(1.f), rotation.z, ViewZ);
   glm::vec3 ViewX = rot * glm::vec4(vwmx[0][0], vwmx[1][0], vwmx[2][0], 1.f);
@@ -615,7 +614,7 @@ int AnmVM::write_sprite_corners__mode_4() {
   // return 0;
 }
 
-void AnmVM::transform_coordinate(glm::vec3 &p) {
+void VM::transform_coordinate(glm::vec3 &p) {
   /* if the resolution mode is set, position should increase */
   if (bitflags.resolutionMode == 1 || bitflags.resolutionMode == 3)
     p *= RESOLUTION_MULT;
@@ -624,8 +623,8 @@ void AnmVM::transform_coordinate(glm::vec3 &p) {
 
   /* if no root mode or ignore parent */
   if (!__root_vm__or_maybe_not || bitflags.noParent) {
-    p.x += AnmManager::origins[bitflags.originMode].x;
-    p.y += AnmManager::origins[bitflags.originMode].y;
+    p.x += anm::origin(bitflags.originMode).x;
+    p.y += anm::origin(bitflags.originMode).y;
   } else {
     if (bitflags.parRotate) {
       /* the vm moves as the parent rotate */
@@ -639,13 +638,13 @@ void AnmVM::transform_coordinate(glm::vec3 &p) {
   }
 }
 
-glm::vec3 AnmVM::get_own_transformed_pos() {
+glm::vec3 VM::get_own_transformed_pos() {
   glm::vec3 p = pos + entity_pos + __pos_2;
   transform_coordinate(p);
   return p;
 }
 
-float getSlowdown(AnmVM *vm) {
+float getSlowdown(VM *vm) {
     if (!vm->__root_vm__or_maybe_not || vm->bitflags.noParent) {
         return vm->slowdown;
     } else {
@@ -655,7 +654,7 @@ float getSlowdown(AnmVM *vm) {
     }
 }
 
-void AnmVM::clear_flag_1_rec() {
+void VM::clear_flag_1_rec() {
   bitflags.f530_1 = 0;
   for (auto node = list_of_children.next; node; node = node->next) {
     if (node->value)
@@ -663,7 +662,7 @@ void AnmVM::clear_flag_1_rec() {
   }
 }
 
-void AnmVM::set_flag_1_rec() {
+void VM::set_flag_1_rec() {
   bitflags.f530_1 = 1;
   for (auto node = list_of_children.next; node; node = node->next) {
     if (node->value)
@@ -671,11 +670,11 @@ void AnmVM::set_flag_1_rec() {
   }
 }
 
-void AnmVM::reset() {
+void VM::reset() {
   glm::vec3 old_entity_pos = entity_pos;
   int old_fast_id = fast_id;
   int old_layer = layer;
-  memset(reinterpret_cast<char *>(this), 0, sizeof(AnmVM));
+  memset(reinterpret_cast<char *>(this), 0, sizeof(VM));
   entity_pos = old_entity_pos;
   fast_id = old_fast_id;
   layer = old_layer;
@@ -721,30 +720,30 @@ static constexpr int FAILURE = 1;
 static constexpr int WAIT = 2;
 static constexpr int CONTINUE = 3;
 
-int AnmVM::run() {
+int VM::run() {
   return update();
     float gamespeed_real = GAME_SPEED;
-    if (bitflags.noSlowdown) NSEngine::getInstance()->setGameSpeed(1.0);
+    if (bitflags.noSlowdown) ns::getInstance()->setGameSpeed(1.0);
     float slow = getSlowdown(this);
     if (slow > 0.0) {
-        NSEngine::getInstance()
+        ns::getInstance()
             ->setGameSpeed(gamespeed_real - slow * gamespeed_real);
-        if (GAME_SPEED < 0) NSEngine::getInstance()->setGameSpeed(0.0);
+        if (GAME_SPEED < 0) ns::getInstance()->setGameSpeed(0.0);
     }
-    if (index_of_on_tick && AnmFuncs::on_tick(index_of_on_tick)(this)) {
-        NSEngine::getInstance()->setGameSpeed(gamespeed_real);
+    if (index_of_on_tick && Funcs::on_tick(index_of_on_tick)(this)) {
+        ns::getInstance()->setGameSpeed(gamespeed_real);
         return FAILURE;
     }
     if (instr_offset < 0x0 || bitflags.f530_20) {
-        NSEngine::getInstance()->setGameSpeed(gamespeed_real);
+        ns::getInstance()->setGameSpeed(gamespeed_real);
         return SUCCESS;
     }
     __timer_1c++;
-    using Ins = AnmOpener::anm_instr_t;
+    using Ins = opener::anm_instr_t;
     if (pending_interrupt) {
         int offset = 0;
         Ins* scr = reinterpret_cast<Ins*>(
-            AnmManager::getLoaded(anm_loaded_index)->getScript(script_id));
+            anm::getLoaded(anm_loaded_index)->getScript(script_id));
         Ins* m1IntIns = nullptr;
         int m1IntOffset = 0;
         while (1) {
@@ -784,7 +783,7 @@ int AnmVM::run() {
     // }
     }
     while (true) {
-        auto instr = &AnmManager::getLoaded(anm_loaded_index)
+        auto instr = &anm::getLoaded(anm_loaded_index)
             ->getScript(script_id)[instr_offset];
 
         if (reinterpret_cast<Ins*>(instr)->time > time_in_script)
@@ -796,13 +795,13 @@ int AnmVM::run() {
         } else if (res == WAIT) {
             return wait(gamespeed_real);
         } else {
-            NSEngine::getInstance()->setGameSpeed(gamespeed_real);
+            ns::getInstance()->setGameSpeed(gamespeed_real);
             return res;
         }
     }
 }
 
-void AnmVM::step_interpolators() {
+void VM::step_interpolators() {
   if (pos_i.end_time) {
     if (bitflags.alt_pos)
       __pos_2 = pos_i.step();
@@ -851,7 +850,7 @@ void AnmVM::step_interpolators() {
     uv_scroll_vel.y = v_vel_i.step();
 }
 
-void AnmVM::update_variables_growth() {
+void VM::update_variables_growth() {
   if (angular_velocity.x != 0.0) {
     rotation.x += angular_velocity.x * GAME_SPEED;
     math::angle_normalize(rotation.x);
@@ -891,7 +890,7 @@ void AnmVM::update_variables_growth() {
   }
 }
 
-AnmVM *AnmVM::search_children(int a, int b) {
+VM *VM::search_children(int a, int b) {
   auto child_node = &list_of_children;
   do {
     if (!child_node)
@@ -921,7 +920,7 @@ static glm::vec4 lengthdir_vec4(float l, float a) {
   return {l * cos(a), l * sin(a), 0.f, 1.f};
 }
 
-void AnmVM::write_texture_circle_vertices() {
+void VM::write_texture_circle_vertices() {
   switch (bitflags.rendermode) {
   case 9: {
     int n_segment = int_script_vars[0] - 1;
@@ -930,7 +929,7 @@ void AnmVM::write_texture_circle_vertices() {
     glm::vec3 p = pos + entity_pos + __pos_2;
     transform_coordinate(p);
     auto pos = glm::vec4(p, 0);
-    NSEngine::Color col2;
+    ns::Color col2;
     if (bitflags.colmode) {
       col2 = color_2;
     } else {
@@ -987,7 +986,7 @@ void AnmVM::write_texture_circle_vertices() {
     if (bitflags.rendermode == 14) {
       start_ang = rotation.z;
     }
-    NSEngine::Color col;
+    ns::Color col;
     if (bitflags.colmode) {
       col = color_2;
     } else {
@@ -1031,7 +1030,7 @@ void AnmVM::write_texture_circle_vertices() {
         float_script_vars[3] - float_script_vars[0] / 2.f;
     float ang_inc = float_script_vars[0] / (ptnb - 0x1);
     float v_inc = int_script_vars[1] / static_cast<float>(ptnb - 0x1);
-    NSEngine::Color col;
+    ns::Color col;
     if (bitflags.colmode) {
       col = color_2;
     } else {
@@ -1075,12 +1074,12 @@ void AnmVM::write_texture_circle_vertices() {
   }
 }
 
-int AnmVM::wait(float old_game_speed) {
+int VM::wait(float old_game_speed) {
     if (bitflags.hasGrowth) {
         update_variables_growth();
     }
     if (bitflags.f530_15) {
-        entity_pos += AnmManager::_3d_camera->__vec3_104;
+        entity_pos += anm::get_3d_camera()->__vec3_104;
     }
     if (bitflags.ins419) {
         glm::vec4 temp_quad[4];
@@ -1096,12 +1095,14 @@ int AnmVM::wait(float old_game_speed) {
     }
     step_interpolators();
     write_texture_circle_vertices();
-    if (index_of_on_wait && AnmFuncs::on_wait(index_of_on_wait) &&
-        AnmFuncs::on_wait(index_of_on_wait)(this) == 0) {
-        NSEngine::getInstance()->setGameSpeed(old_game_speed);
+    if (index_of_on_wait && Funcs::on_wait(index_of_on_wait) &&
+        Funcs::on_wait(index_of_on_wait)(this) == 0) {
+        ns::getInstance()->setGameSpeed(old_game_speed);
         return 1;
     }
     time_in_script++;
-    NSEngine::getInstance()->setGameSpeed(old_game_speed);
+    ns::getInstance()->setGameSpeed(old_game_speed);
     return 0;
 }
+
+} // namespace anm

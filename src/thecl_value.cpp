@@ -1,13 +1,14 @@
 #include "./thecl_value.h"
 
 #include <string.h>
+#include <Error.h>
 
-ssize_t thecl_value_from_data(const unsigned char* data,
-        size_t data_length, char type, thecl_value_t* value) {
+isize thecl_value_from_data(robytes data,
+        usize data_length, char type, thecl_value_t* value) {
 #define READ(x, n)                                                             \
     if (data_length < n) {                                                     \
-        std::cerr << "thecl:value_from_data: unexpected"                       \
-            "end of data, wanted to read " << n << " bytes for format '#x'\n"; \
+        ns::error("thecl:value_from_data: unexpected"                          \
+            "end of data, wanted to read", n, "bytes for format '#x'");        \
         return -1;                                                             \
     }                                                                          \
     memcpy(&value->val.x, data, n);                                            \
@@ -17,26 +18,26 @@ ssize_t thecl_value_from_data(const unsigned char* data,
 
     switch (value->type) {
     case 'f':
-        READ(f, sizeof(float));
+        READ(f, sizeof(f32));
     case 'd':
-        READ(d, sizeof(double));
+        READ(d, sizeof(f64));
     case 'b':
-        READ(b, sizeof(unsigned char));
+        READ(b, sizeof(u8));
     case 'c':
-        READ(c, sizeof(char));
+        READ(c, sizeof(i8));
     case 'u':
-        READ(u, sizeof(uint16_t));
+        READ(u, sizeof(u16));
     case 's':
-        READ(s, sizeof(int16_t));
+        READ(s, sizeof(i16));
     case 'U':
-        READ(U, sizeof(uint32_t));
+        READ(U, sizeof(u32));
     case 'o':
     case 't':
         value->type = 'S'; /* Fallthrough */
     case 'S':
-        READ(S, sizeof(int32_t));
+        READ(S, sizeof(i32));
     case 'C':
-        READ(C, sizeof(uint32_t));
+        READ(C, sizeof(u32));
         break;
     case 'z':
         value->val.z = new char[data_length];
@@ -44,12 +45,11 @@ ssize_t thecl_value_from_data(const unsigned char* data,
         return data_length;
     case 'm':
         value->val.m.length = data_length;
-        value->val.m.data = new unsigned char[data_length];
+        value->val.m.data = new byte[data_length];
         memcpy(value->val.m.data, data, data_length);
         return data_length;
     default:
-        std::cerr << "thecl:value_from_data: invalid type '" <<
-                value->type << "'\n";
+        ns::error("thecl:value_from_data: invalid type", value->type);
         return -1;
     }
 
@@ -59,23 +59,23 @@ ssize_t thecl_value_from_data(const unsigned char* data,
 struct thecl_sub_param_t {
     char from;
     char to;
-    uint16_t zero; /* Padding, must be set to 0 */
+    u16 zero; /* Padding, must be set to 0 */
     union {
-        int32_t S;
-        float f;
+        i32 S;
+        f32 f;
     } val;
 };
 
-static ssize_t th10_value_from_data(const unsigned char* data,
-            size_t data_length, char type, thecl_value_t* value) {
+static isize th10_value_from_data(robytes data,
+            usize data_length, char type, thecl_value_t* value) {
     switch (type) {
     case 'D':
         return thecl_value_from_data(data,
                                     sizeof(thecl_sub_param_t), 'm', value);
     case 'm':
     case 'x': {
-        uint32_t length;
-        memcpy(&length, data, sizeof(uint32_t));
+        u32 length;
+        memcpy(&length, data, sizeof(u32));
         thecl_value_t temp;
 
         thecl_value_from_data(data + sizeof(length), length, 'm', &temp);
@@ -88,7 +88,7 @@ static ssize_t th10_value_from_data(const unsigned char* data,
         value->type = 'z';
         value->val.z = reinterpret_cast<char*>(temp.val.m.data);
 
-        return sizeof(uint32_t) + length;
+        return sizeof(u32) + length;
     }
     default:
         return thecl_value_from_data(data, data_length, type, value);

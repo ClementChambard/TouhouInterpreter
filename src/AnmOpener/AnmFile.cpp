@@ -5,41 +5,43 @@
 #include <ImageLoader.h>
 #include <TextureManager.h>
 #include <Texture.hpp>
-#include <numeric>
 #include <cstring>
+#include <numeric>
+#include <Error.h>
 
-void AnmSprite::genTexCoords(float tw, float th) {
+namespace anm {
+
+void Sprite::genTexCoords(f32 tw, f32 th) {
     u1 = x / tw;
     v1 = y / th;
     u2 = (x + w) / tw;
     v2 = (y + h) / th;
 }
 
-AnmFile::AnmFile(std::string const& filename, uint32_t slot) {
+File::File(cstr filename, u32 slot) {
     Open(filename, slot);
 }
 
-void AnmFile::Open(std::string const& filename, uint32_t slot) {
-    if (name != "notLoaded")
-        Cleanup();
+void File::Open(cstr filename, u32 slot) {
+    if (name) Cleanup();
     name = filename;
-    AnmOpener::anm_archive_t* archive = AnmOpener::anm_read_file(filename);
-    uint32_t scrID = 0;
-    int at_tex_i = 0;
-    int atr_tex_i = 0;
+    opener::anm_archive_t* archive = opener::anm_read_file(filename);
+    u32 scrID = 0;
+    i32 at_tex_i = 0;
+    i32 atr_tex_i = 0;
     for (auto entry : archive->entries) {
-        uint32_t tex;
+        u32 tex;
         std::string name = entry->name;
         if (entry->header->hasdata) {
-            AnmOpener::image_t img = AnmOpener::anm_get_image(entry);
-            NSEngine::Texture* t =
-                new NSEngine::Texture(img.width, img.height, img.data);
-            tex = NSEngine::TextureManager::AddTexture(std::move(*t));
+            opener::image_t img = opener::anm_get_image(entry);
+            ns::Texture* t =
+                new ns::Texture(img.width, img.height, img.data);
+            tex = ns::TextureManager::AddTexture(std::move(*t));
             delete t;
             delete[] img.data;
         } else if (entry->name[0] == '@') {
-            uint32_t w = entry->header->w;
-            uint32_t h = entry->header->h;
+            u32 w = entry->header->w;
+            u32 h = entry->header->h;
             if (entry->name[1] == 'R') {
                 w = BACK_BUFFER_SIZE.x;
                 h = BACK_BUFFER_SIZE.y;
@@ -47,36 +49,36 @@ void AnmFile::Open(std::string const& filename, uint32_t slot) {
             } else {
                 name += std::to_string(at_tex_i++);
             }
-            NSEngine::Texture* t = NSEngine::Texture::asFramebuffer(w, h);
-            tex = NSEngine::TextureManager::AddTexture(std::move(*t));
+            ns::Texture* t = ns::Texture::asFramebuffer(w, h);
+            tex = ns::TextureManager::AddTexture(std::move(*t));
             delete t;
         } else {
             tex = 0;
         }
 
-        textures.insert(std::pair<std::string, uint32_t>(name, tex));
-        int w, h;
-        NSEngine::TextureManager::GetTextureSize(tex, w, h);
+        textures.insert(std::pair<std::string, u32>(name, tex));
+        i32 w, h;
+        ns::TextureManager::GetTextureSize(tex, w, h);
         for (auto spr : entry->sprites) {
             sprites.push_back({ tex, spr->x + entry->header->x, spr->y +
                 entry->header->y, spr->w, spr->h, 0, 0, 0, 0,
-                NSEngine::TextureManager::GetTextureID(tex) });
+                ns::TextureManager::GetTextureID(tex) });
             sprites.back().genTexCoords(w, h);
         }
     }
     for (auto entry : archive->entries) {
-        for (uint32_t scrid = 0; scrid < entry->scripts.size(); scrid++) {
+        for (u32 scrid = 0; scrid < entry->scripts.size(); scrid++) {
             // generate data
-            uint32_t size = std::accumulate(
+            u32 size = std::accumulate(
                 entry->scripts[scrid]->instrs.begin(),
                 entry->scripts[scrid]->instrs.end(), 0,
-                [](uint32_t a, auto b) { return a + b->length; });
+                [](u32 a, auto b) { return a + b->length; });
             //            for (auto i : entry->scripts[scrid]->instrs)
             // size += i->length;
-            scripts.push_back(new int8_t[size + 2]);
-            uint32_t off = 0;
+            scripts.push_back(new byte[size + 2]);
+            u32 off = 0;
             for (auto ins : entry->scripts[scrid]->instrs) {
-                for (uint32_t i = 0; i < ins->length; i++) {
+                for (u32 i = 0; i < ins->length; i++) {
                     scripts.back()[off++] = reinterpret_cast<int8_t*>(ins)[i];
                 }
             }
@@ -86,14 +88,14 @@ void AnmFile::Open(std::string const& filename, uint32_t slot) {
         }
     }
 
-    AnmOpener::anm_free(archive);
-    std::cout << "Opened Anm : " << filename << " on slot" << slot <<"\n";
+    opener::anm_free(archive);
+    ns::info("Opened:", filename, "on slot", slot);
     this->slot = slot;
 }
 
-void AnmFile::Cleanup() {
-    if (name == "notLoaded") return;
-    AnmManager::delete_of_file(this);
+void File::Cleanup() {
+    if (name) return;
+    anm::delete_of_file(this);
     for (auto s : this->scripts)
         delete[] s;
     for (auto vm : preloaded)
@@ -101,39 +103,39 @@ void AnmFile::Cleanup() {
     preloaded.clear();
     this->scripts.clear();
     sprites.clear();
-    name = "notLoaded";
+    name = nullptr;
 }
 
-AnmFile::~AnmFile() {
+File::~File() {
     // for (auto s : scripts) delete s;
 }
 
-int8_t* AnmFile::getScript(size_t id) const {
+bytes File::getScript(usize id) const {
     if (scripts.size() == 0)
         return {};
     return scripts[id % scripts.size()];
 }
 
-AnmVM AnmFile::getPreloaded(size_t id) const {
+VM File::getPreloaded(usize id) const {
     if (preloaded.size() == 0)
         return {};
     return preloaded[id % preloaded.size()];
 }
 
-AnmSprite AnmFile::getSprite(size_t id) const {
+Sprite File::getSprite(usize id) const {
     if (sprites.size() == 0)
         return {};
     return sprites[id % sprites.size()];
 }
 
-uint32_t AnmFile::getTextureFromName(std::string const& name) const {
+u32 File::getTextureFromName(cstr name) const {
     return textures.at(name);
 }
 
-void AnmFile::setSprite(AnmVM* vm, size_t sprite_id) {
+void File::setSprite(VM* vm, usize sprite_id) {
     if (vm->index_of_sprite_mapping_func &&
-        AnmFuncs::on_sprite_set(vm->index_of_sprite_mapping_func))
-        sprite_id = AnmFuncs::on_sprite_set(vm->index_of_sprite_mapping_func)
+        Funcs::on_sprite_set(vm->index_of_sprite_mapping_func))
+        sprite_id = Funcs::on_sprite_set(vm->index_of_sprite_mapping_func)
             (vm, sprite_id);
     vm->sprite_id = sprite_id;
     if (sprite_id >= sprites.size())
@@ -157,13 +159,13 @@ void AnmFile::setSprite(AnmVM* vm, size_t sprite_id) {
     return;
 }
 
-void AnmFile::copyFromLoaded(AnmVM* vm, int id) {
-    if (static_cast<size_t>(id) >= scripts.size() || !vm) return;
+void File::copyFromLoaded(VM* vm, i32 id) {
+    if (static_cast<usize>(id) >= scripts.size() || !vm) return;
     auto saved_entitypos = vm->entity_pos;
     auto saved_fast_id = vm->fast_id;
     auto saved_layer = vm->layer;
     memset(reinterpret_cast<char*>(&vm->id),
-           0x0, sizeof(AnmVM) - offsetof(AnmVM, id));
+           0x0, sizeof(VM) - offsetof(VM, id));
     vm->entity_pos = saved_entitypos;
     vm->fast_id = saved_fast_id;
     vm->layer = saved_layer;
@@ -172,14 +174,14 @@ void AnmFile::copyFromLoaded(AnmVM* vm, int id) {
     vm->list_of_children = {vm, nullptr, nullptr};
     if (id >= 0)
         memcpy(reinterpret_cast<char*>(vm),
-            reinterpret_cast<char*>(&this->preloaded[id]), offsetof(AnmVM, id));
+            reinterpret_cast<char*>(&this->preloaded[id]), offsetof(VM, id));
     vm->time_in_script = 0;
     vm->__timer_1c = 0;
 }
 
-AnmID AnmFile::createEffect(int id, int layer, AnmVM** output) {
+ID File::createEffect(i32 id, i32 layer, VM** output) {
     some_ctr++;
-    auto vm = AnmManager::allocate_vm();
+    auto vm = anm::allocate_vm();
     if (output) *output = vm;
     copyFromLoaded(vm, id);
     vm->bitflags.randomMode = 1;
@@ -194,12 +196,12 @@ AnmID AnmFile::createEffect(int id, int layer, AnmVM** output) {
     // vm->run();
     vm->update();
     vm->mode_of_create_child = 0;
-    return AnmManager::insert_in_world_list_back(vm);
+    return anm::insert_in_world_list_back(vm);
 }
 
-AnmID AnmFile::createEffectFront(int id, int layer, AnmVM** output) {
+ID File::createEffectFront(i32 id, i32 layer, VM** output) {
     some_ctr++;
-    auto vm = AnmManager::allocate_vm();
+    auto vm = anm::allocate_vm();
     if (output) *output = vm;
     copyFromLoaded(vm, id);
     vm->bitflags.randomMode = 1;
@@ -214,13 +216,13 @@ AnmID AnmFile::createEffectFront(int id, int layer, AnmVM** output) {
     // vm->run();
     vm->update();
     vm->mode_of_create_child = 2;
-    return AnmManager::insert_in_world_list_front(vm);
+    return anm::insert_in_world_list_front(vm);
 }
 
-AnmID AnmFile::createEffectPos(int id, float rot, glm::vec3 const& pos,
-                               int layer, AnmVM** out_vm) {
+ID File::createEffectPos(i32 id, f32 rot, glm::vec3 const& pos,
+                               i32 layer, VM** out_vm) {
     some_ctr++;
-    auto vm = AnmManager::allocate_vm();
+    auto vm = anm::allocate_vm();
     if (out_vm) {
         *out_vm = vm;
     }
@@ -236,12 +238,12 @@ AnmID AnmFile::createEffectPos(int id, float rot, glm::vec3 const& pos,
     vm->rotation.z = rot;
     vm->run();
     vm->mode_of_create_child = 0;
-    return AnmManager::insert_in_world_list_back(vm);
+    return anm::insert_in_world_list_back(vm);
 }
 
-void AnmFile::load_external_vm(AnmVM* vm, int id) {
+void File::load_external_vm(VM* vm, i32 id) {
     if (this->scripts[id] == 0x0 /*|| this->load_wait != 0*/) {
-        memset(reinterpret_cast<char*>(vm), 0x0, sizeof(AnmVM));
+        memset(reinterpret_cast<char*>(vm), 0x0, sizeof(VM));
         return;
     }
     // vm->field_0x49c = DX
@@ -258,15 +260,15 @@ void AnmFile::load_external_vm(AnmVM* vm, int id) {
     vm->time_in_script = 0;
     // vm->run();
     vm->update();
-    // AnmManager::field_0xc0++;
+    // anm::field_0xc0++;
     if (vm->bitflags.f534_14_15 != 0b10)
         vm->bitflags.f534_14_15 = 0b01;
 }
 
-AnmID AnmFile::spawnVMExt(int id, float rot, glm::vec3 const& pos, int mode,
-                         int layer, AnmVM** out_vm) {
+ID File::spawnVMExt(i32 id, f32 rot, glm::vec3 const& pos, i32 mode,
+                         i32 layer, VM** out_vm) {
     some_ctr++;
-    auto vm = AnmManager::allocate_vm();
+    auto vm = anm::allocate_vm();
     if (out_vm) *out_vm = vm;
     copyFromLoaded(vm, id);
     vm->bitflags.randomMode = 1;
@@ -288,24 +290,24 @@ AnmID AnmFile::spawnVMExt(int id, float rot, glm::vec3 const& pos, int mode,
     vm->rotation.z = rot;
     vm->update();
     vm->mode_of_create_child = mode;
-    AnmID ret;
+    ID ret;
     if ((mode & 6) == 6) {
-        ret = AnmManager::insert_in_ui_list_front(vm);
+        ret = anm::insert_in_ui_list_front(vm);
         vm->bitflags.f534_14_15 = 0;
     } else if (mode & 4) {
-        ret = AnmManager::insert_in_ui_list_back(vm);
+        ret = anm::insert_in_ui_list_back(vm);
         vm->bitflags.f534_14_15 = 0;
     } else if (mode & 2) {
-        ret = AnmManager::insert_in_world_list_front(vm);
+        ret = anm::insert_in_world_list_front(vm);
     } else {
-        ret = AnmManager::insert_in_world_list_back(vm);
+        ret = anm::insert_in_world_list_back(vm);
     }
     return ret;
 }
 
-AnmID AnmFile::new_vm_ui_back(int id, AnmVM** out_vm) {
+ID File::new_vm_ui_back(i32 id, VM** out_vm) {
     some_ctr++;
-    auto vm = AnmManager::allocate_vm();
+    auto vm = anm::allocate_vm();
     if (out_vm) *out_vm = vm;
     copyFromLoaded(vm, id);
     vm->bitflags.randomMode = 1;
@@ -313,15 +315,15 @@ AnmID AnmFile::new_vm_ui_back(int id, AnmVM** out_vm) {
     vm->rotation.z = 0;
     vm->update();
     vm->mode_of_create_child = 4;
-    auto anm_id = AnmManager::insert_in_ui_list_back(vm);
+    auto anm_id = anm::insert_in_ui_list_back(vm);
     vm->bitflags.f534_14_15 = 0;
     return anm_id;
 }
 
 
-AnmID AnmFile::create_child_vm(int id, AnmVM *parent, int mode) {
+ID File::create_child_vm(i32 id, VM *parent, i32 mode) {
     some_ctr++;
-    auto new_vm = AnmManager::allocate_vm();
+    auto new_vm = anm::allocate_vm();
     new_vm->bitflags.randomMode = 1;
     new_vm->layer = parent->layer;
     new_vm->entity_pos = {};
@@ -335,15 +337,15 @@ AnmID AnmFile::create_child_vm(int id, AnmVM *parent, int mode) {
             parent->__root_vm__or_maybe_not;
     new_vm->update();
     new_vm->mode_of_create_child = mode;
-    AnmID ret;
+    ID ret;
     if ((mode & 6) == 6) {
-        ret = AnmManager::insert_in_ui_list_front(new_vm);
+        ret = anm::insert_in_ui_list_front(new_vm);
     } else if (mode & 4) {
-        ret = AnmManager::insert_in_ui_list_back(new_vm);
+        ret = anm::insert_in_ui_list_back(new_vm);
     } else if (mode & 2) {
-        ret = AnmManager::insert_in_world_list_front(new_vm);
+        ret = anm::insert_in_world_list_front(new_vm);
     } else {
-        ret = AnmManager::insert_in_world_list_back(new_vm);
+        ret = anm::insert_in_world_list_back(new_vm);
     }
 
     if (parent->list_of_children.next) {
@@ -355,9 +357,9 @@ AnmID AnmFile::create_child_vm(int id, AnmVM *parent, int mode) {
     return ret;
 }
 
-AnmID AnmFile::new_root(int id, AnmVM *parent) {
+ID File::new_root(i32 id, VM *parent) {
     some_ctr++;
-    auto new_vm = AnmManager::allocate_vm();
+    auto new_vm = anm::allocate_vm();
     copyFromLoaded(new_vm, id);
     new_vm->bitflags.randomMode = 1;
     new_vm->layer = parent->layer;
@@ -367,5 +369,7 @@ AnmID AnmFile::new_root(int id, AnmVM *parent) {
     new_vm->__pos_2 = parent->pos;
     new_vm->update();
     new_vm->mode_of_create_child = 0;
-    return AnmManager::insert_in_world_list_back(new_vm);
+    return anm::insert_in_world_list_back(new_vm);
 }
+
+} // namespace anm

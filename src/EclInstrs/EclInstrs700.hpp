@@ -1,13 +1,11 @@
 #ifndef __INCLUDE_PARTS__
+#include "../BulletManager.h"
 #include "../AnmOpener/AnmManager.h"
 #include "../EclContext.h"
 #include "../EclInstrMacros.h"
 #include "../Enemy.h"
-#include "../EnemyManager.h"
 #include "../Laser/LaserManager.h"
-#include "../Spellcard.h"
 #include <math/Random.h>
-#define PRINT false
 inline int Enemy::execInstr(EclRunContext_t *cont, const EclRawInstr_t *instr) {
   _insNop
 #endif
@@ -147,7 +145,7 @@ inline int Enemy::execInstr(EclRunContext_t *cont, const EclRawInstr_t *instr) {
   allocate_new_laser(2, &inner);
 
   _ins(712, etCancelRect) _f(w) _f(h) _args
-  auto vm = AnmManager::getVM(enemy.anmIds[0]);
+  auto vm = anm::getVM(enemy.anmIds[0]);
   float z_rot = 0.f;
   if (vm) z_rot = vm->rotation.z;
   BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(

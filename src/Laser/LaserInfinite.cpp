@@ -1,8 +1,9 @@
 #include "LaserInfinite.h"
 #include "../ItemManager.h"
 #include "../BulletManager.h"
-#include "../Player.h"
 #include "LaserManager.h"
+#include "../Hardcoded.h"
+#include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
 
 LaserInfinite::LaserInfinite()
@@ -191,11 +192,11 @@ int LaserInfinite::on_draw() {
     vm1.bitflags.rotated = true;
     vm1.pos = laser_offset;
     // vm1.draw();
-    AnmManager::drawVM(&vm1);
+    anm::drawVM(&vm1);
     if (__field_7c__sometimes_0p01_or_0f == 0.0) {
         vm2.pos = laser_offset;
         // vm2.draw();
-        AnmManager::drawVM(&vm2);
+        anm::drawVM(&vm2);
     }
     return 0;
 }

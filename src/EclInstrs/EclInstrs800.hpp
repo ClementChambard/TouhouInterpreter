@@ -3,10 +3,7 @@
 #include "../EclContext.h"
 #include "../Enemy.h"
 #include "../EnemyManager.h"
-#include "../Spellcard.h"
-#include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
-#define PRINT false
 inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _insNop
 #endif
@@ -15,7 +12,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(800,      enmCall) _S(id) _z(sub)               _args
     auto e = EnemyManager::GetInstance()->EnmFind(id);
-    if (e) e->Init(sub);
+    if (e) e->Init(sub.c_str());
     // clear async contexts
     // reset ecl
     // set sub reset

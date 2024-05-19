@@ -1,13 +1,9 @@
 #ifndef __INCLUDE_PARTS__
-#include "../AnmOpener/AnmManager.h"
 #include "../EclContext.h"
 #include "../EclInstrMacros.h"
 #include "../Enemy.h"
-#include "../EnemyManager.h"
-#include "../Spellcard.h"
 #include <math/Random.h>
 #include <vector>
-#define PRINT false
 inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _insNop
 #endif
@@ -36,7 +32,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     eclStackPop(&cont->stack, cont->time, true);
     eclStackPop(&cont->stack, cont->stack.stackOffset, true);
 
-    _ins(11, call) _noprint _z(sub) cont->currentLocation.offset += instr->size;
+    _ins(11, call) _z(sub) cont->currentLocation.offset += instr->size;
     // Should be ok
     // if (EclRunContext::init_context_from_args(cont,cont,0)) {
     //    cont->currentLocation.sub_id = -1;
@@ -46,36 +42,24 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     std::vector<EclStackItem_t> args_to_put_on_stack;
 
-    // PRINTING
-    if (PRINT)
-        std::cout << "@" << sub << "(";
     for (int i = 1; i < instr->param_count; i++) {
-        if (PRINT && i > 1)
-            std::cout << ", ";
         if (*reinterpret_cast<const char*>(__arg) == 'i') {
             __arg += 4;
             _S(x);
-            if (PRINT)
-                std::cout << x;
             args_to_put_on_stack.push_back(x);
         } else if (*reinterpret_cast<const char*>(__arg) == 'f') {
             __arg += 4;
             _f(x);
-            if (PRINT)
-                std::cout << x;
             args_to_put_on_stack.push_back(x);
         }
     } _args
 
     eclPushContext(cont);
-    cont->currentLocation.sub_id = fileManager->getSubId(sub);
+    cont->currentLocation.sub_id = fileManager->getSubId(sub.c_str());
     int i = 0;
     for (auto e : args_to_put_on_stack)
         cont->stack.data[cont->stack.stackOffset + i++] = e;
 
-    // PRINTING
-    if (PRINT)
-        std::cout << ")\n";
     _ret;
 
     _ins(12, jump) _S(offset) _f(time) _args /* OK */
@@ -98,11 +82,11 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
         _ret;
     }
 
-    _ins(15, callAsync) _noprint _z(sub)
+    _ins(15, callAsync) _z(sub)
 
         EclRunContext_t* c
         = new EclRunContext_t();
-    c->currentLocation.sub_id = fileManager->getSubId(sub);
+    c->currentLocation.sub_id = fileManager->getSubId(sub.c_str());
     c->difficultyMask = context.primaryContext.difficultyMask;
     EclRunContextList_t* l = asyncListHead;
     asyncListHead = new EclRunContextList_t();
@@ -111,37 +95,26 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
         asyncListHead->next->prev = asyncListHead;
     asyncListHead->entry = c;
 
-    // PRINTING
-    if (PRINT)
-        std::cout << "@" << sub << "(";
     for (int i = 1; i < instr->param_count; i++) {
-        if (PRINT && i > 1)
-            std::cout << ", ";
         if (*reinterpret_cast<const char*>(__arg) == 'i') {
             __arg += 4;
             _S(x);
-            if (PRINT)
-                std::cout << x;
             c->stack.data[c->stack.stackOffset + i - 1].asInt = x;
             c->stack.data[c->stack.stackOffset + i - 1].asFloat = x;
         } else if (*reinterpret_cast<const char*>(__arg) == 'f') {
             __arg += 4;
             _f(x);
-            if (PRINT)
-                std::cout << x;
             c->stack.data[c->stack.stackOffset + i - 1].asInt = x;
             c->stack.data[c->stack.stackOffset + i - 1].asFloat = x;
         }
     }
-    if (PRINT)
-        std::cout << ") async\n";
     _args;
 
-    _ins(16, callAsyncId) _noprint _z(sub) _S(id)
+    _ins(16, callAsyncId) _z(sub) _S(id)
 
         EclRunContext_t* c
         = new EclRunContext_t();
-    c->currentLocation.sub_id = fileManager->getSubId(sub);
+    c->currentLocation.sub_id = fileManager->getSubId(sub.c_str());
     c->difficultyMask = context.primaryContext.difficultyMask;
     c->asyncId = id;
     EclRunContextList_t* l = asyncListHead;
@@ -151,30 +124,19 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
         asyncListHead->next->prev = asyncListHead;
     asyncListHead->entry = c;
 
-    // PRINTING
-    if (PRINT)
-        std::cout << "@" << sub << "(";
     for (int i = 1; i < instr->param_count; i++) {
-        if (PRINT && i > 1)
-            std::cout << ", ";
         if (*reinterpret_cast<const char*>(__arg) == 'i') {
             __arg += 4;
             _S(x);
-            if (PRINT)
-                std::cout << x;
             c->stack.data[c->stack.stackOffset + i - 1].asInt = x;
             c->stack.data[c->stack.stackOffset + i - 1].asFloat = x;
         } else if (*reinterpret_cast<const char*>(__arg) == 'f') {
             __arg += 4;
             _f(x);
-            if (PRINT)
-                std::cout << x;
             c->stack.data[c->stack.stackOffset + i - 1].asInt = x;
             c->stack.data[c->stack.stackOffset + i - 1].asFloat = x;
         }
     }
-    if (PRINT)
-        std::cout << ") async " << id << "\n";
     _args;
 
     /////// OK FROM HERE /////////
@@ -223,7 +185,6 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
 
     _ins(22, debug22) _S(a) _z(b) _args
-    // std::cout << "debug22 on" << a << " : " << b << "\n";
     // NOPed in the code
 
     _ins(23, wait) _S(time) _args
@@ -233,8 +194,8 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     cont->time -= time;
 
     _ins(30, printf) _z(str) _args
-
-    // std::cout << str; // NOPed in the code
+    // NOPed in the code
+    
     _ins(31, unknown31)
     // NOPed in the code
 

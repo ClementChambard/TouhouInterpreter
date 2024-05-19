@@ -1,57 +1,56 @@
 #ifndef ANMFILE_H_
 #define ANMFILE_H_
 
-#include "./anmOpener.h"
 #include "./AnmVM.h"
 #include <map>
 #include <vector>
+#include <defines.h>
 #include <string>
 
-class AnmFile {
+namespace anm {
 
-    public:
-        AnmFile() {}
-        AnmFile(std::string const& filename, uint32_t slot);
-        void Open(std::string const& filename, uint32_t slot);
-        void Cleanup();
-        ~AnmFile();
-
-        AnmVM getPreloaded(size_t id) const;
-        int8_t* getScript(size_t id) const;
-        AnmSprite getSprite(size_t id) const;
-        uint32_t getTextureFromName(std::string const& name) const;
-        std::string const& getName() const { return name; }
-        size_t nbSprites() const { return sprites.size(); }
-        size_t nbScripts() const { return scripts.size(); }
-
-        void setSprite(AnmVM* vm, size_t sprite_id);
-
-        void copyFromLoaded(AnmVM* vm, int id);
-
-        void load_external_vm(AnmVM* vm, int id);
-        AnmID spawnVMExt(int id, float rot, glm::vec3 const& pos, int mode,
-                         int layer = -1, AnmVM** out_vm = nullptr);
-        AnmID createEffect(int id, int layer = -1, AnmVM** output = nullptr);
-        AnmID createEffectFront(int id, int layer = -1, AnmVM** output
-                                = nullptr);
-        AnmID createEffectPos(int id, float rot, glm::vec3 const& pos,
-                              int layer = -1, AnmVM** out_vm = nullptr);
-        AnmID new_vm_ui_back(int id, AnmVM** out_vm = nullptr);
-        AnmID create_child_vm(int id, AnmVM *parent, int mode);
-        AnmID new_root(int id, AnmVM *parent);
-
-        uint32_t getSlot() const { return slot; }
-
-    // private:
-        uint32_t slot = 0;
-        int32_t some_ctr = 0;
-        std::string name = "notLoaded";
-        std::map<std::string, uint32_t> textures;
-        std::vector<AnmSprite> sprites;
-        std::vector<AnmVM> preloaded;
-        std::vector<int8_t*> scripts;
-
-        friend class AnmManager;
+struct File {
+    File() {}
+    File(cstr filename, u32 slot);
+    void Open(cstr filename, u32 slot);
+    void Cleanup();
+    ~File();
+    
+    VM getPreloaded(usize id) const;
+    bytes getScript(usize id) const;
+    Sprite getSprite(usize id) const;
+    u32 getTextureFromName(cstr name) const;
+    cstr getName() const { return name; }
+    usize nbSprites() const { return sprites.size(); }
+    usize nbScripts() const { return scripts.size(); }
+    
+    void setSprite(VM* vm, usize sprite_id);
+    
+    void copyFromLoaded(VM* vm, i32 id);
+    
+    void load_external_vm(VM* vm, i32 id);
+    ID spawnVMExt(i32 id, f32 rot, glm::vec3 const& pos, i32 mode,
+                  i32 layer = -1, VM** out_vm = nullptr);
+    ID createEffect(i32 id, i32 layer = -1, VM** output = nullptr);
+    ID createEffectFront(i32 id, i32 layer = -1, VM** output
+                         = nullptr);
+    ID createEffectPos(i32 id, f32 rot, glm::vec3 const& pos,
+                       i32 layer = -1, VM** out_vm = nullptr);
+    ID new_vm_ui_back(i32 id, VM** out_vm = nullptr);
+    ID create_child_vm(i32 id, VM *parent, i32 mode);
+    ID new_root(i32 id, VM *parent);
+    
+    u32 getSlot() const { return slot; }
+    
+    u32 slot = 0;
+    i32 some_ctr = 0;
+    cstr name = nullptr;
+    std::map<std::string, u32> textures;
+    std::vector<Sprite> sprites;
+    std::vector<VM> preloaded;
+    std::vector<bytes> scripts;
 };
+
+} // namespace anm
 
 #endif // ANMFILE_H_

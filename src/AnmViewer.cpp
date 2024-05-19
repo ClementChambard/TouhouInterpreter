@@ -2,12 +2,12 @@
 #include "./AnmOpener/AnmManager.h"
 #include "./Player.h"
 #include "./Supervisor.h"
-#include "GlobalData.h"
 #include <imgui.h>
 #include <imguiW.hpp>
 
-#include <Engine.hpp>
-#include <NSEngine.h>
+#include <InputManager.h>
+#include <TextureManager.h>
+#include <NSEngine.hpp>
 #include <string>
 
 #include "./StdOpener/Stage.hpp"
@@ -21,7 +21,7 @@ float w = 200.f / 2;
 float bottom = 600.f / 2;
 int cam = 3;
 
-class ImGuiEventProcessor : public NSEngine::IEventProcessor {
+class ImGuiEventProcessor : public ns::IEventProcessor {
 public:
   ~ImGuiEventProcessor() override {}
   void ProcessEvent(SDL_Event *e, bool &noKeyboard, bool &noMouse) override {
@@ -41,14 +41,14 @@ AnmViewer::AnmViewer() {
   ImGui::CreateContext();
   ImGui_ImplOpenGL3_Init("#version 130");
   ImGui_ImplSDL2_InitForOpenGL(
-      NSEngine::getInstance()->window().getSdlWindow(),
-      NSEngine::getInstance()->window().getSdlGlContext());
+      ns::getInstance()->window().getSdlWindow(),
+      ns::getInstance()->window().getSdlGlContext());
   ImGuiIO &io = ImGui::GetIO();
   io.IniFilename = "";
   ImGui::StyleColorsDark();
   igep = new ImGuiEventProcessor();
-  NSEngine::engineData::eventProcessors.push_back(igep);
-  NSEngine::InputManager::SetAsEventProcessor();
+  ns::getInstance()->addEventProcessor(igep);
+  ns::InputManager::SetAsEventProcessor();
 }
 
 AnmViewer::~AnmViewer() {
@@ -64,7 +64,7 @@ bool AnmSlotSelector(const char *label, std::string *strval, int *selected) {
   bool changed = false;
   if (ImGui::BeginCombo(label, strval->c_str())) {
     for (int i = 0; i < 31; i++) {
-      std::string t = AnmManager::getLoaded(i)->getName();
+      std::string t = anm::getLoaded(i)->getName();
       if (t == "notLoaded")
         t = "-";
       t = std::to_string(i) + ": " + t;
@@ -81,7 +81,7 @@ bool AnmSlotSelector(const char *label, std::string *strval, int *selected) {
   return changed;
 }
 
-auto getSpriteRange(AnmFile *f, uint32_t texid) {
+auto getSpriteRange(anm::File *f, uint32_t texid) {
   struct rge {
     int first = -1;
     int last = -1;
@@ -190,7 +190,7 @@ void TextureViewerWindow(bool *open) {
     ImGui::End();
     return;
   }
-  AnmFile *f = AnmManager::getLoaded(selected);
+  anm::File *f = anm::getLoaded(selected);
   static int spriteId = 0;
   ImGui::InputInt("sprite id", &spriteId);
   if (spriteId < 0)
@@ -206,9 +206,9 @@ void TextureViewerWindow(bool *open) {
     }
   }
   ImGui::Text("%s", name.c_str());
-  auto t = NSEngine::TextureManager::GetTextureID(sp.texID);
+  auto t = ns::TextureManager::GetTextureID(sp.texID);
   int w, h;
-  NSEngine::TextureManager::GetTextureSize(sp.texID, w, h);
+  ns::TextureManager::GetTextureSize(sp.texID, w, h);
   static ImVec2 pos = {0.5, 0.5};
   static float zoom = 1;
   ImageViewerSprite(reinterpret_cast<ImTextureID>(t), ImVec2(w, h), &pos, &zoom,
@@ -219,7 +219,7 @@ void TextureViewerWindow(bool *open) {
 
 void AnmView::renderInList() {
   if (ok)
-    ok = AnmManager::isAlive(anmId) || vm;
+    ok = anm::isAlive(anmId) || vm;
   if (!ok) {
     windowOpen = false;
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 0, 0, 1.0));
@@ -228,8 +228,8 @@ void AnmView::renderInList() {
     return;
   }
   ImGui::PushID(("AnmId" + std::to_string(anmId)).c_str());
-  auto vm = this->vm ? this->vm : AnmManager::getVM(anmId);
-  auto name = AnmManager::getLoaded(vm->anm_loaded_index)->name.c_str();
+  auto vm = this->vm ? this->vm : anm::getVM(anmId);
+  auto name = anm::getLoaded(vm->anm_loaded_index)->name;
   if (parentId != 0)
     ImGui::Text("%s: script %d (%d->%d)", name, vm->script_id, anmId, parentId);
   else
@@ -238,7 +238,7 @@ void AnmView::renderInList() {
     windowOpen = !windowOpen;
   }
   if (!this->vm && (ImGui::SameLine(), ImGui::Button("X"))) {
-    AnmManager::deleteVM(anmId);
+    anm::deleteVM(anmId);
   }
   ImGui::PopID();
 }
@@ -278,8 +278,8 @@ void anms_window(bool *open) {
     ImGui::End();
     return;
   }
-  auto loaded = AnmManager::getLoaded(slot);
-  ImGui::Text("%s: %zd scripts", slotname.c_str(), loaded->nbScripts());
+  auto loaded = anm::getLoaded(slot);
+  ImGui::Text("%s: %llu scripts", slotname.c_str(), loaded->nbScripts());
   ImGui::InputInt("Script", &script);
   if (script < 0)
     script = 0;
@@ -292,7 +292,7 @@ void anms_window(bool *open) {
   ImGui::Checkbox("front", &front);
   if (ImGui::Button("Create")) {
     int mode = ui << 2 | front << 1;
-    int id = AnmManager::getLoaded(slot)->spawnVMExt(script, init_rot, init_pos,
+    int id = anm::getLoaded(slot)->spawnVMExt(script, init_rot, init_pos,
                                                      mode);
     ANM_VIEWER_PTR->anim(id);
   }
@@ -315,7 +315,7 @@ void anm_view_window(AnmView *v) {
   ImGui::PushID(("viewWin" + std::to_string(v->anmId)).c_str());
 
   ImGui::Text("Id: %d", v->anmId);
-  auto vm = AnmManager::getVM(v->anmId);
+  auto vm = anm::getVM(v->anmId);
   if (v->anmId == 0) vm = v->vm;
   if (!vm) {
     ImGui::PopID();
@@ -334,7 +334,7 @@ void anm_view_window(AnmView *v) {
   if (ImGui::Button("Reset")) {
     int id = vm->script_id;
     vm->reset();
-    AnmManager::getLoaded(vm->anm_loaded_index)->copyFromLoaded(vm, id);
+    anm::getLoaded(vm->anm_loaded_index)->copyFromLoaded(vm, id);
     v->pauseInstr = -1;
   }
   ImGui::SameLine();
@@ -358,7 +358,7 @@ void anm_view_window(AnmView *v) {
   ImGui::SameLine();
   ImGui::InputInt("sprite_id", &spid);
   if (spid != vm->sprite_id)
-    AnmManager::getLoaded(vm->anm_loaded_index)->setSprite(vm, spid);
+    anm::getLoaded(vm->anm_loaded_index)->setSprite(vm, spid);
   int layid = vm->layer;
   ImGui::InputInt("layer_id", &layid);
   if (static_cast<unsigned int>(layid) != vm->layer)
@@ -475,7 +475,7 @@ void anm_view_window(AnmView *v) {
       ImGui::PushID(std::to_string(l->value->id.val).c_str());
       ImGui::Text(
           "%s: script %d (%d)",
-          AnmManager::getLoaded(l->value->anm_loaded_index)->name.c_str(),
+          anm::getLoaded(l->value->anm_loaded_index)->name,
           l->value->script_id, l->value->id.val);
       ImGui::SameLine();
       if (ImGui::Button("see")) {
@@ -542,7 +542,7 @@ void anm_view_window(AnmView *v) {
   ImGui::PushID(("spriteWin" + std::to_string(v->anmId)).c_str());
   auto sp = vm->getSprite();
   ImTextureID tex = reinterpret_cast<ImTextureID>(
-      NSEngine::TextureManager::GetTextureID(sp.texID));
+      ns::TextureManager::GetTextureID(sp.texID));
   ImGui::Image(tex, {sp.w, sp.h}, {sp.u1, sp.v1}, {sp.u2, sp.v2});
   ImGui::PopID();
   ImGui::End();
@@ -568,7 +568,7 @@ void set_camera_window(bool *open) {
     }
     ImGui::EndCombo();
   }
-  Camera_t* camera;
+  anm::Camera_t* camera;
   if (cam < 4) camera = &SUPERVISOR.cameras[cam];
   else camera = &STAGE_PTR->inner.camera;
   ImGui::InputFloat3("position", &camera->position[0]);
@@ -590,14 +590,14 @@ void openedFiles_window(bool *open) {
                           ImVec2(ImGui::GetContentRegionAvail().x, 400))) {
     for (int i = 0; i < 31; i++) {
       ImGui::PushID(("slot_" + std::to_string(i)).c_str());
-      auto loaded = AnmManager::getLoaded(i);
-      if (!loaded || loaded->getName() == "notLoaded") {
+      auto loaded = anm::getLoaded(i);
+      if (!loaded || strcmp(loaded->getName(), "notLoaded") == 0) {
         ImGui::Text("%02d: Empty", i);
         ImGui::SameLine();
         if (ImGui::Button("Open")) {
           toOpen = i;
           ImGui::OpenPopup("PopupOpenAnm");
-          std::cout << "Open" << i << "\n";
+          ns::info("Open", i);
         }
         if (ImGui_BeginPopupCenter("PopupOpenAnm")) {
           ImGui::Text("Open anm on slot %d.", toOpen);
@@ -610,7 +610,7 @@ void openedFiles_window(bool *open) {
                 s[s.size() - 3] != 'a' || s[s.size() - 4] != '.') {
               s += ".anm";
             }
-            AnmManager::LoadFile(toOpen, s);
+            anm::loadFile(toOpen, strdup(s.c_str())); // XXX: NEVER FREE THIS STRING: LEAK
             buf[0] = 0;
             toOpen = -1;
             ImGui::CloseCurrentPopup();
@@ -619,7 +619,7 @@ void openedFiles_window(bool *open) {
         }
       } else {
         auto name = loaded->getName();
-        ImGui::Text("%02d: %s    %zd sprites, %zd scripts", i, name.c_str(),
+        ImGui::Text("%02d: %s    %lld sprites, %lld scripts", i, name,
                     loaded->nbSprites(), loaded->nbScripts());
         ImGui::SameLine();
         if (ImGui::Button("X")) {
@@ -693,7 +693,7 @@ void main_menu_window(bool *open) {
     screff_w_open = !screff_w_open;
   }
 
-  ImGui::InputFloat("RESOLUTION_MULT", &RESOLUTION_MULT);
+  ImGui::InputFloat("RESOLUTION_MULT", &anm::RESOLUTION_MULT);
   if (ImGui::Button("ADD_ARCADE")) {
       ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_0);
       ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_1);
@@ -725,7 +725,7 @@ void AnmViewer::on_tick() {
   for (auto &v : m_anmviews) {
     anm_view_window(&v);
     if (v.ok && v.followPlayer && PLAYER_PTR) {
-      auto vm = AnmManager::getVM(v.anmId);
+      auto vm = anm::getVM(v.anmId);
       if (vm)
         vm->entity_pos = PLAYER_PTR->inner.pos;
     }

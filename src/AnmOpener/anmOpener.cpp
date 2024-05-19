@@ -3,10 +3,11 @@
 #include <cassert>
 #include <fstream>
 #include <string.h>
+#include <Error.h>
 
-namespace AnmOpener {
+namespace anm::opener {
 
-const std::vector<std::pair<uint32_t, std::string>> formats_v8 = {
+const std::vector<std::pair<u32, cstr>> formats_v8 = {
     { 0, "" }, // nop()
     { 1, "" }, // delete()
     { 2, "" }, // static()
@@ -147,20 +148,21 @@ const std::vector<std::pair<uint32_t, std::string>> formats_v8 = {
     { 0xffff, "" },
 };
 
-const std::vector<std::pair<uint32_t, std::string>>& getFormats() { return formats_v8; }
+const std::vector<std::pair<u32, cstr>>& getFormats() { return formats_v8; }
 
-float formatBpp(uint32_t format)
+float formatBpp(u32 format)
 {
-    if (format == FORMAT_GRAY8)
+    auto f = static_cast<format_t>(format);
+    if (f == format_t::GRAY8)
         return 1;
-    if (format == FORMAT_ARGB4444 || format == FORMAT_RGB565)
+    if (f == format_t::ARGB4444 || f == format_t::RGB565)
         return 2;
     return 4;
 }
 
-char* anm_get_name(anm_archive_t* archive, const char* name)
+pstr anm_get_name(anm_archive_t* archive, cstr name)
 {
-    char* other_name;
+    pstr other_name;
     for (auto s : archive->names)
         if (s == name)
             return s;
@@ -170,7 +172,7 @@ char* anm_get_name(anm_archive_t* archive, const char* name)
     return other_name;
 }
 
-anm_archive_t* anm_read_file(std::string filename)
+anm_archive_t* anm_read_file(cstr filename)
 {
 
     std::ifstream file(filename, std::ios::binary);
@@ -180,15 +182,15 @@ anm_archive_t* anm_read_file(std::string filename)
     std::streamoff fileSize = file.tellg();
     file.seekg(0, std::ios::beg);
     fileSize -= file.tellg();
-    unsigned char* buf = new unsigned char[fileSize];
-    file.read(reinterpret_cast<char*>(buf), fileSize);
+    bytes buf = new byte[fileSize];
+    file.read(reinterpret_cast<pstr>(buf), fileSize);
     file.close();
 
     anm_archive_t* archive = new anm_archive_t();
 
-    long file_size = archive->map_size = static_cast<long>(fileSize);
-    unsigned char* map_base;
-    unsigned char* map;
+    isize file_size = archive->map_size = static_cast<isize>(fileSize);
+    bytes map_base;
+    bytes map;
     archive->map = map_base = buf;
     map = map_base;
 
@@ -212,20 +214,20 @@ anm_archive_t* anm_read_file(std::string filename)
             (header->hasdata == 0 || (entry->name && entry->name[0] == '@')) == (header->thtxoffset == 0));
 
         if (header->sprites) {
-            uint32_t* sprite_offsets = reinterpret_cast<uint32_t*>(map + sizeof(*header));
-            for (uint32_t s = 0; s < header->sprites; s++) {
+            u32* sprite_offsets = reinterpret_cast<u32*>(map + sizeof(*header));
+            for (u32 s = 0; s < header->sprites; s++) {
                 entry->sprites.push_back(reinterpret_cast<sprite_t*>(map + sprite_offsets[s]));
             }
         }
 
         if (header->scripts) {
-            anm_offset_t* script_offsets = reinterpret_cast<anm_offset_t*>(map + sizeof(*header) + header->sprites * sizeof(uint32_t));
-            for (uint32_t s = 0; s < header->scripts; s++) {
+            anm_offset_t* script_offsets = reinterpret_cast<anm_offset_t*>(map + sizeof(*header) + header->sprites * sizeof(u32));
+            for (u32 s = 0; s < header->scripts; s++) {
                 anm_script_t* script = new anm_script_t();
                 script->offset = &(script_offsets[s]);
 
                 unsigned char* limit = map;
-                if (s < static_cast<uint32_t>(header->scripts - 1))
+                if (s < static_cast<u32>(header->scripts - 1))
                     limit += script_offsets[s + 1].offset;
                 else if (header->thtxoffset)
                     limit += header->thtxoffset;
@@ -253,8 +255,13 @@ anm_archive_t* anm_read_file(std::string filename)
         if (header->hasdata) {
             thtx_header_t* thtx = entry->thtx = reinterpret_cast<thtx_header_t*>(map + header->thtxoffset);
             assert(strncmp(thtx->magic, "THTX", 4) == 0);
-            assert(
-                (thtx->zero == 0) && (thtx->w * thtx->h * formatBpp(thtx->format) <= thtx->size) && (thtx->format == FORMAT_BGRA8888 || thtx->format == FORMAT_RGB565 || thtx->format == FORMAT_ARGB4444 || thtx->format == FORMAT_GRAY8 || thtx->format == static_cast<uint16_t>(FORMAT_RGBA8888)));
+            assert(thtx->zero == 0);
+            assert(thtx->w * thtx->h * formatBpp(thtx->format) <= thtx->size);
+            assert(thtx->format == static_cast<u16>(format_t::BGRA8888) ||
+                   thtx->format == static_cast<u16>(format_t::RGB565) ||
+                   thtx->format == static_cast<u16>(format_t::ARGB4444) ||
+                   thtx->format == static_cast<u16>(format_t::GRAY8) ||
+                   thtx->format == static_cast<u16>(format_t::RGBA8888));
             entry->data = thtx->data;
         }
 
@@ -297,10 +304,10 @@ void anm_free(anm_archive_t* anm)
     delete anm;
 }
 
-void util_total_entry_size(const anm_entry_t* entry, unsigned int& widthptr, unsigned int& heightptr)
+void util_total_entry_size(const anm_entry_t* entry, u32& widthptr, u32& heightptr)
 {
-    unsigned int width = 0;
-    unsigned int height = 0;
+    u32 width = 0;
+    u32 height = 0;
 
     if (!entry->header->hasdata)
         return;
@@ -315,21 +322,21 @@ void util_total_entry_size(const anm_entry_t* entry, unsigned int& widthptr, uns
 
 void image_data_from_format(anm_entry_t* entry, image_t& img)
 {
-    img.data = new unsigned char[img.width * img.height * 4];
+    img.data = new byte[img.width * img.height * 4];
 
     struct pixel_t {
-        unsigned char r = 0;
-        unsigned char g = 0;
-        unsigned char b = 0;
-        unsigned char a = 0;
-        pixel_t(uint32_t i)
+        u8 r = 0;
+        u8 g = 0;
+        u8 b = 0;
+        u8 a = 0;
+        pixel_t(u32 i)
         {
             r = (0xff & (i >> 0));
             g = (0xff & (i >> 8));
             b = (0xff & (i >> 16));
             a = (0xff & (i >> 24));
         }
-        pixel_t(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+        pixel_t(u8 r, u8 g, u8 b, u8 a)
         {
             this->r = r;
             this->g = g;
@@ -346,28 +353,32 @@ void image_data_from_format(anm_entry_t* entry, image_t& img)
     };
 
     format_t format = (format_t)entry->thtx->format;
-    unsigned int pixels = (unsigned int)entry->thtx->w * entry->thtx->h;
-    unsigned char* data = entry->thtx->data;
+    u32 pixels = (u32)entry->thtx->w * entry->thtx->h;
+    bytes data = entry->thtx->data;
     std::vector<pixel_t> pixelvec(pixels);
+    u16* asu16 = reinterpret_cast<u16*>(data);
 
-    if (format == FORMAT_GRAY8) {
-        for (unsigned int i = 0; i < pixels; i++)
+    switch (format) {
+    case format_t::GRAY8:
+        for (u32 i = 0; i < pixels; i++)
             pixelvec[i] = { data[i], data[i], data[i], 0xff };
-    } else if (format == FORMAT_BGRA8888) {
-        for (unsigned int i = 0; i < pixels; i++)
+        break;
+    case format_t::BGRA8888:
+        for (u32 i = 0; i < pixels; i++)
             pixelvec[i] = { data[i * 4 + 2], data[i * 4 + 1], data[i * 4 + 0], data[i * 4 + 3] };
-    } else if (format == FORMAT_ARGB4444) {
-        for (unsigned int i = 0; i < pixels; i++) {
+        break;
+    case format_t::ARGB4444:
+        for (u32 i = 0; i < pixels; i++) {
             /* Extends like this: 0x0 -> 0x00, 0x3 -> 0x33, 0xf -> 0xff.
              * It's required for proper alpha. */
-            uint32_t out = ((data[i * sizeof(uint16_t) + 1] & 0xf0) << 24 & 0xf0000000)
-                | ((data[i * sizeof(uint16_t) + 1] & 0xf0) << 20 & 0x0f000000)
-                | ((data[i * sizeof(uint16_t) + 0] & 0x0f) << 20 & 0xf00000)
-                | ((data[i * sizeof(uint16_t) + 0] & 0x0f) << 16 & 0x0f0000)
-                | ((data[i * sizeof(uint16_t) + 0] & 0xf0) << 8 & 0xf000)
-                | ((data[i * sizeof(uint16_t) + 0] & 0xf0) << 4 & 0x0f00)
-                | ((data[i * sizeof(uint16_t) + 1] & 0x0f) << 4 & 0xf0)
-                | ((data[i * sizeof(uint16_t) + 1] & 0x0f) << 0 & 0x0f);
+            u32 out = ((data[i * sizeof(u16) + 1] & 0xf0) << 24 & 0xf0000000)
+                | ((data[i * sizeof(u16) + 1] & 0xf0) << 20 & 0x0f000000)
+                | ((data[i * sizeof(u16) + 0] & 0x0f) << 20 & 0xf00000)
+                | ((data[i * sizeof(u16) + 0] & 0x0f) << 16 & 0x0f0000)
+                | ((data[i * sizeof(u16) + 0] & 0xf0) << 8 & 0xf000)
+                | ((data[i * sizeof(u16) + 0] & 0xf0) << 4 & 0x0f00)
+                | ((data[i * sizeof(u16) + 1] & 0x0f) << 4 & 0xf0)
+                | ((data[i * sizeof(u16) + 1] & 0x0f) << 0 & 0x0f);
 
             pixelvec[i] = out;
             // pixelvec[i].a = (float)(0x0f & data[2*i+1]); pixelvec[i].a += (pixelvec[i].a << 4);
@@ -375,43 +386,42 @@ void image_data_from_format(anm_entry_t* entry, image_t& img)
             // pixelvec[i].g = (float)(0x0f & data[2*i+0]); pixelvec[i].g += (pixelvec[i].g << 4);
             // pixelvec[i].b = (float)(0xf0 & data[2*i+0]); pixelvec[i].b += (pixelvec[i].b >> 4);
         }
-    } else if (format == FORMAT_RGB565) {
-        uint16_t* u16 = reinterpret_cast<uint16_t*>(data);
-        for (unsigned int i = 0; i < pixels; i++) {
+        break;
+    case format_t::RGB565:
+        for (u32 i = 0; i < pixels; i++) {
             /* Bit-extends channels: 00001b -> 00001111b. */
             /*   pixelvec[i].a = 0xff;
                pixelvec[i].r = data[2*i] & 0b11111000;
                pixelvec[i].g = (((data[2*i] & 0b00000111) << 3) + ((data[2*i+1] & 0b11100000) >> 5)) * 4;
                pixelvec[i].b = (data[2*i+1] & 0b00011111) * 8;*/
-            uint32_t out = 0xff000000
-                | ((u16[i] & 0x001f) << 19 & 0xf80000)
-                | ((u16[i] & 0x0001) << 16 & 0x040000)
-                | ((u16[i] & 0x0001) << 16 & 0x020000)
-                | ((u16[i] & 0x0001) << 16 & 0x010000)
+            u32 out = 0xff000000
+                | ((asu16[i] & 0x001f) << 19 & 0xf80000)
+                | ((asu16[i] & 0x0001) << 16 & 0x040000)
+                | ((asu16[i] & 0x0001) << 16 & 0x020000)
+                | ((asu16[i] & 0x0001) << 16 & 0x010000)
 
-                | ((u16[i] & 0x07e0) << 5 & 0x00fc00)
-                | ((u16[i] & 0x0020) << 4 & 0x000200)
-                | ((u16[i] & 0x0020) << 3 & 0x000100)
+                | ((asu16[i] & 0x07e0) << 5 & 0x00fc00)
+                | ((asu16[i] & 0x0020) << 4 & 0x000200)
+                | ((asu16[i] & 0x0020) << 3 & 0x000100)
 
-                | ((u16[i] & 0xf800) >> 8 & 0x0000f8)
-                | ((u16[i] & 0x0800) >> 9 & 0x000004)
-                | ((u16[i] & 0x0800) >> 10 & 0x000002)
-                | ((u16[i] & 0x0800) >> 11 & 0x000001);
+                | ((asu16[i] & 0xf800) >> 8 & 0x0000f8)
+                | ((asu16[i] & 0x0800) >> 9 & 0x000004)
+                | ((asu16[i] & 0x0800) >> 10 & 0x000002)
+                | ((asu16[i] & 0x0800) >> 11 & 0x000001);
 
             pixelvec[i] = out;
         }
-    } else if (format == FORMAT_RGBA8888) {
-        for (unsigned int i = 0; i < pixels; i++)
+        break;
+    case format_t::RGBA8888:
+        for (u32 i = 0; i < pixels; i++)
             pixelvec[i] = { data[4 * i], data[4 * i + 1], data[4 * i + 2], data[4 * 1 + 3] };
-    } else {
-        std::cerr << "unknown format: " << format << "\n";
-        abort();
+        break;
     }
 
-    for (unsigned int yy = 0; yy < img.height; yy++)
-        for (unsigned int xx = 0; xx < img.width; xx++) {
-            unsigned int posOut = (xx + img.width * yy) * 4;
-            unsigned int posIn = (xx - entry->header->x) + entry->thtx->w * (yy - entry->header->y);
+    for (u32 yy = 0; yy < img.height; yy++)
+        for (u32 xx = 0; xx < img.width; xx++) {
+            u32 posOut = (xx + img.width * yy) * 4;
+            u32 posIn = (xx - entry->header->x) + entry->thtx->w * (yy - entry->header->y);
             pixel_t p = (yy < entry->header->y || xx < entry->header->x) ? pixel_t({ 0xff, 0xff, 0xff, 0xff }) : pixelvec[posIn];
             img.data[posOut + 0] = p.r;
             img.data[posOut + 1] = p.g;
@@ -426,7 +436,7 @@ image_t anm_get_image(anm_entry_t* entry)
 
     image.width = 0;
     image.height = 0;
-    image.format = FORMAT_RGBA8888;
+    image.format = format_t::RGBA8888;
     image.data = nullptr;
 
     util_total_entry_size(entry, image.width, image.height);
@@ -439,39 +449,8 @@ image_t anm_get_image(anm_entry_t* entry)
     return image;
 }
 
-void display_img(image_t* img)
-{
-    for (unsigned int i = 0; i < img->height; i++) {
-        for (unsigned int j = 0; j < img->width; j++) {
-            unsigned char r = img->data[(i * img->width + j) * 4 + 0];
-            unsigned char g = img->data[(i * img->width + j) * 4 + 1];
-            unsigned char b = img->data[(i * img->width + j) * 4 + 2];
-            unsigned char a = img->data[(i * img->width + j) * 4 + 3];
-            unsigned char gray = 0.299 * r + 0.587 * g + 0.114 * b;
-            gray *= a;
-            if (gray < 32)
-                std::cout << ' ';
-            if (gray >= 32 && gray < 64)
-                std::cout << '.';
-            if (gray >= 64 && gray < 96)
-                std::cout << ',';
-            if (gray >= 96 && gray < 128)
-                std::cout << "°";
-            if (gray >= 128 && gray < 160)
-                std::cout << '+';
-            if (gray >= 160 && gray < 192)
-                std::cout << '*';
-            if (gray >= 192 && gray < 224)
-                std::cout << 'X';
-            if (gray >= 224)
-                std::cout << '#';
-        }
-        std::cout << '\n';
-    }
-}
-
 #define FIND_FORMAT_ERROR "FORMAT-NULL-ERROR"
-const std::string find_format(const std::vector<std::pair<uint32_t, std::string>>& fmts, uint32_t id)
+cstr find_format(const std::vector<std::pair<u32, cstr>>& fmts, u32 id)
 {
     for (size_t i = 0; i < fmts.size(); i++) {
         if (fmts[i].first == id)
@@ -480,49 +459,11 @@ const std::string find_format(const std::vector<std::pair<uint32_t, std::string>
     return FIND_FORMAT_ERROR;
 }
 
-void anm_entry_descriptor(anm_entry_t* entry, unsigned int& entry_num)
-{
-    if (entry == nullptr)
-        return;
-
-    std::cout << "ENTRY #" << entry_num++ << ", VERSION " << entry->header->version << "\n";
-
-    std::cout << "Name: " << entry->name << "\n";
-    if (entry->name2)
-        std::cout << "Name2: " << entry->name2 << "\n";
-    std::cout << "Format: " << entry->header->format << "\n";
-    std::cout << "Width: " << entry->header->w << "\n";
-    std::cout << "Height: " << entry->header->h << "\n";
-    if (entry->header->x != 0)
-        std::cout << "X-Offset: " << entry->header->x << "\n";
-    if (entry->header->y != 0)
-        std::cout << "Y-Offset: " << entry->header->y << "\n";
-    if (entry->header->zero1 != 0)
-        std::cout << "Zero1: " << entry->header->zero1 << "\n";
-    std::cout << "MemoryPriority: " << entry->header->memorypriority << "\n";
-    std::cout << "LowResScale: " << entry->header->lowresscale << "\n";
-    if (entry->header->hasdata) {
-        std::cout << "HasData: " << entry->header->hasdata << "\n";
-        std::cout << "THTX-Size: " << entry->thtx->size << "\n";
-        std::cout << "THTX-Format: " << entry->thtx->format << "\n";
-        std::cout << "THTX-Width: " << entry->thtx->w << "\n";
-        std::cout << "THTX-Height: " << entry->thtx->h << "\n";
-        std::cout << "THTX-Zero: " << entry->thtx->zero << "\n";
-    }
-}
-
-void anm_sprite_descriptor(sprite_t* sprite)
-{
-    if (sprite == nullptr)
-        return;
-    std::cout << "Sprite: " << sprite->id << " " << sprite->w << "*" << sprite->h << "+" << sprite->x << "+" << sprite->y << "\n";
-}
-
 std::vector<anm_instr_arg_t> anm_instr_get_args(anm_instr_t* instr)
 {
-    const std::string format = find_format(formats_v8, instr->type);
-    if (format == FIND_FORMAT_ERROR) {
-        std::cerr << "id " << instr->type << " was not found in the format table\n";
+    cstr format = find_format(formats_v8, instr->type);
+    if (strcmp(format, FIND_FORMAT_ERROR) == 0) {
+        ns::error("id", instr->type, "was not found in the format table");
         abort();
     }
     std::vector<anm_instr_arg_t> args;
@@ -535,49 +476,4 @@ std::vector<anm_instr_arg_t> anm_instr_get_args(anm_instr_t* instr)
     return args;
 }
 
-void anm_script_descriptor(anm_script_t* script)
-{
-    if (script == nullptr)
-        return;
-
-    std::cout << "Script: " << script->offset->id << "\n";
-
-    unsigned int instr_num = 0;
-
-    for (auto instr : script->instrs) {
-
-        std::cout << "Instruction #" << instr_num++ << ": " << instr->time << " " << instr->param_mask << " " << instr->type;
-        auto args = anm_instr_get_args(instr);
-
-        for (auto arg : args) {
-            if (arg.type == 'S')
-                std::cout << " " << arg.val.S;
-            else
-                std::cout << " " << arg.val.f;
-        }
-
-        std::cout << "\n";
-    }
-
-    std::cout << "\n";
-}
-
-void anm_dump(const anm_archive_t* anm) {
-    unsigned int entry_num = 0;
-
-    for (auto entry : anm->entries) {
-
-        anm_entry_descriptor(entry, entry_num);
-        std::cout << "\n";
-
-        for (auto sprite : entry->sprites)
-            anm_sprite_descriptor(sprite);
-        std::cout << "\n";
-
-        for (auto script : entry->scripts)
-            anm_script_descriptor(script);
-        std::cout << "\n";
-    }
-}
-
-}
+} // namespace anm::opener

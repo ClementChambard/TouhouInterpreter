@@ -1,6 +1,6 @@
 #include "./Hardcoded.h"
 #include <fstream>
-#include <iostream>
+#include <Error.h>
 
 Json::Value HARDCODED_DATA;
 Json::Value HARDCODED_DATA_BASE;
@@ -45,10 +45,10 @@ void Hardcoded_Load() {
     std::ifstream file("hardcoded.json");
 
     if (file.fail()) {
-        std::cout << "resulting to superfile \n";
+        ns::warning("no hardcoded data in pwd: checking in parend directory");
         file.open("../hardcoded.json");
         if (file.fail()) {
-            std::cout << "hardcoded data not found\n";
+            ns::error("hardcoded data not found");
             return;
         }
         Json::Reader reader;

@@ -1,25 +1,25 @@
 #ifndef FOG_INCLUDED_H
 #define FOG_INCLUDED_H
 
-#include <cstdint>
+#include <defines.h>
 #include <glm/fwd.hpp>
-#include "AnmOpener/AnmManager.h"
 #include "AnmOpener/AnmVM.h"
+#include "AnmOpener/RenderVertex.hpp"
 
 struct Fog_t {
-    explicit Fog_t(int i);
+    explicit Fog_t(i32 i);
     ~Fog_t();
 
-    void reset_area(float some_x, float some_y, float width, float height);
+    void reset_area(f32 some_x, f32 some_y, f32 width, f32 height);
 
     void set_vm_vertices();
 
-    int32_t vm_count = 0;
-    int32_t vertex_count = 0;
-    int32_t anmid = 0;
-    AnmID* anmid_array = nullptr;
-    AnmVM** vm_array = nullptr;
-    RenderVertex_t* vertex_array = nullptr;
+    i32 vm_count = 0;
+    i32 vertex_count = 0;
+    i32 anmid = 0;
+    anm::ID* anmid_array = nullptr;
+    anm::VM** vm_array = nullptr;
+    anm::RenderVertex_t* vertex_array = nullptr;
     glm::vec3* pos_array = nullptr;
 };
 

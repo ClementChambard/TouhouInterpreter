@@ -14,7 +14,6 @@
 #include "../Gui.hpp"
 #include "../Spellcard.h"
 #include <math/Random.h>
-#define PRINT false
 inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _insNop
 #endif
@@ -33,7 +32,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.flags |= n;
     if (enemy.flags & 0x20) {
       for (int i = 0; i < 16; i++) {
-        auto vm = AnmManager::getVM(enemy.anmIds[i]);
+        auto vm = anm::getVM(enemy.anmIds[i]);
         if (!vm) continue;
         vm->clear_flag_1_rec();
       }
@@ -43,7 +42,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.flags &= (~n);
     if (!(enemy.flags & 0x20)) {
       for (int i = 0; i < 16; i++) {
-        auto vm = AnmManager::getVM(enemy.anmIds[i]);
+        auto vm = anm::getVM(enemy.anmIds[i]);
         if (!vm) continue;
         vm->set_flag_1_rec();
       }
@@ -98,7 +97,13 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
       enemy.interrupts[slot].life = hp;
       // if (hp < 0) break;
       enemy.interrupts[slot].time = t;
-      enemy.interrupts[slot].subNext = enemy.interrupts[slot].subTimeout = sub;
+      assert(sub.length() < 0x40);
+      for (usize i = 0; i < sub.length(); i++) {
+        enemy.interrupts[slot].subNext[i] = sub[i];
+        enemy.interrupts[slot].subTimeout[i] = sub[i];
+      }
+      enemy.interrupts[slot].subNext[sub.length()] = 0;
+      enemy.interrupts[slot].subTimeout[sub.length()] = 0;
       // break;
     // }
     // if (GLOBALS.inner.STAGE_NUM == 7 && 0x28 >= GLOBALS.inner.CURRENT_CHAPTER) {
@@ -123,7 +128,6 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     new ScreenEffect(1, time, start_str, end_str, 0, 0x55);
 
     _ins(518, dialogueRead) _S(i) _args
-    if (i < 0) std::cout << "DIALOG(" << i << "): no negative dialog yet";
     // if ((i == -1) || (i == -3)) {
     //     if (((GLOBALS.FLAGS & 0x30) == 0x20) &&
     //          (GAME_THREAD_PTR->field18_0xa8 == 0)) {
@@ -204,7 +208,11 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
 
     _ins(521, setTimeout) _S(slot) _z(sub) _args
-    enemy.interrupts[slot].subTimeout = sub;
+    assert(sub.length() < 0x40);
+    for (usize i = 0; i < sub.length(); i++) {
+        enemy.interrupts[slot].subTimeout[i] = sub[i];
+    }
+    enemy.interrupts[slot].subTimeout[0] = 0;
 
     _ins(522, spellEx) _S(i) _S(t) _S(ty) _z(name) _args
     Spellcard::GetInstance()
@@ -294,7 +302,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(543, unknown543) _args
     SPELLCARD_PTR->flags |= 0x10;
-    AnmManager::deleteVM(SPELLCARD_PTR->spell_circle_anmid);
+    anm::deleteVM(SPELLCARD_PTR->spell_circle_anmid);
     SPELLCARD_PTR->spell_circle_anmid = 0;
 
     _ins(544, unknown544) _S(a) _args _alert
@@ -344,7 +352,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
             enm->enemy.__bool_cleared_by_ecl_570 = 0;
             enm->die();
             for (int i = 0; i < 0x10; i++)
-                AnmManager::deleteVM(enm->enemy.anmIds[i]);
+                anm::deleteVM(enm->enemy.anmIds[i]);
             enm->enemy.flags |= 0x2000000;
         }
     }
@@ -366,10 +374,14 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     var = EnemyManager::GetInstance()->EnmFind(id) != nullptr;
 
     _ins(556, setDeath) _z(sub) _args
-    enemy.setDeath = sub;
+    assert(sub.length() < 0x40);
+    for (usize i = 0; i < sub.length(); i++) {
+        enemy.setDeath[i] = sub[i];
+    }
+    enemy.setDeath[0] = 0;
 
     _ins(557, fogTime) _S(t) _S(m) _S(c) _f(s) _f(e) _args
-    CameraSky_t cs;
+    anm::CameraSky_t cs;
     cs.init(s, e, c & 0xff,
         (c >> 8) & 0xff, (c >> 0x10) & 0xff, (c >> 0x18) & 0xff);
     STAGE_PTR->inner.camera_sky_i.start(STAGE_PTR->inner.camera.sky, cs, t, m);
@@ -445,9 +457,9 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
         enemy.lastDmgPos.x = 0.0;
         enemy.lastDmgPos.y = 192.0;
         enemy.__bool_cleared_by_ecl_570 = 0;
-        enemy.setDeath = "";
+        enemy.setDeath[0] = 0;
         die();
-        for (int i = 0; i < 16; i++) AnmManager::deleteVM(enemy.anmIds[i]);
+        for (int i = 0; i < 16; i++) anm::deleteVM(enemy.anmIds[i]);
         enemy.flags |= 0x2000000;
       }
     }

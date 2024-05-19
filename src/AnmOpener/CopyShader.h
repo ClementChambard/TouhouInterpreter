@@ -3,7 +3,9 @@
 
 #include <ShaderProgram.h>
 
-class CopyShader : public NSEngine::ShaderProgram {
+namespace anm {
+
+class CopyShader : public ns::ShaderProgram {
     public:
         CopyShader() : ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH) { bindAttributes(); getAllUniformLocation(); };
 
@@ -20,5 +22,7 @@ class CopyShader : public NSEngine::ShaderProgram {
         GLuint location_tint = 0;
         glm::vec4 last_tint{};
 };
+
+} // namespace anm
 
 #endif

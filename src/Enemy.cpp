@@ -12,7 +12,8 @@
 #include "Bomb.hpp"
 #include <DrawFuncs.h>
 #include <math/Random.h>
-#include <NSEngine.h>
+
+namespace ns { extern int DEBUG_LAYER_ID; }
 
 Enemy::Enemy() {
     fileManager = EclFileManager::GetInstance();
@@ -30,14 +31,14 @@ Enemy::~Enemy() {
       ENEMY_MANAGER_PTR->boss_ids[enemy.ownBossId] = 0;
     }
     for (int i = 0; i < 16; i++)
-        AnmManager::deleteVM(enemy.anmIds[i].val);
+        anm::deleteVM(enemy.anmIds[i].val);
     /* Clear async list */
     clear_async_contexts();
     ENEMY_MANAGER_PTR->enemy_count_real--;
     if (enemy.fog.fog_ptr) delete enemy.fog.fog_ptr;
 }
 
-void Enemy::Init(std::string const& sub) {
+void Enemy::Init(cstr sub) {
     eclContextInit(&context.primaryContext, fileManager->getSubId(sub));
 }
 
@@ -61,8 +62,8 @@ void EnemyDrop_t::eject_all_drops(glm::vec3 const& pos) {
 }
 
 void Enemy::DebugDraw() {
-    NSEngine::draw_set_layer(NSEngine::engineData::debugLayer);
-    NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x,
+    ns::draw_set_layer(ns::DEBUG_LAYER_ID);
+    ns::draw_rectangle_rotated_color(enemy.final_pos.pos.x,
         -enemy.final_pos.pos.y, enemy.hurtbox_size.x, enemy.hurtbox_size.y,
         -enemy.rotation, { 255, 0, 255, 90 }, { 255, 0, 255, 90 },
         { 255, 0, 255, 90 }, { 255, 0, 255, 90 });
@@ -70,18 +71,18 @@ void Enemy::DebugDraw() {
     float wt = 64;
     float ht = 4;
     float y = -16;
-    NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x,
+    ns::draw_rectangle_rotated_color(enemy.final_pos.pos.x,
         -enemy.final_pos.pos.y + y, wt, ht, 0, { 0, 0, 0, 255 },
         { 0, 0, 0, 255 }, { 0, 0, 0, 255 }, { 0, 0, 0, 255 });
     float w = (enemy.life.current / static_cast<float>(enemy.life.max)) * wt;
     float x = -(wt - w) / 2;
-    NSEngine::draw_rectangle_rotated_color(enemy.final_pos.pos.x + x,
+    ns::draw_rectangle_rotated_color(enemy.final_pos.pos.x + x,
         -enemy.final_pos.pos.y + y, w, ht, 0, { 255, 0, 0, 255 },
         { 255, 0, 0, 255 }, { 255, 0, 0, 255 }, { 255, 0, 0, 255 });
     // if (0 && enemy.moveLimitSize.x > 0)
     //{
-    // NSEngine::draw_set_color({255,255,0,255});
-    // NSEngine::draw_rectangle(enemy.moveLimitPos.x-enemy.moveLimitSize.x/2,
+    // ns::draw_set_color({255,255,0,255});
+    // ns::draw_rectangle(enemy.moveLimitPos.x-enemy.moveLimitSize.x/2,
     // -enemy.moveLimitPos.y+enemy.moveLimitSize.y/2,
     // enemy.moveLimitPos.x+enemy.moveLimitSize.x/2,
     // -enemy.moveLimitPos.y-enemy.moveLimitSize.y/2);
@@ -157,7 +158,7 @@ int EnemyData::step_interpolators() {
 
     calc_final_pos();
     // update anm main
-    AnmVM* vm0 = nullptr;
+    anm::VM* vm0 = nullptr;
     if ((flags & 0x100000U) != 0) {
         int dir = final_pos.velocity.x > 0.03;
         if (final_pos.velocity.x < -0.03)
@@ -175,14 +176,14 @@ int EnemyData::step_interpolators() {
                 }
             }
 
-            vm0 = AnmManager::getVM(anmIds[0].val);
+            vm0 = anm::getVM(anmIds[0].val);
             if (vm0 == nullptr) {
                 anmIds[0].val = 0;
             }
             glm::vec3 pos = { 0, 0, 0 };
             if (vm0) {
                 pos = vm0->pos;
-                AnmManager::deleteVM(anmIds[0].val);
+                anm::deleteVM(anmIds[0].val);
                 anmIds[0].val = 0;
             }
             anmIds[0] = ENEMY_MANAGER_PTR->loadedAnms[anm0anmID]->spawnVMExt(anm0scr + scr, 0, pos, 8, anmLayers + 7);
@@ -191,7 +192,7 @@ int EnemyData::step_interpolators() {
     }
 
     // update sprite size
-    vm0 = AnmManager::getVM(anmIds[0].val);
+    vm0 = anm::getVM(anmIds[0].val);
     if (vm0) {
         auto s = vm0->getSprite();
         finalSpriteSize.x = fabs(s.w * vm0->scale.x);
@@ -227,17 +228,17 @@ int Enemy::die() {
                                         enemy.lastDmgPos.y);
     // ENEMY_MANAGER_PTR->field_0x190 = rot_z;
     if (enemy.deathScr >= 0) {
-        AnmManager::getLoaded(enemy.deathAnm)
+        anm::getLoaded(enemy.deathAnm)
             ->createEffectPos(enemy.deathScr, rot_z, enemy.final_pos.pos, 3);
     }
 
     enemy.drops.eject_all_drops(enemy.final_pos.pos);
-    if (enemy.setDeath != "") {
+    if (*enemy.setDeath) {
         clear_async_contexts();
         reset_ecl();
         set_sub(enemy.setDeath);
         ecl_run(0.0);
-        enemy.setDeath = "";
+        enemy.setDeath[0] = 0;
     }
 
     if (onDeath)
@@ -280,7 +281,7 @@ void Enemy::reset_ecl() {
     return;
 }
 
-void Enemy::set_sub(std::string const& sub) {
+void Enemy::set_sub(cstr sub) {
     context.currentContext->currentLocation.sub_id = fileManager->getSubId(sub);
     context.currentContext->currentLocation.offset = 0;
     context.currentContext->time = 0.0;
@@ -291,19 +292,19 @@ int EnemyData::step_game_logic() {
     if (!(flags & 0x10000000)) {
         if ((BOMB_PTR->active != 1) && (flags & 0x20000000)) {
             anmSetMain = bombShieldOffAnmMain;
-            AnmManager::recreate_vm(anmIds[0], bombShieldOffAnmMain);
+            anm::recreate_vm(anmIds[0], bombShieldOffAnmMain);
             flags &= 0xdffffffe;
         }
     } else {
         if (BOMB_PTR->active == 1) {
             if (!((flags >> 0x1d) & 1)) {
                 anmSetMain = bombShieldOnAnmMain;
-                AnmManager::recreate_vm(anmIds[0], bombShieldOnAnmMain);
+                anm::recreate_vm(anmIds[0], bombShieldOnAnmMain);
                 flags |= 0x20000001;
             }
         } else if (((flags >> 0x1d) & 1)) {
             anmSetMain = bombShieldOffAnmMain;
-            AnmManager::recreate_vm(anmIds[0], bombShieldOffAnmMain);
+            anm::recreate_vm(anmIds[0], bombShieldOffAnmMain);
             flags &= 0xdffffffe;
         }
     }
@@ -352,7 +353,7 @@ int EnemyData::step_game_logic() {
                 }
                 __bool_cleared_by_ecl_570 = 0;
 
-                if (interrupts[i].subTimeout != "") {
+                if (*interrupts[i].subTimeout) {
                     timeInEcl = 0;
                     enemy->clear_async_contexts();
                     enemy->reset_ecl();
@@ -444,7 +445,7 @@ int EnemyData::step_game_logic() {
                         interrupts[i].life = -1;
                         timeInEcl = 0;
                         flags &= 0xfeffffff;
-                        if (interrupts[i].subNext != "") {
+                        if (*interrupts[i].subNext) {
                             enemy->clear_async_contexts();
                             enemy->reset_ecl();
                             enemy->set_sub(interrupts[i].subNext);
@@ -498,7 +499,7 @@ int EnemyData::step_game_logic() {
     if (timerCountDown > 0)
         timerCountDown--;
 
-    auto vm0 = AnmManager::getVM(anmIds[0]);
+    auto vm0 = anm::getVM(anmIds[0]);
     if (!vm0) {
         anmIds[0] = 0;
         return 0;
@@ -634,15 +635,15 @@ int EnemyData::update() {
 
         if (flags & 0x4000000) {
             for (size_t i = 0; i < 14; i++) {
-                if (auto vm = AnmManager::getVM(anmIds[i]); vm)
+                if (auto vm = anm::getVM(anmIds[i]); vm)
                     vm->entity_pos = final_pos.pos;
             }
         } else {
             for (size_t i = 0; i < 14; i++) {
-                if (auto vm = AnmManager::getVM(anmIds[i]); vm) {
+                if (auto vm = anm::getVM(anmIds[i]); vm) {
                     glm::vec3 p = anmPos[i] + final_pos.pos;
                     if (anmRelated[i] >= 0) {
-                        if (auto vm2 = AnmManager::getVM(
+                        if (auto vm2 = anm::getVM(
                             anmIds[anmRelated[i]]); vm2)
                             p += vm2->pos;
                         else
@@ -684,7 +685,7 @@ int Enemy::update() {
         }
 
         for (size_t i = 0; i < 16; i++) {
-            if (auto vm = AnmManager::getVM(enemy.anmIds[i]); vm)
+            if (auto vm = anm::getVM(enemy.anmIds[i]); vm)
                 vm->slowdown = enemy.slowdown;
             else
                 enemy.anmIds[i] = 0;
@@ -697,7 +698,7 @@ int Enemy::update() {
     }
     if (enemy.flags & 0x100000000) {
         for (size_t i = 0; i < 16; i++) {
-            if (auto vm = AnmManager::getVM(enemy.anmIds[i]); vm)
+            if (auto vm = anm::getVM(enemy.anmIds[i]); vm)
                 vm->slowdown = 0;
             else
                 enemy.anmIds[i] = 0;
@@ -743,7 +744,7 @@ void Enemy::Tick() {
 
     /* Update position of attached anims  */
     for (int i = 0; i < 16; i++) {
-        auto anm = AnmManager::getVM(enemy.anmIds[i].val);
+        auto anm = anm::getVM(enemy.anmIds[i].val);
         if (!anm) {
             enemy.anmIds[i].val = 0;
             continue;
@@ -765,7 +766,7 @@ void Enemy::Tick() {
         auto& I = enemy.interrupts[i];
         if (I.time > 0)
             I.time--;
-        std::string interrupt = "";
+        cstr interrupt = nullptr;
         if (I.life >= 0 && I.life >= enemy.life.current) {
             interrupt = I.subNext;
             enemy.life.current = I.life;
@@ -774,7 +775,7 @@ void Enemy::Tick() {
             interrupt = I.subTimeout;
             I.time = -1;
         }
-        if (interrupt != "") {
+        if (interrupt) {
             // delete all async contexts
             while (asyncListHead) {
                 auto n = asyncListHead;
@@ -840,7 +841,7 @@ void Enemy::Die() {
     context.primaryContext.currentLocation.sub_id = -1;
     context.primaryContext.currentLocation.offset = -1;
     for (int i = 0; i < 16; i++) {
-        AnmManager::deleteVM(enemy.anmIds[i].val);
+        anm::deleteVM(enemy.anmIds[i].val);
         enemy.anmIds[i].val = 0;
     }
 }

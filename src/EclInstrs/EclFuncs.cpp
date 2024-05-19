@@ -1,6 +1,7 @@
 #include "./EclFuncs.hpp"
 #include "../Player.h"
 #include "../BulletManager.h"
+#include "../AnmOpener/AnmManager.h"
 #include <math/Random.h>
 
 int (*ECL_SET_FUNC[20])(EnemyData*) = {
@@ -77,7 +78,7 @@ int (*ECL_EXTDMG_FUNC[10])(EnemyData*, int) = {
     },
     [](EnemyData* enm, int dmg) -> int {
         uint a = 0;
-        auto vm1 = AnmManager::getVM(enm->anmIds[1]);
+        auto vm1 = anm::getVM(enm->anmIds[1]);
         if (!vm1) {
             enm->anmIds[1] = 0;
         } else {

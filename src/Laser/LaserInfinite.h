@@ -45,7 +45,7 @@ public:
 private:
     LaserInfiniteInner_t inner {};
     int32_t __field_94c = 0;
-    AnmVM vm1 {}, vm2 {};
+    anm::VM vm1 {}, vm2 {};
 };
 
 #endif // LASERINFINITE_H_

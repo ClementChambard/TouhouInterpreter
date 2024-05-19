@@ -1,10 +1,12 @@
 #include "./EclRaw.h"
 #include <fstream>
+#include <Error.h>
+#include <cstring>
 
-EclRaw_t* ecl_open(std::string filename) {
+EclRaw_t* ecl_open(cstr filename) {
     std::ifstream file(filename, std::ios::binary);
     if (file.fail()) {
-        std::cerr << "Invalid file name: " << filename << '\n';
+        ns::error("Invalid file name:", filename);
         return nullptr;
     }
     file.seekg(0, std::ios::end);
@@ -43,7 +45,7 @@ EclRaw_t* ecl_open(std::string filename) {
         magic[2] != 'P' || magic[3] != 'T') {
         delete[] map;
         delete ecl;
-        std::cerr << "thecl:" << filename << ": SCPT signature missing\n";
+        ns::error("thecl:", filename, ": SCPT signature missing");
         return NULL;
     }
 
@@ -54,14 +56,14 @@ EclRaw_t* ecl_open(std::string filename) {
         magic[2] != 'I' || magic[3] != 'M') {
         delete[] map;
         delete ecl;
-        std::cerr << "thecl:" << filename << ": ANIM signature missing\n";
+        ns::error("thecl:", filename, ": ANIM signature missing");
         return NULL;
     }
 
     string_data = reinterpret_cast<const char*>(anim_list->data);
     for (i = 0; i < anim_list->count; ++i) {
-        ecl->anim_list.push_back(std::string(string_data));
-        string_data += ecl->anim_list[i].length() + 1;
+        ecl->anim_list.push_back(string_data);
+        string_data += strlen(ecl->anim_list[i]) + 1;
     }
 
     while (reinterpret_cast<ptrdiff_t>(string_data) % 4)
@@ -71,19 +73,19 @@ EclRaw_t* ecl_open(std::string filename) {
     magic = std::string(ecli_list->magic);
     if (magic[0] != 'E' || magic[1] != 'C' ||
         magic[2] != 'L' || magic[3] != 'I') {
-        std::cerr << "thecl:" << filename << ": ECLI signature missing\n";
+        ns::error("thecl:", filename, ": ECLI signature missing");
         return NULL;
     }
 
     string_data = reinterpret_cast<const char*>(ecli_list->data);
     for (i = 0; i < ecli_list->count; ++i) {
-        ecl->ecli_list.push_back(std::string(string_data));
-        string_data += ecl->ecli_list[i].length() + 1;
+        ecl->ecli_list.push_back(string_data);
+        string_data += strlen(ecl->ecli_list[i]) + 1;
     }
 
     while (reinterpret_cast<ptrdiff_t>(string_data) % 4)
         ++string_data;
-    const uint32_t* sub_offsets = reinterpret_cast<const uint32_t*>(
+    const u32* sub_offsets = reinterpret_cast<const u32*>(
         string_data + ((4 - reinterpret_cast<ptrdiff_t>(string_data)) % 4));
 
     string_data =
@@ -91,8 +93,8 @@ EclRaw_t* ecl_open(std::string filename) {
 
     for (i = 0; i < ecl->header->sub_count; ++i) {
 
-        std::string name = std::string(string_data);
-        string_data += name.length() + 1;
+        cstr name = string_data;
+        string_data += strlen(name) + 1;
 
         const EclRawSub_t* raw_sub =
             reinterpret_cast<const EclRawSub_t*>(map + sub_offsets[i]);
@@ -102,7 +104,7 @@ EclRaw_t* ecl_open(std::string filename) {
         magic = std::string(raw_sub->magic);
         if (magic[0] != 'E' || magic[1] != 'C' ||
             magic[2] != 'L' || magic[3] != 'H') {
-            std::cerr << "thecl:" << filename << ": ECLH signature missing\n";
+            ns::error("thecl:", filename, ": ECLH signature missing");
             return NULL;
         }
 

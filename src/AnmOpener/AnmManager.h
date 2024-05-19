@@ -2,226 +2,127 @@
 #define ANMMANAGER_H_
 
 #include "./AnmFile.h"
-#include "./AnmShader.h"
 #include "./AnmVM.h"
-#include "./BlitShader.h"
 #include "./Camera.hpp"
-#include "./FogShader.h"
-#include <array>
-#include <vector>
-#include <string>
+#include "./RenderVertex.hpp"
+#include <defines.h>
+#include <vertex.h>
 
-struct RenderVertex_t {
-    glm::vec4 transformed_pos {};
-    NSEngine::Color diffuse_color {};
-    glm::vec2 texture_uv {};
-};
+namespace anm {
 
-struct AnmVertexBuffers_t {
-    int32_t unrendered_sprite_count = 0;
-    RenderVertex_t sprite_vertex_data[131072] {};
-    RenderVertex_t* sprite_write_cursor = sprite_vertex_data;
-    RenderVertex_t* sprite_render_cursor = sprite_vertex_data;
-    int32_t unrendered_primitive_count = 0;
-    RenderVertex_t primitive_vertex_data[32768] {};
-    RenderVertex_t* primitive_write_cursor = primitive_vertex_data;
-    RenderVertex_t* primitive_render_cursor = primitive_vertex_data;
-};
-
-extern RenderVertex_t SPRITE_TEMP_BUFFER[4];
-extern float RESOLUTION_MULT;
+extern f32 RESOLUTION_MULT;
 extern glm::vec2 BACK_BUFFER_SIZE;
 
-class AnmManager {
+void init();
+void cleanup();
 
-public:
-    static void Init();
-    static void Cleanup();
+void recreate_vm(ID &id, i32 new_script);
 
-    static void recreate_vm(AnmID& id, int new_script);
+VM *getVM(u32 id);
+VM *getVM(ID id);
 
-    static AnmVM* getVM(uint32_t id);
-    static AnmVM* getVM(AnmID id) { return getVM(id.val); }
+VM *allocate_vm();
+ID insert_in_world_list_back(VM *vm);
+ID insert_in_world_list_front(VM *vm);
+ID insert_in_ui_list_back(VM *vm);
+ID insert_in_ui_list_front(VM *vm);
+void prepare_vm_for_delete(VM *vm, VMList_t *list);
+i32 destroy_possibly_managed_vm(VM *vm);
 
-    static AnmVM* allocate_vm();
-    static AnmID insert_in_world_list_back(AnmVM* vm);
-    static AnmID insert_in_world_list_front(AnmVM* vm);
-    static AnmID insert_in_ui_list_back(AnmVM* vm);
-    static AnmID insert_in_ui_list_front(AnmVM* vm);
-    static void prepare_vm_for_delete(AnmVM* vm, AnmVMList_t* list);
-    static int destroy_possibly_managed_vm(AnmVM* vm);
+void _destroyFastVM(VM *vm);
+void deleteVM(u32 id);
+void deleteVM(VM *vm);
+void delete_of_file(File *f);
+void killAll();
+bool isAlive(u32 id);
+File *loadFile(usize slot, cstr filename);
+ID createVM508(i32 i, VM *root);
 
-    static void deleteVM(uint32_t id);
-    static void deleteVM(AnmVM* vm);
-    static void delete_of_file(AnmFile* f);
-    static void killAll();
-    static bool isAlive(uint32_t id);
-    static AnmFile* LoadFile(size_t slot, std::string filename);
-    static AnmID createVM508(int i, AnmVM* root);
+void flush_vbos();
+void setup_render_state_for_vm(VM *vm);
+void write_sprite(const RenderVertex_t *buffer);
+void calc_mat_world(VM *vm);
+void drawVM(VM *vm);
+void draw_vm__modes_0_1_2_3(VM *vm, i32 i);
+i32 draw_vm__mode_6(VM *vm);
+void draw_vm__mode_8_15(VM *vm);
+void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData, i32 nVert);
+void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData, i32 nVert);
+i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
+                     ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
+i32 draw_vm__ins_607(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
+                     ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
+i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
+                     ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
+i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z, ns::Color col1,
+                     ns::Color col2, i32 anchor);
+i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0, f32 radius,
+                               f32 thickness, i32 vertex_count, ns::Color col);
+i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0, f32 radius,
+                                       i32 nb_vertex, ns::Color col);
+i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0, f32 radius,
+                                 i32 vertex_count, ns::Color color_1,
+                                 ns::Color color_2);
+void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt);
 
-    static void flush_vbos();
-    static void setup_render_state_for_vm(AnmVM* vm);
-    static void write_sprite(const RenderVertex_t* buffer);
-    static void calc_mat_world(AnmVM* vm);
-    static void drawVM(AnmVM* vm);
-    static void draw_vm__modes_0_1_2_3(AnmVM* vm, int i);
-    static int  draw_vm__mode_6(AnmVM *vm);
-    static void draw_vm__mode_8_15(AnmVM *vm);
-    static void draw_vm_triangle_fan(AnmVM *vm, RenderVertex_t *vertexData,
-                                 int nVert);
-    static void draw_vm_triangle_strip(AnmVM *vm, RenderVertex_t *vertexData,
-                                 int nVert);
-    static int  draw_vm__ins_603(float x, float y, float width, float height,
-                                 float rot_z, NSEngine::Color col1,
-                                 NSEngine::Color col2,
-                                 int anchorX, int anchorY);
-    static int  draw_vm__ins_607(float x, float y, float width, float height,
-                                 float rot_z, NSEngine::Color col1,
-                                 NSEngine::Color col2,
-                                 int anchorX, int anchorY);
-    static int  draw_vm__ins_612(float x, float y, float width, float height,
-                                 float rot_z, NSEngine::Color col1,
-                                 NSEngine::Color col2,
-                                 int anchorX, int anchorY);
-    static int  draw_vm__ins_613(float x, float y, float width, float rot_z,
-                                 NSEngine::Color col1,
-                                 NSEngine::Color col2, int anchor);
-    static int  draw_vm__mode_19__drawRing(float x, float y, float angle_0,
-                                 float radius, float thickness,
-                                 int vertex_count, NSEngine::Color col);
-    static int  draw_vm__mode_18__drawCircleBorder(float x, float y,
-                                 float angle_0, float radius,
-                                 int nb_vertex, NSEngine::Color col);
-    static int  draw_vm__mode_17__drawCircle(float x, float y, float angle_0,
-                                 float radius, int vertex_count,
-                                 NSEngine::Color color_1,
-                                 NSEngine::Color color_2);
-    static void draw_vm_mode_24_25(AnmVM *vm, void *buff, int cnt);
+void update(bool printInstr = false);
 
-    static void update(bool printInstr = false);
-    // static void draw();
-    static int render_layer(uint32_t layer);
-    static int on_tick_world();
-    static int on_tick_ui();
-    static void on_draw(uint32_t layer);
+i32 render_layer(u32 layer);
+i32 on_tick_world();
+i32 on_tick_ui();
+void on_draw(u32 layer);
 
-    static int getFreeAnm();
+i32 getFreeAnm();
 
-    static AnmFile* getLoaded(int i) { return &loadedFiles[i]; }
+File *getLoaded(i32 i);
 
-    static void interrupt_tree(AnmID id, int interrupt)
-    {
-        auto vm = getVM(id.val);
-        if (vm)
-            vm->interruptRec(interrupt);
-    }
+void interrupt_tree(ID id, i32 interrupt);
+void interrupt_tree_run(ID id, i32 interrupt);
 
-    static void interrupt_tree_run(AnmID id, int interrupt)
-    {
-        auto vm = getVM(id.val);
-        if (vm)
-            vm->interruptRecRun(interrupt);
-    }
+void bindBuffer();
+void drawBuffer(RenderVertex_t *start, u32 count);
+void unbindBuffer();
 
-// private:
-    // zThread
-    // zAnmSaveRelated[4] pause_related
-    // undefined4[2]
-    static int32_t processed_anm_ctr_0xc8;
-    static int32_t draw_call_ctr_0xcc;
-    static float cam_vec2_fc_x;
-    static float cam_vec2_fc_y;
-    static int32_t render_loop_ctr_0xd8;
-    static AnmVM __anm_vm_dc;
-    static AnmVMList_t* world_list_head;
-    static AnmVMList_t* world_list_tail;
-    static AnmVMList_t* ui_list_head;
-    static AnmVMList_t* ui_list_tail;
-    static AnmFastVM fastArray[8191];
-    static int32_t __lolk_next_snapshot_fast_id;
-    static int32_t __lolk_next_snapshot_discriminator;
-    static AnmVMList_t __lolk_vm_snapshot_list_head;
-    static AnmFastVMList_t freelist_head;
-    // undefined4
-    static std::array<AnmFile, 32> loadedFiles;
-    static glm::mat4 __matrix_186017c;
-    static AnmVM __anm_vm_18601bc;
-    static int32_t field_0x18607bc;
-    static NSEngine::Color field_0x18607c0;
-    static uint32_t last_used_texture;
-    static uint8_t last_used_blendmode;
-    static uint8_t field_0x18607c9;
-    static uint8_t field_0x18607ca;
-    static uint8_t field_0x18607cb;
-    static uint8_t field_0x18607cc;
-    static uint8_t field_0x18607cd;
-    static uint8_t last_used_resamplemode;
-    static uint8_t field_0x18607cf;
-    static uint8_t last_used_scrollmodex;
-    static uint8_t last_used_scrollmodey;
-    // undefined2
-    static float some_positions[22];
-    static AnmVertexBuffers_t vertex_buffers;
-    // dummy head (unused)
-    static int32_t last_id_discriminator;
-    static NSEngine::Color custom_color_1c90a48;
-    static int32_t use_custom_color_1c90a4c;
+void set_camera(Camera_t *camera);
+Camera_t *get_camera();
+void enable_fog();
+void disable_fog();
+void set_fog_params(ns::Color col, f32 beg, f32 end);
+void enable_atest();
+void disable_atest();
+void enable_zwrite();
+void disable_zwrite();
+void enable_ztest();
+void disable_ztest();
+void set_viewport(Viewport_t viewport);
+void set_viewport(Camera_t &camera);
+void clear_framebuffer_color(ns::Color c = c_black);
+void clear_framebuffer_depth(f32 d = 1.f);
+void clear_framebuffer(ns::Color c = c_black, f32 d = 1.f);
+void enable_blending(bool val = true);
+void enable_culling(bool val = true);
+void reset_blend_eq();
+void reset_texture();
+void reset_batch_state();
+void draw_rect_col(glm::vec4 const &rect, int a, int rgb);
+void draw_rect_col(glm::vec4 const &rect, ns::Color c);
+void raw_batch_draw(u32 texture, ns::Vertex tl, ns::Vertex tr, ns::Vertex br,
+                    ns::Vertex bl, u8 blendmode = 0);
+glm::vec2 &origin(usize i); // 4 origins for now
+Camera_t *get_3d_camera();
+void set_3d_camera(Camera_t *c);
+void use_custom_color(ns::Color c);
+void unuse_custom_color();
 
-    static bool initialized;
-    static GLuint vboID;
-    static NSEngine::SpriteBatch* batch;
-    static AnmShader* shader;
-    static BlitShader* bshader;
-    static FogShader* fshader;
-    static NSEngine::ShaderProgram* curr_shader;
-    friend class AnmVM;
+void _set_cam_vec2_fc(glm::vec2 v);
 
-    static uint8_t zwrite_enabled;
-    static uint8_t fog_enabled;
-    static NSEngine::ShaderProgram* last_shader_before_no_atest_save;
-    static Camera_t* current_camera;
-    static Camera_t* _3d_camera;
-    static glm::vec2 origins[4];
+void set_effect_508(usize i, i16 anm_loaded_index, i16 script_index,
+                    i32 index_of_on_create, i32 index_of_on_tick,
+                    i32 index_of_on_draw, i32 index_of_on_destroy,
+                    i32 index_of_on_interrupt,
+                    i32 index_of_on_copy_1__disused = 0,
+                    i32 index_of_on_copy_2__disused = 0);
 
-    static void bindBuffer();
-    static void drawBuffer(RenderVertex_t* start, uint32_t count);
-    static void unbindBuffer();
-
-    static void set_camera(Camera_t* camera);
-    static void enable_fog();
-    static void disable_fog();
-    static void set_fog_params(NSEngine::Color col, float beg, float end);
-    static void enable_atest();
-    static void disable_atest();
-    static void enable_zwrite();
-    static void disable_zwrite();
-    static void enable_ztest();
-    static void disable_ztest();
-
-    static void set_effect_508(size_t i,
-        int16_t anm_loaded_index,
-        int16_t script_index,
-        int32_t index_of_on_create,
-        int32_t index_of_on_tick,
-        int32_t index_of_on_draw,
-        int32_t index_of_on_destroy,
-        int32_t index_of_on_interrupt,
-        int32_t index_of_on_copy_1__disused = 0,
-        int32_t index_of_on_copy_2__disused = 0);
-
-private:
-    struct TableAnm508_t {
-        int16_t anm_loaded_index = -1;
-        int16_t script_index = 0;
-        int32_t index_of_on_create = 0;
-        int32_t index_of_on_tick = 0;
-        int32_t index_of_on_draw = 0;
-        int32_t index_of_on_destroy = 0;
-        int32_t index_of_on_interrupt = 0;
-        int32_t index_of_on_copy_1__disused = 0;
-        int32_t index_of_on_copy_2__disused = 0;
-    };
-    static std::vector<TableAnm508_t> effect_table;
-};
+}; // namespace AnmManager
 
 #endif // ANMMANAGER_H_

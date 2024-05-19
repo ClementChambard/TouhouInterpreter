@@ -98,21 +98,21 @@ int AsciiPopupManager::f_on_draw() {
     for (int num = popups[i].nb_nums - 1; num >= 0; num--) {
       // cur_char 10 is FullPower popup
       if (popups[i].time < 48 || popups[i].nums[num] == 10) {
-        AnmManager::getLoaded(vm.anm_loaded_index)
+        anm::getLoaded(vm.anm_loaded_index)
             ->setSprite(&vm, popups[i].nums[num] + fst);
       } else if (popups[i].time < 56) {
-        AnmManager::getLoaded(vm.anm_loaded_index)
+        anm::getLoaded(vm.anm_loaded_index)
             ->setSprite(&vm, popups[i].nums[num] + 11 + fst);
       } else {
-        AnmManager::getLoaded(vm.anm_loaded_index)
+        anm::getLoaded(vm.anm_loaded_index)
             ->setSprite(&vm, popups[i].nums[num] + 21 + fst);
       }
       vm.write_sprite_corners__without_rot(
-          SPRITE_TEMP_BUFFER[0].transformed_pos,
-          SPRITE_TEMP_BUFFER[1].transformed_pos,
-          SPRITE_TEMP_BUFFER[2].transformed_pos,
-          SPRITE_TEMP_BUFFER[3].transformed_pos);
-      AnmManager::draw_vm__modes_0_1_2_3(&this->vm, 1);
+          anm::SPRITE_TEMP_BUFFER[0].transformed_pos,
+          anm::SPRITE_TEMP_BUFFER[1].transformed_pos,
+          anm::SPRITE_TEMP_BUFFER[2].transformed_pos,
+          anm::SPRITE_TEMP_BUFFER[3].transformed_pos);
+      anm::draw_vm__modes_0_1_2_3(&this->vm, 1);
       // vm.draw();
       vm.entity_pos.x += size;
     }
@@ -148,7 +148,7 @@ int AsciiPopupManager::f_on_draw() {
 }
 
 void AsciiPopupManager::generate_small_score_popup(glm::vec3 const &pos, int nb,
-                                                   NSEngine::Color color) {
+                                                   ns::Color color) {
   if (9 < next_index) {
     next_index = 0;
   }

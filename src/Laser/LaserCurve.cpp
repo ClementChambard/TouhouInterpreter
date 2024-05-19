@@ -3,6 +3,7 @@
 #include "../BulletManager.h"
 #include "../Hardcoded.h"
 #include "../Player.h"
+#include "../AnmOpener/AnmManager.h"
 
 LaserCurve::LaserCurve()
 {
@@ -152,7 +153,7 @@ int LaserCurve::initialize(void* arg) {
     }
     nodes[0].v_speed = laser_speed;
 
-    vertices = new NSEngine::Vertex[inner.laser_time_start * 2];
+    vertices = new ns::Vertex[inner.laser_time_start * 2];
 
     if (!inner.transforms) {
         transforms.next = nullptr;
@@ -317,10 +318,9 @@ int LaserCurve::on_tick()
     return 1;
 }
 
-#include <NSEngine.h>
-void _dzaww(AnmVM* vm, NSEngine::Vertex* vertices, int count) {
+void _dzaww(anm::VM* vm, ns::Vertex* vertices, int count) {
     for (int i = 0; i < (count - 1) / 2; i++)
-        AnmManager::batch->draw(
+        anm::raw_batch_draw(
             vm->getSprite().texID,
             vertices[i * 2],
             vertices[i * 2 + 1],
@@ -354,12 +354,12 @@ int LaserCurve::on_draw() {
         // vertices[2*i+1].position.x += SURF_ORIGIN_ECL_X;
         // vertices[2*i+1].position.y += DAT_00524720;
     }
-    // AnmManager::draw_vm__mode_textureCircle(ANM_MANAGER_PTR, &vm1, vertices, inner.laser_time_start * 2);
+    // anm::draw_vm__mode_textureCircle(ANM_MANAGER_PTR, &vm1, vertices, inner.laser_time_start * 2);
     _dzaww(&vm1, vertices, inner.laser_time_start * 2);
     if (time_alive <= inner.laser_time_start) {
         vm2.pos = nodes[inner.laser_time_start - 1].pos;
         // vm2.draw();
-        AnmManager::drawVM(&vm2);
+        anm::drawVM(&vm2);
     }
     return 0;
 }

@@ -1,10 +1,11 @@
 #include "./AnmVM.h"
 #include "./AnmManager.h"
 
-#include <NSEngine.h>
 #include <math/Random.h>
 
-int& AnmVM::check_ref(int i) {
+namespace anm {
+
+int& VM::check_ref(int i) {
     if      (i >= 10000 && i < 10004) return int_script_vars[static_cast<size_t>(i-10000)];
     else if (i == 10008) return __script_var_8;
     else if (i == 10009) return __script_var_9;
@@ -12,7 +13,7 @@ int& AnmVM::check_ref(int i) {
     else return int_script_vars[3];
 }
 
-float& AnmVM::check_ref(float f) {
+float& VM::check_ref(float f) {
     if      (f >= 10004 && f < 10008) return float_script_vars[static_cast<size_t>(f-10004)];
     else if (f == 10013.f) return pos.x;
     else if (f == 10014.f) return pos.y;
@@ -28,7 +29,7 @@ float& AnmVM::check_ref(float f) {
     else return float_script_vars[3];
 }
 
-int AnmVM::check_val(int i) {
+int VM::check_val(int i) {
     if      (i >= 10000 && i < 10004) return int_script_vars[static_cast<size_t>(i-10000)];
     else if (i >= 10004 && i < 10008) return float_script_vars[static_cast<size_t>(i-10004)];
     else if (i == 10008) return __script_var_8;
@@ -40,7 +41,7 @@ int AnmVM::check_val(int i) {
     else return i;
 }
 
-float AnmVM::check_val(float f) {
+float VM::check_val(float f) {
     if      (f >= 10000.f && f <  10004.f) return int_script_vars[static_cast<size_t>(f-10000.f)];
     else if (f >= 10004.f && f <  10008.f) return float_script_vars[static_cast<size_t>(f-10004.f)];
     else if (f == 10033.f) return __script_vars_33_34_35.x;
@@ -54,12 +55,12 @@ float AnmVM::check_val(float f) {
     else if (f == 10013.f) return pos.x;
     else if (f == 10014.f) return pos.y;
     else if (f == 10015.f) return pos.z;
-    else if (f == 10016.f) return AnmManager::_3d_camera->position.x + AnmManager::_3d_camera->__rocking_vector_1.x;
-    else if (f == 10017.f) return AnmManager::_3d_camera->position.y + AnmManager::_3d_camera->__rocking_vector_1.y;
-    else if (f == 10018.f) return AnmManager::_3d_camera->position.z + AnmManager::_3d_camera->__rocking_vector_1.z;
-    else if (f == 10019.f) return AnmManager::_3d_camera->facing_normalized.x;
-    else if (f == 10020.f) return AnmManager::_3d_camera->facing_normalized.y;
-    else if (f == 10021.f) return AnmManager::_3d_camera->facing_normalized.z;
+    else if (f == 10016.f) return anm::get_3d_camera()->position.x + anm::get_3d_camera()->__rocking_vector_1.x;
+    else if (f == 10017.f) return anm::get_3d_camera()->position.y + anm::get_3d_camera()->__rocking_vector_1.y;
+    else if (f == 10018.f) return anm::get_3d_camera()->position.z + anm::get_3d_camera()->__rocking_vector_1.z;
+    else if (f == 10019.f) return anm::get_3d_camera()->facing_normalized.x;
+    else if (f == 10020.f) return anm::get_3d_camera()->facing_normalized.y;
+    else if (f == 10021.f) return anm::get_3d_camera()->facing_normalized.z;
     else if (f == 10022.f) return static_cast<int>(Random::Float01() * rand_param_int);
     else if (f == 10023.f) return rotation.x;
     else if (f == 10024.f) return rotation.y;
@@ -71,3 +72,4 @@ float AnmVM::check_val(float f) {
     else return f;
 }
 
+} // namespace anm

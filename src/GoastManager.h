@@ -59,18 +59,18 @@ public:
     int32_t flags = 0;
     UpdateFunc* on_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
-    AnmFile* anm_file = nullptr;
+    anm::File* anm_file = nullptr;
     int32_t token_count = 0;
     TokenList_t list_head {};
-    AnmID gui_anmid = 0;
-    AnmID hyper_time_bar_anmid1 = 0;
-    AnmID hyper_time_bar_anmid2 = 0;
-    AnmID hyper_bg_anmid = 0;
+    anm::ID gui_anmid = 0;
+    anm::ID hyper_time_bar_anmid1 = 0;
+    anm::ID hyper_time_bar_anmid2 = 0;
+    anm::ID hyper_bg_anmid = 0;
     int32_t field_0x34 = 0;
-    AnmID hyper_aura_anmid = 0;
-    AnmID extra_beast_anmid = 0;
+    anm::ID hyper_aura_anmid = 0;
+    anm::ID extra_beast_anmid = 0;
     int32_t field_0x40 = 0;
-    AnmID otter_hyper_anms[3] = {};
+    anm::ID otter_hyper_anms[3] = {};
     int32_t field_0x50 = 0;
 };
 
