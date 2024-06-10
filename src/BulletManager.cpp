@@ -43,14 +43,14 @@ BulletManager::BulletManager() {
     bullet_anm = anm::loadFile(7, "bullet.anm");
     f_on_tick = new UpdateFunc([this]() { return this->on_tick(); });
     f_on_draw = new UpdateFunc([this]() { return this->on_draw(); });
-    UPDATE_FUNC_REGISTRY->register_on_tick(f_on_tick, 29);
-    UPDATE_FUNC_REGISTRY->register_on_draw(f_on_draw, 38);
+    UPDATE_FUNC_REGISTRY.register_on_tick(f_on_tick, 29);
+    UPDATE_FUNC_REGISTRY.register_on_draw(f_on_draw, 38);
 }
 
 BulletManager::~BulletManager() {
     BULLET_MANAGER_PTR = nullptr;
-    UPDATE_FUNC_REGISTRY->unregister(f_on_tick);
-    UPDATE_FUNC_REGISTRY->unregister(f_on_draw);
+    UPDATE_FUNC_REGISTRY.unregister(f_on_tick);
+    UPDATE_FUNC_REGISTRY.unregister(f_on_draw);
 }
 
 BulletManager* BulletManager::GetInstance() {

@@ -45,20 +45,20 @@ LaserManager::LaserManager() {
 
     on_tick = new UpdateFunc([this]() { return this->f_on_tick(); });
     on_tick->flags &= 0xfffffffd;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 28);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 28);
 
     on_draw = new UpdateFunc([this]() { return this->f_on_draw(); });
     on_draw->flags &= 0xfffffffd;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 28);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, 28);
 
     list_head = &dummy_laser_for_list_tail;
 }
 
 LaserManager::~LaserManager() {
     if (on_tick)
-        UPDATE_FUNC_REGISTRY->unregister(on_tick);
+        UPDATE_FUNC_REGISTRY.unregister(on_tick);
     if (on_draw)
-        UPDATE_FUNC_REGISTRY->unregister(on_draw);
+        UPDATE_FUNC_REGISTRY.unregister(on_draw);
     destroy_all();
 
     LASER_MANAGER_PTR = nullptr;

@@ -25,6 +25,7 @@ Enemy::Enemy() {
     for (int i = 0; i < 16; i++)
         enemy.anmIds[i] = 0;
     ENEMY_MANAGER_PTR->enemy_count_real++;
+    enemy.node.value = this;
 }
 
 Enemy::~Enemy() {
@@ -790,8 +791,7 @@ void Enemy::Tick() {
     //    float y = enemy.final_pos.pos.y;
     //    if (enemy.timeAlive > 120 && (abs(x) > 234 || y < -64 || y > 486))
     //    {
-    //        for (int i = 0; i < 4; i++) if (EnemyManager::GetInstance()->
-    //          data.boss_ids[i] == enemyId) return;
+    //        for (int i = 0; i < 4; i++) if (ENEMY_MANAGER_PTR->data.boss_ids[i] == enemyId) return;
     //        Die();
     //    }
     if (enemy.life.current <= 0 && (enemy.flags & 0b1011000) == 0) {

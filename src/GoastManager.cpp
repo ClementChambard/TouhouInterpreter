@@ -10,7 +10,7 @@
 #include "Gui.hpp"
 #include "Laser/LaserManager.h"
 #include <math/Random.h>
-#include <InputManager.h>
+#include <input.hpp>
 #include <NSEngine.hpp>
 
 GoastManager* GOAST_MANAGER_PTR = nullptr;
@@ -23,11 +23,11 @@ GoastManager::GoastManager() {
 
     on_tick = new UpdateFunc([this]() -> int { return this->_on_tick(); });
     on_tick->flags &= 0xfffffffd;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 31);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 31);
 
     on_draw = new UpdateFunc([]() -> int { return 1; });
     on_draw->flags = (on_draw->flags & 0xfffffffdU) | 1;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 34);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, 34);
 
     // if (GAME_THREAD_PTR->field47_0xa8 == 0) {
     //     GLOBALS.inner.HYPER_FILL = 0;
@@ -47,8 +47,8 @@ GoastManager::GoastManager() {
 }
 
 GoastManager::~GoastManager() {
-  if (on_tick) UPDATE_FUNC_REGISTRY->unregister(on_tick);
-  if (on_draw) UPDATE_FUNC_REGISTRY->unregister(on_draw);
+  if (on_tick) UPDATE_FUNC_REGISTRY.unregister(on_tick);
+  if (on_draw) UPDATE_FUNC_REGISTRY.unregister(on_draw);
   delete_tokens();
   anm::getLoaded(30)->Cleanup();
   GOAST_MANAGER_PTR = nullptr;
@@ -421,7 +421,7 @@ LAB_0040ef69:
           }
         }
       }
-      if (Inputs::Keyboard().Pressed(NSK_x)) {
+      if (ns::keyboard::pressed(ns::Key::X)) {
         hyper_die(false);
       }
     }

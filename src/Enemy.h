@@ -84,7 +84,7 @@ struct EnemyData {
     ns::Timer_t timeInEcl = 0;
     ns::Timer_t timeAlive = 0;
     float slowdown = 0;
-    EnemyList_t* node = nullptr;
+    EnemyList_t node = {};
     InterpStrange abs_pos_i = {};
     InterpStrange rel_pos_i = {};
     Interp<float> abs_angle_i = {};

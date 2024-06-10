@@ -35,8 +35,11 @@ struct UpdateFuncRegistry {
     i32 register_on_draw(UpdateFunc* f, i32 priority);
     void unregister(UpdateFunc* f);
     void unregister_from(UpdateFuncList_t* node);
+    void unregister_all();
+
+    ~UpdateFuncRegistry() { unregister_all(); }
 };
 
-extern UpdateFuncRegistry* const UPDATE_FUNC_REGISTRY;
+extern UpdateFuncRegistry UPDATE_FUNC_REGISTRY;
 
 #endif // UPDATEFUNCREGISTRY_H_

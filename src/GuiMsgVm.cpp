@@ -11,7 +11,7 @@
 #include "shiftjis.h"
 #include "AnmOpener/Text.hpp"
 
-#include <InputManager.h>
+#include <input.hpp>
 #include <cstring>
 
 GuiMsgVm_t::GuiMsgVm_t(MsgIns_t* instr) {
@@ -44,7 +44,7 @@ GuiMsgVm_t::GuiMsgVm_t(MsgIns_t* instr) {
     anm_furigana_2->index_of_on_draw = 5;
     BulletManager::GetInstance()->cancel_all(false);
     LASER_MANAGER_PTR->cancel_all(false);
-    EnemyManager::GetInstance()->EnmKillAll(nullptr, true);
+    ENEMY_MANAGER_PTR->EnmKillAll(nullptr, true);
 }
 
 GuiMsgVm_t::~GuiMsgVm_t() {
@@ -258,7 +258,7 @@ int GuiMsgVm_t::tick() {
           pause_timer = arg0;
         }
         pause_timer--;
-        if (!Inputs::Keyboard().Pressed(NSK_return) && !Inputs::Keyboard().Pressed(NSK_w) && (0 < pause_timer)) {
+        if (!ns::keyboard::pressed(ns::Key::RETURN) && !ns::keyboard::pressed(ns::Key::W) && (0 < pause_timer)) {
           if (((flags & 0x41) != 0x41) /*||
              ((((INPUT_STRUCT.input & 0x200U) == 0 || ((uint)INPUT_STRUCT.field8_0x194[9] < 0x14))
               && (((INPUT_STRUCT.input & 1U) == 0 || ((uint)INPUT_STRUCT.field8_0x194[0] < 0x14)))))*/

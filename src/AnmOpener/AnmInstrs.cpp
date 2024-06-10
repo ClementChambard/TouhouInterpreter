@@ -2,7 +2,7 @@
 #include "./AnmVM.h"
 #include "./AnmManager.h"
 #include <math/Random.h>
-#include <Error.h>
+#include <logger.h>
 
 #define argS(x) *reinterpret_cast<i32*>(&(ins[8+4*x]))
 #define argf(x) *reinterpret_cast<f32*>(&(ins[8+4*x]))
@@ -534,7 +534,7 @@ int VM::exec_instruction(bytes ins) {
             //sprite_size.y = f(1);
             break;
         default:
-            ns::error("Weird anm instruction", type, ": Deleting VM");
+            NS_ERROR("Weird anm instruction %d: Deleting VM", type);
             return 1;
     }
     u16 ins_len = *reinterpret_cast<u16 *>(ins + 2);

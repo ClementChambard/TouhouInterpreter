@@ -6,7 +6,7 @@
 #include "./Hardcoded.h"
 #include <sys/stat.h>
 #include <string>
-#include <Error.h>
+#include <logger.h>
 
 EclFileManager* EclFileManager::GetInstance() {
     static EclFileManager* instance = new EclFileManager();
@@ -24,10 +24,10 @@ void EclFileManager::LoadEcl(cstr file) {
         f = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]
             ["ecl_filename"].asString();
 
-    ns::info("LOADING", f);
+    NS_INFO("LOADING %s", f.c_str());
     CloseEcl();
     LoadEcli(f.c_str());
-    ns::info("DONE     loaded", loaded_subs.size(), "subs in", loaded_files.size(), "file");
+    NS_INFO("DONE     loaded %lld subs in %lld file", loaded_subs.size(), loaded_files.size());
 
     ENEMY_MANAGER_PTR->loadedAnms[0] = BulletManager::GetInstance()->bullet_anm;
     ENEMY_MANAGER_PTR->loadedAnms[1] = anm::getLoaded(8);
@@ -38,7 +38,7 @@ void EclFileManager::LoadEcli(cstr file) {
     if (!ecl)
         return;
     loaded_files.push_back(ecl);
-    ns::info("  -->", ecl->subs.size(), "subs loaded in file", file);
+    NS_INFO("  --> %lld subs loaded in file %s", ecl->subs.size(), file);
     for (auto e : ecl->subs)
         loaded_subs.push_back(e);
     for (auto ecli : ecl->ecli_list)

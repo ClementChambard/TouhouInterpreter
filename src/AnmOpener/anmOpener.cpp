@@ -3,7 +3,7 @@
 #include <cassert>
 #include <fstream>
 #include <string.h>
-#include <Error.h>
+#include <logger.h>
 
 namespace anm::opener {
 
@@ -463,7 +463,7 @@ std::vector<anm_instr_arg_t> anm_instr_get_args(anm_instr_t* instr)
 {
     cstr format = find_format(formats_v8, instr->type);
     if (strcmp(format, FIND_FORMAT_ERROR) == 0) {
-        ns::error("id", instr->type, "was not found in the format table");
+        NS_ERROR("id %d was not found in the format table", instr->type);
         abort();
     }
     std::vector<anm_instr_arg_t> args;

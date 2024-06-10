@@ -214,13 +214,13 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.rel_pos.flags &= 0xfffffff0;
 
     _ins(414, moveBoss) _args
-    auto e = EnemyManager::GetInstance()
-        ->EnmFind(EnemyManager::GetInstance()->boss_ids[0]);
+    auto e = ENEMY_MANAGER_PTR
+        ->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]);
     if (e) enemy.abs_pos.pos = e->enemy.final_pos.pos;
 
     _ins(415, moveBossRel) _args
-    auto e = EnemyManager::GetInstance()
-        ->EnmFind(EnemyManager::GetInstance()->boss_ids[0]);
+    auto e = ENEMY_MANAGER_PTR
+        ->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]);
     if (e) enemy.rel_pos.pos = e->enemy.final_pos.pos;
 
     _ins(416, movePos3d) _f(x) _f(y) _f(z) _args
@@ -393,11 +393,11 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
 
     _ins(432, moveEnm) _S(id) _args
-    auto e = EnemyManager::GetInstance()->EnmFind(id);
+    auto e = ENEMY_MANAGER_PTR->EnmFind(id);
     if (e) enemy.abs_pos.pos = e->enemy.final_pos.pos;
 
     _ins(433, moveEnmRel) _S(id) _args
-    auto e = EnemyManager::GetInstance()->EnmFind(id);
+    auto e = ENEMY_MANAGER_PTR->EnmFind(id);
     if (e) enemy.rel_pos.pos = e->enemy.final_pos.pos;
 
     _ins(434, moveCurve) _S(t) _S(mx) _S(my) _f(x) _f(y) _args

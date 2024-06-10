@@ -3,6 +3,8 @@
 
 #include <ShaderProgram.h>
 
+// TODO: Use ns::DefaultShader instead
+
 namespace anm {
 
 class BaseShader : public ns::ShaderProgram {

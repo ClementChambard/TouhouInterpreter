@@ -97,12 +97,7 @@ struct VM {
   void step_interpolators();
   void update_variables_growth();
 
-  void alloc_special_vertex_buffer(i32 size) {
-    if (special_vertex_buffer_data)
-      free(special_vertex_buffer_data);
-    special_vertex_buffer_size = size;
-    special_vertex_buffer_data = malloc(size);
-  }
+  void alloc_special_vertex_buffer(i32 size);
   void transform_coordinate(glm::vec3 &pos);
   glm::vec3 get_pos_with_root();
   glm::vec3 get_own_transformed_pos();

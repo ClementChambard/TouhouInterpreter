@@ -276,13 +276,13 @@ struct TickCounter {
 
   TickCounter() {
     on_tick = new UpdateFunc(f_on_tick);
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 2);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 2);
     TICK_COUNTER_PTR = this;
   }
 
   ~TickCounter() {
     if (on_tick)
-      UPDATE_FUNC_REGISTRY->unregister(on_tick);
+      UPDATE_FUNC_REGISTRY.unregister(on_tick);
   }
 
   static int f_on_tick() {
@@ -308,13 +308,13 @@ struct FpsCounter {
 
   FpsCounter() {
     on_draw = new UpdateFunc(f_on_draw);
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 76);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, 76);
     FPS_COUNTER_PTR = this;
   }
 
   ~FpsCounter() {
     if (on_draw)
-      UPDATE_FUNC_REGISTRY->unregister(on_draw);
+      UPDATE_FUNC_REGISTRY.unregister(on_draw);
   }
 
   static int f_on_draw() {
@@ -487,74 +487,74 @@ static void anmmanager_updatefuncs() {
   UpdateFunc* func;
   func = new UpdateFunc(anm::on_tick_world);
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_tick(func, 35);
+  UPDATE_FUNC_REGISTRY.register_on_tick(func, 35);
   func = new UpdateFunc(anm::on_tick_ui);
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_tick(func, 10);
+  UPDATE_FUNC_REGISTRY.register_on_tick(func, 10);
   func = new UpdateFunc([](){return anm::render_layer(0);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 5);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 5);
   func = new UpdateFunc([](){return anm::render_layer(1);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 7);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 7);
   func = new UpdateFunc([](){return anm::render_layer(2);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 9);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 9);
   func = new UpdateFunc([](){return anm::render_layer(4);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 11);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 11);
   func = new UpdateFunc([](){
     anm::set_camera(SUPERVISOR.cameras[3].as_2d_matrix());
     anm::disable_fog();
     return anm::render_layer(3);
   });
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 10);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 10);
   func = new UpdateFunc([](){return anm::render_layer(5);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 13);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 13);
   func = new UpdateFunc([](){return anm::render_layer(6);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 16);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 16);
   func = new UpdateFunc([](){return anm::render_layer(7);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 18);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 18);
   func = new UpdateFunc([](){return anm::render_layer(8);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 20);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 20);
   func = new UpdateFunc([](){return anm::render_layer(9);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 21);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 21);
   func = new UpdateFunc([](){return anm::render_layer(10);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 22);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 22);
   func = new UpdateFunc([](){return anm::render_layer(11);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 24);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 24);
   func = new UpdateFunc([](){return anm::render_layer(12);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 27);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 27);
   func = new UpdateFunc([](){return anm::render_layer(13);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 28);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 28);
   func = new UpdateFunc([](){return anm::render_layer(14);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 31);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 31);
   func = new UpdateFunc([](){return anm::render_layer(15);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 32);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 32);
   func = new UpdateFunc([](){return anm::render_layer(16);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 35);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 35);
   func = new UpdateFunc([](){return anm::render_layer(17);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 37);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 37);
   func = new UpdateFunc([](){return anm::render_layer(18);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 40);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 40);
   func = new UpdateFunc([](){return anm::render_layer(19);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 43);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 43);
   func = new UpdateFunc([](){
     anm::set_camera(&SUPERVISOR.cameras[1]);
     anm::disable_zwrite();
@@ -562,34 +562,34 @@ static void anmmanager_updatefuncs() {
     return anm::render_layer(20);
   });
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 46);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 46);
   func = new UpdateFunc([](){return anm::render_layer(21);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 47);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 47);
   func = new UpdateFunc([](){return anm::render_layer(22);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 53);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 53);
   func = new UpdateFunc([](){return anm::render_layer(23);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 55);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 55);
   func = new UpdateFunc([](){return anm::render_layer(26);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 62);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 62);
   func = new UpdateFunc([](){return anm::render_layer(27);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 63);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 63);
   func = new UpdateFunc([](){return anm::render_layer(29);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 78);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 78);
   func = new UpdateFunc([](){return anm::render_layer(30);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 80);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 80);
   func = new UpdateFunc([](){return anm::render_layer(31);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 83);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 83);
   func = new UpdateFunc([](){return anm::render_layer(25);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 60);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 60);
   func = new UpdateFunc([](){
     anm::set_camera(&SUPERVISOR.cameras[2]);
     anm::disable_zwrite();
@@ -598,14 +598,14 @@ static void anmmanager_updatefuncs() {
     return anm::render_layer(24);
   });
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 59);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 59);
   func = new UpdateFunc([](){
     anm::set_camera(&SUPERVISOR.cameras[0]);
     return anm::render_layer(28);
     anm::set_camera(&SUPERVISOR.cameras[2]);
   });
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 65);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 65);
   func = new UpdateFunc([](){
     anm::set_camera(&SUPERVISOR.cameras[2]);
     anm::disable_zwrite();
@@ -613,29 +613,29 @@ static void anmmanager_updatefuncs() {
     return anm::render_layer(36);
   });
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 56);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 56);
   func = new UpdateFunc([](){return anm::render_layer(37);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 61);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 61);
   func = new UpdateFunc([](){return anm::render_layer(38);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 64);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 64);
   func = new UpdateFunc([](){
     anm::set_camera(&SUPERVISOR.cameras[0]);
     return anm::render_layer(39);
     anm::set_camera(&SUPERVISOR.cameras[2]);
   });
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 66);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 66);
   func = new UpdateFunc([](){return anm::render_layer(40);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 79);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 79);
   func = new UpdateFunc([](){return anm::render_layer(41);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 81);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 81);
   func = new UpdateFunc([](){return anm::render_layer(42);});
   func->flags |= 2;
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 84);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 84);
 }
 
 int Supervisor_t::initialize() {
@@ -645,28 +645,28 @@ int Supervisor_t::initialize() {
   // SUPERVISOR.field60_0x6fc = 0;
   func = new UpdateFunc(supervisor_on_tick);
   func->on_registration = supervisor_on_registration;
-  auto r = UPDATE_FUNC_REGISTRY->register_on_tick(func, 1);
+  auto r = UPDATE_FUNC_REGISTRY.register_on_tick(func, 1);
   if (r) return r;
   func = new UpdateFunc(supervisor_on_draw_01);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 1);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 1);
   func = new UpdateFunc(supervisor_on_draw_0e);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 0xe);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 0xe);
   func = new UpdateFunc(supervisor_on_draw_0f);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 0xf);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 0xf);
   func = new UpdateFunc(supervisor_on_draw_19);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 0x19);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 0x19);
   func = new UpdateFunc(supervisor_on_draw_1a);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 0x1a);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 0x1a);
   func = new UpdateFunc(supervisor_on_draw_2c);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 0x2c);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 0x2c);
   func = new UpdateFunc(supervisor_on_draw_2d);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 0x2d);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 0x2d);
   func = new UpdateFunc(supervisor_on_draw_39);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 0x39);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 0x39);
   func = new UpdateFunc(supervisor_on_draw_3a);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 0x3a);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 0x3a);
   func = new UpdateFunc(supervisor_on_draw_56);
-  UPDATE_FUNC_REGISTRY->register_on_draw(func, 0x56);
+  UPDATE_FUNC_REGISTRY.register_on_draw(func, 0x56);
   // get back_buffer ...
   anmmanager_updatefuncs();
   return 0;

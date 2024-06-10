@@ -2,7 +2,7 @@
 #define ECLINSTRMACROS_H_
 
 #include "./shiftjis.h"
-#include <Error.h>
+#include <logger.h>
 #include <string>
 
 #define _insNop                                                                \
@@ -105,20 +105,20 @@
 #define I_(n) enemy.ecl_int_vars[n]
 #define f_(n) enemy.ecl_float_vars[n]
 
-#define _notImpl ns::warning("/!\\", __name, "is not implemented");
+#define _notImpl NS_WARN("/!\\ %s is not implemented", __name);
 
-#define _alert ns::warning("/!\\ alert --->", __name, "has been used");
+#define _alert NS_WARN("/!\\ alert ---> %s has been used", __name);
 
-#define _warn(m) ns::warning("/!\\ warning at", __name, ":", m);
+#define _warn(m) NS_WARN("/!\\ warning at %s: %s", __name, m);
 
 #define _ret return 0;
 
 #define isBoss_                                                                \
-  (EnemyManager::GetInstance()->boss_ids[0] > 0 &&                             \
-   EnemyManager::GetInstance()->EnmFind(                                       \
-       EnemyManager::GetInstance()->boss_ids[0]))
+  (ENEMY_MANAGER_PTR->boss_ids[0] > 0 &&                             \
+   ENEMY_MANAGER_PTR->EnmFind(                                       \
+       ENEMY_MANAGER_PTR->boss_ids[0]))
 
 #define BOSS_                                                                  \
-  EnemyManager::GetInstance()->EnmFind(EnemyManager::GetInstance()->boss_ids[0])
+  ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0])
 
 #endif // ECLINSTRMACROS_H_

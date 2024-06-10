@@ -1,17 +1,19 @@
 #include "./thecl_value.h"
 
-#include <string.h>
-#include <Error.h>
+#include <logger.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <cstring>
 
 isize thecl_value_from_data(robytes data,
         usize data_length, char type, thecl_value_t* value) {
 #define READ(x, n)                                                             \
     if (data_length < n) {                                                     \
-        ns::error("thecl:value_from_data: unexpected"                          \
-            "end of data, wanted to read", n, "bytes for format '#x'");        \
+        NS_ERROR("thecl:value_from_data: unexpected"                           \
+            "end of data, wanted to read %llu bytes for format '#x'", n);      \
         return -1;                                                             \
     }                                                                          \
-    memcpy(&value->val.x, data, n);                                            \
+    ns::mem_copy(&value->val.x, data, n);                                      \
     return n;
 
     value->type = type;
@@ -41,15 +43,15 @@ isize thecl_value_from_data(robytes data,
         break;
     case 'z':
         value->val.z = new char[data_length];
-        memcpy(value->val.z, data, data_length);
+        ns::mem_copy(value->val.z, data, data_length);
         return data_length;
     case 'm':
         value->val.m.length = data_length;
         value->val.m.data = new byte[data_length];
-        memcpy(value->val.m.data, data, data_length);
+        ns::mem_copy(value->val.m.data, data, data_length);
         return data_length;
     default:
-        ns::error("thecl:value_from_data: invalid type", value->type);
+        NS_ERROR("thecl:value_from_data: invalid type %d", value->type);
         return -1;
     }
 
@@ -75,7 +77,7 @@ static isize th10_value_from_data(robytes data,
     case 'm':
     case 'x': {
         u32 length;
-        memcpy(&length, data, sizeof(u32));
+        ns::mem_copy(&length, data, sizeof(u32));
         thecl_value_t temp;
 
         thecl_value_from_data(data + sizeof(length), length, 'm', &temp);
@@ -115,8 +117,7 @@ thecl_value_t* thecl_value_list_from_data(const unsigned char* data,
         do {
             values = reinterpret_cast<thecl_value_t*>(
                 realloc(values, (i + 1) * sizeof(thecl_value_t)));
-            ssize_t incr = th10_value_from_data(data,
-                                                data_length, f, &values[i]);
+            isize incr = th10_value_from_data(data, data_length, f, &values[i]);
             if (incr == -1) {
                 /* XXX: Leaks */
                 // static_cast<unsigned char>( values, expecting program te
@@ -137,69 +138,14 @@ thecl_value_t* thecl_value_list_from_data(const unsigned char* data,
     }
 
     if (data_length)
-        fprintf(stderr, "thecl:value_list_from_data: %zu bytes left over"
+        NS_ERROR("thecl:value_list_from_data: %zu bytes left over "
                 "when parsing format \"%s\"\n", data_length, format);
 
     values = reinterpret_cast<thecl_value_t*>(realloc(values, (i + 1) *
                                                       sizeof(thecl_value_t)));
-    memset(&values[i], 0, sizeof(thecl_value_t));
+    ns::mem_set(&values[i], 0, sizeof(thecl_value_t));
 
     return values;
-}
-
-/* TODO: Should write to a passed buffer and return the
- * number of bytes written. */
-char* thecl_value_to_text(const thecl_value_t* value)
-{
-    /* XXX: This might be too short. */
-    char temp[256];
-
-    switch (value->type) {
-    case 'f':
-        snprintf(temp, sizeof(temp), "%ff", value->val.f);
-        break;
-    case 'd':
-        snprintf(temp, sizeof(temp), "%f", value->val.d);
-        break;
-    case 'b':
-        snprintf(temp, sizeof(temp), "%02x", value->val.b);
-        break;
-    case 'c':
-        snprintf(temp, sizeof(temp), "%c", value->val.c);
-        break;
-    case 'u':
-        snprintf(temp, sizeof(temp), "%u", value->val.u);
-        break;
-    case 's':
-        snprintf(temp, sizeof(temp), "%i", value->val.s);
-        break;
-    case 'U':
-        snprintf(temp, sizeof(temp), "%u", value->val.U);
-        break;
-    case 'S':
-        snprintf(temp, sizeof(temp), "%i", value->val.S);
-        break;
-    case 'z':
-        snprintf(temp, sizeof(temp), "%s", value->val.z);
-        break;
-    case 'm':
-        memcpy(temp, value->val.m.data, value->val.m.length);
-        temp[value->val.m.length] = '\0';
-        break;
-    case 'C':
-        snprintf(temp, sizeof(temp), "#%02hhx%02hhx%02hhx%02hhx",
-            static_cast<unsigned char>(value->val.C[0]),
-            static_cast<unsigned char>(value->val.C[1]),
-            static_cast<unsigned char>(value->val.C[2]),
-            static_cast<unsigned char>(value->val.C[3]));
-        break;
-    default:
-        fprintf(stderr, "thecl:value_to_text: invalid type '%c'\n",
-                value->type);
-        return NULL;
-    }
-
-    return strdup(temp);
 }
 
 void thecl_value_free(thecl_value_t* value) {

@@ -13,6 +13,7 @@
 #include "./Spellcard.h"
 #include "./UpdateFuncRegistry.h"
 #include <math/Random.h>
+#include <memory.h>
 
 Bomb* BOMB_PTR = nullptr;
 
@@ -26,9 +27,9 @@ bool player_is_trying_to_bomb() {
 Bomb::Bomb() {
     BOMB_PTR = this;
     on_tick = new UpdateFunc([this](){return this->f_on_tick();});
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 25);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 25);
     on_draw = new UpdateFunc([this](){return this->f_on_draw();});
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 41);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, 41);
     timer_0x34 = 0;
     timer_0x7c = 0;
     field_0x78 = -1;
@@ -39,9 +40,9 @@ Bomb::~Bomb() {
     anm::deleteVM(anmid_0x5c);
     anm::deleteVM(anmid_0x60);
     anm::deleteVM(anmid_0x64);
-    if (on_tick) UPDATE_FUNC_REGISTRY->unregister(on_tick);
-    if (on_draw) UPDATE_FUNC_REGISTRY->unregister(on_draw);
-    if (ptr_0x70) free(ptr_0x70);
+    if (on_tick) UPDATE_FUNC_REGISTRY.unregister(on_tick);
+    if (on_draw) UPDATE_FUNC_REGISTRY.unregister(on_draw);
+    if (ptr_0x70) ns::free(ptr_0x70, sizeof(BombReimu::Buffer_t), ns::MemTag::GAME);
 }
 
 int Bomb::f_on_tick() {
@@ -129,7 +130,7 @@ void BombReimu::cleanup() {
     reinterpret_cast<Buffer_t*>(ptr_0x70)->explode_all();
     anm::interrupt_tree(anmid_0x64, 1);
     if (ptr_0x70) {
-        free(ptr_0x70);
+        ns::free(ptr_0x70, sizeof(Buffer_t), ns::MemTag::GAME);
         ptr_0x70 = nullptr;
     }
     new ScreenEffect(1, 8, 6, 6, 0, 0);
@@ -162,11 +163,11 @@ void BombReimu::begin() {
     }
     ENEMY_MANAGER_PTR->bomb_count++;
     if (ptr_0x70) {
-        free(ptr_0x70);
+        ns::free(ptr_0x70, sizeof(Buffer_t), ns::MemTag::GAME);
         ptr_0x70 = nullptr;
     }
-    ptr_0x70 = malloc(sizeof(Buffer_t));
-    memset(ptr_0x70, 0, sizeof(Buffer_t));
+    ptr_0x70 = ns::alloc(sizeof(Buffer_t), ns::MemTag::GAME);
+    ns::mem_set(ptr_0x70, 0, sizeof(Buffer_t));
     anmid_0x64 = PLAYER_PTR->playerAnm->createEffectPos(0x25, 0, PLAYER_PTR->inner.pos);
 }
 
@@ -282,7 +283,7 @@ int BombReimu::f_on_tick_() {
             if (i > 0x17) {
                 anm::interrupt_tree(anmid_0x64, 1);
                 if (ptr_0x70) {
-                    free(ptr_0x70);
+                    ns::free(ptr_0x70, sizeof(Buffer_t), ns::MemTag::GAME);
                     ptr_0x70 = 0;
                 }
                 return -1;

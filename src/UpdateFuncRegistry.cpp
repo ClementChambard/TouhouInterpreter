@@ -1,6 +1,6 @@
 #include "./UpdateFuncRegistry.h"
 
-UpdateFuncRegistry* const UPDATE_FUNC_REGISTRY = new UpdateFuncRegistry();
+UpdateFuncRegistry UPDATE_FUNC_REGISTRY{};
 
 i32 UpdateFuncRegistry::run_all_on_tick() {
     UpdateFunc* current_update_func;
@@ -158,4 +158,19 @@ void UpdateFuncRegistry::unregister_from(UpdateFuncList_t* node
     //     if (func != nullptr)
     //         unregister(func);
     // }
+}
+
+void UpdateFuncRegistry::unregister_all() {
+    UpdateFuncList_t *n = on_game_tick_list_head.list_node.next;
+    while (n) {
+        UpdateFunc* f = n->entry;
+        n = n->next;
+        delete f;
+    }
+    n = on_draw_list_head.list_node.next;
+    while (n) {
+        UpdateFunc* f = n->entry;
+        n = n->next;
+        delete f;
+    }
 }

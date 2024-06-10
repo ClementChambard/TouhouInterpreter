@@ -2,12 +2,12 @@
 #include "./AnmFuncs.h"
 #include "./AnmManager.h"
 #include "./anmOpener.h"
-#include <ImageLoader.h>
 #include <TextureManager.h>
 #include <Texture.hpp>
 #include <cstring>
 #include <numeric>
-#include <Error.h>
+#include <logger.h>
+#include <memory.h>
 
 namespace anm {
 
@@ -23,7 +23,7 @@ File::File(cstr filename, u32 slot) {
 }
 
 void File::Open(cstr filename, u32 slot) {
-    if (name) Cleanup();
+    if (name != "") Cleanup();
     name = filename;
     opener::anm_archive_t* archive = opener::anm_read_file(filename);
     u32 scrID = 0;
@@ -89,12 +89,12 @@ void File::Open(cstr filename, u32 slot) {
     }
 
     opener::anm_free(archive);
-    ns::info("Opened:", filename, "on slot", slot);
+    NS_INFO("Opened: %s on slot %d", filename, slot);
     this->slot = slot;
 }
 
 void File::Cleanup() {
-    if (name) return;
+    if (name == "") return;
     anm::delete_of_file(this);
     for (auto s : this->scripts)
         delete[] s;
@@ -103,7 +103,7 @@ void File::Cleanup() {
     preloaded.clear();
     this->scripts.clear();
     sprites.clear();
-    name = nullptr;
+    name = "";
 }
 
 File::~File() {
@@ -164,8 +164,7 @@ void File::copyFromLoaded(VM* vm, i32 id) {
     auto saved_entitypos = vm->entity_pos;
     auto saved_fast_id = vm->fast_id;
     auto saved_layer = vm->layer;
-    memset(reinterpret_cast<char*>(&vm->id),
-           0x0, sizeof(VM) - offsetof(VM, id));
+    ns::mem_zero(&vm->id, sizeof(VM) - offsetof(VM, id));
     vm->entity_pos = saved_entitypos;
     vm->fast_id = saved_fast_id;
     vm->layer = saved_layer;
@@ -173,8 +172,7 @@ void File::copyFromLoaded(VM* vm, i32 id) {
     vm->__node_as_child = {vm, nullptr, nullptr};
     vm->list_of_children = {vm, nullptr, nullptr};
     if (id >= 0)
-        memcpy(reinterpret_cast<char*>(vm),
-            reinterpret_cast<char*>(&this->preloaded[id]), offsetof(VM, id));
+        ns::mem_copy(vm, &this->preloaded[id], offsetof(VM, id));
     vm->time_in_script = 0;
     vm->__timer_1c = 0;
 }
@@ -243,7 +241,7 @@ ID File::createEffectPos(i32 id, f32 rot, glm::vec3 const& pos,
 
 void File::load_external_vm(VM* vm, i32 id) {
     if (this->scripts[id] == 0x0 /*|| this->load_wait != 0*/) {
-        memset(reinterpret_cast<char*>(vm), 0x0, sizeof(VM));
+        ns::mem_zero(vm, sizeof(VM));
         return;
     }
     // vm->field_0x49c = DX

@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <locale>
 #include <string>
-#include <Error.h>
+#include <logger.h>
 
 #include <cstdarg>
 #include <cwchar>
@@ -60,7 +60,7 @@ void render_text(int font_id, int x, int y,
   auto surf = TTF_RenderUTF8_Blended(fonts[font_id], text.c_str(),
                 {col.r, col.g, col.b, col.a});
   if (!surf) {
-    ns::error("failed to render text", text, "with font", font_id);
+    NS_ERROR("failed to render text %s with font %d", text.c_str(), font_id);
     return;
   }
 
@@ -365,7 +365,7 @@ void FUN_00475120(VM *vm,
       return;
     }
     if (vm->bitflags.f534_12) shadow_color = c_black;
-    int xoff = spr.w - iVar5 * (((str_siz + 1) / 2) - 1);
+    int xoff = static_cast<int>(spr.w) - iVar5 * (((str_siz + 1) / 2) - 1);
     write_text_on_framebuffer({spr.x, spr.y, spr.x + spr.w, spr.y + spr.h},
                               xoff,
                               iVar7,
@@ -381,7 +381,7 @@ void FUN_00475120(VM *vm,
 
 void init() {
     if (TTF_Init() < 0) {
-        ns::error("Couldn't initialize TTF:", SDL_GetError());
+        NS_ERROR("Couldn't initialize TTF: %s", SDL_GetError());
         return;
     }
     std::string gothic = "assets/fonts/togoshi-gothic.ttf";

@@ -33,60 +33,60 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(321, enmMapleEnemy) _z(sub) _f(x) _f(y) _S(hp) _S(score)
                              _S(item) _args
     // is it the same ?
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub.c_str(),
+    auto e = ENEMY_MANAGER_PTR->SpawnEnemy(sub.c_str(),
         x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
     if (e)
         COPY_VARS_TO(e);
 
     _ins(300, enmCreate) _z(sub) _f(x) _f(y) _S(hp)
                                   _S(score) _S(item) _args
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub.c_str(),
+    auto e = ENEMY_MANAGER_PTR->SpawnEnemy(sub.c_str(),
         x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
     if (e)
         COPY_VARS_TO(e);
     _ins(301, enmCreateA) _z(sub) _f(x) _f(y) _S(hp)
                                    _S(score) _S(item) _args
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub.c_str(),
+    auto e = ENEMY_MANAGER_PTR->SpawnEnemy(sub.c_str(),
         x, y, hp, score, item);
     if (e)
         COPY_VARS_TO(e);
     _ins(304, enmCreateM) _z(sub) _f(x) _f(y) _S(hp)
                                    _S(score) _S(item) _args
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub.c_str(),
+    auto e = ENEMY_MANAGER_PTR->SpawnEnemy(sub.c_str(),
         x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
     if (e)
         COPY_VARS_TO_M(e);
     _ins(305, enmCreateAM) _z(sub) _f(x) _f(y) _S(hp)
                                     _S(score) _S(item) _args
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub.c_str(),
+    auto e = ENEMY_MANAGER_PTR->SpawnEnemy(sub.c_str(),
         x, y, hp, score, item);
     if (e)
         COPY_VARS_TO_M(e);
     _ins(309, enmCreateF) _z(sub) _f(x) _f(y) _S(hp)
                                    _S(score) _S(item) _args
     if (isBoss_) break;
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub.c_str(),
+    auto e = ENEMY_MANAGER_PTR->SpawnEnemy(sub.c_str(),
         x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
     if (e)
         COPY_VARS_TO(e);
     _ins(310, enmCreateAF) _z(sub) _f(x) _f(y) _S(hp)
                                     _S(score) _S(item) _args
     if (isBoss_) break;
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub.c_str(),
+    auto e = ENEMY_MANAGER_PTR->SpawnEnemy(sub.c_str(),
         x, y, hp, score, item);
     if (e)
         COPY_VARS_TO(e);
     _ins(311, enmCreateMF) _z(sub) _f(x) _f(y) _S(hp)
                                     _S(score) _S(item) _args
     if (isBoss_) break;
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub.c_str(),
+    auto e = ENEMY_MANAGER_PTR->SpawnEnemy(sub.c_str(),
         x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
     if (e)
         COPY_VARS_TO_M(e);
     _ins(312, enmCreateAMF) _z(sub) _f(x) _f(y) _S(hp)
                                      _S(score) _S(item) _args
     if (isBoss_) break;
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub.c_str(),
+    auto e = ENEMY_MANAGER_PTR->SpawnEnemy(sub.c_str(),
         x, y, hp, score, item);
     if (e)
         COPY_VARS_TO_M(e);
@@ -228,7 +228,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.deathScr = scr;
 
     _ins(324, enmPos2) _rf(x) _rf(y) _S(id)
-    auto e = EnemyManager::GetInstance()->EnmFind(id);
+    auto e = ENEMY_MANAGER_PTR->EnmFind(id);
     if (!e) {
       x = enemy.final_pos.pos.x;
       y = enemy.final_pos.pos.y;
@@ -330,7 +330,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
 
     _ins(340, enmDelete) _S(id) _args
-    Enemy* e = EnemyManager::GetInstance()->EnmFind(id);
+    Enemy* e = ENEMY_MANAGER_PTR->EnmFind(id);
     // TODO should set the delete flag instead and be deleted by the enmMgr
     if (e)
         e->Die();

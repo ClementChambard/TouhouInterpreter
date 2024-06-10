@@ -4,9 +4,10 @@
 #include "./Fog.hpp"
 #include "./Hardcoded.h"
 #include "Gui.hpp"
-#include <Error.h>
+#include <logger.h>
 
 #include <math/Random.h>
+#include <memory.h>
 #include <Timer.hpp>
 
 struct EFFECT_1_buffer_t {
@@ -283,8 +284,8 @@ int on_create_anm_0(anm::VM *vm) {
     vm->layer = 0x28;
     vm->bitflags.resolutionMode = 1;
     vm->special_vertex_buffer_size = sizeof(EFFECT_1_buffer_t);
-    vm->special_vertex_buffer_data = malloc(sizeof(EFFECT_1_buffer_t));
-    memset(vm->special_vertex_buffer_data, 0, sizeof(EFFECT_1_buffer_t));
+    vm->special_vertex_buffer_data = ns::alloc(sizeof(EFFECT_1_buffer_t), ns::MemTag::GAME);
+    ns::mem_set(vm->special_vertex_buffer_data, 0, sizeof(EFFECT_1_buffer_t));
     auto buff =
         reinterpret_cast<EFFECT_1_buffer_t*>(vm->special_vertex_buffer_data);
     for (int i = 0; i < 4; i++) {
@@ -303,51 +304,51 @@ int on_create_anm_0(anm::VM *vm) {
 
 int on_create_anm_1(anm::VM* vm) {
     vm->special_vertex_buffer_size = sizeof(EFFECT_2_buffer_t);
-    vm->special_vertex_buffer_data = malloc(sizeof(EFFECT_2_buffer_t));
-    memset(vm->special_vertex_buffer_data, 0, sizeof(EFFECT_2_buffer_t));
+    vm->special_vertex_buffer_data = ns::alloc(sizeof(EFFECT_2_buffer_t), ns::MemTag::GAME);
+    ns::mem_set(vm->special_vertex_buffer_data, 0, sizeof(EFFECT_2_buffer_t));
     reinterpret_cast<EFFECT_2_buffer_t*>(vm->special_vertex_buffer_data)
       ->timer.reset();
     return 0;
 }
 
 int on_create_anm_2(anm::VM* vm) {
-    ns::warning("anm: effect 2 is not implemented");
+    NS_WARN("anm: effect 2 is not implemented");
     vm->bitflags.activeFlags = ANMVM_DELETE;
     return 0;
 }
 
 int on_create_anm_3(anm::VM* vm) {
-    ns::warning("anm: effect 3 is not implemented");
+    NS_WARN("anm: effect 3 is not implemented");
     vm->bitflags.activeFlags = ANMVM_DELETE;
     return 0;
 }
 
 int on_create_anm_4(anm::VM* vm) {
-    ns::warning("anm: effect 4 is not implemented");
+    NS_WARN("anm: effect 4 is not implemented");
     vm->bitflags.activeFlags = ANMVM_DELETE;
     return 0;
 }
 
 int on_create_anm_5(anm::VM* vm) {
-    ns::warning("anm: effect 5 is not implemented");
+    NS_WARN("anm: effect 5 is not implemented");
     vm->bitflags.activeFlags = ANMVM_DELETE;
     return 0;
 }
 
 int on_create_anm_6(anm::VM* vm) {
-    ns::warning("anm: effect 6 is not implemented");
+    NS_WARN("anm: effect 6 is not implemented");
     vm->bitflags.activeFlags = ANMVM_DELETE;
     return 0;
 }
 
 int on_create_anm_7(anm::VM* vm) {
-    ns::warning("anm: effect 7 is not implemented");
+    NS_WARN("anm: effect 7 is not implemented");
     vm->bitflags.activeFlags = ANMVM_DELETE;
     return 0;
 }
 
 int on_create_anm_8(anm::VM* vm) {
-    ns::warning("anm: effect 8 is not implemented");
+    NS_WARN("anm: effect 8 is not implemented");
     vm->bitflags.activeFlags = ANMVM_DELETE;
     return 0;
 }

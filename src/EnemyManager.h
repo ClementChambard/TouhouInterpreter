@@ -24,12 +24,7 @@ public:
     ~EnemyManager();
     EnemyManager(EnemyManager const&) = delete;
     EnemyManager& operator=(EnemyManager const&) = delete;
-    static EnemyManager* GetInstance() {
-        static EnemyManager* inst = new EnemyManager();
-        ENEMY_MANAGER_PTR = inst;
-        return inst;
-    }
-    static void Cleanup() { delete GetInstance(); }
+
     void Start(cstr eclFile, cstr sub = "main");
     void Update();
     Enemy* SpawnEnemy(cstr sub, float x, float y, int life, int score,

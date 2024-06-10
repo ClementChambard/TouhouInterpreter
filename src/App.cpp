@@ -1,4 +1,7 @@
 #include "./App.hpp"
+#include "./BulletManager.h"
+#include "./EnemyManager.h"
+#include "./AnmViewer.hpp"
 #include "./AnmOpener/AnmManager.h"
 #include "./AsciiManager.hpp"
 #include "./AsciiPopupManager.hpp"
@@ -33,7 +36,7 @@ void App::on_create() {
 
   anm::loadFile(8, "effect.anm");
 
-  ns::info("Touhou", TOUHOU_VERSION);
+  NS_INFO("Touhou %d", TOUHOU_VERSION);
 
   HardcodedFuncsInit(TOUHOU_VERSION);
 
@@ -50,35 +53,29 @@ void App::on_create() {
   if (strlen(m_argv[1]) > 3 && m_argv[1][3] >= '0' && m_argv[1][3] < '8')
     GLOBALS.inner.STAGE_NUM = m_argv[1][3] - '0';
 
-  bm = BulletManager::GetInstance();
-  em = EnemyManager::GetInstance();
 
+  // Not new Bomb since the BOMB_PTR is a different type depending on the character
   Bomb::initialize();
-  new LaserManager();
-  new Player();
-  new ItemManager();
-  new AsciiManager();
-  new AsciiPopupManager();
-  new Gui();
-  new Spellcard();
-  new Stage();
-  em->Start(m_argv[1], m_argc > 2 ? m_argv[2] : "main");
-  if (TOUHOU_VERSION == 17)
-    new GoastManager();
 
-  new PauseMenu();
+  BulletManager::GetInstance();
+  new EnemyManager;
+  new LaserManager;
+  new Player;
+  new ItemManager;
+  new AsciiManager;
+  new AsciiPopupManager;
+  new Gui;
+  new Spellcard;
+  new Stage;
+  new PauseMenu;
+  if (TOUHOU_VERSION == 17) new GoastManager;
 
-  UPDATE_FUNC_REGISTRY->register_on_tick(new UpdateFunc([this]() {
-                                           this->anmViewer.on_tick();
-                                           return 1;
-                                         }),
-                                         3);
-  UPDATE_FUNC_REGISTRY->register_on_draw(new UpdateFunc([this]() {
-                                           this->anmViewer.on_draw();
-                                           return 1;
-                                         }),
-                                         100);
-  UPDATE_FUNC_REGISTRY->register_on_tick(
+  new AnmViewer;
+
+  ENEMY_MANAGER_PTR->Start(m_argv[1], m_argc > 2 ? m_argv[2] : "main");
+
+  // TODO: This is one of the GameThread's update func
+  UPDATE_FUNC_REGISTRY.register_on_tick(
       new UpdateFunc([]() {
         if (GAME_PAUSED)
           return 3;
@@ -91,12 +88,13 @@ void App::on_create() {
       16);
 }
 
-void App::on_update() { UPDATE_FUNC_REGISTRY->run_all_on_tick(); }
+void App::on_update() { UPDATE_FUNC_REGISTRY.run_all_on_tick(); }
 
-void App::on_render() { UPDATE_FUNC_REGISTRY->run_all_on_draw(); }
+void App::on_render() { UPDATE_FUNC_REGISTRY.run_all_on_draw(); }
 
 void App::on_destroy() {
   delete PAUSE_MENU_PTR;
+  delete LASER_MANAGER_PTR;
   if (GOAST_MANAGER_PTR)
     delete GOAST_MANAGER_PTR;
   delete STAGE_PTR;
@@ -107,7 +105,7 @@ void App::on_destroy() {
   delete ITEM_MANAGER_PTR;
   delete PLAYER_PTR;
   delete BOMB_PTR;
-  EnemyManager::Cleanup();
+  delete ENEMY_MANAGER_PTR;
   delete BulletManager::GetInstance();
   // SUPERVISOR.cleanup();
   anm::cleanup();

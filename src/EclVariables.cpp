@@ -91,12 +91,12 @@ int32_t Enemy::checkVarI(int32_t id) {
     if (id == -9964)
         return PLAYER_PTR->inner.pos.y;
     if (id == -9963)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->
             boss_ids[0])->enemy.final_pos.pos.x;
     if (id == -9962)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->
             boss_ids[0])->enemy.final_pos.pos.y;
     if (id == -9961)
         return enemy.anmIds[0].val;
@@ -129,13 +129,13 @@ int32_t Enemy::checkVarI(int32_t id) {
     if (id == -9950)
         return GLOBALS.inner.DIFFICULTY == 3;
     if (id == -9949)
-        return EnemyManager::GetInstance()->miss_count;
+        return ENEMY_MANAGER_PTR->miss_count;
     if (id == -9948)
-        return EnemyManager::GetInstance()->bomb_count;
+        return ENEMY_MANAGER_PTR->bomb_count;
     if (id == -9947)
-        return EnemyManager::GetInstance()->can_still_capture_spell;
+        return ENEMY_MANAGER_PTR->can_still_capture_spell;
     if (id == -9946)
-        return EnemyManager::GetInstance()->enemyCount;
+        return ENEMY_MANAGER_PTR->enemyCount;
     if (id == -9945)
         return GLOBALS.inner.SHOTTYPE;
     if (id == -9944)
@@ -144,36 +144,36 @@ int32_t Enemy::checkVarI(int32_t id) {
                                     PLAYER_PTR->inner.pos.x,
                                     PLAYER_PTR->inner.pos.y);
     if (id == -9943)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[0];
     if (id == -9942)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[1];
     if (id == -9941)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[2];
     if (id == -9940)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[3];
     if (id == -9939)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[0];
     if (id == -9938)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[1];
     if (id == -9937)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[2];
     if (id == -9936)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[3];
     if (id == -9935)
         return enemy.ecl_float_vars[4];
@@ -184,7 +184,7 @@ int32_t Enemy::checkVarI(int32_t id) {
     if (id == -9932)
         return enemy.ecl_float_vars[7];
     if (id == -9931)
-        return EnemyManager::GetInstance()->last_enemy_id;
+        return ENEMY_MANAGER_PTR->last_enemy_id;
     if (id == -9930)
         return GLOBALS.inner.CURRENT_POWER;
     if (id == -9929)
@@ -194,29 +194,29 @@ int32_t Enemy::checkVarI(int32_t id) {
     if (id == -9927)
         return GLOBALS.DS3;
     if (id == -9926)
-        return EnemyManager::GetInstance()->ecl_int_vars[0];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[0];
     if (id == -9925)
-        return EnemyManager::GetInstance()->ecl_int_vars[1];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[1];
     if (id == -9924)
-        return EnemyManager::GetInstance()->ecl_int_vars[2];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[2];
     if (id == -9923)
-        return EnemyManager::GetInstance()->ecl_int_vars[3];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[3];
     if (id == -9922)
-        return EnemyManager::GetInstance()->ecl_float_vars[0];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[0];
     if (id == -9921)
-        return EnemyManager::GetInstance()->ecl_float_vars[1];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[1];
     if (id == -9920)
-        return EnemyManager::GetInstance()->ecl_float_vars[2];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[2];
     if (id == -9919)
-        return EnemyManager::GetInstance()->ecl_float_vars[3];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[3];
     if (id == -9918)
-        return EnemyManager::GetInstance()->ecl_float_vars[4];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[4];
     if (id == -9917)
-        return EnemyManager::GetInstance()->ecl_float_vars[5];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[5];
     if (id == -9916)
-        return EnemyManager::GetInstance()->ecl_float_vars[6];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[6];
     if (id == -9915)
-        return EnemyManager::GetInstance()->ecl_float_vars[7];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[7];
     if (id == -9914)
         return enemyId;
     if (id == -9913)
@@ -224,17 +224,17 @@ int32_t Enemy::checkVarI(int32_t id) {
     if (id == -9912)
         return GLOBALS.DS3;
     if (id == -9911)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.final_pos.angle;
     if (id == -9910)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.final_pos.speed;
     if (id == -9909)
         return parentEnemyId;
     if (id == -9908)
-        return EnemyManager::GetInstance()->killableEnemyCount();
+        return ENEMY_MANAGER_PTR->killableEnemyCount();
     if (id == -9907)
         return GLOBALS.inner.SPELL_ID;
     if (id == -9906)
@@ -339,12 +339,12 @@ float Enemy::checkVarF(float id) {
     if (id == -9964.f)
         return PLAYER_PTR->inner.pos.y;
     if (id == -9963.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.final_pos.pos.x;
     if (id == -9962.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.final_pos.pos.y;
     if (id == -9961.f)
         return enemy.anmIds[0].val;
@@ -377,13 +377,13 @@ float Enemy::checkVarF(float id) {
     if (id == -9950.f)
         return GLOBALS.inner.DIFFICULTY == 3;
     if (id == -9949.f)
-        return EnemyManager::GetInstance()->miss_count;
+        return ENEMY_MANAGER_PTR->miss_count;
     if (id == -9948.f)
-        return EnemyManager::GetInstance()->bomb_count;
+        return ENEMY_MANAGER_PTR->bomb_count;
     if (id == -9947.f)
-        return EnemyManager::GetInstance()->can_still_capture_spell;
+        return ENEMY_MANAGER_PTR->can_still_capture_spell;
     if (id == -9946.f)
-        return EnemyManager::GetInstance()->enemyCount;
+        return ENEMY_MANAGER_PTR->enemyCount;
     if (id == -9945.f)
         return GLOBALS.inner.SHOTTYPE;
     if (id == -9944.f)
@@ -392,36 +392,36 @@ float Enemy::checkVarF(float id) {
                                     PLAYER_PTR->inner.pos.x,
                                     PLAYER_PTR->inner.pos.y);
     if (id == -9943.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[0];
     if (id == -9942.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[1];
     if (id == -9941.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[2];
     if (id == -9940.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[3];
     if (id == -9939.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[0];
     if (id == -9938.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[1];
     if (id == -9937.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[2];
     if (id == -9936.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[3];
     if (id == -9935.f)
         return enemy.ecl_float_vars[4];
@@ -432,7 +432,7 @@ float Enemy::checkVarF(float id) {
     if (id == -9932.f)
         return enemy.ecl_float_vars[7];
     if (id == -9931.f)
-        return EnemyManager::GetInstance()->last_enemy_id;
+        return ENEMY_MANAGER_PTR->last_enemy_id;
     if (id == -9930.f)
         return GLOBALS.inner.CURRENT_POWER;
     if (id == -9929.f)
@@ -442,29 +442,29 @@ float Enemy::checkVarF(float id) {
     if (id == -9927.f)
         return GLOBALS.DS3;
     if (id == -9926.f)
-        return EnemyManager::GetInstance()->ecl_int_vars[0];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[0];
     if (id == -9925.f)
-        return EnemyManager::GetInstance()->ecl_int_vars[1];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[1];
     if (id == -9924.f)
-        return EnemyManager::GetInstance()->ecl_int_vars[2];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[2];
     if (id == -9923.f)
-        return EnemyManager::GetInstance()->ecl_int_vars[3];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[3];
     if (id == -9922.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[0];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[0];
     if (id == -9921.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[1];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[1];
     if (id == -9920.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[2];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[2];
     if (id == -9919.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[3];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[3];
     if (id == -9918.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[4];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[4];
     if (id == -9917.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[5];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[5];
     if (id == -9916.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[6];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[6];
     if (id == -9915.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[7];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[7];
     if (id == -9914.f)
         return enemyId;
     if (id == -9913.f)
@@ -472,17 +472,17 @@ float Enemy::checkVarF(float id) {
     if (id == -9912.f)
         return GLOBALS.DS3;
     if (id == -9911.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.final_pos.angle;
     if (id == -9910.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.final_pos.speed;
     if (id == -9909.f)
         return parentEnemyId;
     if (id == -9908.f)
-        return EnemyManager::GetInstance()->killableEnemyCount();
+        return ENEMY_MANAGER_PTR->killableEnemyCount();
     if (id == -9907.f)
         return GLOBALS.inner.SPELL_ID;
     if (id == -9906.f)
@@ -518,35 +518,35 @@ int32_t& Enemy::checkVarRI(int32_t id) {
     if (id == -9982)
         return enemy.ecl_int_vars[3];
     if (id == -9949)
-        return EnemyManager::GetInstance()->miss_count;
+        return ENEMY_MANAGER_PTR->miss_count;
     if (id == -9948)
-        return EnemyManager::GetInstance()->bomb_count;
+        return ENEMY_MANAGER_PTR->bomb_count;
     if (id == -9947)
-        return EnemyManager::GetInstance()->can_still_capture_spell;
+        return ENEMY_MANAGER_PTR->can_still_capture_spell;
     if (id == -9943)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[0];
     if (id == -9942)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[1];
     if (id == -9941)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[2];
     if (id == -9940)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_int_vars[3];
     if (id == -9926)
-        return EnemyManager::GetInstance()->ecl_int_vars[0];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[0];
     if (id == -9925)
-        return EnemyManager::GetInstance()->ecl_int_vars[1];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[1];
     if (id == -9924)
-        return EnemyManager::GetInstance()->ecl_int_vars[2];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[2];
     if (id == -9923)
-        return EnemyManager::GetInstance()->ecl_int_vars[3];
+        return ENEMY_MANAGER_PTR->ecl_int_vars[3];
     if (id >= 0)
         return VAR(id / 4).asInt; // Error: user will modify int variant but not float variant.
     return context.currentContext->int_vars[7];
@@ -562,20 +562,20 @@ float& Enemy::checkVarRF(float id) {
     if (id == -9978.f)
         return enemy.ecl_float_vars[3];
     if (id == -9939.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[0];
     if (id == -9938.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[1];
     if (id == -9937.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[2];
     if (id == -9936.f)
-        return EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[0])
+        return ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[0])
             ->enemy.ecl_float_vars[3];
     if (id == -9935.f)
         return enemy.ecl_float_vars[4];
@@ -586,21 +586,21 @@ float& Enemy::checkVarRF(float id) {
     if (id == -9932.f)
         return enemy.ecl_float_vars[7];
     if (id == -9922.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[0];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[0];
     if (id == -9921.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[1];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[1];
     if (id == -9920.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[2];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[2];
     if (id == -9919.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[3];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[3];
     if (id == -9918.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[4];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[4];
     if (id == -9917.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[5];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[5];
     if (id == -9916.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[6];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[6];
     if (id == -9915.f)
-        return EnemyManager::GetInstance()->ecl_float_vars[7];
+        return ENEMY_MANAGER_PTR->ecl_float_vars[7];
     if (id >= 0)
         return VAR((int)id / 4).asFloat; // Error: user will modify float variant but not int variant.
     return context.currentContext->float_vars[7];

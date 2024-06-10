@@ -3,6 +3,7 @@
 #include "Enemy.h"
 #include "Supervisor.h"
 #include <NSEngine.hpp>
+#include <memory.h>
 
 #define GAME_SPEED ns::getInstance()->gameSpeed()
 
@@ -10,7 +11,7 @@ anm::ID fog_init_sub_anms(int count) {
   anm::VM *vm;
   anm::ID id = SUPERVISOR.text_anm->createEffect(59, 34, &vm);
   vm->special_vertex_buffer_size = count * 0x38;
-  vm->special_vertex_buffer_data = malloc(count * 2 * sizeof(anm::RenderVertex_t));
+  vm->special_vertex_buffer_data = ns::alloc(count * 2 * sizeof(anm::RenderVertex_t), ns::MemTag::GAME);
   if (count < 3) {
     vm->bitflags.rendermode = 0;
   } else {
@@ -51,7 +52,7 @@ Fog_t::Fog_t(int count) {
   vm->color_1.a = 0;
   vm->bitflags.rendermode = 0;
   vm->special_vertex_buffer_size = 0x70;
-  vm->special_vertex_buffer_data = malloc(0x70);
+  vm->special_vertex_buffer_data = ns::alloc(0x70, ns::MemTag::GAME);
   vm->index_of_on_draw = 4;
   vm->associated_game_entity = this;
   for (int i = 0; i < vm_count - 1; i++) {

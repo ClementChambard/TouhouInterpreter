@@ -192,7 +192,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
     BULLET_MANAGER_PTR->cancel_all(false);
     LASER_MANAGER_PTR->cancel_all(false);
-    EnemyManager::GetInstance()->EnmKillAll(this);
+    ENEMY_MANAGER_PTR->EnmKillAll(this);
 
     _ins(519, dialogueWait) _args
     if (GUI_PTR->msg) {
@@ -233,7 +233,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     // more in th15 ?
 
     _ins(525, enmKillAll) _args
-    EnemyManager::GetInstance()->EnmKillAll(this);
+    ENEMY_MANAGER_PTR->EnmKillAll(this);
 
     _ins(526, etProtectRange) _f(r) _args
     enemy.etProtRange = r * r;
@@ -372,7 +372,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
 
     _ins(555, enmAlive) _rS(var) _S(id) _args
-    var = EnemyManager::GetInstance()->EnmFind(id) != nullptr;
+    var = ENEMY_MANAGER_PTR->EnmFind(id) != nullptr;
 
     _ins(556, setDeath) _z(sub) _args
     assert(sub.length() < 0x40);
@@ -391,7 +391,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.abs_pos.flags = state;
 
     _ins(559, enmLimit) _S(n) _args
-    EnemyManager::GetInstance()->enemy_limit = n;
+    ENEMY_MANAGER_PTR->enemy_limit = n;
 
     _ins(560, setBounceRect) _f(r) _f(s) _args
     BulletManager::GetInstance()->set_bounce_rect(r, s);

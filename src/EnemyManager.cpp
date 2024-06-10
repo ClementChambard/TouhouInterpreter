@@ -1,8 +1,7 @@
 #include "./EnemyManager.h"
 #include "./GlobalData.h"
 #include "./Player.h"
-#include <ListUtil.h>
-#include <InputManager.h>
+#include <input.hpp>
 #include <NSEngine.hpp>
 
 EnemyManager* ENEMY_MANAGER_PTR = nullptr;
@@ -22,11 +21,16 @@ Enemy* EnemyManager::SpawnEnemy(cstr sub, float x, float y, int life,
     if (!dospawn)
         sub = "";
     if (enemyCount >= enemy_limit) {
-        ns::error("Can't spawn", sub, ": Too much enemies.");
+        NS_ERROR("Can't spawn %s: Too much enemies.", sub);
         return nullptr;
     }
-    auto e = ListUtil::listInsertAfter(active_enemy_list_head,
-                                       new Enemy())->value;
+
+    auto e = new Enemy;
+    if (active_enemy_list_head->next) active_enemy_list_head->next->previous = &e->enemy.node;
+    e->enemy.node.next = active_enemy_list_head->next;
+    active_enemy_list_head->next = &e->enemy.node;
+    e->enemy.node.previous = active_enemy_list_head;
+
     e->Init(sub);
     e->enemy.abs_pos.pos = { x, y, 0 };
     e->enemy.scoreReward = score;
@@ -76,6 +80,7 @@ Enemy* EnemyManager::SpawnEnemy(cstr sub, float x, float y, int life,
 }
 
 EnemyManager::EnemyManager() {
+    ENEMY_MANAGER_PTR = this;
     fileManager = EclFileManager::GetInstance();
     active_enemy_list_head = new EnemyList_t();
     active_enemy_list_tail = new EnemyList_t();
@@ -84,8 +89,8 @@ EnemyManager::EnemyManager() {
 
     f_on_tick = new UpdateFunc([this]() { return this->on_tick(); });
     f_on_draw = new UpdateFunc([this]() { return this->on_draw(); });
-    UPDATE_FUNC_REGISTRY->register_on_tick(f_on_tick, 27);
-    UPDATE_FUNC_REGISTRY->register_on_draw(f_on_draw, 23);
+    UPDATE_FUNC_REGISTRY.register_on_tick(f_on_tick, 27);
+    UPDATE_FUNC_REGISTRY.register_on_draw(f_on_draw, 23);
 }
 
 EnemyManager::~EnemyManager() {
@@ -97,10 +102,12 @@ EnemyManager::~EnemyManager() {
         n = n->next;
         if (nn->value)
             delete nn->value;
-        delete nn;
     }
-    UPDATE_FUNC_REGISTRY->unregister(f_on_tick);
-    UPDATE_FUNC_REGISTRY->unregister(f_on_draw);
+    delete active_enemy_list_head;
+    delete active_enemy_list_tail;
+    UPDATE_FUNC_REGISTRY.unregister(f_on_tick);
+    UPDATE_FUNC_REGISTRY.unregister(f_on_draw);
+    ENEMY_MANAGER_PTR = nullptr;
 }
 int EnemyManager::closest_enemy_id(glm::vec2 pos) {
     int closest = 0;
@@ -139,7 +146,6 @@ int EnemyManager::on_tick() {
             if (next_node)
                 next_node->previous = current_node->previous;
             delete current_node->value;
-            delete current_node;
             current_node = next_node;
             enemyCount--;
         }
@@ -156,7 +162,7 @@ int EnemyManager::on_tick() {
 }
 
 int EnemyManager::on_draw() {
-    if (ns::getInstance()->flags().flags.debugInfo)
+    if (ns::getInstance()->flags().debugInfo)
         on_draw_debug();
     return 1;
 }
@@ -180,7 +186,7 @@ void EnemyManager::Update() {
         node->value->enemy.flags &= ~0x40000;
         node->value->update();
     }
-    if (Inputs::Keyboard().Pressed(NSK_k)) {
+    if (ns::keyboard::pressed(ns::Key::K)) {
         for (EnemyList_t* node = active_enemy_list_head->next;
              node != active_enemy_list_tail; node = node->next) {
             if (node->value)

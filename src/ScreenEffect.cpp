@@ -8,77 +8,77 @@ ScreenEffect::ScreenEffect(int _type, int _time, int colorRGB_maybe, int color,
   case 0:
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_1(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     on_draw = new UpdateFunc([this]() { return this->f_on_draw_3(); });
     on_draw->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, on_draw_prio);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, on_draw_prio);
     break;
   case 1:
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_2(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     break;
   case 2:
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_3(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     on_draw = new UpdateFunc([this]() { return this->f_on_draw_1(); });
     on_draw->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, on_draw_prio);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, on_draw_prio);
     break;
   case 3:
     alpha = 255;
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_1(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     on_draw = new UpdateFunc([this]() { return this->f_on_draw_1(); });
     on_draw->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, on_draw_prio);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, on_draw_prio);
     break;
   case 4:
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_4(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     on_draw = new UpdateFunc([this]() { return this->f_on_draw_2(); });
     on_draw->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, on_draw_prio);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, on_draw_prio);
     break;
   case 5:
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_3(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     on_draw = new UpdateFunc([this]() { return this->f_on_draw_3(); });
     on_draw->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, on_draw_prio);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, on_draw_prio);
     break;
   case 6:
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_5(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     on_draw = new UpdateFunc([this]() { return this->f_on_draw_5(); });
     on_draw->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, on_draw_prio);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, on_draw_prio);
     break;
   case 7:
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_5(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     on_draw = new UpdateFunc([this]() { return this->f_on_draw_4(); });
     on_draw->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, on_draw_prio);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, on_draw_prio);
     break;
   case 8:
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_6(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     break;
   case 9:
     on_tick = new UpdateFunc([this]() { return this->f_on_tick_7(); });
     on_tick->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 0x14);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 0x14);
     on_draw = new UpdateFunc([this]() { return this->f_on_draw_5(); });
     on_draw->flags |= 2;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, on_draw_prio);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, on_draw_prio);
     break;
   }
   on_tick->on_cleanup = [this]() {
@@ -96,9 +96,9 @@ ScreenEffect::ScreenEffect(int _type, int _time, int colorRGB_maybe, int color,
 
 ScreenEffect::~ScreenEffect() {
   if (on_tick)
-    UPDATE_FUNC_REGISTRY->unregister(on_tick);
+    UPDATE_FUNC_REGISTRY.unregister(on_tick);
   if (on_draw)
-    UPDATE_FUNC_REGISTRY->unregister(on_draw);
+    UPDATE_FUNC_REGISTRY.unregister(on_draw);
 }
 
 int ScreenEffect::f_on_tick_1() {

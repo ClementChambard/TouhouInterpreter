@@ -7,23 +7,26 @@
 #include "./Player.h"
 #include "./Spellcard.h"
 
-#include <Error.h>
+#include <logger.h>
 #include <FileOpener.h>
 #include <cstdlib>
 #include <cstring>
+#include <memory.h>
 
 Gui *GUI_PTR = nullptr;
 
 uint8_t* DAT_0052a320 = nullptr;
 
+static usize msg_file_data_size = 0;
+
 Gui::Gui() {
   GUI_PTR = this;
   on_tick = new UpdateFunc([this]() { return this->f_on_tick(); });
-  UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 10);
+  UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 10);
   on_draw_49 = new UpdateFunc([this]() { return this->f_on_draw(); });
-  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_49, 49);
+  UPDATE_FUNC_REGISTRY.register_on_draw(on_draw_49, 49);
   on_draw_52 = new UpdateFunc([]() { return 1; });
-  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_52, 52);
+  UPDATE_FUNC_REGISTRY.register_on_draw(on_draw_52, 52);
   front_anm = anm::loadFile(5, "front.anm");
   cstr stage_logo_filename =
       STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["stage_logo_anm_filename"]
@@ -35,9 +38,10 @@ Gui::Gui() {
       [PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["msg"].asInt()].asString();
     std::vector<uint8_t> buffer;
     ns::FileOpener::readFileToBuffer(fname.c_str(), buffer);
-    msg_file_data = reinterpret_cast<uint8_t*>(malloc(buffer.size()));
-    ns::info("opened", fname, ":", buffer.size(), "bytes");
-    memcpy(msg_file_data, buffer.data(), buffer.size());
+    msg_file_data_size = buffer.size();
+    msg_file_data = reinterpret_cast<uint8_t*>(ns::alloc(msg_file_data_size, ns::MemTag::GAME));
+    NS_INFO("opened %s: %lld bytes", fname.c_str(), msg_file_data_size);
+    ns::mem_copy(msg_file_data, buffer.data(), msg_file_data_size);
   } else {
     msg_file_data = DAT_0052a320;
     DAT_0052a320 = NULL;
@@ -79,14 +83,15 @@ Gui::~Gui() {
   stage_logo_anmloaded->Cleanup();
   front_anm->Cleanup();
 
-  if (msg_file_data) free(msg_file_data);
+  if (msg_file_data) ns::free(msg_file_data, msg_file_data_size, ns::MemTag::GAME);
+  msg_file_data_size = 0;
 
   if (on_tick)
-    UPDATE_FUNC_REGISTRY->unregister(on_tick);
+    UPDATE_FUNC_REGISTRY.unregister(on_tick);
   if (on_draw_52)
-    UPDATE_FUNC_REGISTRY->unregister(on_draw_52);
+    UPDATE_FUNC_REGISTRY.unregister(on_draw_52);
   if (on_draw_49)
-    UPDATE_FUNC_REGISTRY->unregister(on_draw_49);
+    UPDATE_FUNC_REGISTRY.unregister(on_draw_49);
 }
 
 int Gui::f_on_tick() {

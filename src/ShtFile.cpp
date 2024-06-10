@@ -180,10 +180,10 @@ int sht_on_tick_1(PlayerBullet_t* bullet)
 {
     if (bullet->active == 2)
         return 0;
-    if (EnemyManager::GetInstance()) {
+    if (ENEMY_MANAGER_PTR) {
         if (bullet->targeted_entity == 0)
-            bullet->targeted_entity = EnemyManager::GetInstance()->closest_enemy_id(bullet->pos.pos);
-        if (auto e = EnemyManager::GetInstance()->EnmFind(bullet->targeted_entity); e) {
+            bullet->targeted_entity = ENEMY_MANAGER_PTR->closest_enemy_id(bullet->pos.pos);
+        if (auto e = ENEMY_MANAGER_PTR->EnmFind(bullet->targeted_entity); e) {
             if (!(e->getData()->flags & 0xc000021U)) {
                 if (0x3b < bullet->__field_c) {
                     bullet->pos.speed += 0.2;
@@ -289,7 +289,7 @@ int sht_on_tick_2(PlayerBullet_t* bullet) {
 
     if (bullet->active == 1) {
         if (PLAYER_PTR->inner.shoot_key_short_timer > -1 && ((((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) || !(shooter.option & 0xf) || shooter.option - 1 < PLAYER_PTR->inner.power) && ((((GLOBALS.inner.HYPER_FLAGS >> 1) & 1) && (GLOBALS.inner.HYPER_TYPE == 3 || GLOBALS.inner.HYPER_TYPE == 1)) || !PLAYER_PTR->inner.focusing)) && PLAYER_PTR->inner.state != 2 && PLAYER_PTR->inner.state != 4) {
-            if (((((PLAYER_PTR->inner.unique_bullets[(shooter.option < 0x10) ? shooter.option & 0xf : shooter.option >> 4] == GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL) && !PLAYER_PTR->inner.focusing) && !(PLAYER_PTR->flags & 0x40)) && (!GUI_PTR || !GUI_PTR->msg)) && EnemyManager::GetInstance()) {
+            if (((((PLAYER_PTR->inner.unique_bullets[(shooter.option < 0x10) ? shooter.option & 0xf : shooter.option >> 4] == GLOBALS.inner.CURRENT_POWER / GLOBALS.inner.POWER_PER_LEVEL) && !PLAYER_PTR->inner.focusing) && !(PLAYER_PTR->flags & 0x40)) && (!GUI_PTR || !GUI_PTR->msg)) && ENEMY_MANAGER_PTR) {
                 bullet->hitting = 0;
                 return 0;
             }

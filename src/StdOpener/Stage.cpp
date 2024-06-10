@@ -49,7 +49,7 @@ Stage::Stage() {
   //   }
   // }
   ns::FileOpener::readFileToBuffer(
-      STAGE_DATA_TABLE[stage_num]["std_filename"].asString().c_str(), std_file,
+      STAGE_DATA_TABLE[stage_num]["std_filename"].asCString(), std_file,
       std_file_size);
   this->std_file_data =
       reinterpret_cast<StdOpener::std_header_10_t *>(malloc(std_file_size));
@@ -88,13 +88,13 @@ Stage::Stage() {
   inner.draw_distance_sq = 9610000.0;
   on_tick = new UpdateFunc([this]() { return this->f_on_tick(); });
   on_tick->flags &= 0xfffffffd;
-  UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 18);
+  UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 18);
   on_draw_1 = new UpdateFunc([this]() { return this->f_on_draw_1(); });
   on_draw_1->flags &= 0xfffffffd;
-  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_1, 3);
+  UPDATE_FUNC_REGISTRY.register_on_draw(on_draw_1, 3);
   on_draw_2 = new UpdateFunc([this]() { return this->f_on_draw_2(); });
   on_draw_2->flags &= 0xfffffffd;
-  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_2, 6);
+  UPDATE_FUNC_REGISTRY.register_on_draw(on_draw_2, 6);
   num_ticks_alive_2 = 0;
   inner.time_in_script.set(0);
   flags |= 1;
@@ -105,11 +105,11 @@ Stage::Stage() {
 
 Stage::~Stage() {
   if (on_tick)
-    UPDATE_FUNC_REGISTRY->unregister(on_tick);
+    UPDATE_FUNC_REGISTRY.unregister(on_tick);
   if (on_draw_1)
-    UPDATE_FUNC_REGISTRY->unregister(on_draw_1);
+    UPDATE_FUNC_REGISTRY.unregister(on_draw_1);
   if (on_draw_2)
-    UPDATE_FUNC_REGISTRY->unregister(on_draw_2);
+    UPDATE_FUNC_REGISTRY.unregister(on_draw_2);
   /* destroy arrays */
   if (faces_vms)
     delete[] faces_vms;

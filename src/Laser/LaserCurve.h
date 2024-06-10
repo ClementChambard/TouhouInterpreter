@@ -4,7 +4,7 @@
 #include "Laser.h"
 #include "../AnmOpener/AnmVM.h"
 #include <vertex.h>
-#include "../Bullet.h"
+#include "../BulletHandler.h"
 
 struct LaserCurveTransform_t {
     LaserCurveTransform_t* next = nullptr;

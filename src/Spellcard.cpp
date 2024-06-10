@@ -9,7 +9,6 @@
 #include "./Supervisor.h"
 #include "./Bomb.hpp"
 #include "./GlobalData.h"
-#include <Error.h>
 #include <NSEngine.hpp>
 
 Spellcard *SPELLCARD_PTR = nullptr;
@@ -22,14 +21,14 @@ Spellcard *Spellcard::GetInstance() {
 Spellcard::Spellcard() {
   f_on_tick = new UpdateFunc([this]() { return this->on_tick(); });
   f_on_draw = new UpdateFunc([this]() { return this->on_draw(); });
-  UPDATE_FUNC_REGISTRY->register_on_tick(f_on_tick, 32);
-  UPDATE_FUNC_REGISTRY->register_on_draw(f_on_draw, 12);
+  UPDATE_FUNC_REGISTRY.register_on_tick(f_on_tick, 32);
+  UPDATE_FUNC_REGISTRY.register_on_draw(f_on_draw, 12);
   SPELLCARD_PTR = this;
 }
 
 Spellcard::~Spellcard() {
-  UPDATE_FUNC_REGISTRY->unregister(f_on_tick);
-  UPDATE_FUNC_REGISTRY->unregister(f_on_draw);
+  UPDATE_FUNC_REGISTRY.unregister(f_on_tick);
+  UPDATE_FUNC_REGISTRY.unregister(f_on_draw);
 }
 
 int Spellcard::on_tick() {
@@ -48,8 +47,7 @@ int Spellcard::on_tick() {
 
   __timer_20++;
 
-  auto e = EnemyManager::GetInstance()->EnmFind(
-      EnemyManager::GetInstance()->boss_ids[0]);
+  auto e = ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]);
   if (e)
     boss0_pos = (e->getData()->final_pos.pos - boss0_pos) * 0.05f + boss0_pos;
   auto vm = anm::getVM(spell_circle_anmid);
@@ -307,6 +305,6 @@ void Spellcard::Init(int id, int time, int mode, std::string name) {
            ((bossdata["stage_bg_visible_during_spell"].asInt() << 9) ^ flags)) &
           0x200;
   GLOBALS.inner.HYPER_FLAGS &= 0xfffff7ff;
-  ns::info("Spell card", sj2utf8(name), " ->", time);
+  NS_INFO("Spell card %s -> %d", sj2utf8(name).c_str(), time);
   flags |= 3;
 }

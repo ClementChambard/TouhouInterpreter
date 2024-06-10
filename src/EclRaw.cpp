@@ -1,12 +1,12 @@
 #include "./EclRaw.h"
 #include <fstream>
-#include <Error.h>
+#include <logger.h>
 #include <cstring>
 
 EclRaw_t* ecl_open(cstr filename) {
     std::ifstream file(filename, std::ios::binary);
     if (file.fail()) {
-        ns::error("Invalid file name:", filename);
+        NS_ERROR("Invalid file name: %s", filename);
         return nullptr;
     }
     file.seekg(0, std::ios::end);
@@ -45,7 +45,7 @@ EclRaw_t* ecl_open(cstr filename) {
         magic[2] != 'P' || magic[3] != 'T') {
         delete[] map;
         delete ecl;
-        ns::error("thecl:", filename, ": SCPT signature missing");
+        NS_ERROR("thecl: %s: SCPT signature missing", filename);
         return NULL;
     }
 
@@ -56,7 +56,7 @@ EclRaw_t* ecl_open(cstr filename) {
         magic[2] != 'I' || magic[3] != 'M') {
         delete[] map;
         delete ecl;
-        ns::error("thecl:", filename, ": ANIM signature missing");
+        NS_ERROR("thecl: %s: ANIM signature missing", filename);
         return NULL;
     }
 
@@ -73,7 +73,7 @@ EclRaw_t* ecl_open(cstr filename) {
     magic = std::string(ecli_list->magic);
     if (magic[0] != 'E' || magic[1] != 'C' ||
         magic[2] != 'L' || magic[3] != 'I') {
-        ns::error("thecl:", filename, ": ECLI signature missing");
+        NS_ERROR("thecl: %s: ECLI signature missing", filename);
         return NULL;
     }
 
@@ -104,7 +104,7 @@ EclRaw_t* ecl_open(cstr filename) {
         magic = std::string(raw_sub->magic);
         if (magic[0] != 'E' || magic[1] != 'C' ||
             magic[2] != 'L' || magic[3] != 'H') {
-            ns::error("thecl:", filename, ": ECLH signature missing");
+            NS_ERROR("thecl: %s: ECLH signature missing", filename);
             return NULL;
         }
 

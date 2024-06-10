@@ -2,61 +2,31 @@
 #include "./AnmOpener/AnmManager.h"
 #include "./Player.h"
 #include "./Supervisor.h"
-#include <imgui.h>
-#include <imguiW.hpp>
+#include <imgui_ns.hpp>
 
-#include <InputManager.h>
+#include <input.hpp>
 #include <TextureManager.h>
 #include <NSEngine.hpp>
-#include <string>
 
 #include "./StdOpener/Stage.hpp"
 #include "ScreenEffect.hpp"
 
 AnmViewer *ANM_VIEWER_PTR = nullptr;
-
-float c = 640.f / 2;
-float top = 256.f / 2;
-float w = 200.f / 2;
-float bottom = 600.f / 2;
-int cam = 3;
-
-class ImGuiEventProcessor : public ns::IEventProcessor {
-public:
-  ~ImGuiEventProcessor() override {}
-  void ProcessEvent(SDL_Event *e, bool &noKeyboard, bool &noMouse) override {
-    ImGui_ImplSDL2_ProcessEvent(e);
-
-    ImGuiIO &io = ImGui::GetIO();
-    noKeyboard = io.WantCaptureKeyboard;
-    noMouse = io.WantCaptureMouse;
-  }
-};
-
-static ImGuiEventProcessor *igep = nullptr;
+static UpdateFunc *ANM_VIEWER_ON_TICK = nullptr;
+static UpdateFunc *ANM_VIEWER_ON_DRAW = nullptr;
 
 AnmViewer::AnmViewer() {
   ANM_VIEWER_PTR = this;
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGui_ImplOpenGL3_Init("#version 130");
-  ImGui_ImplSDL2_InitForOpenGL(
-      ns::getInstance()->window().getSdlWindow(),
-      ns::getInstance()->window().getSdlGlContext());
-  ImGuiIO &io = ImGui::GetIO();
-  io.IniFilename = "";
-  ImGui::StyleColorsDark();
-  igep = new ImGuiEventProcessor();
-  ns::getInstance()->addEventProcessor(igep);
-  ns::InputManager::SetAsEventProcessor();
+  ANM_VIEWER_ON_TICK = new UpdateFunc([this]() { this->on_tick(); return 1; });
+  ANM_VIEWER_ON_DRAW = new UpdateFunc([this]() { this->on_draw(); return 1; });
+  UPDATE_FUNC_REGISTRY.register_on_tick(ANM_VIEWER_ON_TICK, 3);
+  UPDATE_FUNC_REGISTRY.register_on_draw(ANM_VIEWER_ON_DRAW, 100);
 }
 
 AnmViewer::~AnmViewer() {
-  delete igep;
-  igep = nullptr;
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
+  UPDATE_FUNC_REGISTRY.unregister(ANM_VIEWER_ON_TICK);
+  UPDATE_FUNC_REGISTRY.unregister(ANM_VIEWER_ON_DRAW);
+  ANM_VIEWER_PTR = nullptr;
 }
 
 bool AnmSlotSelector(const char *label, std::string *strval, int *selected) {
@@ -231,9 +201,9 @@ void AnmView::renderInList() {
   auto vm = this->vm ? this->vm : anm::getVM(anmId);
   auto name = anm::getLoaded(vm->anm_loaded_index)->name;
   if (parentId != 0)
-    ImGui::Text("%s: script %d (%d->%d)", name, vm->script_id, anmId, parentId);
+    ImGui::Text("%s: script %d (%d->%d)", name.c_str(), vm->script_id, anmId, parentId);
   else
-    ImGui::Text("%s: script %d (%d)", name, vm->script_id, anmId);
+    ImGui::Text("%s: script %d (%d)", name.c_str(), vm->script_id, anmId);
   if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     windowOpen = !windowOpen;
   }
@@ -475,7 +445,7 @@ void anm_view_window(AnmView *v) {
       ImGui::PushID(std::to_string(l->value->id.val).c_str());
       ImGui::Text(
           "%s: script %d (%d)",
-          anm::getLoaded(l->value->anm_loaded_index)->name,
+          anm::getLoaded(l->value->anm_loaded_index)->name.c_str(),
           l->value->script_id, l->value->id.val);
       ImGui::SameLine();
       if (ImGui::Button("see")) {
@@ -597,7 +567,7 @@ void openedFiles_window(bool *open) {
         if (ImGui::Button("Open")) {
           toOpen = i;
           ImGui::OpenPopup("PopupOpenAnm");
-          ns::info("Open", i);
+          NS_INFO("Open %d", i);
         }
         if (ImGui_BeginPopupCenter("PopupOpenAnm")) {
           ImGui::Text("Open anm on slot %d.", toOpen);
@@ -716,12 +686,10 @@ void AnmViewer::on_tick() {
     check_anmviews();
   }
 
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
-  ImGui::NewFrame();
+  ns::ImGuiContext::getInstance()->new_frame();
 
   static bool anmMenu = false;
-  if (Inputs::Keyboard().Pressed(NSK_g)) {
+  if (ns::keyboard::pressed(ns::Key::G)) {
     anmMenu = !anmMenu;
   }
 
@@ -738,8 +706,7 @@ void AnmViewer::on_tick() {
 }
 
 void AnmViewer::on_draw() {
-  ImGui::Render();
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  ns::ImGuiContext::getInstance()->render();
 }
 
 void AnmViewer::check_anmviews() {

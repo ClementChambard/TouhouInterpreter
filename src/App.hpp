@@ -1,6 +1,3 @@
-#include "./BulletManager.h"
-#include "./EnemyManager.h"
-#include "./AnmViewer.hpp"
 #include <NSEngine.hpp>
 
 #define WINDOW_WIDTH  (/*1920*/1280/*640*/)
@@ -22,8 +19,4 @@ public:
 private:
     int m_argc = 0;
     char** m_argv = nullptr;
-
-    EnemyManager* em = nullptr;
-    BulletManager* bm = nullptr;
-    AnmViewer anmViewer;
 };

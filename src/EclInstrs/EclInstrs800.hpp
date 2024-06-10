@@ -11,14 +11,14 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
 
     _ins(800,      enmCall) _S(id) _z(sub)               _args
-    auto e = EnemyManager::GetInstance()->EnmFind(id);
+    auto e = ENEMY_MANAGER_PTR->EnmFind(id);
     if (e) e->Init(sub.c_str());
     // clear async contexts
     // reset ecl
     // set sub reset
 
     _ins(801,       enmPos) _f(vx) _f(vy)  _S(id)        _args
-    auto e = EnemyManager::GetInstance()->EnmFind(id);
+    auto e = ENEMY_MANAGER_PTR->EnmFind(id);
     if (e) {
         vx = e->enemy.final_pos.pos.x;
         vy = e->enemy.final_pos.pos.y;
@@ -27,8 +27,8 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(802, broadcastInt) _S(id)                       _args
     // check this again just in case
     for (int i = 0; i < 4; i++) {
-        auto e = EnemyManager::GetInstance()->EnmFind(
-            EnemyManager::GetInstance()->boss_ids[i]);
+        auto e = ENEMY_MANAGER_PTR->EnmFind(
+            ENEMY_MANAGER_PTR->boss_ids[i]);
         if (e) e->enemy.interrupts[id].time = 1;
     }
 

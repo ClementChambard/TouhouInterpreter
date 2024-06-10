@@ -27,32 +27,32 @@ ItemManager::ItemManager() {
         return this->_on_tick();
     });
     on_tick->flags &= 0xfffffffd;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 30);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 30);
 
     on_draw = new UpdateFunc([this]() -> int {
         /*Something with gamethread first*/
         return this->_on_draw(1);
     });
     on_draw->flags &= 0xfffffffd;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 33);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, 33);
 
     on_draw2 = new UpdateFunc([this]() -> int {
         /*Something with gamethread first*/
         return this->_on_draw(0);
     });
     on_draw2->flags &= 0xfffffffd;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw2, 19);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw2, 19);
 
     reset();
 }
 
 ItemManager::~ItemManager() {
     if (on_tick)
-        UPDATE_FUNC_REGISTRY->unregister(on_tick);
+        UPDATE_FUNC_REGISTRY.unregister(on_tick);
     if (on_draw)
-        UPDATE_FUNC_REGISTRY->unregister(on_draw);
+        UPDATE_FUNC_REGISTRY.unregister(on_draw);
     if (on_draw2)
-        UPDATE_FUNC_REGISTRY->unregister(on_draw2);
+        UPDATE_FUNC_REGISTRY.unregister(on_draw2);
 
     ITEM_MANAGER_PTR = nullptr;
 }

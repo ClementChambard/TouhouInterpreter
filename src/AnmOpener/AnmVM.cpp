@@ -4,12 +4,13 @@
 #include "./AnmManager.h"
 #include "./anmTypes.h"
 #include <NSEngine.hpp>
-#include <ListUtil.h>
 #include <math/Random.h>
 #include <vertex.h>
 #include <cstring>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/matrix.hpp>
+
+#include <memory.h>
 
 namespace anm {
 
@@ -84,16 +85,9 @@ VM::VM(u32 script_id, u32 anim_slot) {
   update();
 }
 
-enum class bytefields : u32 {};
-std::ostream &operator<<(std::ostream &left, bytefields bf) {
-  for (int i = 31; i >= 0; i--)
-    left << (((u32)bf & (1 << i)) != 0);
-  return left;
-}
-
 VM::~VM() {
   if (special_vertex_buffer_data)
-    free(special_vertex_buffer_data);
+    ns::free(special_vertex_buffer_data, special_vertex_buffer_size, ns::MemTag::GAME);
   destroy();
 }
 
@@ -282,8 +276,16 @@ void VM::destroy() {
   }
 
   bitflags = {};
-  ListUtil::listRemoveNode(&node_in_global_list);
-  ListUtil::listRemoveNode(&__node_as_child);
+
+  if (node_in_global_list.previous) node_in_global_list.previous->next = node_in_global_list.next;
+  if (node_in_global_list.next) node_in_global_list.next->previous = node_in_global_list.previous;
+  node_in_global_list.previous = nullptr;
+  node_in_global_list.next = nullptr;
+
+  if (__node_as_child.previous) __node_as_child.previous->next = __node_as_child.next;
+  if (__node_as_child.next) __node_as_child.next->previous = __node_as_child.previous;
+  __node_as_child.previous = nullptr;
+  __node_as_child.next = nullptr;
 
   interrupt_return_time = -99;
   interrupt_return_offset = 0;
@@ -674,7 +676,7 @@ void VM::reset() {
   glm::vec3 old_entity_pos = entity_pos;
   int old_fast_id = fast_id;
   int old_layer = layer;
-  memset(reinterpret_cast<char *>(this), 0, sizeof(VM));
+  ns::mem_zero(this, sizeof(VM));
   entity_pos = old_entity_pos;
   fast_id = old_fast_id;
   layer = old_layer;
@@ -1100,5 +1102,13 @@ int VM::wait(float old_game_speed) {
     ns::getInstance()->setGameSpeed(old_game_speed);
     return 0;
 }
+
+  void VM::alloc_special_vertex_buffer(i32 size) {
+    if (special_vertex_buffer_data)
+      ns::free(special_vertex_buffer_data, special_vertex_buffer_size, ns::MemTag::GAME);
+    special_vertex_buffer_size = size;
+    special_vertex_buffer_data = ns::alloc(size, ns::MemTag::GAME);
+  }
+
 
 } // namespace anm

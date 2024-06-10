@@ -7,7 +7,7 @@
 #include "./Input.h"
 #include "./ItemManager.h"
 #include "./Laser/LaserManager.h"
-#include <InputManager.h>
+#include <input.hpp>
 #include <math/Random.h>
 #include <NSEngine.hpp>
 #include <DrawFuncs.h>
@@ -38,10 +38,10 @@ Player::Player() {
     // update funcs
     on_game_tick = new UpdateFunc([this]() { return _on_tick(); });
     on_game_tick->flags &= 0xfffffffd;
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_game_tick, 23);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_game_tick, 23);
     on_draw = new UpdateFunc([this]() { return _on_draw(); });
     on_draw->flags &= 0xfffffffd;
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 29);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, 29);
 
     // init vm
     playerAnm->copyFromLoaded(&vm, 0);
@@ -205,9 +205,9 @@ void FUN_00449630(PlayerInner_t* inner) {
 
 Player::~Player() {
     if (on_game_tick)
-        UPDATE_FUNC_REGISTRY->unregister(on_game_tick);
+        UPDATE_FUNC_REGISTRY.unregister(on_game_tick);
     if (on_draw)
-        UPDATE_FUNC_REGISTRY->unregister(on_draw);
+        UPDATE_FUNC_REGISTRY.unregister(on_draw);
     PLAYER_PTR = nullptr;
 
     if (!(GLOBALS.FLAGS & 1)) {
@@ -225,7 +225,7 @@ Player::~Player() {
 
 int Player::_on_tick() {
     INPUT_STRUCT.Update();
-    if (Inputs::Keyboard().Pressed(NSK_p))
+    if (ns::keyboard::pressed(ns::Key::P))
         try_kill();
 
     // movement state
@@ -260,7 +260,7 @@ int Player::_on_tick() {
         }
         [[fallthrough]];
     case 1: // Normal
-        if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && Inputs::Keyboard().Pressed(NSK_x)) {
+        if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ns::keyboard::pressed(ns::Key::X)) {
             Bomb::start();
         }
         move();
@@ -275,7 +275,7 @@ int Player::_on_tick() {
                     GOAST_MANAGER_PTR->hyper_die(true);
                 inner.time_in_state = 60;
             }
-            if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && Inputs::Keyboard().Pressed(NSK_x)) {
+            if (BOMB_PTR && (GLOBALS.inner.CURRENT_BOMBS > 0) && player_is_trying_to_bomb() && ns::keyboard::pressed(ns::Key::X)) {
                 Bomb::start();
                 inner.time_in_state = 60;
             }
@@ -946,7 +946,7 @@ void Player::move()
         direction = 0;
 
     // check if player is focusing
-    if (!EnemyManager::GetInstance() || !EnemyManager::GetInstance()->killableEnemyCount() || inner.time_in_stage < 4) {
+    if (!ENEMY_MANAGER_PTR || !ENEMY_MANAGER_PTR->killableEnemyCount() || inner.time_in_stage < 4) {
         __some_other_ctr = 31;
         inner.focusing = 0;
     } else {
@@ -1154,7 +1154,7 @@ int Player::_on_draw() {
         vm.bitflags.originMode = 0b01;
         anm::drawVM(&vm);
     }
-    if (!ns::getInstance()->flags().flags.debugInfo)
+    if (!ns::getInstance()->flags().debugInfo)
         return 1;
     ns::draw_set_layer(ns::DEBUG_LAYER_ID);
     static ns::Color c = { 255, 0, 0, 128 };

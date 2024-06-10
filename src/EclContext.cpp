@@ -1,15 +1,14 @@
 #include "./EclContext.h"
 #include "./EclFileManager.h"
 #include "EclFileManager.h"
-#include <Error.h>
+#include <logger.h>
 #include <cstdio>
 
 void eclStackPush(EclStack_t* stack, int32_t val) {
     if (stack->stackOffset >= 199) {
-        ns::pr("\n\e[31mFATAL ERROR:\e[0m",
-                     "Stack overflow", "\n");
+        NS_FATAL("Stack overflow");
         drawStackFrame(stack);
-        ns::FatalErrorQuit();
+        exit(1);
     }
     stack->data[stack->stackOffset].asInt = val;
     stack->data[stack->stackOffset].asFloat = static_cast<float>(val);
@@ -18,10 +17,9 @@ void eclStackPush(EclStack_t* stack, int32_t val) {
 
 void eclStackPush(EclStack_t* stack, float val) {
     if (stack->stackOffset >= 199) {
-        ns::pr("\n\e[31mFATAL ERROR:\e[0m",
-                     "Stack overflow", "\n");
+        NS_FATAL("Stack overflow");
         drawStackFrame(stack);
-        ns::FatalErrorQuit();
+        exit(1);
     }
     stack->data[stack->stackOffset].asFloat = val;
     stack->data[stack->stackOffset].asInt = static_cast<int>(val);
@@ -30,7 +28,7 @@ void eclStackPush(EclStack_t* stack, float val) {
 
 void eclStackPop(EclStack_t* stack, int32_t& val, bool f) {
     if (!f && stack->stackOffset <= stack->baseOffset) {
-        ns::error("Pop int: no value in stack, returning 0");
+        NS_ERROR("Pop int: no value in stack, returning 0");
         val = 0; return;
     }
     stack->stackOffset--;
@@ -38,7 +36,7 @@ void eclStackPop(EclStack_t* stack, int32_t& val, bool f) {
 }
 void eclStackPop(EclStack_t* stack, float& val, bool f) {
     if (!f && stack->stackOffset <= stack->baseOffset) {
-        ns::error("Pop float: no value in stack, returning 0");
+        NS_ERROR("Pop float: no value in stack, returning 0");
         val = 0; return;
     }
     stack->stackOffset--;
@@ -107,7 +105,7 @@ void eclContextInit(EclRunContext_t *ctx, int32_t sub) {
 
 static void print_stack_trace_rec(EclStack_t* st, int bp) {
     if (bp == 0) {
-        printf("bottom of call stack\n");
+        NS_TRACE("bottom of call stack");
         return;
     }
 
@@ -122,18 +120,18 @@ static void print_stack_trace_rec(EclStack_t* st, int bp) {
 
     auto name = EclFileManager::GetInstance()->getSubName(sub_id);
 
-    printf("%d@%d in sub %s\n", offset, time, name);
+    NS_TRACE("%d@%d in sub %s", offset, time, name);
 
     print_stack_trace_rec(st, oldBp);
 }
 
 void print_stack_trace(EclStack_t* stack) {
-    printf("Stack trace: \n");
+    NS_TRACE("Stack trace:");
 
     if (stack->baseOffset != 0)
         print_stack_trace_rec(stack, stack->baseOffset);
     else
-        printf("...\n");
+        NS_TRACE("...");
 }
 
 void drawStackFrame(EclStack_t* stack) {
@@ -142,16 +140,14 @@ void drawStackFrame(EclStack_t* stack) {
     int end = start + 15;
     if (end >= 200) end = 199;
     for (int i = end; i >= start; i--) {
-        if (i == stack->baseOffset)
-            printf("%3d: base  --> %8d %4.4f\n", i, stack->data[i].asInt,
-                   stack->data[i].asFloat);
-        else if (i == stack->stackOffset)
-            printf("%3d: top   --> %8d %4.4f\n", i, stack->data[i].asInt,
-                   stack->data[i].asFloat);
-        else
-            printf("%3d:           %8d %4.4f\n", i, stack->data[i].asInt,
-                   stack->data[i].asFloat);
+        if (i == stack->baseOffset) {
+            NS_TRACE("%3d: base  --> %8d %4.4f", i, stack->data[i].asInt, stack->data[i].asFloat);
+        } else if (i == stack->stackOffset) {
+            NS_TRACE("%3d: top   --> %8d %4.4f", i, stack->data[i].asInt, stack->data[i].asFloat);
+        } else {
+            NS_TRACE("%3d:           %8d %4.4f\n", i, stack->data[i].asInt, stack->data[i].asFloat);
+        }
     }
-    printf("\n");
+    NS_TRACE("");
     print_stack_trace(stack);
 }

@@ -6,7 +6,7 @@
 #include "./Gui.hpp"
 #include "AnmOpener/CopyTextures.hpp"
 #include "Hardcoded.h"
-#include <InputManager.h>
+#include <input.hpp>
 #include <TextureManager.h>
 #include <cstdio>
 
@@ -17,15 +17,15 @@ PauseMenu::PauseMenu() {
     flags_0 |= 2;
     on_tick = new UpdateFunc([this](){ return this->f_on_tick(); });
     on_draw = new UpdateFunc([this](){ return this->f_on_draw(); });
-    UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 11);
-    UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 75);
+    UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 11);
+    UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, 75);
     timer4_0xc.reset();
     timer5_0x20.reset();
 }
 
 PauseMenu::~PauseMenu() {
-    if (on_tick) UPDATE_FUNC_REGISTRY->unregister(on_tick);
-    if (on_draw) UPDATE_FUNC_REGISTRY->unregister(on_draw);
+    if (on_tick) UPDATE_FUNC_REGISTRY.unregister(on_tick);
+    if (on_draw) UPDATE_FUNC_REGISTRY.unregister(on_draw);
     // ppzVar3 = this->field70_0x20c;
     // pzVar3 = 0x19;
     // do {
@@ -206,13 +206,13 @@ void PauseMenu::draw_thing_w_keyboard() { /*
 static bool check_input(int i) {
     switch (i) {
         case 0x10:
-            return Inputs::Keyboard().Pressed(NSK_up);
+            return ns::keyboard::pressed(ns::Key::UP);
         case 0x20:
-            return Inputs::Keyboard().Pressed(NSK_down);
+            return ns::keyboard::pressed(ns::Key::DOWN);
         case 0x40:
-            return Inputs::Keyboard().Pressed(NSK_left);
+            return ns::keyboard::pressed(ns::Key::LEFT);
         case 0x80:
-            return Inputs::Keyboard().Pressed(NSK_right);
+            return ns::keyboard::pressed(ns::Key::RIGHT);
     }
     return false;
 }
@@ -273,7 +273,7 @@ int PauseMenu::f_on_tick() {
                /*!(GLOBALS.FLAGS & 0x40U) &&
                !(GAME_THREAD_PTR->flags & 0x10000U)*/
               ) {
-        if (Inputs::Keyboard().Pressed(NSK_escape)
+        if (ns::keyboard::pressed(ns::Key::ESCAPE)
           /*(((INPUT_STRUCT.hardware_input_rising_edge & 0x100U) ||
              (SUPERVISOR.flags & 0x10)) && GAME_THREAD_PTR->on_tick) &&
            (GAME_THREAD_PTR->on_tick->flags & 2) &&
@@ -343,7 +343,7 @@ void PauseMenu::init_pause_blur_effect() {
 
 static bool menu_confirm() {
     // (INPUT_STRUCT.hardware_input_rising_edge & 0x80001U) != 0
-    return Inputs::Keyboard().Pressed(NSK_w) || Inputs::Keyboard().Pressed(NSK_return);
+    return ns::keyboard::pressed(ns::Key::W) || ns::keyboard::pressed(ns::Key::RETURN);
 }
 
 #define child_interrupt(cid, inte) vm = anm::getVM(menu_anmid)->search_children(cid, 0); if (vm) vm->interrupt(inte);
@@ -566,7 +566,7 @@ void PauseMenu::update_submenus() {
         //     }
         //   } while (i < menu_helper.disabled_option_count);
         // }
-        if (Inputs::Keyboard().Pressed(NSK_escape)) {
+        if (ns::keyboard::pressed(ns::Key::ESCAPE)) {
           anm::interrupt_tree(pause_blur_anmid, 1);
           anm::interrupt_tree(menu_anmid, 1);
           menu_helper.select(0);
@@ -574,7 +574,7 @@ void PauseMenu::update_submenus() {
           return;
         }
       }
-      if (!Inputs::Keyboard().Pressed(NSK_q)) break;
+      if (!ns::keyboard::pressed(ns::Key::Q)) break;
       // Soundplay_sound_centered(7);
       child_interrupt(0x84, 6)
       menu_helper.select(1);
@@ -616,7 +616,7 @@ void PauseMenu::update_submenus() {
           // Soundplay_sound_centered(9);
         }
       }
-      if (Inputs::Keyboard().Pressed(NSK_escape) || Inputs::Keyboard().Pressed(NSK_x)) {
+      if (ns::keyboard::pressed(ns::Key::ESCAPE) || ns::keyboard::pressed(ns::Key::X)) {
         // Soundplay_sound_centered(9);
         if (menu_helper.selection == 0) {
           menu_helper.select(1);
@@ -626,7 +626,7 @@ void PauseMenu::update_submenus() {
           go_to_submenu(8);
         }
       }
-      if (!Inputs::Keyboard().Pressed(NSK_escape) || (field_1ec != 1))
+      if (!ns::keyboard::pressed(ns::Key::ESCAPE) || (field_1ec != 1))
         break;
       anm::interrupt_tree(pause_blur_anmid, 1);
       anm::interrupt_tree(menu_anmid, 1);
@@ -679,7 +679,7 @@ void PauseMenu::update_submenus() {
         // Soundplay_sound_centered(10);
       }
       if (!menu_confirm()) {
-        if (Inputs::Keyboard().Pressed(NSK_escape) || Inputs::Keyboard().Pressed(NSK_x)) {
+        if (ns::keyboard::pressed(ns::Key::ESCAPE) || ns::keyboard::pressed(ns::Key::X)) {
           flags_3f0 &= 0xfffffffc;
           menu_helper.pop_selection();
           menu_helper.num_choices = 5;
@@ -794,7 +794,7 @@ void PauseMenu::update_submenus() {
         // Soundplay_sound_centered(10);
       }
       if (!menu_confirm()) {
-        if (Inputs::Keyboard().Pressed(NSK_escape) || Inputs::Keyboard().Pressed(NSK_x)) {
+        if (ns::keyboard::pressed(ns::Key::ESCAPE) || ns::keyboard::pressed(ns::Key::X)) {
           // Soundplay_sound_centered(9);
           if (keyboard_entry_size != 0) {
             keyboard_entry_size--;

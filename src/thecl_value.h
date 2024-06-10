@@ -33,9 +33,6 @@ isize thecl_value_from_data(robytes data, usize data_length,
 thecl_value_t* thecl_value_list_from_data(robytes data,
                               usize data_length, cstr data_format);
 
-/* Returns a text representation of a value. */
-pstr thecl_value_to_text(const thecl_value_t* value);
-
 /* Returns the size of the value's data form, or -1 on error. */
 isize thecl_value_size(const thecl_value_t* value);
 

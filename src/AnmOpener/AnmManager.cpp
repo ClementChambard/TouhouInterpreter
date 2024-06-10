@@ -11,7 +11,8 @@
 #include <cstring>
 #include <fstream>
 #include <glm/common.hpp>
-#include <Error.h>
+#include <logger.h>
+#include <memory.h>
 
 namespace anm {
 
@@ -479,11 +480,11 @@ File *loadFile(usize slot, cstr filename) {
   }
   ifile.open(fname);
   if (!ifile) {
-    ns::error(fname, ": No such file");
+    NS_ERROR("%s: No such file", fname.c_str());
     return nullptr;
   }
   ifile.close();
-  if (AM->loadedFiles[slot].name) { /* do something */
+  if (AM->loadedFiles[slot].name != "") { /* do something */
     AM->loadedFiles[slot].Cleanup();
   }
   AM->loadedFiles[slot].Open(filename, slot);
@@ -580,7 +581,7 @@ i32 destroy_possibly_managed_vm(VM *vm) {
   AM->freelist_head.next = &AM->fastArray[vm->fast_id].freelistNode;
   AM->fastArray[vm->fast_id].freelistNode.previous = &AM->freelist_head;
   if (vm->special_vertex_buffer_data) {
-    free(vm->special_vertex_buffer_data);
+    ns::free(vm->special_vertex_buffer_data, vm->special_vertex_buffer_size, ns::MemTag::GAME);
   }
   vm->special_vertex_buffer_data = nullptr;
   vm->special_vertex_buffer_size = 0;

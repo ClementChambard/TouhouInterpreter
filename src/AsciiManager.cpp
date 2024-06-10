@@ -4,7 +4,7 @@
 #include "Supervisor.h"
 #include <cstdarg>
 #include <cstring>
-#include <Error.h>
+#include <logger.h>
 
 AsciiManager *ASCII_MANAGER_PTR = nullptr;
 
@@ -16,16 +16,16 @@ AsciiManager::AsciiManager() {
   if (TOUHOU_VERSION < 14) anms[1] = anms[2] = anms[0];
   ascii_anm = anm::loadFile(2, anms[resolution]);
   if (!ascii_anm) {
-    ns::error("データが壊れています");
+    NS_ERROR("データが壊れています");
   }
 
   on_tick = new UpdateFunc([this]() { return this->f_on_tick(); });
   on_tick->flags &= 0xfffffffd;
-  UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 5);
+  UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 5);
 
   on_draw = new UpdateFunc([this]() { return this->render_group(0); });
   on_draw->flags &= 0xfffffffd;
-  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 82);
+  UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, 82);
 
   on_draw_2 = new UpdateFunc([this]() {
     anm::set_camera(&SUPERVISOR.cameras[0]);
@@ -37,7 +37,7 @@ AsciiManager::AsciiManager() {
     return 1;
   });
   on_draw_2->flags &= 0xfffffffd;
-  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_2, 54);
+  UPDATE_FUNC_REGISTRY.register_on_draw(on_draw_2, 54);
 
   on_draw_3 = new UpdateFunc([this]() {
     anm::set_camera(&SUPERVISOR.cameras[0]);
@@ -46,7 +46,7 @@ AsciiManager::AsciiManager() {
     return 1;
   });
   on_draw_3->flags &= 0xfffffffd;
-  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw_3, 67);
+  UPDATE_FUNC_REGISTRY.register_on_draw(on_draw_3, 67);
 
   __vm_1.reset();
   __vm_1.anm_loaded_index = 2;
@@ -59,13 +59,13 @@ AsciiManager::AsciiManager() {
 
 AsciiManager::~AsciiManager() {
   if (on_tick)
-    UPDATE_FUNC_REGISTRY->unregister(on_tick);
+    UPDATE_FUNC_REGISTRY.unregister(on_tick);
   if (on_draw)
-    UPDATE_FUNC_REGISTRY->unregister(on_draw);
+    UPDATE_FUNC_REGISTRY.unregister(on_draw);
   if (on_draw_2)
-    UPDATE_FUNC_REGISTRY->unregister(on_draw_2);
+    UPDATE_FUNC_REGISTRY.unregister(on_draw_2);
   if (on_draw_3)
-    UPDATE_FUNC_REGISTRY->unregister(on_draw_3);
+    UPDATE_FUNC_REGISTRY.unregister(on_draw_3);
   anm::getLoaded(2)->Cleanup();
   anm::getLoaded(0)->Cleanup();
   ASCII_MANAGER_PTR = NULL;

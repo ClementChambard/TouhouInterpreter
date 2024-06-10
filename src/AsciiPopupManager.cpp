@@ -14,10 +14,10 @@ AsciiPopupManager::AsciiPopupManager() {
   anm_ascii = ASCII_MANAGER_PTR->ascii_anm;
   on_tick = new UpdateFunc([this]() { return this->f_on_tick(); });
   on_tick->flags &= 0xfffffffd;
-  UPDATE_FUNC_REGISTRY->register_on_tick(on_tick, 21);
+  UPDATE_FUNC_REGISTRY.register_on_tick(on_tick, 21);
   on_draw = new UpdateFunc([this]() { return this->f_on_draw(); });
   on_draw->flags &= 0xfffffffd;
-  UPDATE_FUNC_REGISTRY->register_on_draw(on_draw, 48);
+  UPDATE_FUNC_REGISTRY.register_on_draw(on_draw, 48);
   vm.reset();
   vm.anm_loaded_index = 2;
   vm.bitflags.originMode = 2;
@@ -29,9 +29,9 @@ AsciiPopupManager::AsciiPopupManager() {
 
 AsciiPopupManager::~AsciiPopupManager() {
   if (on_tick)
-    UPDATE_FUNC_REGISTRY->unregister(on_tick);
+    UPDATE_FUNC_REGISTRY.unregister(on_tick);
   if (on_draw)
-    UPDATE_FUNC_REGISTRY->unregister(on_draw);
+    UPDATE_FUNC_REGISTRY.unregister(on_draw);
   POPUP_MANAGER_PTR = nullptr;
 }
 
