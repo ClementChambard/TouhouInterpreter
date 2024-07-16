@@ -1,9 +1,8 @@
 #ifndef SUPERVISOR_H_
 #define SUPERVISOR_H_
 
-#include "AnmOpener/AnmFile.h"
-#include "AnmOpener/Camera.hpp"
-#include <glm/glm.hpp>
+#include "Anm/AnmFile.h"
+#include "Anm/Camera.hpp"
 #include <FrameBuffer.h>
 #include <color.h>
 
@@ -25,8 +24,8 @@ struct Supervisor_t {
     // undefined4
     // __joypad_caps__ithink
     // main_window
-    glm::mat4 __unknown_view_matrix = glm::mat4(1.f);
-    glm::mat4 __unknown_projection_matrix = glm::mat4(1.f);
+    ns::mat4 __unknown_view_matrix = ns::mat4(1.f);
+    ns::mat4 __unknown_projection_matrix = ns::mat4(1.f);
     anm::Viewport_t __unknown_viewport = {};
     // present_parameters
     // lot undefined

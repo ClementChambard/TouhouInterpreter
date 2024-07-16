@@ -1,104 +1,104 @@
 #ifndef PLAYER_H_
 #define PLAYER_H_
 
-#include "./AnmOpener/AnmFile.h"
+#include "./Anm/AnmFile.h"
 #include <Interp.hpp>
 #include "./PosVel.h"
 #include "./ShtFile.h"
 #include "./UpdateFuncRegistry.h"
 
 struct BoundingBox3_t {
-    glm::vec3 min_pos {};
-    glm::vec3 max_pos {};
+    ns::vec3 min_pos {};
+    ns::vec3 max_pos {};
 };
 
 struct PlayerOption_t {
-    int32_t flags = 0;
+    i32 flags = 0;
     // undefined4[20]
-    glm::vec<2, int> scaled_prefered_pos {};
-    glm::vec<2, int> scaled_cur_pos { 0, -0xc800 };
-    glm::vec<2, int> scaled_prefered_pos_rel_to_player[2] {};
+    ns::ivec2 scaled_prefered_pos {};
+    ns::ivec2 scaled_cur_pos { 0, -0xc800 };
+    ns::ivec2 scaled_prefered_pos_rel_to_player[2] {};
     // undefined4[15]
     anm::ID anmId1 {};
     anm::ID anmId2 {};
     // undefined4[5]
-    int32_t focusing = false;
-    int32_t id = 0;
-    int32_t move_instantly = true;
+    i32 focusing = false;
+    i32 id = 0;
+    i32 move_instantly = true;
     // undefined4
     void (*update_code)(PlayerOption_t*) = nullptr;
     // undefined4
-    float shoot_angle_maybe = 0.f;
+    f32 shoot_angle_maybe = 0.f;
 };
 
 struct PlayerInner_t;
 struct PlayerBullet_t {
-    uint8_t flags = 0;
+    u8 flags = 0;
     // undefined1[3]
-    int32_t id = 0;
+    i32 id = 0;
     anm::ID anmId {};
     ns::Timer_t __field_c = 0;
     ns::Timer_t __field_20 = 0;
     ns::Timer_t __field_34 = 0;
     PosVel pos {};
-    int32_t active = 0;
-    int32_t targeted_entity = 0;
-    int32_t hitting = 0;
-    int32_t blink = 0;
-    int32_t damage = 0;
-    glm::vec2 hitbox {};
-    int32_t field_0xa8 = 0;
-    int32_t shter = 0;
-    uint32_t damageSourceId = 0;
+    i32 active = 0;
+    i32 targeted_entity = 0;
+    i32 hitting = 0;
+    i32 blink = 0;
+    i32 damage = 0;
+    ns::vec2 hitbox {};
+    i32 field_0xa8 = 0;
+    i32 shter = 0;
+    u32 damageSourceId = 0;
     // 0xb4
     // undefined4[11]
 
     void update();
-    void init(int shter, int tmer, PlayerInner_t& inner);
+    void init(i32 shter, i32 tmer, PlayerInner_t& inner);
 };
 
 struct PlayerDamageSource_t {
-    uint8_t flags;
+    u8 flags;
     // undefined1[3]
-    float field_0x4;
-    float field_0x8;
-    float angle;
-    float angle_increase;
-    glm::vec2 hitbox;
+    f32 field_0x4;
+    f32 field_0x8;
+    f32 angle;
+    f32 angle_increase;
+    ns::vec2 hitbox;
     PosVel pos;
-    int32_t time_to_live;
-    int32_t damage;
-    int32_t field_0x78;
-    int32_t field_0x7c;
-    int32_t field_0x80;
-    float field_0x84;
-    int32_t field_0x88;
-    int32_t field_0x8c;
-    int32_t bullet_id;
-    int32_t field_0x94;
-    int32_t ds_on_hit;
+    i32 time_to_live;
+    i32 damage;
+    i32 field_0x78;
+    i32 field_0x7c;
+    i32 field_0x80;
+    f32 field_0x84;
+    i32 field_0x88;
+    i32 field_0x8c;
+    i32 bullet_id;
+    i32 field_0x94;
+    i32 ds_on_hit;
 };
 
 struct PlayerInner_t {
-    glm::vec3 pos { 0.f, 400.f, 0.f };
-    glm::vec<2, int32_t> integer_pos { 0, 0xc800 };
+    ns::vec3 pos { 0.f, 400.f, 0.f };
+    ns::ivec2 integer_pos { 0, 0xc800 };
     ns::Timer_t time_in_state = 0;
     ns::Timer_t time_in_stage = 0;
     ns::Timer_t __time_in_stage__copy_3c = 0;
     PlayerOption_t options[4] {};
     PlayerOption_t subseason_options[8] {};
     PlayerBullet_t bullets[256] {};
-    int32_t last_created_damage_source_index = 0;
+    i32 last_created_damage_source_index = 0;
     PlayerDamageSource_t damage_sources[257] {};
-    int32_t state = 0;
+    i32 state = 0;
     anm::ID focus_eff_anmId = 0;
-    uint32_t maybe_th15_graze_snowflake = 0;
+    u32 maybe_th15_graze_snowflake = 0;
     ns::Timer_t __timer_187ac = 0;
-    int32_t focusing = false;
+    i32 focusing = false;
     ns::Timer_t shoot_key_short_timer = -1;
     ns::Timer_t shoot_key_long_timer = -1;
-    int32_t power = 0;
-    int32_t unique_bullets[16] = {};
+    i32 power = 0;
+    i32 unique_bullets[16] = {};
     // undefined4[14]
     ns::Timer_t iframes = 0;
 };
@@ -110,21 +110,21 @@ public:
     Player(Player const&) = delete;
     Player& operator=(Player const&) = delete;
 
-    void set_pos(glm::vec3 const& p);
+    void set_pos(ns::vec3 const& p);
 
-    void do_graze(glm::vec3 const& pos);
+    void do_graze(ns::vec3 const& pos);
 
 private:
-    int _on_tick();
-    int _on_draw();
+    i32 _on_tick();
+    i32 _on_draw();
 
     void move();
-    void move_options(PlayerOption_t* options, uint cnt);
+    void move_options(PlayerOption_t* options, u32 cnt);
     void die();
     void try_kill();
 
     void check_shoot();
-    void shoot(int short_tmr, int long_tmr);
+    void shoot(i32 short_tmr, i32 long_tmr);
 
     // undefined4
     UpdateFunc* on_game_tick = nullptr;
@@ -133,57 +133,57 @@ public:
     anm::File* playerAnm =  nullptr;
     anm::VM vm {};
     PlayerInner_t inner {};
-    int32_t flags = 0;
-    float speed_unfocus = 0.f;
-    float speed_focus = 0.f;
-    float speed_unfocus_diag = 0.f;
-    float speed_focus_diag = 0.f;
-    glm::vec3 last_movement {};
-    glm::vec3 last_movement_no_zero {};
-    glm::vec2 last_movement_cpy {};
-    int32_t __some_other_ctr = 30;
-    int32_t __some_counter = 0;
-    float speed_multiplier = 1.f;
-    glm::vec3 __could_be_subsun_pull_direction {};
+    i32 flags = 0;
+    f32 speed_unfocus = 0.f;
+    f32 speed_focus = 0.f;
+    f32 speed_unfocus_diag = 0.f;
+    f32 speed_focus_diag = 0.f;
+    ns::vec3 last_movement {};
+    ns::vec3 last_movement_no_zero {};
+    ns::vec2 last_movement_cpy {};
+    i32 __some_other_ctr = 30;
+    i32 __some_counter = 0;
+    f32 speed_multiplier = 1.f;
+    ns::vec3 __could_be_subsun_pull_direction {};
     // undefined4
-    glm::vec<2, int32_t> prev_pos[33] {};
+    ns::ivec2 prev_pos[33] {};
     BoundingBox3_t hurtbox {};
-    glm::vec3 hurtbox_halfsize {};
-    glm::vec3 item_attract_box_unfocused_halfsize {};
-    glm::vec3 item_attract_box_focused_halfsize {};
-    glm::vec3 death_pos {};
-    glm::vec2 speed {};
-    int32_t direction = 0;
+    ns::vec3 hurtbox_halfsize {};
+    ns::vec3 item_attract_box_unfocused_halfsize {};
+    ns::vec3 item_attract_box_focused_halfsize {};
+    ns::vec3 death_pos {};
+    ns::vec2 speed {};
+    i32 direction = 0;
     // undefined4
     ShtFile_t* sht_file = nullptr;
-    int32_t field_0x19040 = 0;
-    int32_t field_0x19044 = 0;
-    ns::Interp<float> player_scale_i {};
-    float player_scale__requires_flag_0x10__from_ddc = 1.f;
-    float damage_multiplier__used_by_winter_in_th16 = 1.f;
+    i32 field_0x19040 = 0;
+    i32 field_0x19044 = 0;
+    ns::Interp<f32> player_scale_i {};
+    f32 player_scale__requires_flag_0x10__from_ddc = 1.f;
+    f32 damage_multiplier__used_by_winter_in_th16 = 1.f;
     ns::Timer_t field_0x19080 = 0;
     anm::ID extra_anm_id {};
-    glm::vec3 field_0x19098 {};
+    ns::vec3 field_0x19098 {};
     BoundingBox3_t item_collect_box {};
     BoundingBox3_t item_attract_box_focused {};
     BoundingBox3_t item_attract_box_unfocused {};
-    int32_t field_0x190ec = 0;
-    int32_t field_0x190f0 = 0;
-    int32_t field_0x190f4 = 0;
-    int32_t field_0x190f8 = 0;
+    i32 field_0x190ec = 0;
+    i32 field_0x190f0 = 0;
+    i32 field_0x190f4 = 0;
+    i32 field_0x190f8 = 0;
 
     friend struct PlayerBullet_t;
 };
 
 extern Player* PLAYER_PTR;
 
-extern int create_damage_source(glm::vec3 const&, float,
-                                int, int, float, float);
-extern int create_damage_source_3(glm::vec3 const&, int,
-                                  int, float, float);
+extern i32 create_damage_source(ns::vec3 const&, f32,
+                                i32, i32, f32, f32);
+extern i32 create_damage_source_3(ns::vec3 const&, i32,
+                                  i32, f32, f32);
 
-extern int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb,
-                       float hb_size, uint* param_4, glm::vec3& dmg_pos,
-                       int param_6, int enemy_id, float ang);
+extern i32 applyDamage(ns::vec3 const& enemyPos, ns::vec2* enemy_hb,
+                       f32 hb_size, u32* param_4, ns::vec3& dmg_pos,
+                       i32 param_6, i32 enemy_id, f32 ang);
 
 #endif // PLAYER_H_

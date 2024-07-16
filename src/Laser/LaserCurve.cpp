@@ -1,12 +1,13 @@
 #include "LaserCurve.h"
 #include "LaserManager.h"
-#include "../BulletManager.h"
+#include "../Bullet/BulletManager.h"
 #include "../Hardcoded.h"
 #include "../Player.h"
-#include "../AnmOpener/AnmManager.h"
+#include "../Anm/AnmManager.h"
 #include <NSEngine.hpp>
+#include <memory.h>
 
-#define GAME_SPEED ns::getInstance()->gameSpeed()
+#define GAME_SPEED ns::get_instance()->game_speed()
 
 LaserCurve::LaserCurve()
 {
@@ -21,16 +22,16 @@ LaserCurve::~LaserCurve()
     LaserCurveTransform_t* node = transforms.next;
     while (node) {
         auto c = node->next;
-        delete node;
+        ns::free(node, ns::MemTag::GAME);
         node = c;
     }
     if (nodes)
-        delete[] nodes;
+        ns::free_n(nodes, inner.laser_time_start, ns::MemTag::GAME);
     if (vertices)
-        delete[] vertices;
+        ns::free_n(vertices, inner.laser_time_start * 2, ns::MemTag::GAME);
 }
 
-void LaserCurveTransform_t::posvel_from_prev(glm::vec3* out_pos, float* out_speed, float* out_angle, glm::vec3 const& pos_next, float speed_next, float angle_next, float /*time*/)
+void LaserCurveTransform_t::posvel_from_prev(ns::vec3* out_pos, float* out_speed, float* out_angle, ns::vec3 const& pos_next, float speed_next, float angle_next, float /*time*/)
 {
     if (move_type == 0) {
         *out_pos = pos_next - dir_vec * speed;
@@ -44,22 +45,22 @@ void LaserCurveTransform_t::posvel_from_prev(glm::vec3* out_pos, float* out_spee
             *out_angle = angle_next;
             return;
         }
-        glm::vec3 v = { math::lengthdir_vec(-speed_next, angle_next) + math::lengthdir_vec(-accel, angle_accel), 0.f };
+        ns::vec3 v = { math::lengthdir_vec(-speed_next, angle_next) + math::lengthdir_vec(-accel, angle_accel), 0.f };
         *out_pos = pos_next + v;
         *out_speed = math::point_distance(0, 0, v.x, v.y);
         *out_angle = math::point_direction(0, 0, v.x, v.y);
     }
     if (move_type == 2) {
         float f = 1.f; // time - 0.f; // FUN_00497db0(time);
-        *out_pos = pos_next - glm::vec3(math::lengthdir_vec(speed_next, angle_next), 0.f) * f;
+        *out_pos = pos_next - ns::vec3(math::lengthdir_vec(speed_next, angle_next), 0.f) * f;
         *out_speed = speed_next - accel;
         *out_angle = angle_next - angle_accel;
         // math::angle_normalize(*out_angle);
-        //*out_pos -= glm::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f) * (1.f - f);
+        //*out_pos -= ns::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f) * (1.f - f);
     }
 }
 
-void LaserCurveTransform_t::posvel(glm::vec3* out_pos, float* out_speed, float* out_angle, float time)
+void LaserCurveTransform_t::posvel(ns::vec3* out_pos, float* out_speed, float* out_angle, float time)
 {
     float time_in_trans = time - start_time;
     if (move_type == 0) {
@@ -69,12 +70,12 @@ void LaserCurveTransform_t::posvel(glm::vec3* out_pos, float* out_speed, float* 
     }
     if (move_type == 1) {
         if (angle_accel < -990.0) {
-            *out_pos = pos + dir_vec * speed * time_in_trans + 0.5f * accel * time_in_trans * time_in_trans;
+            *out_pos = pos + dir_vec * speed * time_in_trans + ns::vec3(0.5f * accel * time_in_trans * time_in_trans);
             *out_speed = accel * time_in_trans + speed;
             *out_angle = angle;
             return;
         }
-        glm::vec3 v = { math::lengthdir_vec(speed, angle) + math::lengthdir_vec(accel, angle_accel), 0.f };
+        ns::vec3 v = { math::lengthdir_vec(speed, angle) + math::lengthdir_vec(accel, angle_accel), 0.f };
         *out_pos = v * time_in_trans + pos; // this might be wrong : TODO: check
         *out_speed = math::point_distance(0, 0, v.x, v.y);
         *out_angle = math::point_direction(0, 0, v.x, v.y);
@@ -87,9 +88,9 @@ void LaserCurveTransform_t::posvel(glm::vec3* out_pos, float* out_speed, float* 
             *out_angle += angle_accel;
             *out_speed += accel;
             // math::angle_normalize(*out_angle);
-            *out_pos += glm::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f);
+            *out_pos += ns::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f);
         }
-        //*out_pos += (time_in_trans /* - FUN_00497db0(time_in_trans) */) * glm::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f);
+        //*out_pos += (time_in_trans /* - FUN_00497db0(time_in_trans) */) * ns::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f);
     }
 }
 
@@ -133,7 +134,7 @@ int LaserCurve::initialize(void* arg) {
 
     laser_offset = inner.start_pos;
     if (inner.distance != 0.0) {
-        laser_offset += glm::vec3(math::lengthdir_vec(inner.distance, inner.ang_aim), 0.f);
+        laser_offset += ns::vec3(math::lengthdir_vec(inner.distance, inner.ang_aim), 0.f);
         inner.distance = 0.0;
         inner.start_pos = laser_offset;
     }
@@ -147,7 +148,7 @@ int LaserCurve::initialize(void* arg) {
     time_alive = inner.timer40_start;
     inv_timer = 30;
 
-    nodes = new LaserCurveNode_t[inner.laser_time_start];
+    nodes = ns::alloc_n<LaserCurveNode_t>(inner.laser_time_start, ns::MemTag::GAME);
     for (int i = 0; i < inner.laser_time_start; i++) {
         nodes[i].pos = laser_offset;
         nodes[i].v_speed = { 0, 0, 0 };
@@ -156,14 +157,14 @@ int LaserCurve::initialize(void* arg) {
     }
     nodes[0].v_speed = laser_speed;
 
-    vertices = new ns::Vertex[inner.laser_time_start * 2];
+    vertices = ns::alloc_n<anm::RenderVertex_t>(inner.laser_time_start * 2, ns::MemTag::GAME);
 
     if (!inner.transforms) {
         transforms.next = nullptr;
         transforms.start_time = 0;
         transforms.end_time = 999999;
         transforms.move_type = 0;
-        transforms.dir_vec = { cos(angle), sin(angle), 0.f };
+        transforms.dir_vec = { ns::cos(angle), ns::sin(angle), 0.f };
         transforms.pos = laser_offset;
         transforms.angle = angle;
         transforms.speed = speed;
@@ -173,7 +174,7 @@ int LaserCurve::initialize(void* arg) {
     } else {
         transforms = *inner.transforms;
         for (LaserCurveTransform_t *n = inner.transforms->next, *n2 = &transforms; n != NULL; n = n->next, n2 = n2->next) {
-            n2->next = new LaserCurveTransform_t();
+            n2->next = ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
             *n2->next = *n->next;
             n2->next->prev = n2;
         }
@@ -308,7 +309,7 @@ int LaserCurve::on_tick()
 
     for (int i = 0; i < inner.laser_time_start; i++) {
 
-        // uStack_18 = laser_offset + glm::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
+        // uStack_18 = laser_offset + ns::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
         if ((((-192.0 < laser_st_width + nodes[i].pos.x) && (nodes[i].pos.x - laser_st_width < 192.0)) && (0.0 < laser_st_width + nodes[i].pos.y)) && (nodes[i].pos.y - laser_st_width < 448.0)) {
             check_graze_or_kill(0);
             vm1.update();
@@ -321,10 +322,10 @@ int LaserCurve::on_tick()
     return 1;
 }
 
-void _dzaww(anm::VM* vm, ns::Vertex* vertices, int count) {
+void _dzaww(anm::VM* vm, anm::RenderVertex_t* vertices, int count) {
     for (int i = 0; i < (count - 1) / 2; i++)
         anm::raw_batch_draw(
-            vm->getSprite().texID,
+            vm->getSprite().texture,
             vertices[i * 2],
             vertices[i * 2 + 1],
             vertices[i * 2 + 3],
@@ -334,26 +335,26 @@ void _dzaww(anm::VM* vm, ns::Vertex* vertices, int count) {
 
 int LaserCurve::on_draw() {
     for (int i = 0; i < inner.laser_time_start; i++) {
-        float ang = nodes[i].angle + PI1_2;
+        float ang = nodes[i].angle + ns::PI_1_2<f32>;
         if (i > 0)
-            ang += (nodes[i - 1].angle + PI1_2 - ang) * 0.5;
+            ang += (nodes[i - 1].angle + ns::PI_1_2<f32> - ang) * 0.5;
         math::angle_normalize(ang);
-        glm::vec2 offset = math::lengthdir_vec(inner.laser_new_arg4 * 0.5, ang);
-        vertices[2 * i].position.x = nodes[i].pos.x + offset.x;
-        vertices[2 * i].position.y = -(nodes[i].pos.y + offset.y);
-        vertices[2 * i].position.z = 0.0;
-        vertices[2 * i].uv.x = (float)i / (float)(inner.laser_time_start - 1);
-        vertices[2 * i].uv.y = vm1.getSprite().v1; // vm1.uv_quad_of_sprite[0].y;
-        vertices[2 * i].color = { 255, 255, 255, 255 };
+        ns::vec2 offset = math::lengthdir_vec(inner.laser_new_arg4 * 0.5, ang);
+        vertices[2 * i].transformed_pos.x = nodes[i].pos.x + offset.x;
+        vertices[2 * i].transformed_pos.y = -(nodes[i].pos.y + offset.y);
+        vertices[2 * i].transformed_pos.z = 0.0;
+        vertices[2 * i].texture_uv.x = (float)i / (float)(inner.laser_time_start - 1);
+        vertices[2 * i].texture_uv.y = vm1.getSprite().v1; // vm1.uv_quad_of_sprite[0].y;
+        vertices[2 * i].diffuse_color = { 255, 255, 255, 255 };
         // vertices[2*i].position.x += SURF_ORIGIN_ECL_X;
         // vertices[2*i].position.y += DAT_00524720;
 
-        vertices[2 * i + 1].position.x = nodes[i].pos.x - offset.x;
-        vertices[2 * i + 1].position.y = -(nodes[i].pos.y - offset.y);
-        vertices[2 * i + 1].position.z = 0.0;
-        vertices[2 * i + 1].color = { 255, 255, 255, 255 };
-        vertices[2 * i + 1].uv.x = (float)i / (float)(inner.laser_time_start - 1);
-        vertices[2 * i + 1].uv.y = vm1.getSprite().v2; // vm1.uv_quad_of_sprite[2].y;
+        vertices[2 * i + 1].transformed_pos.x = nodes[i].pos.x - offset.x;
+        vertices[2 * i + 1].transformed_pos.y = -(nodes[i].pos.y - offset.y);
+        vertices[2 * i + 1].transformed_pos.z = 0.0;
+        vertices[2 * i + 1].diffuse_color = { 255, 255, 255, 255 };
+        vertices[2 * i + 1].texture_uv.x = (float)i / (float)(inner.laser_time_start - 1);
+        vertices[2 * i + 1].texture_uv.y = vm1.getSprite().v2; // vm1.uv_quad_of_sprite[2].y;
         // vertices[2*i+1].position.x += SURF_ORIGIN_ECL_X;
         // vertices[2*i+1].position.y += DAT_00524720;
     }
@@ -387,14 +388,14 @@ void LaserCurve::run_ex()
                 auto last_transform = &transforms;
                 for (auto t = last_transform->next; t; t = t->next)
                     last_transform = t;
-                last_transform->next = new LaserCurveTransform_t();
+                last_transform->next = ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
                 last_transform->end_time = inner.ex[et_ex_index].b;
                 last_transform->next->start_time = inner.ex[et_ex_index].b;
                 last_transform->next->next = nullptr;
                 last_transform->next->prev = last_transform;
                 last_transform->next->move_type = 1;
                 last_transform->posvel(&last_transform->next->pos, &last_transform->next->speed, &last_transform->next->angle, last_transform->end_time);
-                last_transform->next->dir_vec = { cos(last_transform->next->angle), sin(last_transform->next->angle), 0.f };
+                last_transform->next->dir_vec = { ns::cos(last_transform->next->angle), ns::sin(last_transform->next->angle), 0.f };
                 last_transform->next->accel = inner.ex[et_ex_index].r;
                 last_transform->next->angle_accel = inner.ex[et_ex_index].s;
                 if (inner.ex[et_ex_index].a < 0)
@@ -402,14 +403,14 @@ void LaserCurve::run_ex()
                 else {
                     last_transform->next->end_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
                     last_transform = last_transform->next;
-                    last_transform->next = new LaserCurveTransform_t();
+                    last_transform->next = ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
                     last_transform->end_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
                     last_transform->next->start_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
                     last_transform->next->next = nullptr;
                     last_transform->next->prev = last_transform;
                     last_transform->next->move_type = 0;
                     last_transform->posvel(&last_transform->next->pos, &last_transform->next->speed, &last_transform->next->angle, last_transform->end_time);
-                    last_transform->next->dir_vec = { cos(last_transform->next->angle), sin(last_transform->next->angle), 0.f };
+                    last_transform->next->dir_vec = { ns::cos(last_transform->next->angle), ns::sin(last_transform->next->angle), 0.f };
                     last_transform->next->end_time = 0x497423f0;
                 }
                 break;
@@ -418,14 +419,14 @@ void LaserCurve::run_ex()
                 auto last_transform = &transforms;
                 for (auto t = last_transform->next; t; t = t->next)
                     last_transform = t;
-                last_transform->next = new LaserCurveTransform_t();
+                last_transform->next = ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
                 last_transform->end_time = inner.ex[et_ex_index].b;
                 last_transform->next->start_time = inner.ex[et_ex_index].b;
                 last_transform->next->next = nullptr;
                 last_transform->next->prev = last_transform;
                 last_transform->next->move_type = 2;
                 last_transform->posvel(&last_transform->next->pos, &last_transform->next->speed, &last_transform->next->angle, last_transform->end_time);
-                last_transform->next->dir_vec = { cos(last_transform->next->angle), sin(last_transform->next->angle), 0.f };
+                last_transform->next->dir_vec = { ns::cos(last_transform->next->angle), ns::sin(last_transform->next->angle), 0.f };
                 last_transform->next->accel = inner.ex[et_ex_index].r;
                 last_transform->next->angle_accel = inner.ex[et_ex_index].s;
                 if (inner.ex[et_ex_index].a < 0)
@@ -433,14 +434,14 @@ void LaserCurve::run_ex()
                 else {
                     last_transform->next->end_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
                     last_transform = last_transform->next;
-                    last_transform->next = new LaserCurveTransform_t();
+                    last_transform->next = ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
                     last_transform->end_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
                     last_transform->next->start_time = inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
                     last_transform->next->next = nullptr;
                     last_transform->next->prev = last_transform;
                     last_transform->next->move_type = 0;
                     last_transform->posvel(&last_transform->next->pos, &last_transform->next->speed, &last_transform->next->angle, last_transform->end_time);
-                    last_transform->next->dir_vec = { cos(last_transform->next->angle), sin(last_transform->next->angle), 0.f };
+                    last_transform->next->dir_vec = { ns::cos(last_transform->next->angle), ns::sin(last_transform->next->angle), 0.f };
                     last_transform->next->end_time = 0x497423f0;
                 }
                 break;
@@ -524,7 +525,7 @@ void LaserCurve::run_ex()
         if (inner.ex[et_ex_index].type == 0x2000) {
             EnemyBulletShooter_t bs = {};
             bs.__shot_transform_sfx = -1;
-            bs.__vec3_8 = laser_offset + glm::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
+            bs.__vec3_8 = laser_offset + ns::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
             bs.aim_type = inner.ex[et_ex_index].a;
             bs.__start_transform = inner.ex[et_ex_index].b;
             bs.cnt_count = inner.ex[et_ex_index].c;

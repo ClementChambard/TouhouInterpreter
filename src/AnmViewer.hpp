@@ -2,7 +2,7 @@
 #define ANMVIEWER_INCLUDED_H
 
 #include <vector>
-#include "./AnmOpener/AnmVM.h"
+#include "./Anm/AnmVM.h"
 
 struct AnmView {
     int anmId;

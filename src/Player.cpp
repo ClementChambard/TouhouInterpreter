@@ -1,14 +1,15 @@
 #include "./Player.h"
 #include "./Spellcard.h"
-#include "./AnmOpener/AnmManager.h"
+#include "./Anm/AnmManager.h"
 #include "./Gui.hpp"
-#include "./EnemyManager.h"
+#include "./Ecl/EnemyManager.h"
 #include "./Hardcoded.h"
 #include "./Input.h"
 #include "./ItemManager.h"
 #include "./Laser/LaserManager.h"
+#include <functional>
 #include <input.hpp>
-#include <math/Random.h>
+#include <math/math.hpp>
 #include <NSEngine.hpp>
 #include <DrawFuncs.h>
 #include "./GoastManager.h"
@@ -97,8 +98,10 @@ Player::Player() {
 void youmu_option_update_func(PlayerOption_t* opt) {
     opt->scaled_prefered_pos = PLAYER_PTR->prev_pos[opt->id * 8 + 7];
     if (!PLAYER_PTR->inner.focusing) {
-        opt->scaled_prefered_pos_rel_to_player[0] =
-            opt->scaled_prefered_pos - PLAYER_PTR->inner.integer_pos;
+        opt->scaled_prefered_pos_rel_to_player[0].x =
+            opt->scaled_prefered_pos.x - PLAYER_PTR->inner.integer_pos.x;
+        opt->scaled_prefered_pos_rel_to_player[0].y =
+            opt->scaled_prefered_pos.y - PLAYER_PTR->inner.integer_pos.y;
     } else {
         opt->scaled_prefered_pos_rel_to_player[0].x = 0;
         opt->scaled_prefered_pos_rel_to_player[0].y = -0xc80;
@@ -117,8 +120,10 @@ void youmu_option_update_func(PlayerOption_t* opt) {
                 0.125 * i + PLAYER_PTR->prev_pos[opt->id * 8].y;
         }
     }
-    opt->scaled_prefered_pos = PLAYER_PTR->inner.integer_pos +
-        opt->scaled_prefered_pos_rel_to_player[0];
+    opt->scaled_prefered_pos.x = PLAYER_PTR->inner.integer_pos.x +
+        opt->scaled_prefered_pos_rel_to_player[0].x;
+    opt->scaled_prefered_pos.y = PLAYER_PTR->inner.integer_pos.y +
+        opt->scaled_prefered_pos_rel_to_player[0].y;
     opt->focusing = PLAYER_PTR->inner.focusing;
 }
 
@@ -176,9 +181,12 @@ void FUN_00449630(PlayerInner_t* inner) {
                     [GLOBALS.inner.SHOTTYPE]["option_pos_lookup"]
                     [pow - 1 + HARDCODED_DATA["option_count"].asInt()]
                     .asInt() + i].y * 128.f);
-            inner->options[i].scaled_cur_pos = inner->integer_pos +
+            inner->options[i].scaled_cur_pos.x = inner->integer_pos.x +
                 inner->options[i].scaled_prefered_pos_rel_to_player
-                [inner->focusing];
+                [inner->focusing].x;
+            inner->options[i].scaled_cur_pos.y = inner->integer_pos.y +
+                inner->options[i].scaled_prefered_pos_rel_to_player
+                [inner->focusing].y;
             inner->options[i].anmId1 = PLAYER_PTR->playerAnm->spawnVMExt(
                 PLAYERS[GLOBALS.inner.CHARACTER]["option"].asInt(),
                 0, {0, -32, 0}, 0, 14);
@@ -292,8 +300,8 @@ int Player::_on_tick() {
                 ITEM_MANAGER_PTR->spawn_item(1, inner.pos, ((i * 3.141593) / 28.0 + math::point_direction(inner.pos.x, inner.pos.y, 0, -224)) - 0.3926991, 3.0, 0, -1);
             }
 
-            ITEM_MANAGER_PTR->spawn_item(GLOBALS.inner.SHOTTYPE + 16, inner.pos + glm::vec3(-16, -96, 0), -1.570796, 2.2, 0, -1);
-            ITEM_MANAGER_PTR->spawn_item(GLOBALS.inner.SHOTTYPE + 16, inner.pos + glm::vec3(+16, -96, 0), -1.570796, 2.2, 0, -1);
+            ITEM_MANAGER_PTR->spawn_item(GLOBALS.inner.SHOTTYPE + 16, inner.pos + ns::vec3(-16, -96, 0), -1.570796, 2.2, 0, -1);
+            ITEM_MANAGER_PTR->spawn_item(GLOBALS.inner.SHOTTYPE + 16, inner.pos + ns::vec3(+16, -96, 0), -1.570796, 2.2, 0, -1);
 
             FUN_00449630(&inner);
         }
@@ -470,7 +478,7 @@ int Player::_on_tick() {
     return 1;
 }
 
-int create_damage_source(glm::vec3 const& pos, float angle, int timeToLive, int damage, float w, float h)
+int create_damage_source(ns::vec3 const& pos, float angle, int timeToLive, int damage, float w, float h)
 {
     math::angle_normalize(angle);
 
@@ -505,7 +513,7 @@ int create_damage_source(glm::vec3 const& pos, float angle, int timeToLive, int 
     return id + 1;
 }
 
-int create_damage_source_3(glm::vec3 const& pos, int timeToLive, int damage, float field_4, float field_8)
+int create_damage_source_3(ns::vec3 const& pos, int timeToLive, int damage, float field_4, float field_8)
 {
     // find damage source index
     int id = PLAYER_PTR->inner.last_created_damage_source_index;
@@ -537,10 +545,10 @@ int create_damage_source_3(glm::vec3 const& pos, int timeToLive, int damage, flo
     return id + 1;
 }
 
-void Player::set_pos(glm::vec3 const& p)
+void Player::set_pos(ns::vec3 const& p)
 {
-    inner.integer_pos = { p.x * 128, p.y * 128 };
-    inner.pos = glm::vec3(inner.integer_pos.x, inner.integer_pos.y, 0) / 128.f;
+    inner.integer_pos = { (i32)(p.x * 128), (i32)(p.y * 128) };
+    inner.pos = ns::vec3(inner.integer_pos.x, inner.integer_pos.y, 0) / 128.f;
     inner.options[0].move_instantly = true;
     inner.options[1].move_instantly = true;
     inner.options[2].move_instantly = true;
@@ -617,7 +625,7 @@ void Player::check_shoot()
                 }
                 return;
             }
-            glm::vec3 old_pos = inner.pos;
+            ns::vec3 old_pos = inner.pos;
             set_pos(field_0x19098);
             shoot(field_0x19080.current + 40, 0);
             set_pos(old_pos);
@@ -632,7 +640,7 @@ void Player::check_shoot()
             if (field_0x19080 < 0) {
                 bool temp = inner.focusing;
                 inner.focusing = 1;
-                glm::vec3 old_pos = inner.pos;
+                ns::vec3 old_pos = inner.pos;
                 set_pos(field_0x19098);
                 shoot(field_0x19080.current + 40, 0);
                 set_pos(old_pos);
@@ -842,7 +850,7 @@ void PlayerBullet_t::update()
 
     // check offscreen
     if (shooter.__unknown_21__2_is_unique_bullet != 2) {
-        glm::vec2 corners[4];
+        ns::vec2 corners[4];
         vm->getSpriteCorners2D(corners);
         if (0xe < __field_c) {
             float DAT_00524720 = 0, DAT_0052471c = -192.f;
@@ -896,7 +904,8 @@ void Player::move_options(PlayerOption_t* options, uint cnt)
                     continue;
                 }
             } else {
-                o.scaled_prefered_pos = o.scaled_prefered_pos_rel_to_player[inner.focusing] + inner.integer_pos;
+                o.scaled_prefered_pos.x = o.scaled_prefered_pos_rel_to_player[inner.focusing].x + inner.integer_pos.x;
+                o.scaled_prefered_pos.y = o.scaled_prefered_pos_rel_to_player[inner.focusing].y + inner.integer_pos.y;
                 if (o.update_code)
                     o.update_code(&o);
             }
@@ -916,9 +925,9 @@ void Player::move_options(PlayerOption_t* options, uint cnt)
             }
 
             if (auto vm_ = anm::getVM(o.anmId1.val); vm_)
-                vm_->entity_pos = glm::vec3(o.scaled_cur_pos.x, o.scaled_cur_pos.y, 0.f) / 128.f;
+                vm_->entity_pos = ns::vec3(o.scaled_cur_pos.x, o.scaled_cur_pos.y, 0.f) / 128.f;
             if (auto vm_ = anm::getVM(o.anmId2.val); vm_)
-                vm_->entity_pos = glm::vec3(o.scaled_cur_pos.x, o.scaled_cur_pos.y, 0.f) / 128.f;
+                vm_->entity_pos = ns::vec3(o.scaled_cur_pos.x, o.scaled_cur_pos.y, 0.f) / 128.f;
         }
     }
 }
@@ -971,7 +980,7 @@ void Player::move()
             if (!(flags & 0x10))
                 vm_->scale_2 = { 1, 1 };
             else
-                vm_->scale_2 = (2 * player_scale__requires_flag_0x10__from_ddc - 1.f) * glm::vec2(1, 1);
+                vm_->scale_2 = (2 * player_scale__requires_flag_0x10__from_ddc - 1.f) * ns::vec2(1, 1);
             vm_->bitflags.scaled = 0b1;
         }
         spd = (direction > 4) ? speed_focus_diag : speed_focus;
@@ -1005,11 +1014,12 @@ void Player::move()
     // move according to speed
     speed.x = xspd;
     speed.y = yspd;
-    last_movement = { speed * ns::getInstance()->gameSpeed(), 0 };
+    last_movement = { speed * ns::get_instance()->game_speed(), 0 };
     last_movement_cpy = last_movement;
     if (direction != 0)
         last_movement_no_zero = last_movement;
-    inner.integer_pos += glm::vec<2, int32_t> { last_movement.x, last_movement.y };
+    inner.integer_pos.x += last_movement.x;
+    inner.integer_pos.y += last_movement.y;
 
     // screen boundaries
     if (inner.integer_pos.x < -0x5c00)
@@ -1022,7 +1032,7 @@ void Player::move()
         inner.integer_pos.y = 0xd800;
 
     // update real pos
-    inner.pos = glm::vec3(inner.integer_pos.x, inner.integer_pos.y, 0) / 128.f;
+    inner.pos = ns::vec3(inner.integer_pos.x, inner.integer_pos.y, 0) / 128.f;
 
     // set focus vm pos if exists
     if (auto vm_ = anm::getVM(inner.focus_eff_anmId); vm_)
@@ -1154,7 +1164,7 @@ int Player::_on_draw() {
         vm.bitflags.originMode = 0b01;
         anm::drawVM(&vm);
     }
-    if (!ns::getInstance()->flags().debugInfo)
+    if (!ns::get_instance()->flags().debugInfo)
         return 1;
     ns::draw_set_layer(ns::DEBUG_LAYER_ID);
     static ns::Color c = { 255, 0, 0, 128 };
@@ -1171,7 +1181,7 @@ int Player::_on_draw() {
     return 1;
 }
 
-void FUN_0044d8a0(glm::vec3 const& param_1)
+void FUN_0044d8a0(ns::vec3 const& param_1)
 {
 
     if (GLOBALS.inner.HYPER_FLAGS & 2) {
@@ -1235,9 +1245,9 @@ void FUN_0044d8a0(glm::vec3 const& param_1)
     return;
 }
 
-int (*hitFuncs[])(PlayerDamageSource_t*, glm::vec3 const&, float, float, float) = {
+std::function<int(PlayerDamageSource_t*, ns::vec3 const&, float, float, float)> hitFuncs[] = {
     nullptr,
-    [](PlayerDamageSource_t* param_1, glm::vec3 const& param_2, float param_3, float param_4, float param_5) {
+    [](PlayerDamageSource_t* param_1, ns::vec3 const& param_2, float param_3, float param_4, float param_5) -> int {
         FUN_0044d8a0(param_2);
         auto& shooter = PLAYER_PTR->sht_file->shooters[PLAYER_PTR->inner.bullets[param_1->bullet_id].shter >> 8][PLAYER_PTR->inner.bullets[param_1->bullet_id].shter & 0xff];
         if (shooter.on_hit)
@@ -1246,23 +1256,23 @@ int (*hitFuncs[])(PlayerDamageSource_t*, glm::vec3 const&, float, float, float) 
             PLAYER_PTR->field_0x190ec += 0x32;
         return pl_b_default_on_hit(PLAYER_PTR->inner.bullets[param_1->bullet_id]);
     },
-    [](PlayerDamageSource_t* param_1, glm::vec3 const& param_2, float, float, float) {
+    [](PlayerDamageSource_t* param_1, ns::vec3 const& param_2, float, float, float) -> int {
         FUN_0044d8a0((param_2 + param_1->pos.pos) / 2.f);
         int damage = PLAYER_PTR->inner.bullets[param_1->bullet_id].damage;
         (PLAYER_PTR->inner).bullets[param_1->bullet_id].damage = 1;
         return damage;
     },
-    [](PlayerDamageSource_t*, glm::vec3 const& param_2, float, float, float) {
+    [](PlayerDamageSource_t*, ns::vec3 const& param_2, float, float, float) -> int {
         anm::VM* vm;
         PLAYER_PTR->playerAnm->createEffectPos(20, 0, param_2, -1, &vm);
-        vm->__script_vars_33_34_35.x = cos(BOMB_PTR->field_0x2c) * 6.5;
-        vm->__script_vars_33_34_35.y = sin(BOMB_PTR->field_0x2c) * 6.5;
+        vm->__script_vars_33_34_35.x = ns::cos(BOMB_PTR->field_0x2c) * 6.5;
+        vm->__script_vars_33_34_35.y = ns::sin(BOMB_PTR->field_0x2c) * 6.5;
         return -1;
     },
-    [](PlayerDamageSource_t*, glm::vec3 const&, float, float, float) { if (GOAST_MANAGER_PTR) GOAST_MANAGER_PTR->field_0x50 = 20; return -1; }
+    [](PlayerDamageSource_t*, ns::vec3 const&, float, float, float) { if (GOAST_MANAGER_PTR) GOAST_MANAGER_PTR->field_0x50 = 20; return -1; }
 };
 
-int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb, float hb_size, uint* param_4, glm::vec3& dmg_pos, int param_6, int enemy_id, float ang)
+int applyDamage(ns::vec3 const& enemyPos, ns::vec2* enemy_hb, float hb_size, uint* param_4, ns::vec3& dmg_pos, int param_6, int enemy_id, float ang)
 {
 
     float local_4c = BOMB_PTR->active ? BOMB_PTR->method_c(/*enemyPos,enemy_hb*/) : 0;
@@ -1276,9 +1286,9 @@ int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb, float hb_size, u
 
             if ((PLAYER_PTR->inner.damage_sources[i].flags & 2) == 0) {
                 if (enemy_hb == NULL) {
-                    float yy = (enemyPos.y - ds.pos.pos.y) * cos(-ds.angle) + (enemyPos.x - ds.pos.pos.x) * sin(-ds.angle);
-                    float xx = (enemyPos.x - ds.pos.pos.x) * cos(-ds.angle) - (enemyPos.y - ds.pos.pos.y) * sin(-ds.angle);
-                    if (((ds.hitbox.x / 2 + hb_size < abs(xx)) || (ds.hitbox.y / 2 < abs(yy))) && ((ds.hitbox.x / 2 < abs(xx) || (ds.hitbox.y / 2 + hb_size < abs(yy))))) {
+                    float yy = (enemyPos.y - ds.pos.pos.y) * ns::cos(-ds.angle) + (enemyPos.x - ds.pos.pos.x) * ns::sin(-ds.angle);
+                    float xx = (enemyPos.x - ds.pos.pos.x) * ns::cos(-ds.angle) - (enemyPos.y - ds.pos.pos.y) * ns::sin(-ds.angle);
+                    if (((ds.hitbox.x / 2 + hb_size < ns::abs(xx)) || (ds.hitbox.y / 2 < ns::abs(yy))) && ((ds.hitbox.x / 2 < ns::abs(xx) || (ds.hitbox.y / 2 + hb_size < ns::abs(yy))))) {
                         if ((hb_size * hb_size <= (xx - ds.hitbox.x / 2) * (xx - ds.hitbox.x / 2) + (yy - ds.hitbox.y / 2) * (yy - ds.hitbox.y / 2)) && (hb_size * hb_size <= (xx + ds.hitbox.x / 2) * (xx + ds.hitbox.x / 2) + (yy - ds.hitbox.y / 2) * (yy - ds.hitbox.y / 2)) && (hb_size * hb_size <= (xx - ds.hitbox.x / 2) * (xx - ds.hitbox.x / 2) + (yy + ds.hitbox.y / 2) * (yy + ds.hitbox.y / 2)) && (hb_size * hb_size <= (xx + ds.hitbox.x / 2) * (xx + ds.hitbox.x / 2) + (yy + ds.hitbox.y / 2) * (yy + ds.hitbox.y / 2)))
                             continue;
                     }
@@ -1288,9 +1298,9 @@ int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb, float hb_size, u
                 if ((hb_size + ds.field_0x4) * (hb_size + ds.field_0x4) < (ds.pos.pos.y - enemyPos.y) * (ds.pos.pos.y - enemyPos.y) + (ds.pos.pos.x - enemyPos.x) * (ds.pos.pos.x - enemyPos.x))
                     continue;
             } else {
-                float xx = (ds.pos.pos.x - enemyPos.x) * cos(-ang) - (ds.pos.pos.y - enemyPos.y) * sin(-ang);
-                float yy = (ds.pos.pos.y - enemyPos.y) * cos(-ang) + (ds.pos.pos.x - enemyPos.x) * sin(-ang);
-                if (((ds.field_0x4 + enemy_hb->x / 2 < abs(xx)) || (enemy_hb->y / 2 < abs(yy))) && ((enemy_hb->x / 2 < abs(xx) || (enemy_hb->y / 2 + ds.field_0x4 < abs(yy))))) {
+                float xx = (ds.pos.pos.x - enemyPos.x) * ns::cos(-ang) - (ds.pos.pos.y - enemyPos.y) * ns::sin(-ang);
+                float yy = (ds.pos.pos.y - enemyPos.y) * ns::cos(-ang) + (ds.pos.pos.x - enemyPos.x) * ns::sin(-ang);
+                if (((ds.field_0x4 + enemy_hb->x / 2 < ns::abs(xx)) || (enemy_hb->y / 2 < ns::abs(yy))) && ((enemy_hb->x / 2 < ns::abs(xx) || (enemy_hb->y / 2 + ds.field_0x4 < ns::abs(yy))))) {
                     if ((ds.field_0x4 * ds.field_0x4 <= (yy - enemy_hb->y / 2) * (yy - enemy_hb->y / 2) + (xx - enemy_hb->x / 2) * (xx - enemy_hb->x / 2)) && (ds.field_0x4 * ds.field_0x4 <= (yy - enemy_hb->y / 2) * (yy - enemy_hb->y / 2) + enemy_hb->x / 2) && (ds.field_0x4 * ds.field_0x4 <= (xx - enemy_hb->x / 2) * (xx - enemy_hb->x / 2) + enemy_hb->y / 2) && (ds.field_0x4 * ds.field_0x4 <= (yy + enemy_hb->y / 2) * (yy + enemy_hb->y / 2) + (xx + enemy_hb->x / 2) * (xx + enemy_hb->x / 2)))
                         continue;
                 }
@@ -1339,7 +1349,7 @@ int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb, float hb_size, u
         }
     }
 
-    local_4c = fmin(local_4c, PLAYER_PTR->sht_file->header.max_dmg);
+    local_4c = math::min(local_4c, (float)PLAYER_PTR->sht_file->header.max_dmg);
     if (((param_6 == 0) && local_4c)) {
         GLOBALS.inner.CURRENT_SCORE += (local_4c / 10 + 10) / 10;
         if (999999999 < GLOBALS.inner.CURRENT_SCORE)
@@ -1349,7 +1359,7 @@ int applyDamage(glm::vec3 const& enemyPos, glm::vec2* enemy_hb, float hb_size, u
 }
 
 
-void Player::do_graze(glm::vec3 const& pos) {
+void Player::do_graze(ns::vec3 const& pos) {
     GLOBALS.inner.GRAZE += 1;
     GLOBALS.inner.GRAZE_IN_CHAPTER__POSSIBLY_BROKEN += 1;
     if (99999999 < GLOBALS.inner.GRAZE) {
@@ -1358,7 +1368,7 @@ void Player::do_graze(glm::vec3 const& pos) {
     if (99999999 < GLOBALS.inner.GRAZE_IN_CHAPTER__POSSIBLY_BROKEN) {
         GLOBALS.inner.GRAZE_IN_CHAPTER__POSSIBLY_BROKEN = 99999999;
     }
-    glm::vec3 graze_pos;
+    ns::vec3 graze_pos;
     graze_pos.x = (pos.x + PLAYER_PTR->inner.pos.x) / 2.f;
     graze_pos.y = (pos.y + PLAYER_PTR->inner.pos.y) / 2.f;
     graze_pos.z = 0.f;

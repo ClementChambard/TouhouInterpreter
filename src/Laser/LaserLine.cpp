@@ -1,14 +1,14 @@
 #include "./LaserLine.h"
 #include "./LaserManager.h"
-#include "../BulletManager.h"
+#include "../Bullet/BulletManager.h"
 #include "../ItemManager.h"
 #include "../Player.h"
 #include "../Hardcoded.h"
-#include "../AnmOpener/AnmManager.h"
-#include <math/Random.h>
+#include "../Anm/AnmManager.h"
+#include <math/math.hpp>
 #include <NSEngine.hpp>
 
-#define GAME_SPEED ns::getInstance()->gameSpeed()
+#define GAME_SPEED ns::get_instance()->game_speed()
 
 LaserLine::LaserLine() {
     vm1.sprite_id = -1;
@@ -81,8 +81,8 @@ int LaserLine::initialize(void* arg) {
 
     laser_offset = inner.start_pos;
     if (inner.distance != 0.f) {
-        laser_offset.x += inner.distance * cos(inner.ang_aim);
-        laser_offset.y += inner.distance * sin(inner.ang_aim);
+        laser_offset.x += inner.distance * ns::cos(inner.ang_aim);
+        laser_offset.y += inner.distance * ns::sin(inner.ang_aim);
     }
 
     speed = inner.spd_1;
@@ -115,7 +115,7 @@ int LaserLine::on_tick() {
             } else {
                 speed += ex_accel.acceleration * GAME_SPEED;
                 laser_speed += ex_accel.vec3_a14 * GAME_SPEED;
-                if (fabs(laser_speed.x) > 0.0001 || fabs(laser_speed.y) > 0.0001) {
+                if (ns::abs(laser_speed.x) > 0.0001 || ns::abs(laser_speed.y) > 0.0001) {
                     speed = math::point_distance(0, 0, laser_speed.x, laser_speed.y);
                     angle = math::point_direction(0, 0, laser_speed.x, laser_speed.y);
                     math::angle_normalize(angle);
@@ -177,7 +177,7 @@ int LaserLine::on_tick() {
         if (ex_offscreen__timer > 0)
             ex_offscreen__timer--;
         else {
-            glm::vec2 b = math::lengthdir_vec(angle, laser_inf_current_length);
+            ns::vec2 b = math::lengthdir_vec(angle, laser_inf_current_length);
             if ((laser_offset.x + laser_st_width <= -192.0 || 192.0 <= laser_offset.x - laser_st_width || laser_offset.y + laser_st_width <= 0.0 || 448.0 <= laser_offset.y - laser_st_width) && (laser_offset.x + b.x + laser_st_width <= -192.0 || 192.0 <= laser_offset.x + b.x - laser_st_width || laser_offset.y + b.y + laser_st_width <= 0.0 || 448.0 <= laser_offset.y + b.y - laser_st_width)) {
                 return 1;
             }
@@ -210,7 +210,7 @@ int LaserLine::on_draw() {
     vm1.rotation.z = vmAngle;
     // vm1.draw();
     anm::drawVM(&vm1);
-    vm3.pos = laser_offset + glm::vec3(
+    vm3.pos = laser_offset + ns::vec3(
         math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
     // vm3.draw();
     anm::drawVM(&vm3);
@@ -325,7 +325,7 @@ void LaserLine::run_ex() {
         if (inner.et_ex[et_ex_index].type == 0x2000) {
             EnemyBulletShooter_t bs;
             bs.__shot_transform_sfx = -1;
-            bs.__vec3_8 = { glm::vec2(laser_offset) + math::lengthdir_vec(
+            bs.__vec3_8 = { ns::vec2(laser_offset) + math::lengthdir_vec(
                 laser_inf_current_length, angle), 0.f };
             bs.aim_type = inner.et_ex[et_ex_index].a;
             bs.__start_transform = inner.et_ex[et_ex_index].b;
@@ -397,12 +397,12 @@ int FUN_004038d0(float* xout, float* yout, float lx1, float ly1, float lx2,
                 * ((y1 - ly2) * (lx2 - lx1) + (lx2 - x1) * (ly2 - ly1))) {
                 return 0;
             }
-        } else if (fmax(lx1, lx2) < fmin(x1, x2) || fmax(ly1, ly2) <
-                fmin(y1, y2) || fmax(x1, x2) < fmin(lx1, lx2) ||
-                fmax(y1, y2) < fmin(ly1, ly2)) {
+        } else if (math::max(lx1, lx2) < math::min(x1, x2) || math::max(ly1, ly2) <
+                math::min(y1, y2) || math::max(x1, x2) < math::min(lx1, lx2) ||
+                math::max(y1, y2) < math::min(ly1, ly2)) {
             return 0;
         }
-        if (0.01 <= fabs(x1 - x2)) {
+        if (0.01 <= ns::abs(x1 - x2)) {
             fVar3 = (y1 - y2) / (x1 - x2);
             fVar7 = y2 - ((y1 - y2) * x2) / (x1 - x2);
         } else {
@@ -411,12 +411,12 @@ int FUN_004038d0(float* xout, float* yout, float lx1, float ly1, float lx2,
         }
         fVar4 = 0.0;
         fVar5 = lx2;
-        if (0.01 <= fabs(lx1 - lx2)) {
+        if (0.01 <= ns::abs(lx1 - lx2)) {
             fVar4 = (ly1 - ly2) / (lx1 - lx2);
             fVar5 = ly2 - ((ly1 - ly2) * lx2) / (lx1 - lx2);
         }
-        if (0.01 <= fabs(x1 - x2)) {
-            if (0.01 <= fabs(lx1 - lx2)) {
+        if (0.01 <= ns::abs(x1 - x2)) {
+            if (0.01 <= ns::abs(lx1 - lx2)) {
                 *xout = (fVar5 - fVar7) / (fVar3 - fVar4);
                 *yout = ((fVar5 - fVar7) * fVar3) / (fVar3 - fVar4) + fVar7;
                 return 1;
@@ -425,12 +425,12 @@ int FUN_004038d0(float* xout, float* yout, float lx1, float ly1, float lx2,
             *yout = fVar3 * lx2 + fVar7;
             return 1;
         }
-        if (0.01 <= fabs(lx1 - lx2)) {
+        if (0.01 <= ns::abs(lx1 - lx2)) {
             *xout = x2;
             *yout = fVar4 * x2 + fVar5;
             return 1;
         }
-        if (fabs(x2 - lx2) < 0.001) {
+        if (ns::abs(x2 - lx2) < 0.001) {
             *xout = x2;
             *yout = y2;
             return 1;
@@ -440,7 +440,7 @@ int FUN_004038d0(float* xout, float* yout, float lx1, float ly1, float lx2,
 }
 
 int LaserLine::method_50_line() {
-    glm::vec3 laser_pos2 = { glm::vec2(laser_offset) +
+    ns::vec3 laser_pos2 = { ns::vec2(laser_offset) +
         math::lengthdir_vec(laser_inf_current_length, angle), 0.f };
     if (-192.0 < laser_pos2.x + 0.0 && laser_pos2.x - 0.0 < 192.0 &&
         0.0 < laser_pos2.y + 0.0 && laser_pos2.y - 0.0 < 448.0)
@@ -478,7 +478,7 @@ int LaserLine::method_50_line() {
                 laser_offset.y, laser_pos2.x, laser_pos2.y, -192.0, 640.0,
                          -192.0, -192.0);
             inner.start_pos.z = 0.0;
-            inner.ang_aim = PI - angle;
+            inner.ang_aim = ns::PI<f32> - angle;
             inner.spd_1 = ex_bounce.bounce_speed;
             inner.distance = 0.0;
             math::angle_normalize(inner.ang_aim);
@@ -495,7 +495,7 @@ int LaserLine::method_50_line() {
             laser_offset.y, laser_pos2.x, laser_pos2.y, 192.0, 640.0,
                      192.0, -192.0);
         inner.start_pos.z = 0.0;
-        inner.ang_aim = PI - angle;
+        inner.ang_aim = ns::PI<f32> - angle;
         inner.spd_1 = ex_bounce.bounce_speed;
         inner.distance = 0.0;
         allocate_new_laser(0, &inner);
@@ -507,9 +507,9 @@ int LaserLine::method_50_line() {
     return 1;
 }
 
-int LaserLine::cancel_as_bomb_rectangle(glm::vec3, glm::vec3, float,
+int LaserLine::cancel_as_bomb_rectangle(ns::vec3, ns::vec3, float,
                                         int, int) { return 0; }
-int LaserLine::cancel_as_bomb_circle(glm::vec3 const&, float, int, int) { return 0; }
+int LaserLine::cancel_as_bomb_circle(ns::vec3 const&, float, int, int) { return 0; }
 int LaserLine::cancel(int, int as_bomb)
 {
     // undefined4 extraout_ECX;
@@ -518,8 +518,8 @@ int LaserLine::cancel(int, int as_bomb)
     if (as_bomb && (ex_invuln__remaining_frames != 0))
         return 0;
     int n = 0;
-    glm::vec3 inc = { math::lengthdir_vec(8.f, angle), 0.f };
-    glm::vec3 p = laser_offset + inc;
+    ns::vec3 inc = { math::lengthdir_vec(8.f, angle), 0.f };
+    ns::vec3 p = laser_offset + inc;
     inc *= 2.f;
     if (laser_inf_current_length > 16.f) {
         float len = 8.0;

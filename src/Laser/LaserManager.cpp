@@ -1,7 +1,7 @@
 #include "./LaserManager.h"
 #include "../Hardcoded.h"
-#include "../AnmOpener/AnmFuncs.h"
-#include "../AnmOpener/AnmManager.h"
+#include "../Anm/AnmFuncs.h"
+#include "../Anm/AnmManager.h"
 
 LaserManager* LASER_MANAGER_PTR = nullptr;
 
@@ -98,7 +98,7 @@ int LaserManager::cancel_all(bool as_bomb) {
     return 1;
 }
 
-int LaserManager::cancel_in_radius(glm::vec3 const& pos, bool item, int a, float r) {
+int LaserManager::cancel_in_radius(ns::vec3 const& pos, bool item, int a, float r) {
     int cnt = 0;
     auto l = dummy_laser_for_list_tail.prev;
     Laser* l2;
@@ -112,7 +112,7 @@ int LaserManager::cancel_in_radius(glm::vec3 const& pos, bool item, int a, float
     return cnt;
 }
     
-int LaserManager::cancel_in_rectangle(glm::vec2 const& pos, glm::vec2 const& scale, float angle) {
+int LaserManager::cancel_in_rectangle(ns::vec2 const& pos, ns::vec2 const& scale, float angle) {
     auto prev = dummy_laser_for_list_tail.prev;
     int cnt = 0;
     cancel_rectangle_p1 = {pos, 0};

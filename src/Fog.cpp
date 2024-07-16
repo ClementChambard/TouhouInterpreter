@@ -1,17 +1,16 @@
 #include "./Fog.hpp"
-#include "AnmOpener/AnmManager.h"
-#include "Enemy.h"
+#include "Anm/AnmManager.h"
+#include "Ecl/Enemy.h"
 #include "Supervisor.h"
 #include <NSEngine.hpp>
 #include <memory.h>
 
-#define GAME_SPEED ns::getInstance()->gameSpeed()
+#define GAME_SPEED ns::get_instance()->game_speed()
 
 anm::ID fog_init_sub_anms(int count) {
   anm::VM *vm;
   anm::ID id = SUPERVISOR.text_anm->createEffect(59, 34, &vm);
-  vm->special_vertex_buffer_size = count * 0x38;
-  vm->special_vertex_buffer_data = ns::alloc(count * 2 * sizeof(anm::RenderVertex_t), ns::MemTag::GAME);
+  vm->alloc_special_vertex_buffer(count * 2 * sizeof(anm::RenderVertex_t));
   if (count < 3) {
     vm->bitflags.rendermode = 0;
   } else {
@@ -45,14 +44,13 @@ Fog_t::Fog_t(int count) {
   anmid_array = new anm::ID[vm_count - 1];
   vm_array = new anm::VM*[vm_count - 1];
   vertex_array = new anm::RenderVertex_t[vertex_count * vm_count];
-  pos_array = new glm::vec3[vertex_count * vm_count];
+  pos_array = new ns::vec3[vertex_count * vm_count];
   anm::VM* vm;
   anmid = SUPERVISOR.text_anm->createEffect(59, 34, &vm);
   // TODO: why mine is showing when it is not in the og
   vm->color_1.a = 0;
   vm->bitflags.rendermode = 0;
-  vm->special_vertex_buffer_size = 0x70;
-  vm->special_vertex_buffer_data = ns::alloc(0x70, ns::MemTag::GAME);
+  vm->alloc_special_vertex_buffer(0x70);
   vm->index_of_on_draw = 4;
   vm->associated_game_entity = this;
   for (int i = 0; i < vm_count - 1; i++) {
@@ -147,11 +145,11 @@ void EnemyData::update_distorsion() {
           auto& p = fog.fog_ptr->pos_array
               [i * fog.fog_ptr->vertex_count + j];
           // vertex position recentered so that it is centered around 0
-          glm::vec2 local_18 = {
+          ns::vec2 local_18 = {
              p.x - anm::origin(1).x - final_pos.pos.x,
              p.y - anm::origin(1).y - final_pos.pos.y,
           };
-          float dst_in_circle = fog.r * fog.r - math::veclensq(local_18);
+          float dst_in_circle = fog.r * fog.r - local_18.length_sq();
           if (dst_in_circle < 0.0) {
             v.diffuse_color.a = 0;
           } else {
@@ -161,9 +159,9 @@ void EnemyData::update_distorsion() {
             v.diffuse_color.r = 255 - (255 - fog.fog_color.r) * mul;
             v.diffuse_color.g = 255 - (255 - fog.fog_color.g) * mul;
             v.diffuse_color.b = 255 - (255 - fog.fog_color.b) * mul;
-            local_18 = glm::normalize(local_18) * mul * 32.f;
-            local_18.x += sin(osc_x) * mul * 8.0;
-            local_18.y += sin(osc_y) * mul * 8.0;
+            local_18 = local_18.normalized() * mul * 32.f;
+            local_18.x += ns::sin(osc_x) * mul * 8.0;
+            local_18.y += ns::sin(osc_y) * mul * 8.0;
             v.transformed_pos.x += local_18.x;
             v.transformed_pos.y += local_18.y;
           }

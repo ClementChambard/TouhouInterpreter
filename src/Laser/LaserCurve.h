@@ -2,51 +2,51 @@
 #define LASERCURVE_H_
 
 #include "Laser.h"
-#include "../AnmOpener/AnmVM.h"
-#include <vertex.h>
-#include "../BulletHandler.h"
+#include "../Anm/AnmVM.h"
+#include "../Anm/RenderVertex.hpp"
+#include "../Bullet/BulletHandler.h"
 
 struct LaserCurveTransform_t {
     LaserCurveTransform_t* next = nullptr;
     LaserCurveTransform_t* prev = nullptr;
-    int32_t start_time = 0;
-    int32_t end_time = 0;
-    int32_t move_type = 0.f;
-    glm::vec3 dir_vec = {};
-    glm::vec3 pos = {};
+    i32 start_time = 0;
+    i32 end_time = 0;
+    i32 move_type = 0.f;
+    ns::vec3 dir_vec = {};
+    ns::vec3 pos = {};
     float angle = 0.f;
     float speed = 0.f;
     float accel = 0.f;
     float angle_accel = 0.f;
 
-    void posvel(glm::vec3* pos, float* speed, float* angle,
+    void posvel(ns::vec3* pos, float* speed, float* angle,
                 float node_time_alive);
-    void posvel_from_prev(glm::vec3* pos, float* speed, float* angle,
-                          glm::vec3 const& pos_prev, float speed_prev,
+    void posvel_from_prev(ns::vec3* pos, float* speed, float* angle,
+                          ns::vec3 const& pos_prev, float speed_prev,
                           float angle_prev, float node_time_alive);
 };
 
 struct LaserCurveInner_t {
-    glm::vec3 start_pos = {};
+    ns::vec3 start_pos = {};
     float ang_aim = 0.f;
     float laser_new_arg4 = 0.f;
     float spd_1 = 0.f;
-    int32_t type = 0;
-    int32_t color = 0;
-    int32_t laser_time_start = 0;
+    i32 type = 0;
+    i32 color = 0;
+    i32 laser_time_start = 0;
     float distance = 0.f;
-    int32_t init_1 = 0;
+    i32 init_1 = 0;
     EtEx_t ex[20] = {};
-    int32_t shot_sfx = 0;
-    int32_t shot_transform_sfx = 0;
-    int32_t ex_index = 0;
+    i32 shot_sfx = 0;
+    i32 shot_transform_sfx = 0;
+    i32 ex_index = 0;
     LaserCurveTransform_t* transforms = nullptr;
     int  timer40_start = 0;
 };
 
 struct LaserCurveNode_t {
-    glm::vec3 pos = {};
-    glm::vec3 v_speed = {};
+    ns::vec3 pos = {};
+    ns::vec3 v_speed = {};
     float angle = 0.f;
     float speed = 0.f;
 };
@@ -70,7 +70,7 @@ private:
     anm::VM vm1;
     anm::VM vm2;
     LaserCurveNode_t* nodes = nullptr;
-    ns::Vertex* vertices = nullptr;
+    anm::RenderVertex_t* vertices = nullptr;
     LaserCurveTransform_t transforms = {};
     int offscreen_timer = 0;
 };

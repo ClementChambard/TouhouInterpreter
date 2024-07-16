@@ -1,5 +1,5 @@
 #include "./ScreenEffect.hpp"
-#include "AnmOpener/AnmManager.h"
+#include "Anm/AnmManager.h"
 #include "Supervisor.h"
 
 ScreenEffect::ScreenEffect(int _type, int _time, int colorRGB_maybe, int color,

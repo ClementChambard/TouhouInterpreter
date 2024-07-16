@@ -5,8 +5,12 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "Debug")
 
-add_compile_options(-Wall -Wextra -Werror -O4)
+add_compile_options(-Wall -Wextra -Werror)
 add_compile_options(-DNS_IMPORT)
+
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_compile_options(-O4)
+endif()
 
 # set the project name and version
 project(ecl VERSION 0.1)
@@ -27,7 +31,7 @@ set_property(TARGET ecl PROPERTY CXX_STANDARD 20)
 set_property(TARGET ecl PROPERTY CXX_STANDARD_REQUIRED True)
 
 # link the NSEngine library. All the dependencies are added directly to the engine
-target_link_libraries(ecl PUBLIC NSEngine -ljsoncpp)
+target_link_libraries(ecl PUBLIC NSEngine -ljsoncpp -lSDL2 -lSDL2_ttf)
 
 # TODO do this better (copy assets in build directory)
 file(COPY assets DESTINATION ${PROJECT_BINARY_DIR})

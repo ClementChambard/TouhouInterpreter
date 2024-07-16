@@ -1,5 +1,5 @@
 #include "./AnmViewer.hpp"
-#include "./AnmOpener/AnmManager.h"
+#include "./Anm/AnmManager.h"
 #include "./Player.h"
 #include "./Supervisor.h"
 #include <imgui_ns.hpp>
@@ -8,7 +8,7 @@
 #include <TextureManager.h>
 #include <NSEngine.hpp>
 
-#include "./StdOpener/Stage.hpp"
+#include "./Std/Stage.hpp"
 #include "ScreenEffect.hpp"
 
 AnmViewer *ANM_VIEWER_PTR = nullptr;
@@ -176,9 +176,9 @@ void TextureViewerWindow(bool *open) {
     }
   }
   ImGui::Text("%s", name.c_str());
-  auto t = ns::TextureManager::GetTextureID(sp.texID);
+  auto t = ns::TextureManager::get_texture_id(sp.texID);
   int w, h;
-  ns::TextureManager::GetTextureSize(sp.texID, w, h);
+  ns::TextureManager::get_texture_size(sp.texID, w, h);
   static ImVec2 pos = {0.5, 0.5};
   static float zoom = 1;
   ImageViewerSprite(reinterpret_cast<ImTextureID>(t), ImVec2(w, h), &pos, &zoom,
@@ -239,7 +239,7 @@ void anms_window(bool *open) {
   static bool ui = false;
   static bool front = false;
   static float init_rot = 0;
-  static glm::vec3 init_pos = {};
+  static ns::vec3 init_pos = {};
   static std::string slotname = "-";
   if (AnmSlotSelector("Slot", &slotname, &slot))
     script = 0;
@@ -340,8 +340,8 @@ void anm_view_window(AnmView *v) {
   ImGui::InputFloat3("rotation", &vm->rotation[0]);
   ImGui::InputFloat2("scale", &vm->scale[0]);
   ImGui::InputFloat2("scale2", &vm->scale_2[0]);
-  glm::vec4 color =
-      glm::vec4(vm->color_1.r, vm->color_1.g, vm->color_1.b, vm->color_1.a) /
+  ns::vec4 color =
+      ns::vec4(vm->color_1.r, vm->color_1.g, vm->color_1.b, vm->color_1.a) /
       255.f;
   ImGui::ColorEdit4("color1", &color[0]);
   vm->color_1.r = color.r * 255.f;
@@ -349,7 +349,7 @@ void anm_view_window(AnmView *v) {
   vm->color_1.b = color.b * 255.f;
   vm->color_1.a = color.a * 255.f;
   color =
-      glm::vec4(vm->color_2.r, vm->color_2.g, vm->color_2.b, vm->color_2.a) /
+      ns::vec4(vm->color_2.r, vm->color_2.g, vm->color_2.b, vm->color_2.a) /
       255.f;
   ImGui::ColorEdit4("color2", &color[0]);
   vm->color_2.r = color.r * 255.f;
@@ -512,7 +512,7 @@ void anm_view_window(AnmView *v) {
   ImGui::PushID(("spriteWin" + std::to_string(v->anmId)).c_str());
   auto sp = vm->getSprite();
   ImTextureID tex = reinterpret_cast<ImTextureID>(
-      ns::TextureManager::GetTextureID(sp.texID));
+      ns::TextureManager::get_texture_id(sp.texID));
   ImGui::Image(tex, {sp.w, sp.h}, {sp.u1, sp.v1}, {sp.u2, sp.v2});
   ImGui::PopID();
   ImGui::End();
@@ -663,10 +663,10 @@ void main_menu_window(bool *open) {
     screff_w_open = !screff_w_open;
   }
 
-  float gs = ns::getInstance()->gameSpeed();
+  float gs = ns::get_instance()->game_speed();
   float ogs = gs;
   ImGui::SliderFloat("Game speed", &gs, 0.0, 2.0);
-  if (ogs != gs) ns::getInstance()->setGameSpeed(gs);
+  if (ogs != gs) ns::get_instance()->set_game_speed(gs);
 
   ImGui::InputFloat("RESOLUTION_MULT", &anm::RESOLUTION_MULT);
   if (ImGui::Button("ADD_ARCADE")) {

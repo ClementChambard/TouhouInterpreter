@@ -1,8 +1,8 @@
 #ifndef GUI_INCLUDED_H
 #define GUI_INCLUDED_H
 
-#include "AnmOpener/AnmFile.h"
-#include "AnmOpener/AnmVM.h"
+#include "Anm/AnmFile.h"
+#include "Anm/AnmVM.h"
 #include "GuiMsgVm.hpp"
 #include "UpdateFuncRegistry.h"
 
@@ -86,7 +86,7 @@ public:
   int32_t timer_chapter_end = 0;
   int32_t th15_some_time_value_1bc = 0;
   GuiMsgVm_t* msg = nullptr;
-  uint8_t* msg_file_data = nullptr;
+  bytes msg_file_data = nullptr;
   int32_t remaining_spell_time_seconds = 0;
   int32_t remaining_spell_time_centiseconds = 0;
   int32_t old_remaining_spell_time_seconds = 0;

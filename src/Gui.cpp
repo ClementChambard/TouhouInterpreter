@@ -1,7 +1,7 @@
 #include "./Gui.hpp"
-#include "./AnmOpener/AnmManager.h"
+#include "./Anm/AnmManager.h"
 #include "./AsciiManager.hpp"
-#include "./EnemyManager.h"
+#include "./Ecl/EnemyManager.h"
 #include "./GlobalData.h"
 #include "./Hardcoded.h"
 #include "./Player.h"
@@ -37,9 +37,9 @@ Gui::Gui() {
     auto fname = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["msg_filenames"]
       [PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["msg"].asInt()].asString();
     std::vector<uint8_t> buffer;
-    ns::FileOpener::readFileToBuffer(fname.c_str(), buffer);
+    ns::FileOpener::read_file_to_buffer(fname.c_str(), buffer);
     msg_file_data_size = buffer.size();
-    msg_file_data = reinterpret_cast<uint8_t*>(ns::alloc(msg_file_data_size, ns::MemTag::GAME));
+    msg_file_data = ns::alloc_n<byte>(msg_file_data_size, ns::MemTag::GAME);
     NS_INFO("opened %s: %lld bytes", fname.c_str(), msg_file_data_size);
     ns::mem_copy(msg_file_data, buffer.data(), msg_file_data_size);
   } else {
@@ -83,7 +83,7 @@ Gui::~Gui() {
   stage_logo_anmloaded->Cleanup();
   front_anm->Cleanup();
 
-  if (msg_file_data) ns::free(msg_file_data, msg_file_data_size, ns::MemTag::GAME);
+  if (msg_file_data) ns::free_n(msg_file_data, msg_file_data_size, ns::MemTag::GAME);
   msg_file_data_size = 0;
 
   if (on_tick)
@@ -265,7 +265,7 @@ int Gui::f_on_tick() {
             boss_bars[bbid].anm_ids[0] = 0;
           }
           bbvm->bitflags.rotated = true;
-          bbvm->rotation.x = boss_bars[bbid].visual_bar_pc * -PI2;
+          bbvm->rotation.x = boss_bars[bbid].visual_bar_pc * -ns::PI_2<f32>;
           bbvm->entity_pos = boss->getData()->final_pos.pos * 2.f;
           bbvm = anm::getVM(boss_bars[bbid].anm_ids[1]);
           if (!bbvm) {
@@ -288,11 +288,11 @@ int Gui::f_on_tick() {
             } else {
               bbvm->set_flag_1_rec();
               bbvm->bitflags.rotated = true;
-              bbvm->rotation.z = -PI - pc * PI2;
+              bbvm->rotation.z = -ns::PI<f32> - pc * ns::PI_2<f32>;
               math::angle_normalize(bbvm->rotation.z);
               bbvm->entity_pos =
                   boss->getData()->final_pos.pos * 2.f +
-                  glm::vec3(math::lengthdir_vec(112.f, -PI1_2 - pc * PI2), 0.f);
+                  ns::vec3(math::lengthdir_vec(112.f, -ns::PI_1_2<f32> - pc * ns::PI_2<f32>), 0.f);
             }
           }
           if (!boss_bars[bbid].vms_hidden_by_player) {
@@ -410,11 +410,11 @@ int Gui::f_on_tick() {
     vmBossMarker->entity_pos.x =
         2 * (boss0->getData()->final_pos.pos.x + 32.0 + 192.0);
     vmBossMarker->color_1.a =
-        fmin(abs(boss0->getData()->final_pos.pos.x - PLAYER_PTR->inner.pos.x) *
-                     191.0 / 64.0 +
-                 64,
-             255);
-    if (abs(boss0->getData()->final_pos.pos.x) > 192.0) {
+        math::min(ns::abs(boss0->getData()->final_pos.pos.x - PLAYER_PTR->inner.pos.x) *
+                     191.f / 64.f +
+                 64.f,
+             255.f);
+    if (ns::abs(boss0->getData()->final_pos.pos.x) > 192.0) {
       vmBossMarker->color_1.a = 0;
     }
   } else {
@@ -560,8 +560,8 @@ int Gui::f_on_draw() {
   ASCII_MANAGER_PTR->alignment_mode_v = 1;
   // if ((&ITEM_ANM_SCRIPT_IDS[17].id_1)[GLOBALS.inner.lifepiece_related] <
   // 999999) {
-  ASCII_MANAGER_PTR->create_string_f({576.0 - local_58, 120.0, 0.0}, "%3d", 0);
-  ASCII_MANAGER_PTR->create_string_f({597.0 - local_58, 120.0, 0.0}, "/%d",
+  ASCII_MANAGER_PTR->create_string_f({576.f - local_58, 120.0, 0.0}, "%3d", 0);
+  ASCII_MANAGER_PTR->create_string_f({597.f - local_58, 120.0, 0.0}, "/%d",
                                      /*(&ITEM_ANM_SCRIPT_IDS[17].id_1)[*/
                                      3 /*GLOBALS.inner.lifepiece_related ]*/);
   //} else {
@@ -657,7 +657,7 @@ int Gui::f_on_draw() {
   ASCII_MANAGER_PTR->alignment_mode_h = 1;
   ASCII_MANAGER_PTR->alignment_mode_v = 1;
   ASCII_MANAGER_PTR->create_string_f(
-      {vm_timer_digit_hi->pos.x + 16.0, vm_timer_digit_hi->pos.y - 7.0, 0.0},
+      {vm_timer_digit_hi->pos.x + 16.f, vm_timer_digit_hi->pos.y - 7.f, 0.f},
       ".");
 
   ASCII_MANAGER_PTR->scale = {0.6, 0.6};
@@ -667,7 +667,7 @@ int Gui::f_on_draw() {
   ASCII_MANAGER_PTR->alignment_mode_h = 1;
   ASCII_MANAGER_PTR->alignment_mode_v = 1;
   ASCII_MANAGER_PTR->create_string_f(
-      {vm_timer_digit_hi->pos.x + 24.0, vm_timer_digit_hi->pos.y - 1.0, 0.0},
+      {vm_timer_digit_hi->pos.x + 24.f, vm_timer_digit_hi->pos.y - 1.f, 0.f},
       "%.2d", remaining_spell_time_centiseconds);
 
   ASCII_MANAGER_PTR->scale = {1, 1};

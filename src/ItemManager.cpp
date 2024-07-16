@@ -2,16 +2,16 @@
 #include "./GlobalData.h"
 #include "./GoastManager.h"
 #include "./Hardcoded.h"
-#include "./BulletManager.h"
+#include "./Bullet/BulletManager.h"
 #include "./Input.h"
 #include "./Player.h"
 #include "./AsciiPopupManager.hpp"
-#include "AnmOpener/AnmManager.h"
+#include "Anm/AnmManager.h"
 #include "Gui.hpp"
-#include <math/Random.h>
+#include <math/math.hpp>
 #include <NSEngine.hpp>
 
-#define GAME_SPEED ns::getInstance()->gameSpeed()
+#define GAME_SPEED ns::get_instance()->game_speed()
 
 ItemManager* ITEM_MANAGER_PTR = nullptr;
 
@@ -135,7 +135,7 @@ void collect_point_item(Item* item) {
                                                   {255, 255, 255, 255});
     GLOBALS.inner.CURRENT_SCORE += val / 10;
   }
-  GLOBALS.inner.CURRENT_SCORE = fmin(GLOBALS.inner.CURRENT_SCORE, 999999999);
+  GLOBALS.inner.CURRENT_SCORE = math::min(GLOBALS.inner.CURRENT_SCORE, 999999999);
   GLOBALS.inner.NUM_POINT_ITEMS_COLLECTED++;
   return;
 }
@@ -189,7 +189,7 @@ void collect_p_item(Item* item) {
       GLOBALS.inner.CURRENT_SCORE += val / 10;
     }
   }
-  GLOBALS.inner.CURRENT_SCORE = fmin(GLOBALS.inner.CURRENT_SCORE, 999999999);
+  GLOBALS.inner.CURRENT_SCORE = math::min(GLOBALS.inner.CURRENT_SCORE, 999999999);
   return;
 }
 
@@ -272,7 +272,7 @@ int ItemManager::_on_tick() {
                     }
 
                     if (item->position.y > 472.0 ||
-                        abs(item->position.x) >= 200.0) {
+                        ns::abs(item->position.x) >= 200.0) {
                         // Destroy
                         item->state = 0;
                         if (item->node_in_free_list.list_head->next) {
@@ -298,7 +298,7 @@ int ItemManager::_on_tick() {
             item->velocity.y += GAME_SPEED * 0.03;
             if (item->velocity.y < 0.0) {
                 if (item->position.y <= 472.0 &&
-                    abs(item->position.x) < 200.0) {
+                    ns::abs(item->position.x) < 200.0) {
                     if (item->anm_vm_1.bitflags.visible)
                         item->anm_vm_1.update();
                     if (item->anm_vm_2.bitflags.visible)
@@ -412,7 +412,7 @@ int ItemManager::_on_tick() {
                         GLOBALS.inner.CURRENT_POWER +=
                             GLOBALS.inner.POWER_PER_LEVEL;
                         GLOBALS.inner.CURRENT_SCORE =
-                            fmin(999999999, GLOBALS.inner.CURRENT_SCORE + 10);
+                            math::min(999999999, GLOBALS.inner.CURRENT_SCORE + 10);
                         if (GLOBALS.inner.MAXIMUM_POWER <
                                 GLOBALS.inner.CURRENT_POWER) {
                             GLOBALS.inner.CURRENT_POWER =
@@ -431,7 +431,7 @@ int ItemManager::_on_tick() {
                         }
                     } else {
                         GLOBALS.inner.CURRENT_SCORE =
-                            fmin(999999999, GLOBALS.inner.CURRENT_SCORE + 4000);
+                            math::min(999999999, GLOBALS.inner.CURRENT_SCORE + 4000);
                         POPUP_MANAGER_PTR->generate_small_score_popup(
                                 item->position, 20000, {128, 128, 128, 255});
                         // SoundManager::play_sound_at_position(0xd);
@@ -467,7 +467,7 @@ int ItemManager::_on_tick() {
                 case 5:
                     if (GLOBALS.inner.CURRENT_LIVES < 8) {
                         GLOBALS.inner.CURRENT_LIVES =
-                          fmin(8, GLOBALS.inner.CURRENT_LIVES + 1);
+                          math::min(8, GLOBALS.inner.CURRENT_LIVES + 1);
                         GUI_PTR->set_life_meter(GLOBALS.inner.CURRENT_LIVES,
                                              GLOBALS.inner.CURRENT_LIFE_PIECES);
                         // SoundManager::play_sound_centered(0x11);
@@ -491,7 +491,7 @@ int ItemManager::_on_tick() {
                     if (GLOBALS.inner.MAXIMUM_POWER <=
                         GLOBALS.inner.CURRENT_POWER) {
                         GLOBALS.inner.CURRENT_PIV =
-                            fmin(GLOBALS.inner.MAXIMUM_PIV,
+                            math::min(GLOBALS.inner.MAXIMUM_PIV,
                                  GLOBALS.inner.CURRENT_PIV + 10000);
                         POPUP_MANAGER_PTR->generate_small_score_popup(
                                 item->position, 100, {64, 255, 64, 255});
@@ -637,7 +637,7 @@ int ItemManager::_on_draw(bool a) {
     return 1;
 }
 
-Item* ItemManager::spawn_item(int type, glm::vec3 const& pos, float angle,
+Item* ItemManager::spawn_item(int type, ns::vec3 const& pos, float angle,
                               float speed, int32_t iframe, int32_t sfx) {
     total_items_created++;
     //
@@ -741,7 +741,7 @@ Item* ItemManager::spawn_item(int type, glm::vec3 const& pos, float angle,
     return nullptr;
 }
 
-void gen_items_from_et_cancel(glm::vec3 const& pos, int do_create_item) {
+void gen_items_from_et_cancel(ns::vec3 const& pos, int do_create_item) {
     if (do_create_item == 1 && -192.0 < pos.x + 32.0 && pos.x - 32.0 <
         192.0 && 0.0 < pos.y + 32.0 && pos.y - 32.0 < 448.0) {
         // BULLET_MANAGER_PTR->__related_to_cancels++;

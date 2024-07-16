@@ -2,7 +2,7 @@
 #define LASERMANAGER_H_
 
 #include "../UpdateFuncRegistry.h"
-#include "../AnmOpener/AnmFile.h"
+#include "../Anm/AnmFile.h"
 #include "./Laser.h"
 #include "./LaserBeam.h"
 #include "./LaserCurve.h"
@@ -18,10 +18,10 @@ public:
 
     void destroy_all();
     int cancel_all(bool as_bomb);
-    int cancel_in_radius(glm::vec3 const& pos, bool item,
+    int cancel_in_radius(ns::vec3 const& pos, bool item,
                          int a, float r);
-    int cancel_radius_as_bomb(glm::vec3 const& pos, bool item, float r);
-    int cancel_in_rectangle(glm::vec2 const& pos, glm::vec2 const& scale, float angle);
+    int cancel_radius_as_bomb(ns::vec3 const& pos, bool item, float r);
+    int cancel_in_rectangle(ns::vec2 const& pos, ns::vec2 const& scale, float angle);
 
 private:
     int f_on_tick();
@@ -35,8 +35,8 @@ public:
     Laser* list_head = nullptr;
     int32_t list_length = 0;
     int32_t current_id = 0;
-    glm::vec3 cancel_rectangle_p1 = {};
-    glm::vec3 cancel_rectangle_p2 = {};
+    ns::vec3 cancel_rectangle_p1 = {};
+    ns::vec3 cancel_rectangle_p2 = {};
     anm::File* bullet_anm = nullptr;
     // undefined4
     // undefined4

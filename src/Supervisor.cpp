@@ -1,5 +1,5 @@
 #include "./Supervisor.h"
-#include "AnmOpener/AnmManager.h"
+#include "Anm/AnmManager.h"
 #include "AsciiManager.hpp"
 #include "Hardcoded.h"
 #include "UpdateFuncRegistry.h"
@@ -27,10 +27,10 @@ Supervisor_t::~Supervisor_t() {
 }
 
 void Supervisor_t::init_cameras() {
-  cameras[2].position = {};
-  cameras[2].facing = {};
-  cameras[2].__rocking_vector_1 = {};
-  cameras[2].__rocking_vector_2 = {};
+  cameras[2].position = ns::vec3();
+  cameras[2].facing = ns::vec3();
+  cameras[2].__rocking_vector_1 = ns::vec3();
+  cameras[2].__rocking_vector_2 = ns::vec3();
   cameras[2].up = {0.0, 1.0, 0.0};
   cameras[2].fov_y = 0.5235988;
   cameras[2].viewport.X = 0;
@@ -85,10 +85,10 @@ void Supervisor_t::setup_special_anms() {
   // }
   // text_anm->d3d[2].texture->GetSurfaceLevel(0, &surface_atR_0);
   // text_anm->d3d[3].texture->GetSurfaceLevel(0, &surface_atR_1);
-  surface_atR_0 = ns::TextureManager::GetTexture(
-    text_anm->textures.find("@R0")->second)->getFramebuffer();
-  surface_atR_1 = ns::TextureManager::GetTexture(
-    text_anm->textures.find("@R1")->second)->getFramebuffer();
+  surface_atR_0 = ns::TextureManager::get_texture(
+    text_anm->textures.find("@R0")->second)->get_framebuffer();
+  surface_atR_1 = ns::TextureManager::get_texture(
+    text_anm->textures.find("@R1")->second)->get_framebuffer();
   if (!arcade_vm_0->bitflags.visible) {
     int i = -1;
     if (anm::BACK_BUFFER_SIZE.x == 640) {
@@ -238,7 +238,7 @@ static int supervisor_on_draw_2d() {
 
 static int supervisor_on_draw_39() {
   anm::flush_vbos();
-  ns::FrameBuffer::unbindFramebuffer();
+  ns::FrameBuffer::unbind_framebuffer();
   anm::clear_framebuffer();
   return 1;
 }
@@ -343,7 +343,7 @@ struct FpsCounter {
 };
 
 static int supervisor_on_tick() {
-  if (FPS_COUNTER_PTR) FPS_COUNTER_PTR->current_fps = ns::getInstance()->fps();
+  if (FPS_COUNTER_PTR) FPS_COUNTER_PTR->current_fps = ns::get_instance()->fps();
   return 1;
 //   void *pvVar1;
 //   zAnmLoaded *anmloaded;
@@ -459,7 +459,7 @@ static int supervisor_on_registration() {
   //   if (SUPERVISOR.field107_0xa24 == nullptr)
   //     ns::error("データのバージョンが違います");
   // }
-  ns::getInstance()->setGameSpeed(1.0);
+  ns::get_instance()->set_game_speed(1.0);
   SUPERVISOR.background_color = {0, 0, 0, 255};
   SUPERVISOR.init_cameras();
   // SUPERVISOR.rng_seed_from_time = timeGetTime();

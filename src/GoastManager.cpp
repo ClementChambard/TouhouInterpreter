@@ -1,15 +1,15 @@
 #include "./GoastManager.h"
-#include "./AnmOpener/AnmManager.h"
-#include "./EnemyManager.h"
+#include "./Anm/AnmManager.h"
+#include "./Ecl/EnemyManager.h"
 #include "./ItemManager.h"
 #include "./Spellcard.h"
 #include "./Player.h"
 #include "./GlobalData.h"
 #include "Bomb.hpp"
-#include "BulletManager.h"
+#include "Bullet/BulletManager.h"
 #include "Gui.hpp"
 #include "Laser/LaserManager.h"
-#include <math/Random.h>
+#include <math/math.hpp>
 #include <input.hpp>
 #include <NSEngine.hpp>
 
@@ -165,7 +165,7 @@ int GoastManager::FUN_0040e920() {
     }
   }
   // SoundManager::play_sound_at_position(0x3e);
-  glm::vec3 pos = PLAYER_PTR->inner.pos - glm::vec3(0, 64, 0);
+  ns::vec3 pos = PLAYER_PTR->inner.pos - ns::vec3(0, 64, 0);
   int flagthing = ((GLOBALS.inner.HYPER_FLAGS >> 4) & 0xf);
   if (flagthing == 0) {
     spawn_token(pos, rand() % 3 + 0xf, fVar8);
@@ -198,7 +198,7 @@ int GoastManager::FUN_0040e920() {
 int Token_t::update() {
     if (flags & 1) {
         speed = (PLAYER_PTR->inner.pos - pos) * 0.25f;
-        pos += speed * ns::getInstance()->gameSpeed();
+        pos += speed * ns::get_instance()->game_speed();
         if (__timer_30 >= 10) {
             anm::deleteVM(anm_id);
             anm_id = 0;
@@ -256,7 +256,7 @@ int Token_t::update() {
             // SoundManager::play_sound_at_position(0x4e);
         }
     }
-    if (abs(pos.x) > 208.0 || abs(pos.y - 224.0) > 240.0) {
+    if (ns::abs(pos.x) > 208.0 || ns::abs(pos.y - 224.0) > 240.0) {
         __timer_44++;
         if (0x77 < __timer_44 || 0x81 < __timer_30) {
             anm::deleteVM(anm_id);
@@ -266,7 +266,7 @@ int Token_t::update() {
     } else {
         __timer_44 = 0;
     }
-    pos += ((d2_to_pl <= 3600.0) ? 0.5f : 1.0f) * speed * ns::getInstance()->gameSpeed();
+    pos += ((d2_to_pl <= 3600.0) ? 0.5f : 1.0f) * speed * ns::get_instance()->game_speed();
     if (__timer_30.had_value(0x1e78)) anm::interrupt_tree(anm_id, 9);
     if (__timer_30 < 0x20d0) {
         bool bounced = false;
@@ -275,9 +275,9 @@ int Token_t::update() {
         if (pos.y <= 128.0 && speed.y < 0) { speed.y *= -1; bounced = true; }
         if (pos.y >= 384.0 && speed.y > 0) { speed.y *= -1; bounced = true; }
         if (bounced) {
-            if (abs(speed.x) < 0.2) speed.x = (speed.x <= 0) ? Random::Float01()
+            if (ns::abs(speed.x) < 0.2) speed.x = (speed.x <= 0) ? Random::Float01()
                 * -0.3 - 0.5 : Random::Float01() * 0.3 + 0.5;
-            if (abs(speed.y) < 0.2) speed.y = (speed.y <= 0) ? Random::Float01()
+            if (ns::abs(speed.y) < 0.2) speed.y = (speed.y <= 0) ? Random::Float01()
                 * -0.3 - 0.5 : Random::Float01() * 0.3 + 0.5;
             GOAST_MANAGER_PTR->choose_angle(this, math::point_direction(0, 0,
                                                             speed.x, speed.y));
@@ -296,14 +296,14 @@ void GoastManager::choose_angle(Token_t* token, float angle) {
     for (auto node = list_head.next; node; node = node->entry->node.next) {
         auto other = node->entry;
         if (other != token && math::point_distance_sq(other->pos, token->pos)
-            < 576.0 && glm::dot(other->speed, token->speed) > 0.96) {
+            < 576.0 && other->speed.dot(token->speed) > 0.96) {
             angle += 3.883222;
             token->speed = {math::lengthdir_vec(1, angle), 0};
         }
     }
 }
 
-int GoastManager::spawn_token(glm::vec3 const& pos, int type, float param_4) {
+int GoastManager::spawn_token(ns::vec3 const& pos, int type, float param_4) {
     if (token_count > 0x27) return -1;
     auto token = new Token_t();
     token->anm_id = 0;
@@ -575,17 +575,17 @@ void GoastManager::update_gui(int tid) {
 
 
 void GoastManager::hyper_end_spawn_items(void) {
-  glm::vec3 pos = PLAYER_PTR->inner.pos;
+  ns::vec3 pos = PLAYER_PTR->inner.pos;
   pos.y -= 80.0;
   float posy_2 = pos.y;
   for (int i = 0; i < 5; i++) {
     switch (GLOBALS.inner.TOKENS[i]) {
     case 4:
-      ITEM_MANAGER_PTR->spawn_item(6, pos, -PI1_2, 2.2, 10, -1);
+      ITEM_MANAGER_PTR->spawn_item(6, pos, -ns::PI_1_2<f32>, 2.2, 10, -1);
       pos.y -= 30.0;
       break;
     case 5:
-      ITEM_MANAGER_PTR->spawn_item(4, pos, -PI1_2, 2.2, 10, -1);
+      ITEM_MANAGER_PTR->spawn_item(4, pos, -ns::PI_1_2<f32>, 2.2, 10, -1);
       pos.y -= 30.0;
       break;
     case 6:
@@ -595,10 +595,10 @@ void GoastManager::hyper_end_spawn_items(void) {
       float r = 0.0;
       for (int i = 10; i < 70; i += 2) {
         float a = Random::Angle();
-        glm::vec3 p = {r*cos(a), r*sin(a)/2, 0};
+        ns::vec3 p = {r*ns::cos(a), r*ns::sin(a)/2, 0};
         p.x += pos.x;
         p.y += posy_2;
-        ITEM_MANAGER_PTR->spawn_item(t, p, -PI1_2, 2.2, i, 0x3e);
+        ITEM_MANAGER_PTR->spawn_item(t, p, -ns::PI_1_2<f32>, 2.2, i, 0x3e);
         r += 2.0;
       }
       posy_2 -= 30.0;
@@ -607,13 +607,13 @@ void GoastManager::hyper_end_spawn_items(void) {
   }
 }
 
-void GoastManager::hyper_spawn_item(int i, glm::vec3 const& pos) {
+void GoastManager::hyper_spawn_item(int i, ns::vec3 const& pos) {
     switch (i) {
     case 4:
-      ITEM_MANAGER_PTR->spawn_item(6, pos, -PI1_2, 2.2, 10, -1);
+      ITEM_MANAGER_PTR->spawn_item(6, pos, -ns::PI_1_2<f32>, 2.2, 10, -1);
       break;
     case 5:
-      ITEM_MANAGER_PTR->spawn_item(4, pos, -PI1_2, 2.2, 10, -1);
+      ITEM_MANAGER_PTR->spawn_item(4, pos, -ns::PI_1_2<f32>, 2.2, 10, -1);
       break;
     case 6:
     case 7:
@@ -622,8 +622,8 @@ void GoastManager::hyper_spawn_item(int i, glm::vec3 const& pos) {
       float r = 0.0;
       for (int i = 10; i < 70; i += 2) {
         float a = Random::Angle();
-        glm::vec3 p = {r*cos(a), r*sin(a)/2, 0};
-        ITEM_MANAGER_PTR->spawn_item(t, pos + p, -PI1_2, 2.2, i, 0x3e);
+        ns::vec3 p = {r*ns::cos(a), r*ns::sin(a)/2, 0};
+        ITEM_MANAGER_PTR->spawn_item(t, pos + p, -ns::PI_1_2<f32>, 2.2, i, 0x3e);
         r += 2.0;
       }
     } break;
@@ -641,7 +641,7 @@ int GoastManager::get_token(int typ) {
     }
   } else if (!(GLOBALS.inner.HYPER_FLAGS & 4)) {
     if (typ - 4U < 4) {
-      glm::vec3 p = PLAYER_PTR->inner.pos;
+      ns::vec3 p = PLAYER_PTR->inner.pos;
       p.y -= 80.0;
       hyper_spawn_item(typ, p);
     }

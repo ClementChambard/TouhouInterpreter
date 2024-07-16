@@ -1,8 +1,8 @@
 #include "./PosVel.h"
-#include <math/math.h>
+#include <math/math.hpp>
 #include <NSEngine.hpp>
 
-#define GAME_SPEED ns::getInstance()->gameSpeed()
+#define GAME_SPEED ns::get_instance()->game_speed()
 
 void PosVel::Update() {
     // pos.update();
@@ -13,31 +13,31 @@ void PosVel::Update() {
 }
 
 void PosVel::setVel() {
-    velocity.x = speed * cos(angle);
-    velocity.y = speed * sin(angle);
+    velocity.x = speed * ns::cos(angle);
+    velocity.y = speed * ns::sin(angle);
 }
 
 void PosVel::setVel(float speed, float angle) {
     this->speed = speed;
     this->angle = angle;
-    velocity.x = speed * cos(angle);
-    velocity.y = speed * sin(angle);
+    velocity.x = speed * ns::cos(angle);
+    velocity.y = speed * ns::sin(angle);
 }
 
 void PosVel::setVel(float x, float y, float z) {
     velocity = {x, y, z};
-    speed = sqrt(x*x+y*y);
-    angle = atan(y/x);
+    speed = ns::sqrt(x*x+y*y);
+    angle = ns::atan(y/x);
 }
 
-glm::vec3 PosVel::getVel() {
-    return {speed * cos(angle), speed * sin(angle), 0};
+ns::vec3 PosVel::getVel() {
+    return {speed * ns::cos(angle), speed * ns::sin(angle), 0};
 }
 
 PosVel operator+(PosVel const& a, PosVel const& b) {
     PosVel res;
     res.pos = a.pos + b.pos;
-    glm::vec3 vel = a.velocity + b.velocity;
+    ns::vec3 vel = a.velocity + b.velocity;
     res.setVel(vel.x, vel.y, vel.z);
     return res;
 }
@@ -62,7 +62,7 @@ void PosVel::update_velocities() {
 }
 
 void PosVel::update_position() {
-  glm::vec2 saved_pos;
+  ns::vec2 saved_pos;
   float Cos_a1;
   float Sin_a1;
 
@@ -71,12 +71,12 @@ void PosVel::update_position() {
     pos+= velocity;
     break;
   case 2:
-    pos = velocity + glm::vec3(math::lengthdir_vec(circle_radius, angle), 0.f);
+    pos = velocity + ns::vec3(math::lengthdir_vec(circle_radius, angle), 0.f);
     break;
   case 3:
     saved_pos = math::lengthdir_vec(circle_radius, angle-some_angle1);
-    Sin_a1 = sinf(some_angle1);
-    Cos_a1 = cosf(some_angle1);
+    Sin_a1 = ns::sin(some_angle1);
+    Cos_a1 = ns::cos(some_angle1);
     pos.x = velocity.x + some_value * saved_pos.x * Cos_a1 -
                 saved_pos.y * Sin_a1;
     pos.y = velocity.y + some_value * saved_pos.x * Sin_a1 +
@@ -86,8 +86,8 @@ void PosVel::update_position() {
   case 4:
     saved_pos = pos;
     __another_pos += velocity;
-    pos = __another_pos + glm::vec3(math::lengthdir_vec(sinf(some_angle2) *
-                                circle_radius * GAME_SPEED, some_angle1 + PI1_2), 0.f);
+    pos = __another_pos + ns::vec3(math::lengthdir_vec(ns::sin(some_angle2) *
+                                circle_radius * GAME_SPEED, some_angle1 + ns::PI_1_2<f32>), 0.f);
     angle += math::point_direction(saved_pos.x, saved_pos.y, pos.x, pos.y);
     math::angle_normalize(angle);
   }

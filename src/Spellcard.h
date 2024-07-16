@@ -2,9 +2,8 @@
 #define SPELLCARD_INCLUDED_H
 
 #include "./UpdateFuncRegistry.h"
-#include "AnmOpener/AnmVM.h"
+#include "Anm/AnmVM.h"
 #include <string>
-#include <glm/glm.hpp>
 
 class Spellcard {
 public:
@@ -47,7 +46,7 @@ public:
     int field_0x8c = 0;
 
     int spell_circle_anmid = 0;
-    glm::vec3 boss0_pos = {};
+    ns::vec3 boss0_pos = {};
 };
 
 extern Spellcard* SPELLCARD_PTR;

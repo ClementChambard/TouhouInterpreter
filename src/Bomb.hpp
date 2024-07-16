@@ -1,9 +1,8 @@
 #ifndef BOMB_INCLUDED_H
 #define BOMB_INCLUDED_H
 
-#include <glm/glm.hpp>
-#include "AnmOpener/AnmVM.h"
-#include "Enemy.h"
+#include "Anm/AnmVM.h"
+#include "Ecl/Enemy.h"
 #include "PosVel.h"
 #include <Timer.hpp>
 #include "UpdateFuncRegistry.h"
@@ -31,30 +30,30 @@ public:
     // undefined4
     UpdateFunc* on_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
-    int32_t field_0x10 = 0;
-    glm::vec3 field_0x14 = {};
-    int32_t field_0x20 = 0;
-    int32_t field_0x24 = 0;
-    int32_t field_0x28 = 0;
+    i32 field_0x10 = 0;
+    ns::vec3 field_0x14 = {};
+    i32 field_0x20 = 0;
+    i32 field_0x24 = 0;
+    i32 field_0x28 = 0;
     float field_0x2c = 0.0;
-    int32_t active = 0;
+    i32 active = 0;
     ns::Timer_t timer_0x34 = {};
-    int32_t field_0x48 = 0;
-    int32_t field_0x4c = 0;
-    int32_t field_0x50 = 0;
-    int32_t field_0x54 = 0;
-    int32_t field_0x58 = 0;
+    i32 field_0x48 = 0;
+    i32 field_0x4c = 0;
+    i32 field_0x50 = 0;
+    i32 field_0x54 = 0;
+    i32 field_0x58 = 0;
     anm::ID anmid_0x5c = 0;
     anm::ID anmid_0x60 = 0;
     anm::ID anmid_0x64 = 0;
-    int32_t field_0x68 = 0;
-    int32_t field_0x6c = 0;
+    i32 field_0x68 = 0;
+    i32 field_0x6c = 0;
     void* ptr_0x70 = nullptr;
-    int32_t field_0x74 = 0;
+    i32 field_0x74 = 0;
     float field_0x78 = 0;
     ns::Timer_t timer_0x7c = {};
-    int32_t field_0x90 = 0;
-    glm::vec3 field_0x94 = {};
+    i32 field_0x90 = 0;
+    ns::vec3 field_0x94 = {};
 };
 
 extern Bomb* BOMB_PTR;
@@ -74,43 +73,43 @@ public:
     struct Buffer_t {
         void explode_all();
         struct Orb_t {
-            void init(int id, glm::vec3 const& center, int dmg);
+            void init(int id, ns::vec3 const& center, int dmg);
             void explode();
             void update();
             anm::ID anmid = 0;
             PosVel pos = {};
-            int32_t field12 = 0;
-            int32_t field13 = 0;
-            int32_t field14 = 0;
-            int32_t field15 = 0;
-            int32_t field16 = 0;
-            int32_t field17 = 0;
-            int32_t field18 = 0;
-            int32_t field19 = 0;
-            int32_t field1a = 0;
-            int32_t field1b = 0;
-            int32_t field1c = 0;
-            int32_t field1d = 0;
-            int32_t field1e = 0;
-            int32_t field1f = 0;
-            int32_t field20 = 0;
-            int32_t field21 = 0;
-            int32_t field22 = 0;
-            int32_t field23 = 0;
-            int32_t field24 = 0;
-            int32_t field25 = 0;
-            int32_t field26 = 0;
-            int32_t field27 = 0;
-            int32_t field28 = 0;
+            i32 field12 = 0;
+            i32 field13 = 0;
+            i32 field14 = 0;
+            i32 field15 = 0;
+            i32 field16 = 0;
+            i32 field17 = 0;
+            i32 field18 = 0;
+            i32 field19 = 0;
+            i32 field1a = 0;
+            i32 field1b = 0;
+            i32 field1c = 0;
+            i32 field1d = 0;
+            i32 field1e = 0;
+            i32 field1f = 0;
+            i32 field20 = 0;
+            i32 field21 = 0;
+            i32 field22 = 0;
+            i32 field23 = 0;
+            i32 field24 = 0;
+            i32 field25 = 0;
+            i32 field26 = 0;
+            i32 field27 = 0;
+            i32 field28 = 0;
             ns::Timer_t time_alive = {};
-            glm::vec3 velocity = {};
-            int32_t field2f = 0;
-            int32_t field30 = 0;
-            int32_t closest_enemy_id = 0;
+            ns::vec3 velocity = {};
+            i32 field2f = 0;
+            i32 field30 = 0;
+            i32 closest_enemy_id = 0;
             Enemy* enm = nullptr;
-            int32_t id = 0;
-            int32_t ds = 0;
-            int32_t field35 = 0;
+            i32 id = 0;
+            i32 ds = 0;
+            i32 field35 = 0;
             float field36 = 0;
         } orbs[0x18] = {};
     };
@@ -150,8 +149,8 @@ public:
     float floats[0x104] = {};    // 0x0410
     float floats2[0x104] = {};   // 0x0820
     ns::Timer_t timers[0x104] = {};  // 0x0c30
-    int32_t field2080 = 0;       // 0x2080
-    int32_t field2084 = 0;       // 0x2084
+    i32 field2080 = 0;       // 0x2080
+    i32 field2084 = 0;       // 0x2084
     ns::Timer_t timer2088 = 0;       // 0x2088
 };
 

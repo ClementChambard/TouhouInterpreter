@@ -1,7 +1,6 @@
 #ifndef GLOBALDATA_H_
 #define GLOBALDATA_H_
 
-#include <glm/glm.hpp>
 #include <Timer.hpp>
 
 struct GlobalsInner_t {

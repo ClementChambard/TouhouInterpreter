@@ -1,10 +1,10 @@
 #include "./PauseMenu.hpp"
 #include "./AsciiManager.hpp"
-#include "AnmOpener/AnmManager.h"
+#include "Anm/AnmManager.h"
 #include "./GlobalData.h"
 #include "./Supervisor.h"
 #include "./Gui.hpp"
-#include "AnmOpener/CopyTextures.hpp"
+#include "Anm/CopyTextures.hpp"
 #include "Hardcoded.h"
 #include <input.hpp>
 #include <TextureManager.h>
@@ -49,9 +49,9 @@ static const char KB_CHARS[] =
     ".,!?@:;[]()_/"
     "{}|~^#$%&*   ";
 
-void PauseMenu::draw_keyboard(glm::vec3 const& entry_pos) {
+void PauseMenu::draw_keyboard(ns::vec3 const& entry_pos) {
     ASCII_MANAGER_PTR->create_string_f(entry_pos, "%s", keyboard_entry);
-    glm::vec3 pos = entry_pos;
+    ns::vec3 pos = entry_pos;
     if (keyboard_entry_size != 8)
         pos.x += keyboard_entry_size * 9;
     ASCII_MANAGER_PTR->color = c_yellow;
@@ -172,7 +172,7 @@ void PauseMenu::draw_score_rankings() { /*
 */ }
 
 void PauseMenu::draw_thing_w_keyboard() { /*
-  glm::vec3 zVar4;
+  ns::vec3 zVar4;
   zVar4.x = 102.0;
   zVar4.z = 0.0;
   if (timer4_0xc.current < 10) {
@@ -329,15 +329,15 @@ void PauseMenu::init_pause_blur_effect() {
   if (TOUHOU_VERSION == 18) a = 59;
   pause_blur_anmid = SUPERVISOR.text_anm->new_vm_ui_back(a, &vm);
   auto srcTexId = ns::TextureManager::
-    GetTextureNSIDByOpengl(SUPERVISOR.surface_atR_1->getColorTexture());
-  auto texsiz = ns::TextureManager::GetTexture(srcTexId)->getSize();
+    get_texture_nsid_by_opengl(SUPERVISOR.surface_atR_1->get_color_texture());
+  auto texsiz = ns::TextureManager::get_texture(srcTexId)->get_size();
   auto spr = vm->getSprite();
   anm::flush_vbos();
   anm::cptex::doCopy(srcTexId, spr.opengl_texid, {
-      (anm::origin(2).x - anm::RESOLUTION_MULT * 384.0 * 0.5)       / texsiz.x,
+      (anm::origin(2).x - anm::RESOLUTION_MULT * 384.f * 0.5f)       / texsiz.x,
       (anm::origin(2).y)                                       / texsiz.y,
-      (anm::origin(2).x + anm::RESOLUTION_MULT * 384.0 * 0.5 - 1.0) / texsiz.x,
-      (anm::origin(2).y + anm::RESOLUTION_MULT * 448.0 - 1.0)       / texsiz.y
+      (anm::origin(2).x + anm::RESOLUTION_MULT * 384.f * 0.5f - 1.f) / texsiz.x,
+      (anm::origin(2).y + anm::RESOLUTION_MULT * 448.f - 1.f)       / texsiz.y
       }, { spr.u1, spr.v1, spr.u2, spr.v2 });
 }
 

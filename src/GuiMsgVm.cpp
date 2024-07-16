@@ -1,7 +1,7 @@
 #include "./GuiMsgVm.hpp"
-#include "AnmOpener/AnmManager.h"
-#include "BulletManager.h"
-#include "EnemyManager.h"
+#include "Anm/AnmManager.h"
+#include "Bullet/BulletManager.h"
+#include "Ecl/EnemyManager.h"
 #include "GlobalData.h"
 #include "Gui.hpp"
 #include "Hardcoded.h"
@@ -9,7 +9,7 @@
 #include "Player.h"
 #include "Supervisor.h"
 #include "shiftjis.h"
-#include "AnmOpener/Text.hpp"
+#include "Anm/Text.hpp"
 
 #include <input.hpp>
 #include <cstring>
@@ -126,7 +126,7 @@ void GuiMsgVm_t::setBubbleLength(float l) {
 }
 
 void GuiMsgVm_t::OpenSpeechBubble(int bubble,
-                                  glm::vec3 const& pos, float length) {
+                                  ns::vec3 const& pos, float length) {
     anm::deleteVM(anm_id_speechBubble);
     anm_id_speechBubble =
         GUI_PTR->front_anm->createEffectPos(bubble + GUI_ANMS["speech_bubble"].asInt(), 0, pos);
@@ -562,7 +562,7 @@ int GuiMsgVm_t::tick() {
   if (!vm) return 0;
   vm = vm->search_children(speechBubbleType + GUI_ANMS["speech_bubble_child"].asInt(), 0);
   if (!vm) return 0;
-  glm::vec3 p = vm->pos + vm->entity_pos + vm->__pos_2;
+  ns::vec3 p = vm->pos + vm->entity_pos + vm->__pos_2;
   vm->transform_coordinate(p);
   p.x *= (2.0 / anm::RESOLUTION_MULT);
   p.y *= (2.0 / anm::RESOLUTION_MULT);

@@ -1,8 +1,8 @@
 #ifndef PAUSEMENU_INCLUDED_H
 #define PAUSEMENU_INCLUDED_H
 
-#include "AnmOpener/AnmFile.h"
-#include "AnmOpener/AnmVM.h"
+#include "Anm/AnmFile.h"
+#include "Anm/AnmVM.h"
 #include "./MenuHelper.hpp"
 #include <Timer.hpp>
 #include "./UpdateFuncRegistry.h"
@@ -44,7 +44,7 @@ public:
 private:
   int f_on_tick();
   int f_on_draw();
-  void draw_keyboard(glm::vec3 const& entry_pos);
+  void draw_keyboard(ns::vec3 const& entry_pos);
   void draw_save_replay();
   void draw_score_rankings();
   void draw_thing_w_keyboard();

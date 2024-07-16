@@ -1,7 +1,7 @@
 #ifndef GUIMSGVM_INCLUDED_H
 #define GUIMSGVM_INCLUDED_H
 
-#include "AnmOpener/AnmVM.h"
+#include "Anm/AnmVM.h"
 #include "MenuHelper.hpp"
 #include <Timer.hpp>
 
@@ -32,17 +32,17 @@ struct GuiMsgVm_t {
     MenuHelper_t __unused_menu_control = {};
     int32_t field_0x154 = 0;
     MsgIns_t* current_instr = nullptr;
-    glm::vec3 __vec3_0{16.0, 0.0, 0.0};
-    glm::vec3 __vec3_1{16.0, 0.0, 0.0};
-    glm::vec3 __vec3_2{16.0, 0.0, 0.0};
-    glm::vec3 __vec3_3{16.0, 0.0, 0.0};
+    ns::vec3 __vec3_0{16.0, 0.0, 0.0};
+    ns::vec3 __vec3_1{16.0, 0.0, 0.0};
+    ns::vec3 __vec3_2{16.0, 0.0, 0.0};
+    ns::vec3 __vec3_3{16.0, 0.0, 0.0};
     int32_t __dword_incremented_by_enemyAppear = 0;
     int32_t flags = 0;
     int32_t next_text_line = 0;
     int32_t field_0x198 = 0;
     int32_t active_side = 0;
     ns::Color text_colors[4] {c_black, c_black, c_black, c_black};
-    glm::vec3 callout_pos{384.0, 640.0, 0.0};
+    ns::vec3 callout_pos{384.0, 640.0, 0.0};
     float speechBubbleLength = 320.f;
     int32_t field_0x1c0 = 0;
     int32_t speechBubbleType = 0;
@@ -57,7 +57,7 @@ struct GuiMsgVm_t {
 
 private:
     void setBubbleLength(float l);
-    void OpenSpeechBubble(int bubble, glm::vec3 const& pos, float length);
+    void OpenSpeechBubble(int bubble, ns::vec3 const& pos, float length);
 };
 
 #endif // !GUIMSGVM_INCLUDED_H

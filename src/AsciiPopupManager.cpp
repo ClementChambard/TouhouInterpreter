@@ -1,11 +1,11 @@
 #include "./AsciiPopupManager.hpp"
-#include "./AnmOpener/AnmManager.h"
+#include "./Anm/AnmManager.h"
 #include "./AsciiManager.hpp"
 #include "./Player.h"
 #include "Hardcoded.h"
 #include <NSEngine.hpp>
 
-#define GAME_SPEED ns::getInstance()->gameSpeed()
+#define GAME_SPEED ns::get_instance()->game_speed()
 
 AsciiPopupManager *POPUP_MANAGER_PTR = nullptr;
 
@@ -129,13 +129,13 @@ int AsciiPopupManager::f_on_draw() {
     ASCII_MANAGER_PTR->alignment_mode_v = 0;
     if (popups[13 + i].ddc_bonus < 0) {
       ASCII_MANAGER_PTR->create_string_f(
-          popups[13 + i].pos + glm::vec3{224.0, 16.0, 0.0}, "NO BONUS");
+          popups[13 + i].pos + ns::vec3{224.0, 16.0, 0.0}, "NO BONUS");
     } else {
       ASCII_MANAGER_PTR->create_string_f(
-          popups[13 + i].pos + glm::vec3{224.0, 16.0, 0.0}, "BONUS %.1f",
+          popups[13 + i].pos + ns::vec3{224.0, 16.0, 0.0}, "BONUS %.1f",
           popups[13 + i].ddc_bonus_mult);
       ASCII_MANAGER_PTR->create_string_f(popups[13 + i].pos +
-                                             glm::vec3{224.0, 27.0, 0.0},
+                                             ns::vec3{224.0, 27.0, 0.0},
                                          "%d", popups[13 + i].ddc_bonus);
     }
     ASCII_MANAGER_PTR->color = {255, 255, 255, 255};
@@ -148,7 +148,7 @@ int AsciiPopupManager::f_on_draw() {
   return 1;
 }
 
-void AsciiPopupManager::generate_small_score_popup(glm::vec3 const &pos, int nb,
+void AsciiPopupManager::generate_small_score_popup(ns::vec3 const &pos, int nb,
                                                    ns::Color color) {
   if (9 < next_index) {
     next_index = 0;

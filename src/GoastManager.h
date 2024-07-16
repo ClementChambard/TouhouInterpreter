@@ -2,9 +2,8 @@
 #define GOASTMANAGER_H_
 
 #include "./UpdateFuncRegistry.h"
-#include <glm/glm.hpp>
-#include "./AnmOpener/AnmFile.h"
-#include "AnmOpener/AnmVM.h"
+#include "./Anm/AnmFile.h"
+#include "./Anm/AnmVM.h"
 
 struct Token_t;
 struct TokenList_t {
@@ -17,8 +16,8 @@ struct Token_t {
     TokenList_t node {};
     int32_t anm_id = 0;
     int32_t token_type = 0;
-    glm::vec3 pos {};
-    glm::vec3 speed {};
+    ns::vec3 pos {};
+    ns::vec3 speed {};
     ns::Timer_t __timer_30 = 0;
     ns::Timer_t __timer_44 = 0;
     ns::Timer_t __timer_58 = 0;
@@ -38,7 +37,7 @@ public:
 
     void choose_angle(Token_t* token, float angle);
 
-    int spawn_token(glm::vec3 const& pos, int param_3, float param_4);
+    int spawn_token(ns::vec3 const& pos, int param_3, float param_4);
 
     // private:
 
@@ -50,7 +49,7 @@ public:
     void hyper_die(bool param_1);
     void update_gui(int tid);
     void hyper_end_spawn_items();
-    void hyper_spawn_item(int i, glm::vec3 const& pos);
+    void hyper_spawn_item(int i, ns::vec3 const& pos);
     int get_token(int typ);
     int hyper_start();
     void update_hyper_bar();

@@ -1,5 +1,5 @@
 #include "./Item.h"
-#include "AnmOpener/AnmManager.h"
+#include "Anm/AnmManager.h"
 
 Item::Item() {
     anm_vm_1.id = 0;
@@ -17,8 +17,8 @@ void Item::reset() {
     node_in_free_list = {};
     anm_vm_1.reset();
     anm_vm_2.reset();
-    position = {};
-    velocity = {};
+    position = ns::vec3();
+    velocity = ns::vec3();
     velocity_magnitude = 0.f;
     velocity_angle = 0.f;
     time = 0;

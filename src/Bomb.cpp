@@ -1,8 +1,8 @@
 #include "./Bomb.hpp"
-#include "./AnmOpener/AnmManager.h"
+#include "./Anm/AnmManager.h"
 #include "./AsciiManager.hpp"
-#include "./BulletManager.h"
-#include "./EnemyManager.h"
+#include "./Bullet/BulletManager.h"
+#include "./Ecl/EnemyManager.h"
 #include "./GlobalData.h"
 #include "./GoastManager.h"
 #include "./Gui.hpp"
@@ -12,7 +12,7 @@
 #include "./ScreenEffect.hpp"
 #include "./Spellcard.h"
 #include "./UpdateFuncRegistry.h"
-#include <math/Random.h>
+#include <math/math.hpp>
 #include <memory.h>
 
 Bomb* BOMB_PTR = nullptr;
@@ -42,7 +42,7 @@ Bomb::~Bomb() {
     anm::deleteVM(anmid_0x64);
     if (on_tick) UPDATE_FUNC_REGISTRY.unregister(on_tick);
     if (on_draw) UPDATE_FUNC_REGISTRY.unregister(on_draw);
-    if (ptr_0x70) ns::free(ptr_0x70, sizeof(BombReimu::Buffer_t), ns::MemTag::GAME);
+    if (ptr_0x70) ns::free_raw(ptr_0x70, sizeof(BombReimu::Buffer_t), ns::MemTag::GAME);
 }
 
 int Bomb::f_on_tick() {
@@ -130,7 +130,7 @@ void BombReimu::cleanup() {
     reinterpret_cast<Buffer_t*>(ptr_0x70)->explode_all();
     anm::interrupt_tree(anmid_0x64, 1);
     if (ptr_0x70) {
-        ns::free(ptr_0x70, sizeof(Buffer_t), ns::MemTag::GAME);
+        ns::free_raw(ptr_0x70, sizeof(Buffer_t), ns::MemTag::GAME);
         ptr_0x70 = nullptr;
     }
     new ScreenEffect(1, 8, 6, 6, 0, 0);
@@ -163,15 +163,15 @@ void BombReimu::begin() {
     }
     ENEMY_MANAGER_PTR->bomb_count++;
     if (ptr_0x70) {
-        ns::free(ptr_0x70, sizeof(Buffer_t), ns::MemTag::GAME);
+        ns::free_raw(ptr_0x70, sizeof(Buffer_t), ns::MemTag::GAME);
         ptr_0x70 = nullptr;
     }
-    ptr_0x70 = ns::alloc(sizeof(Buffer_t), ns::MemTag::GAME);
+    ptr_0x70 = ns::alloc<Buffer_t>(ns::MemTag::GAME);
     ns::mem_set(ptr_0x70, 0, sizeof(Buffer_t));
     anmid_0x64 = PLAYER_PTR->playerAnm->createEffectPos(0x25, 0, PLAYER_PTR->inner.pos);
 }
 
-void BombReimu::Buffer_t::Orb_t::init(int id, glm::vec3 const& center_pos, int damage) {
+void BombReimu::Buffer_t::Orb_t::init(int id, ns::vec3 const& center_pos, int damage) {
     pos.velocity = center_pos;
     anmid = PLAYER_PTR->playerAnm->createEffectPos
         (0x17 - (GLOBALS.inner.SHOTTYPE != 1), 0, pos.pos);
@@ -216,27 +216,27 @@ void BombReimu::Buffer_t::Orb_t::update() {
             pos.angle += field36;
         } else if (time_alive.had_value(((id + 9) * 10))) {
             pos.flags &= 0xfffffff0;
-            pos.angle = math::point_direction({0,0}, velocity);
+            pos.angle = math::point_direction(ns::vec2(), ns::vec2(velocity));
             pos.speed = math::point_distance(0, 0, velocity.x, velocity.y);
         } else {
-            closest_enemy_id = ENEMY_MANAGER_PTR->closest_enemy_id(pos.pos);
+            closest_enemy_id = ENEMY_MANAGER_PTR->closest_enemy_id(ns::vec2(pos.pos));
             if (closest_enemy_id) {
                 enm = ENEMY_MANAGER_PTR->EnmFind(closest_enemy_id);
                 if (!(enm->enemy.flags & 0xc000021)) {
-                    float dir = math::point_direction(pos.pos, enm->enemy.final_pos.pos);
+                    float dir = math::point_direction(ns::vec2(pos.pos), ns::vec2(enm->enemy.final_pos.pos));
                     float angle_diff = dir - pos.angle;
-                    if (angle_diff > PI) {
-                        angle_diff -= PI2;
-                    } else if (-angle_diff > PI) {
-                        angle_diff += PI2;
+                    if (angle_diff > ns::PI<f32>) {
+                        angle_diff -= ns::PI_2<f32>;
+                    } else if (-angle_diff > ns::PI<f32>) {
+                        angle_diff += ns::PI_2<f32>;
                     }
-                    if (abs(angle_diff) < 0.7853982) {
+                    if (ns::abs(angle_diff) < 0.7853982) {
                         if (pos.speed - 0.7 >= 1.0) {
                             pos.speed -= 0.7;
                         } else {
                             pos.speed = 1.0;
                         }
-                    } else if (abs(angle_diff) < 0.2617994) {
+                    } else if (ns::abs(angle_diff) < 0.2617994) {
                         if (pos.speed + 0.2 <= 8.0) {
                             pos.speed += 0.2;
                         } else {
@@ -252,7 +252,7 @@ void BombReimu::Buffer_t::Orb_t::update() {
             }
         }
     }
-    glm::vec3 oldpos = pos.pos;
+    ns::vec3 oldpos = pos.pos;
     pos.update_velocities();
     pos.update_position();
     if (auto vm = anm::getVM(anmid); vm) {
@@ -283,7 +283,7 @@ int BombReimu::f_on_tick_() {
             if (i > 0x17) {
                 anm::interrupt_tree(anmid_0x64, 1);
                 if (ptr_0x70) {
-                    ns::free(ptr_0x70, sizeof(Buffer_t), ns::MemTag::GAME);
+                    ns::free_raw(ptr_0x70, sizeof(Buffer_t), ns::MemTag::GAME);
                     ptr_0x70 = 0;
                 }
                 return -1;
@@ -304,9 +304,9 @@ int BombReimu::f_on_tick_() {
                 orb->pos.flags &= 0xfffffff2;
                 orb->pos.flags |= 2;
                 orb->pos.circle_radius = 0;
-                orb->pos.angle = i + PI1_4;
-                orb->pos.circle_radial_speed = PI / 64.f;
-                orb->field36 = PI / 30.f;
+                orb->pos.angle = i + ns::PI_1_4<f32>;
+                orb->pos.circle_radial_speed = ns::PI<f32> / 64.f;
+                orb->field36 = ns::PI<f32> / 30.f;
                 PLAYER_PTR->inner.damage_sources[orb->ds - 1].field_0x7c = 400;
             }
         } else if (GLOBALS.inner.SHOTTYPE == 1) {
@@ -318,9 +318,9 @@ int BombReimu::f_on_tick_() {
                     orb->pos.flags &= 0xfffffff2;
                     orb->pos.flags |= 2;
                     orb->pos.circle_radius = 0;
-                    orb->pos.angle = i + PI1_4;
-                    orb->pos.circle_radial_speed = PI / 64.f;
-                    orb->field36 = -PI / 30.f;
+                    orb->pos.angle = i + ns::PI_1_4<f32>;
+                    orb->pos.circle_radial_speed = ns::PI<f32> / 64.f;
+                    orb->field36 = -ns::PI<f32> / 30.f;
                     PLAYER_PTR->inner.damage_sources[orb->ds - 1].field_0x7c = 400;
                 }
             } else if (timer_0x34.had_value(0xa0)) {
@@ -331,9 +331,9 @@ int BombReimu::f_on_tick_() {
                     orb->pos.flags &= 0xfffffff2;
                     orb->pos.flags |= 2;
                     orb->pos.circle_radius = 0;
-                    orb->pos.angle = i + PI1_4;
-                    orb->pos.circle_radial_speed = PI / 64.f;
-                    orb->field36 = PI / 30.f;
+                    orb->pos.angle = i + ns::PI_1_4<f32>;
+                    orb->pos.circle_radial_speed = ns::PI<f32> / 64.f;
+                    orb->field36 = ns::PI<f32> / 30.f;
                     PLAYER_PTR->inner.damage_sources[orb->ds - 1].field_0x7c = 400;
                 }
             }
@@ -359,7 +359,7 @@ int BombReimu::f_on_tick_() {
 
 void BombMarisa::begin() {
     field_0x14 = PLAYER_PTR->inner.pos;
-    field_0x2c = -PI1_2;
+    field_0x2c = -ns::PI_1_2<f32>;
     // SoundManager::play_sound_centered(0x31);
     anmid_0x5c = PLAYER_PTR->playerAnm->createEffectPos(
         0x16 + (GLOBALS.inner.SHOTTYPE == 1) * 7, 0, field_0x14);
@@ -386,10 +386,10 @@ int BombMarisa::method_10() {
     while (vm = anm::getVM(anmid_0x5c), vm) {
         vm = vm->search_children(scr, i);
         if (!vm) return 0;
-        glm::vec2 scale = vm->scale * glm::vec2(48.0, 160.0);
-        glm::vec3 pos = vm->get_pos_with_root();
-        BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(field_0x2c, pos, scale, 0);
-        LASER_MANAGER_PTR->cancel_in_rectangle(pos, scale, field_0x2c);
+        ns::vec2 scale = vm->scale * ns::vec2(48.0, 160.0);
+        ns::vec3 pos = vm->get_pos_with_root();
+        BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(field_0x2c, ns::vec2(pos), scale, 0);
+        LASER_MANAGER_PTR->cancel_in_rectangle(ns::vec2(pos), scale, field_0x2c);
         i++;
     }
     anmid_0x5c = 0;
@@ -422,7 +422,7 @@ int BombMarisa::f_on_tick_() {
     PLAYER_PTR->speed_multiplier = 0.5;
     field_0x14 = PLAYER_PTR->inner.pos;
     if (timer_0x34.was_modulo(3)) {
-        glm::vec3 pos = math::lengthdir_vec3(208, field_0x2c) + field_0x14;
+        ns::vec3 pos = math::lengthdir_vec3(208, field_0x2c) + field_0x14;
         int ds = create_damage_source(pos, field_0x2c, 0, 50, 512.0, 32.0);
         PLAYER_PTR->inner.damage_sources[ds - 1].flags |= 4;
         pos = math::lengthdir_vec3(240, field_0x2c) + field_0x14;
@@ -486,7 +486,7 @@ int BombYoumu::f_on_tick_() {
     };
     if ((timer_0x34.current != timer_0x34.previous) &&
        timer2088.current < 1) {
-        glm::vec3 pos = {};
+        ns::vec3 pos = {};
         pos.y = FLOATS_004a0434[field2080 % 0xb] + Random::Floatm11() * 48.0;
         floats2[field2080] = pos.y;
         int scr;
@@ -514,21 +514,20 @@ int BombYoumu::f_on_tick_() {
         if (vm == NULL) {
             anmids[i] = 0;
         } else {
-            glm::vec3 pos = {0, floats2[i], 0};
-            glm::vec3 addpos =
-                math::lengthdir_vec3(256, vm->rotation.z + PI1_2);
+            ns::vec3 pos = {0, floats2[i], 0};
+            ns::vec3 addpos =
+                math::lengthdir_vec3(256, vm->rotation.z + ns::PI_1_2<f32>);
             if (floats[i] < 0) {
                 pos -= addpos;
             } else {
                 pos += addpos;
             }
-            glm::vec2 hbsize = {96, timers[i].current_f * 128.0};
+            ns::vec2 hbsize = {96.f, timers[i].current_f * 128.f};
             int ds = create_damage_source(pos,
                   vm->rotation.z, 0, 0x1e, hbsize.x, hbsize.y);
             PLAYER_PTR->inner.damage_sources[ds - 1].flags |= 4;
-            BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(vm->rotation.z,
-                                                         pos, hbsize, 0);
-            LASER_MANAGER_PTR->cancel_in_rectangle(pos, hbsize, vm->rotation.z);
+            BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(vm->rotation.z, ns::vec2(pos), hbsize, 0);
+            LASER_MANAGER_PTR->cancel_in_rectangle(ns::vec2(pos), hbsize, vm->rotation.z);
             timers[i]++;
         }
     }

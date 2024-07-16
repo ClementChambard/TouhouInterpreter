@@ -1,9 +1,8 @@
 #ifndef SHTFILE_H_
 #define SHTFILE_H_
 
-#include <glm/glm.hpp>
 #include <vector>
-#include <defines.h>
+#include <math/types/types.hpp>
 
 struct ShtFileHeader_t {
     i16 unknown_head;
@@ -30,8 +29,8 @@ struct ShtShooterRaw_t {
     u8 fire_rate;
     u8 start_delay;
     i16 damage;
-    glm::vec2 offset;
-    glm::vec2 hitbox;
+    ns::vec2 offset;
+    ns::vec2 hitbox;
     f32 angle;
     f32 speed;
     i32 __unknown_1c;
@@ -53,8 +52,8 @@ struct ShtShooterRaw18_t {
     u8 fire_rate;
     u8 start_delay;
     i16 damage;
-    glm::vec2 offset;
-    glm::vec2 hitbox;
+    ns::vec2 offset;
+    ns::vec2 hitbox;
     f32 angle;
     f32 speed;
     i32 __unknown_1c;
@@ -86,8 +85,8 @@ struct ShtShooter_t {
     u8 fire_rate;
     u8 start_delay;
     i16 damage;
-    glm::vec2 offset;
-    glm::vec2 hitbox;
+    ns::vec2 offset;
+    ns::vec2 hitbox;
     f32 angle;
     f32 speed;
     i32 __unknown_1c;
@@ -101,7 +100,7 @@ struct ShtShooter_t {
     i32 (*on_init)(PlayerBullet_t*);
     i32 (*on_tick)(PlayerBullet_t*);
     i32 (*__func_3)(PlayerBullet_t*);
-    i32 (*on_hit)(PlayerBullet_t*, glm::vec3 const&, f32, f32, f32);
+    i32 (*on_hit)(PlayerBullet_t*, ns::vec3 const&, f32, f32, f32);
     i16 __unknown[16];
 };
 
@@ -109,7 +108,7 @@ extern i32 pl_b_default_on_hit(PlayerBullet_t& b);
 
 struct ShtFile_t {
     ShtFileHeader_t header;
-    std::vector<glm::vec2> option_pos;
+    std::vector<ns::vec2> option_pos;
     std::vector<std::vector<ShtShooter_t>> shooters;
 };
 

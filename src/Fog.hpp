@@ -2,9 +2,8 @@
 #define FOG_INCLUDED_H
 
 #include <defines.h>
-#include <glm/fwd.hpp>
-#include "AnmOpener/AnmVM.h"
-#include "AnmOpener/RenderVertex.hpp"
+#include "Anm/AnmVM.h"
+#include "Anm/RenderVertex.hpp"
 
 struct Fog_t {
     explicit Fog_t(i32 i);
@@ -20,7 +19,7 @@ struct Fog_t {
     anm::ID* anmid_array = nullptr;
     anm::VM** vm_array = nullptr;
     anm::RenderVertex_t* vertex_array = nullptr;
-    glm::vec3* pos_array = nullptr;
+    ns::vec3* pos_array = nullptr;
 };
 
 #endif // !FOG_INCLUDED_H

@@ -1,12 +1,12 @@
 #include "./HardcodedFuncs.hpp"
-#include "./AnmOpener/AnmFuncs.h"
-#include "./AnmOpener/AnmManager.h"
+#include "./Anm/AnmFuncs.h"
+#include "./Anm/AnmManager.h"
 #include "./Fog.hpp"
 #include "./Hardcoded.h"
 #include "Gui.hpp"
 #include <logger.h>
 
-#include <math/Random.h>
+#include <math/math.hpp>
 #include <memory.h>
 #include <Timer.hpp>
 
@@ -18,12 +18,12 @@ struct EFFECT_1_buffer_t {
 
 struct EFFECT_2_buffer_t {
   anm::ID ids[200] = {};
-  glm::vec3 endpos[200] = {};
-  glm::vec3 endbez[200] = {};
+  ns::vec3 endpos[200] = {};
+  ns::vec3 endbez[200] = {};
   int32_t phase[200] = {};
-  glm::vec3 midpoint = {};
-  glm::vec3 startpoint = {};
-  glm::vec3 endpoint = {};
+  ns::vec3 midpoint = {};
+  ns::vec3 startpoint = {};
+  ns::vec3 endpoint = {};
   ns::Timer_t timer = {};
 };
 
@@ -187,7 +187,7 @@ int on_tick_anm_1(anm::VM* vm) {
     return 1;
 }
 
-static inline glm::vec3 rand_vec_3(float d, float a) {
+static inline ns::vec3 rand_vec_3(float d, float a) {
     return math::lengthdir_vec3(Random::Float01() * d, Random::Floatm11() * a);
 }
 
@@ -234,13 +234,13 @@ int on_tick_anm_2(anm::VM* vm) {
         }
         // vvm->slowdown = vm->get_root_slowdown();
         if (buff->phase[i] == 0) {
-            glm::vec3 rand_start = buff->startpoint + rand_vec_3(150.0, PI);
-            glm::vec3 rand_end = buff->midpoint + rand_vec_3(50.0, PI);
-            glm::vec3 path_dir = glm::normalize(rand_end - rand_start);
-            glm::vec3 path2_dir = glm::normalize(buff->endpoint - rand_end);
-            glm::vec3 bez_end = glm::normalize(path_dir + path2_dir)
+            ns::vec3 rand_start = buff->startpoint + rand_vec_3(150.0, ns::PI<f32>);
+            ns::vec3 rand_end = buff->midpoint + rand_vec_3(50.0, ns::PI<f32>);
+            ns::vec3 path_dir = (rand_end - rand_start).normalized();
+            ns::vec3 path2_dir = (buff->endpoint - rand_end).normalized();
+            ns::vec3 bez_end = (path_dir + path2_dir).normalized()
                 * (Random::Float01() * 200.f + 200.f);
-            glm::vec3 bez_start =
+            ns::vec3 bez_start =
                 path_dir * (Random::Float01() * 100.f + 100.f);
             vvm->pos_i.start_bezier(rand_start, rand_end, bez_start
                                     , bez_end, vm->int_script_vars[0]);
@@ -251,8 +251,8 @@ int on_tick_anm_2(anm::VM* vm) {
         } else if (vvm->__timer_1c > vm->int_script_vars[0] &&
                    buff->phase[i] == 1) {
             vvm->pos_i.start_bezier(buff->endpos[i],
-                                    vm->entity_pos + rand_vec_3(20.0, PI),
-                                    buff->endbez[i], rand_vec_3(20.0, PI),
+                                    vm->entity_pos + rand_vec_3(20.0, ns::PI<f32>),
+                                    buff->endbez[i], rand_vec_3(20.0, ns::PI<f32>),
                                     vm->int_script_vars[0]);
             buff->phase[i] = 2;
         }
@@ -283,9 +283,7 @@ int on_create_anm_0(anm::VM *vm) {
     vm->bitflags.originMode = 0;
     vm->layer = 0x28;
     vm->bitflags.resolutionMode = 1;
-    vm->special_vertex_buffer_size = sizeof(EFFECT_1_buffer_t);
-    vm->special_vertex_buffer_data = ns::alloc(sizeof(EFFECT_1_buffer_t), ns::MemTag::GAME);
-    ns::mem_set(vm->special_vertex_buffer_data, 0, sizeof(EFFECT_1_buffer_t));
+    vm->alloc_special_vertex_buffer(sizeof(EFFECT_1_buffer_t));
     auto buff =
         reinterpret_cast<EFFECT_1_buffer_t*>(vm->special_vertex_buffer_data);
     for (int i = 0; i < 4; i++) {
@@ -303,9 +301,7 @@ int on_create_anm_0(anm::VM *vm) {
 }
 
 int on_create_anm_1(anm::VM* vm) {
-    vm->special_vertex_buffer_size = sizeof(EFFECT_2_buffer_t);
-    vm->special_vertex_buffer_data = ns::alloc(sizeof(EFFECT_2_buffer_t), ns::MemTag::GAME);
-    ns::mem_set(vm->special_vertex_buffer_data, 0, sizeof(EFFECT_2_buffer_t));
+    vm->alloc_special_vertex_buffer(sizeof(EFFECT_2_buffer_t));
     reinterpret_cast<EFFECT_2_buffer_t*>(vm->special_vertex_buffer_data)
       ->timer.reset();
     return 0;

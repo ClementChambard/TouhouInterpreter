@@ -1,8 +1,8 @@
 #include "./App.hpp"
-#include "./BulletManager.h"
-#include "./EnemyManager.h"
+#include "./Bullet/BulletManager.h"
+#include "./Ecl/EnemyManager.h"
 #include "./AnmViewer.hpp"
-#include "./AnmOpener/AnmManager.h"
+#include "./Anm/AnmManager.h"
 #include "./AsciiManager.hpp"
 #include "./AsciiPopupManager.hpp"
 #include "./Bomb.hpp"
@@ -15,7 +15,7 @@
 #include "./PauseMenu.hpp"
 #include "./Player.h"
 #include "./Spellcard.h"
-#include "./StdOpener/Stage.hpp"
+#include "./Std/Stage.hpp"
 #include "./UpdateFuncRegistry.h"
 #include "./Supervisor.h"
 #include "Laser/LaserManager.h"
@@ -24,7 +24,7 @@
 void App::on_create() {
   Hardcoded_Load();
 
-  setMaxFps(60);
+  set_max_fps(60);
 
   anm::init();
   anm::RESOLUTION_MULT = WINDOW_HEIGHT / 480.f;

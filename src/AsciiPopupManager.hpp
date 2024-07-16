@@ -1,13 +1,13 @@
 #ifndef ASCIIPOPUPMANAGER_INCLUDED_H
 #define ASCIIPOPUPMANAGER_INCLUDED_H
 
-#include "./AnmOpener/AnmFile.h"
+#include "./Anm/AnmFile.h"
 #include "./UpdateFuncRegistry.h"
 
 struct AsciiPopupString_t {
     char nums[8] = {};
-    glm::vec3* pos_ptr = nullptr;
-    glm::vec3 pos = {0, 0, 0};
+    ns::vec3* pos_ptr = nullptr;
+    ns::vec3 pos = {0, 0, 0};
     float __field_18;
     ns::Color color = {0, 0, 0, 0};
     ns::Timer_t time = 0;
@@ -25,19 +25,19 @@ public:
     AsciiPopupManager();
     ~AsciiPopupManager();
 
-    void generate_small_score_popup(glm::vec3 const &pos, int nb,
+    void generate_small_score_popup(ns::vec3 const &pos, int nb,
                                     ns::Color color);
 private:
-    int f_on_tick();
-    int f_on_draw();
+    i32 f_on_tick();
+    i32 f_on_draw();
 
 public:
-    uint32_t flags = 2;
+    u32 flags = 2;
     UpdateFunc* on_tick = nullptr;
     UpdateFunc* on_draw = nullptr;
     anm::File* anm_ascii = nullptr;
-    int32_t next_index = 0;
-    int32_t next_index2 = 0;
+    i32 next_index = 0;
+    i32 next_index2 = 0;
     anm::VM vm = {};
     AsciiPopupString_t popups[36] = {};
 };

@@ -2,13 +2,13 @@
 #define ASCIIMANAGER_INCLUDED_H
 
 #include "./UpdateFuncRegistry.h"
-#include "./AnmOpener/AnmFile.h"
+#include "./Anm/AnmFile.h"
 
 struct AsciiStr_t {
     char text[256];
-    glm::vec3 pos;
+    ns::vec3 pos;
     ns::Color color;
-    glm::vec2 scale;
+    ns::vec2 scale;
     i32 __unused;
     i32 __field_11c;
     i32 font_id;
@@ -26,10 +26,10 @@ public:
 
     i32 render_group(i32 i);
     void render_string(AsciiStr_t const& s);
-    void create_string(glm::vec3 const& pos, cstr str);
-    void create_string_f(glm::vec3 const& pos, cstr fmt, ...);
-    void comma_separated_number(glm::vec3 const& pos, i32 number);
-    void draw_score(glm::vec3 const &pos, i32 num, i32 units);
+    void create_string(ns::vec3 const& pos, cstr str);
+    void create_string_f(ns::vec3 const& pos, cstr fmt, ...);
+    void comma_separated_number(ns::vec3 const& pos, i32 number);
+    void draw_score(ns::vec3 const &pos, i32 num, i32 units);
 private:
     i32 f_on_tick();
 public:
@@ -42,7 +42,7 @@ public:
     AsciiStr_t strings[320] = {};
     i32 num_strings = 0;
     ns::Color color = {255, 255, 255, 255};
-    glm::vec2 scale = {1.0, 1.0};
+    ns::vec2 scale = {1.0, 1.0};
     i32 __str_field_11c = 0;
     i32 __unused = 0;
     i32 draw_shadows = 0;

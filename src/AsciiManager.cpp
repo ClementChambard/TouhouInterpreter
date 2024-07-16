@@ -1,5 +1,5 @@
 #include "./AsciiManager.hpp"
-#include "./AnmOpener/AnmManager.h"
+#include "./Anm/AnmManager.h"
 #include "Hardcoded.h"
 #include "Supervisor.h"
 #include <cstdarg>
@@ -295,7 +295,7 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
 }
 #undef CHRP2INT
 
-void AsciiManager::create_string(glm::vec3 const &pos, const char* str) {
+void AsciiManager::create_string(ns::vec3 const &pos, const char* str) {
   if (num_strings >= 320)
     return;
   memcpy(strings[num_strings].text, str, 256);
@@ -312,7 +312,7 @@ void AsciiManager::create_string(glm::vec3 const &pos, const char* str) {
   num_strings++;
 }
 
-void AsciiManager::create_string_f(const glm::vec3 &pos, const char *fmt, ...) {
+void AsciiManager::create_string_f(const ns::vec3 &pos, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   char buf[256] = {};
@@ -320,7 +320,7 @@ void AsciiManager::create_string_f(const glm::vec3 &pos, const char *fmt, ...) {
   create_string(pos, buf);
 }
 
-void AsciiManager::comma_separated_number(glm::vec3 const &pos, int number) {
+void AsciiManager::comma_separated_number(ns::vec3 const &pos, int number) {
   char buffer[260] = {};
 
   if (number < 1000) {
@@ -338,7 +338,7 @@ void AsciiManager::comma_separated_number(glm::vec3 const &pos, int number) {
   create_string(pos, buffer);
 }
 
-void AsciiManager::draw_score(glm::vec3 const &pos, int num, int units) {
+void AsciiManager::draw_score(ns::vec3 const &pos, int num, int units) {
   char buf[260];
 
   if (num < 100) {

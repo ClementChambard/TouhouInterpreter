@@ -1,13 +1,13 @@
 #include "LaserInfinite.h"
 #include "../ItemManager.h"
-#include "../BulletManager.h"
+#include "../Bullet/BulletManager.h"
 #include "LaserManager.h"
 #include "../Hardcoded.h"
-#include "../AnmOpener/AnmManager.h"
-#include <math/Random.h>
+#include "../Anm/AnmManager.h"
+#include <math/math.hpp>
 #include <NSEngine.hpp>
 
-#define GAME_SPEED ns::getInstance()->gameSpeed()
+#define GAME_SPEED ns::get_instance()->game_speed()
 
 LaserInfinite::LaserInfinite()
 {
@@ -58,7 +58,7 @@ int LaserInfinite::initialize(void* arg)
     laser_offset = inner.start_pos;
 
     if (inner.distance != 0.f)
-        laser_offset += glm::vec3(math::lengthdir_vec(inner.distance, inner.ang_aim), 0.f);
+        laser_offset += ns::vec3(math::lengthdir_vec(inner.distance, inner.ang_aim), 0.f);
     laser_inf_current_length = inner.laser_new_arg1;
     speed = inner.spd_1;
     angle = inner.ang_aim;
@@ -209,8 +209,8 @@ int LaserInfinite::cancel(int, int as_bomb)
     if (as_bomb && ex_invuln__remaining_frames != 0)
         return 0;
 
-    glm::vec3 inc = { math::lengthdir_vec(8.f, angle), 0.f };
-    glm::vec3 p = laser_offset + inc;
+    ns::vec3 inc = { math::lengthdir_vec(8.f, angle), 0.f };
+    ns::vec3 p = laser_offset + inc;
     inc *= 2;
     int i = 0;
     for (; (i + 1) * 16.f < laser_inf_current_length; i++) {
@@ -233,7 +233,7 @@ int LaserInfinite::cancel(int, int as_bomb)
     return i;
 }
 
-int LaserInfinite::cancel_as_bomb_rectangle(glm::vec3 p1, glm::vec3 p2, float rot, int item, int as_bomb)
+int LaserInfinite::cancel_as_bomb_rectangle(ns::vec3 p1, ns::vec3 p2, float rot, int item, int as_bomb)
 {
     char canceled_node[260] = {};
 
@@ -242,14 +242,14 @@ int LaserInfinite::cancel_as_bomb_rectangle(glm::vec3 p1, glm::vec3 p2, float ro
 
     float aa = angle - rot;
     math::angle_normalize(aa);
-    glm::vec3 rect_inc = { math::lengthdir_vec(8.0, aa), 0.f };
-    glm::vec3 rect_pos = {
-        cos(-rot) * (laser_offset.x - p1.x) - sin(-rot) * (laser_offset.y - p1.y) + rect_inc.x,
-        sin(-rot) * (laser_offset.x - p1.x) + cos(-rot) * (laser_offset.y - p1.y) + rect_inc.y,
+    ns::vec3 rect_inc = { math::lengthdir_vec(8.0, aa), 0.f };
+    ns::vec3 rect_pos = {
+        ns::cos(-rot) * (laser_offset.x - p1.x) - ns::sin(-rot) * (laser_offset.y - p1.y) + rect_inc.x,
+        ns::sin(-rot) * (laser_offset.x - p1.x) + ns::cos(-rot) * (laser_offset.y - p1.y) + rect_inc.y,
         0.f
     };
-    glm::vec3 inc = { math::lengthdir_vec(8.0, angle), 0.f };
-    glm::vec3 p = laser_offset + inc;
+    ns::vec3 inc = { math::lengthdir_vec(8.0, angle), 0.f };
+    ns::vec3 p = laser_offset + inc;
     rect_inc *= 2;
     inc *= 2;
     int i = 0;

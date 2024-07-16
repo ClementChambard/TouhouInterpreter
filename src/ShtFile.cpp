@@ -1,9 +1,10 @@
 #include "ShtFile.h"
-#include "EnemyManager.h"
-#include "Gui.hpp"
+#include "./Ecl/EnemyManager.h"
+#include "./Gui.hpp"
 #include "Hardcoded.h"
 #include "Player.h"
-#include "AnmOpener/AnmManager.h"
+#include "Anm/AnmManager.h"
+#include <math/math.hpp>
 
 #include <fstream>
 
@@ -40,7 +41,7 @@ ShtFile_t* open_sht(cstr filename) {
         rest = (uint8_t*)&raw->header.SA_power_divisor;
     }
 
-    int option_cnt = fmax(HARDCODED_DATA["option_count"].asInt(), sht->header.pwr_lvl_cnt);
+    int option_cnt = math::max(HARDCODED_DATA["option_count"].asInt(), (i32)sht->header.pwr_lvl_cnt);
     for (int i = 0; i < option_cnt; i++)
         for (int j = 0; j <= i; j++) {
             sht->option_pos.push_back({ *reinterpret_cast<float*>(rest + 0), *reinterpret_cast<float*>(rest + 4) });
@@ -102,7 +103,7 @@ int sht_on_init_3(PlayerBullet_t* bullet)
 {
     if (bullet->damageSourceId)
         PLAYER_PTR->inner.damage_sources[bullet->damageSourceId - 1].flags &= 0xfffffffe;
-    glm::vec3 pos = bullet->pos.pos;
+    ns::vec3 pos = bullet->pos.pos;
     pos.x -= 90.f;
     static constexpr float angles[] = {
         -1.832596,
@@ -132,7 +133,7 @@ int sht_on_init_3(PlayerBullet_t* bullet)
         PLAYER_PTR->inner.damage_sources[dsID - 1].field_0x80 = 1;
         PLAYER_PTR->inner.damage_sources[dsID - 1].field_0x88 = i;
         PLAYER_PTR->inner.damage_sources[dsID - 1].field_0x8c = 1;
-        pos += glm::vec3(60.0, posYInc[i], 0);
+        pos += ns::vec3(60.0, posYInc[i], 0);
     }
     return 0;
 }
@@ -141,7 +142,7 @@ int sht_on_init_5(PlayerBullet_t* bullet)
 {
     if (bullet->damageSourceId)
         PLAYER_PTR->inner.damage_sources[bullet->damageSourceId - 1].flags &= 0xfffffffe;
-    glm::vec3 pos = bullet->pos.pos;
+    ns::vec3 pos = bullet->pos.pos;
     pos.x += 90.f;
     static constexpr float angles[] = {
         -1.308997,
@@ -171,7 +172,7 @@ int sht_on_init_5(PlayerBullet_t* bullet)
         PLAYER_PTR->inner.damage_sources[dsID - 1].field_0x80 = 1;
         PLAYER_PTR->inner.damage_sources[dsID - 1].field_0x88 = i;
         PLAYER_PTR->inner.damage_sources[dsID - 1].field_0x8c = 1;
-        pos += glm::vec3(-60.0, posYInc[i], 0);
+        pos += ns::vec3(-60.0, posYInc[i], 0);
     }
     return 0;
 }
@@ -182,7 +183,7 @@ int sht_on_tick_1(PlayerBullet_t* bullet)
         return 0;
     if (ENEMY_MANAGER_PTR) {
         if (bullet->targeted_entity == 0)
-            bullet->targeted_entity = ENEMY_MANAGER_PTR->closest_enemy_id(bullet->pos.pos);
+            bullet->targeted_entity = ENEMY_MANAGER_PTR->closest_enemy_id(ns::vec2(bullet->pos.pos));
         if (auto e = ENEMY_MANAGER_PTR->EnmFind(bullet->targeted_entity); e) {
             if (!(e->getData()->flags & 0xc000021U)) {
                 if (0x3b < bullet->__field_c) {
@@ -192,8 +193,8 @@ int sht_on_tick_1(PlayerBullet_t* bullet)
                 float ang_inc = math::point_direction(bullet->pos.pos.x, bullet->pos.pos.y, e->getData()->final_pos.pos.x, e->getData()->final_pos.pos.y) - bullet->pos.angle;
                 float speed = bullet->pos.speed;
                 math::angle_normalize(ang_inc);
-                if (abs(ang_inc) < 0.7853982) {
-                    if (abs(ang_inc) < 0.2617994) {
+                if (ns::abs(ang_inc) < 0.7853982) {
+                    if (ns::abs(ang_inc) < 0.2617994) {
                         speed = 16.0;
                         if (bullet->pos.speed + 0.2 <= 16.0) {
                             speed = bullet->pos.speed + 0.2;
@@ -225,9 +226,9 @@ int sht_on_tick_1(PlayerBullet_t* bullet)
 int sht_on_tick_2(PlayerBullet_t* bullet) {
     auto shooter = PLAYER_PTR->sht_file->shooters[bullet->shter >> 8][bullet->shter & 0xff];
     if (shooter.option > 0)
-        bullet->pos.pos = glm::vec3(PLAYER_PTR->inner.options[shooter.option - 1].scaled_cur_pos.x, PLAYER_PTR->inner.options[shooter.option - 1].scaled_cur_pos.y, 0) / 128.f;
+        bullet->pos.pos = ns::vec3(PLAYER_PTR->inner.options[shooter.option - 1].scaled_cur_pos.x, PLAYER_PTR->inner.options[shooter.option - 1].scaled_cur_pos.y, 0) / 128.f;
     else
-        bullet->pos.pos = glm::vec3(PLAYER_PTR->inner.integer_pos.x, PLAYER_PTR->inner.integer_pos.y, 0) / 128.f;
+        bullet->pos.pos = ns::vec3(PLAYER_PTR->inner.integer_pos.x, PLAYER_PTR->inner.integer_pos.y, 0) / 128.f;
 
     // float ang1, ang2;
     // if (!PLAYER_PTR->inner.focusing) {
@@ -274,7 +275,7 @@ int sht_on_tick_2(PlayerBullet_t* bullet) {
     }
 
     if (bullet->damageSourceId != 0)
-        PLAYER_PTR->inner.damage_sources[bullet->damageSourceId - 1].pos.pos = bullet->pos.pos + glm::vec3(math::lengthdir_vec(bullet->hitbox.x / 2.f, bullet->pos.angle), 0);
+        PLAYER_PTR->inner.damage_sources[bullet->damageSourceId - 1].pos.pos = bullet->pos.pos + ns::vec3(math::lengthdir_vec(bullet->hitbox.x / 2.f, bullet->pos.angle), 0);
 
     if (bullet->hitting == 0) {
         if (bullet->active != 1) {
@@ -380,7 +381,7 @@ int pl_b_default_on_hit(PlayerBullet_t& b)
     return b.damage;
 }
 
-int FUN_00449c80(glm::vec3 const& pos, int param_3, uint32_t param_4, float param_5, float param_6)
+int FUN_00449c80(ns::vec3 const& pos, int param_3, uint32_t param_4, float param_5, float param_6)
 {
     uint uVar2;
     int iVar4;
@@ -417,10 +418,9 @@ int FUN_00449c80(glm::vec3 const& pos, int param_3, uint32_t param_4, float para
     return iVar5 + 1;
 }
 
-#include <math/Random.h>
-int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
+int (*SHT_ON_HIT[])(PlayerBullet_t*, ns::vec3 const&, float, float, float) = {
     nullptr,
-    [](PlayerBullet_t* param_1, glm::vec3 const&, float, float, float) {
+    [](PlayerBullet_t* param_1, ns::vec3 const&, float, float, float) {
         float ang = (param_1->pos).angle + Random::Floatm11() * 0.3490658;
         math::angle_normalize(ang);
         anm::VM* vm;
@@ -433,7 +433,7 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
             PLAYER_PTR->field_0x190ec += 0x32;
         return pl_b_default_on_hit(*param_1);
     },
-    [](PlayerBullet_t* param_1, glm::vec3 const& param_2, float param_3, float, float param_5) {
+    [](PlayerBullet_t* param_1, ns::vec3 const& param_2, float param_3, float, float param_5) {
         param_1->hitting = 1;
         if (param_1->blink == 0) {
             anm::interrupt_tree(param_1->anmId, 2);
@@ -443,10 +443,10 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
             if (!param_1->damageSourceId)
                 return 0;
             float d = PLAYER_PTR->inner.damage_sources[param_1->damageSourceId - 1].hitbox.y * 0.5 + param_5;
-            float yy = (param_2.x - param_1->pos.pos.x) * sin(-param_1->pos.angle) + (param_2.y - param_1->pos.pos.y) * cos(-param_1->pos.angle);
-            float xx = (param_2.x - param_1->pos.pos.x) * cos(-param_1->pos.angle) - (param_2.y - param_1->pos.pos.y) * sin(-param_1->pos.angle);
-            if (((abs(yy) <= d) && (-d <= xx)) && ((0.0 <= xx || (yy * yy + xx * xx <= d * d))))
-                xx -= sqrt(1.0 - (yy / d) * (yy / d)) * d;
+            float yy = (param_2.x - param_1->pos.pos.x) * ns::sin(-param_1->pos.angle) + (param_2.y - param_1->pos.pos.y) * ns::cos(-param_1->pos.angle);
+            float xx = (param_2.x - param_1->pos.pos.x) * ns::cos(-param_1->pos.angle) - (param_2.y - param_1->pos.pos.y) * ns::sin(-param_1->pos.angle);
+            if (((ns::abs(yy) <= d) && (-d <= xx)) && ((0.0 <= xx || (yy * yy + xx * xx <= d * d))))
+                xx -= ns::sqrt(1.0 - (yy / d) * (yy / d)) * d;
             xx += 8.0;
             if (xx < 0.0)
                 xx = 0.0;
@@ -475,7 +475,7 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
         }
         if (!(param_1->__field_c.current & 1)) {
             anm::VM* vm;
-            PLAYER_PTR->playerAnm->createEffectPos(8, 0, glm::vec3 { math::lengthdir_vec(param_1->hitbox.x, param_1->pos.angle), 0.f } + param_1->pos.pos, -1, &vm);
+            PLAYER_PTR->playerAnm->createEffectPos(8, 0, ns::vec3 { math::lengthdir_vec(param_1->hitbox.x, param_1->pos.angle), 0.f } + param_1->pos.pos, -1, &vm);
             vm->rotation.z = param_1->pos.angle;
             vm->pos_i.start({ 0, 0, 0 }, { math::lengthdir_vec(64.f, param_1->pos.angle), 0.f }, 20, 4);
             // put in effectmanager
@@ -488,13 +488,13 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
         }
         return 0;
     },
-    [](PlayerBullet_t* param_1, glm::vec3 const&, float, float, float) {
+    [](PlayerBullet_t* param_1, ns::vec3 const&, float, float, float) {
         auto& shooter = PLAYER_PTR->sht_file->shooters[param_1->shter >> 8][param_1->shter & 0xff];
         int iVar2 = FUN_00449c80(param_1->pos.pos, 10, shooter.damage, 24.0, 1.0);
         if (iVar2 != 0) {
             PLAYER_PTR->inner.damage_sources[iVar2 - 1].field_0x80 = 4;
             PLAYER_PTR->inner.damage_sources[iVar2 - 1].pos.speed = 0.3;
-            PLAYER_PTR->inner.damage_sources[iVar2 - 1].pos.angle = -PI1_2;
+            PLAYER_PTR->inner.damage_sources[iVar2 - 1].pos.angle = -ns::PI_1_2<f32>;
         }
         anm::interrupt_tree(param_1->anmId, 1);
         param_1->active = 2;
@@ -509,15 +509,15 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, glm::vec3 const&, float, float, float) = {
             PLAYER_PTR->field_0x190ec += 200;
         return param_1->damage;
     },
-    [](PlayerBullet_t*, glm::vec3 const&, float, float, float) { if (GLOBALS.inner.HYPER_FLAGS & 2) PLAYER_PTR->field_0x190ec += 0x46; return -1; },
-    [](PlayerBullet_t*, glm::vec3 const&, float, float, float) { return -1; },
-    [](PlayerBullet_t* param_1, glm::vec3 const&, float, float, float) {
+    [](PlayerBullet_t*, ns::vec3 const&, float, float, float) { if (GLOBALS.inner.HYPER_FLAGS & 2) PLAYER_PTR->field_0x190ec += 0x46; return -1; },
+    [](PlayerBullet_t*, ns::vec3 const&, float, float, float) { return -1; },
+    [](PlayerBullet_t* param_1, ns::vec3 const&, float, float, float) {
         auto& shooter = PLAYER_PTR->sht_file->shooters[param_1->shter >> 8][param_1->shter & 0xff];
         int iVar2 = FUN_00449c80(param_1->pos.pos, 10, shooter.damage, 24.0, 5.0);
         if (iVar2 != 0) {
             PLAYER_PTR->inner.damage_sources[iVar2 - 1].field_0x80 = 3;
             PLAYER_PTR->inner.damage_sources[iVar2 - 1].pos.speed = 0.3;
-            PLAYER_PTR->inner.damage_sources[iVar2 - 1].pos.angle = -PI1_2;
+            PLAYER_PTR->inner.damage_sources[iVar2 - 1].pos.angle = -ns::PI_1_2<f32>;
         }
         anm::interrupt_tree(param_1->anmId, 1);
         param_1->active = 2;
