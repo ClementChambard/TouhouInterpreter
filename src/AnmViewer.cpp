@@ -2,6 +2,8 @@
 #include "./AnmOpener/AnmManager.h"
 #include "./Player.h"
 #include "./Supervisor.h"
+#include "BulletHandler.h"
+#include "BulletManager.h"
 #include "GlobalData.h"
 #include <imgui.h>
 #include <imguiW.hpp>
@@ -11,6 +13,7 @@
 #include <string>
 
 #include "./StdOpener/Stage.hpp"
+#include "Laser/LaserManager.h"
 #include "ScreenEffect.hpp"
 
 AnmViewer *ANM_VIEWER_PTR = nullptr;
@@ -316,7 +319,8 @@ void anm_view_window(AnmView *v) {
 
   ImGui::Text("Id: %d", v->anmId);
   auto vm = AnmManager::getVM(v->anmId);
-  if (v->anmId == 0) vm = v->vm;
+  if (v->anmId == 0)
+    vm = v->vm;
   if (!vm) {
     ImGui::PopID();
     ImGui::End();
@@ -462,7 +466,8 @@ void anm_view_window(AnmView *v) {
     FLAG_CHECKBOX(noParent)
     FLAG_CHECKBOX(f534_17)
     FLAG_COMBOBOX(originMode, "TopLeft", "EclOrigin", "ScaledEclOrigin");
-    FLAG_COMBOBOX(resolutionMode, "AsIs", "UpscaleIfNeeded", "DownscaleIfNeeded");
+    FLAG_COMBOBOX(resolutionMode, "AsIs", "UpscaleIfNeeded",
+                  "DownscaleIfNeeded");
     FLAG_CHECKBOX(parRotate)
     FLAG_CHECKBOX(hasGrowth)
     FLAG_CHECKBOX(colorizeChildren)
@@ -486,27 +491,27 @@ void anm_view_window(AnmView *v) {
   }
 
   if (ImGui::CollapsingHeader("matrices")) {
-      ImGui::Text("matrix 1");
-      ImGui::PushID("matrix1");
-      ImGui::InputFloat4("##row0", &vm->__matrix_1[0][0]);
-      ImGui::InputFloat4("##row1", &vm->__matrix_1[1][0]);
-      ImGui::InputFloat4("##row2", &vm->__matrix_1[2][0]);
-      ImGui::InputFloat4("##row3", &vm->__matrix_1[3][0]);
-      ImGui::PopID();
-      ImGui::Text("matrix 2");
-      ImGui::PushID("matrix2");
-      ImGui::InputFloat4("##row0", &vm->__matrix_2[0][0]);
-      ImGui::InputFloat4("##row1", &vm->__matrix_2[1][0]);
-      ImGui::InputFloat4("##row2", &vm->__matrix_2[2][0]);
-      ImGui::InputFloat4("##row3", &vm->__matrix_2[3][0]);
-      ImGui::PopID();
-      ImGui::Text("matrix 3");
-      ImGui::PushID("matrix3");
-      ImGui::InputFloat4("##row0", &vm->__matrix_3[0][0]);
-      ImGui::InputFloat4("##row1", &vm->__matrix_3[1][0]);
-      ImGui::InputFloat4("##row2", &vm->__matrix_3[2][0]);
-      ImGui::InputFloat4("##row3", &vm->__matrix_3[3][0]);
-      ImGui::PopID();
+    ImGui::Text("matrix 1");
+    ImGui::PushID("matrix1");
+    ImGui::InputFloat4("##row0", &vm->__matrix_1[0][0]);
+    ImGui::InputFloat4("##row1", &vm->__matrix_1[1][0]);
+    ImGui::InputFloat4("##row2", &vm->__matrix_1[2][0]);
+    ImGui::InputFloat4("##row3", &vm->__matrix_1[3][0]);
+    ImGui::PopID();
+    ImGui::Text("matrix 2");
+    ImGui::PushID("matrix2");
+    ImGui::InputFloat4("##row0", &vm->__matrix_2[0][0]);
+    ImGui::InputFloat4("##row1", &vm->__matrix_2[1][0]);
+    ImGui::InputFloat4("##row2", &vm->__matrix_2[2][0]);
+    ImGui::InputFloat4("##row3", &vm->__matrix_2[3][0]);
+    ImGui::PopID();
+    ImGui::Text("matrix 3");
+    ImGui::PushID("matrix3");
+    ImGui::InputFloat4("##row0", &vm->__matrix_3[0][0]);
+    ImGui::InputFloat4("##row1", &vm->__matrix_3[1][0]);
+    ImGui::InputFloat4("##row2", &vm->__matrix_3[2][0]);
+    ImGui::InputFloat4("##row3", &vm->__matrix_3[3][0]);
+    ImGui::PopID();
   }
 
   if (ImGui_BeginPopupCenter("InterruptVM")) {
@@ -554,7 +559,8 @@ void set_camera_window(bool *open) {
   ImGui::Begin("Camera", open);
   ImGui::PushID("CameraWindow");
   static int cam = 0;
-  static const char *camera_names[] = {"Camera 0", "Camera 1", "Camera 2", "Camera 3", "Stage"};
+  static const char *camera_names[] = {"Camera 0", "Camera 1", "Camera 2",
+                                       "Camera 3", "Stage"};
   auto selected = camera_names[cam];
   if (ImGui::BeginCombo("Camera", selected)) {
     for (int i = 0; i < IM_ARRAYSIZE(camera_names); i++) {
@@ -568,9 +574,11 @@ void set_camera_window(bool *open) {
     }
     ImGui::EndCombo();
   }
-  Camera_t* camera;
-  if (cam < 4) camera = &SUPERVISOR.cameras[cam];
-  else camera = &STAGE_PTR->inner.camera;
+  Camera_t *camera;
+  if (cam < 4)
+    camera = &SUPERVISOR.cameras[cam];
+  else
+    camera = &STAGE_PTR->inner.camera;
   ImGui::InputFloat3("position", &camera->position[0]);
   ImGui::InputFloat3("look", &camera->facing[0]);
   ImGui::InputFloat3("up", &camera->up[0]);
@@ -634,8 +642,9 @@ void openedFiles_window(bool *open) {
   ImGui::End();
 }
 
-void screff_window(bool* open) {
-  if (!*open) return;
+void screff_window(bool *open) {
+  if (!*open)
+    return;
   ImGui::Begin("Screen effect", open);
   static int p1 = 0, p2 = 0, p3 = 0, p4 = 0, p5 = 0, p6 = 0;
   ImGui::InputInt("param_1", &p1);
@@ -648,6 +657,542 @@ void screff_window(bool* open) {
     new ScreenEffect(p1, p2, p3, p4, p5, p6);
   }
   ImGui::End();
+}
+
+typedef const std::vector<const char *> ComboboxOptions;
+typedef const std::vector<const char *>& RComboboxOptions;
+
+bool combobox(const char *name, RComboboxOptions options,
+              int *val) {
+  int init_val = *val;
+  const char *selected = options[*val];
+  if (*val < 0 || static_cast<size_t>(*val) >= options.size()) *val = 0;
+  if (ImGui::BeginCombo(name, selected)) {
+    for (size_t i = 0; i < options.size(); i++) {
+      bool isSelected = (selected == options[i]);
+      if (strlen(options[i]) == 0)
+        continue;
+      if (ImGui::Selectable(options[i], isSelected)) {
+        selected = options[i];
+        *val = i;
+      }
+      if (isSelected)
+        ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+  }
+  return *val != init_val;
+}
+
+static ComboboxOptions BULLET_TYPES = {
+    "pellet",
+    "pellet2",
+    "popcorn",
+    "pellet3",
+    "ball",
+    "ball2",
+    "outline",
+    "outline2",
+    "rice",
+    "kunai",
+    "shard",
+    "amulet",
+    "arrowhead",
+    "bullet",
+    "laserhead",
+    "bacteria",
+    "star",
+    "coin",
+    "mentos",
+    "mentos2",
+    "jellybean",
+    "knife",
+    "butterfly",
+    "bigstar",
+    "bigstar2",
+    "fireball_red",
+    "fireball_purple",
+    "fireball_blue",
+    "fireball_yellow",
+    "heart",
+    "pulse",
+    "arrow",
+    "bubble",
+    "orb",
+    "droplet",
+    "rice_spin",
+    "shard_spin",
+    "star2",
+    "laser",
+    "note_red",
+    "note_blue",
+    "note_green",
+    "note_purple",
+    "rest",
+};
+
+static ComboboxOptions AIM_TYPES = {
+  "fan aimed",
+  "fan static",
+  "ring aimed",
+  "ring static",
+  "ring anti-aimed",
+  "ring anti-static",
+  "random",
+  "ring random",
+  "meek",
+  "pyramid aimed",
+  "pyramid static",
+  "peanut",
+  "peanut 2"
+};
+
+static ComboboxOptions COLOR16 = {
+  "black",
+  "darkred",
+  "red",
+  "purple",
+  "pink",
+  "darkblue",
+  "blue",
+  "darkcyan",
+  "cyan",
+  "darkgreen",
+  "green",
+  "lime",
+  "darkyellow",
+  "yellow",
+  "orange",
+  "white",
+};
+
+static ComboboxOptions COLORCOIN = {
+  "gold",
+  "silver",
+  "bronze",
+};
+
+static ComboboxOptions COLOR8 = {
+  "black",
+  "red",
+  "pink",
+  "blue",
+  "cyan",
+  "green",
+  "yellow",
+  "white",
+};
+
+static ComboboxOptions COLOR4 = {
+  "red",
+  "blue",
+  "green",
+  "yellow",
+};
+
+static ComboboxOptions ANGLE_AIM = {
+  "angle offset",
+  "aim angle",
+  "angle offset",
+  "aim angle",
+  "angle offset",
+  "aim angle",
+  "angle1",
+  "angle1",
+  "angle1",
+  "angle offset",
+  "aim angle",
+  "angle1",
+  "angle2"
+};
+
+static ComboboxOptions ANGLE_BUL_DIST = {
+  "columns angle",
+  "columns angle",
+  "layers offset",
+  "layers offset",
+  "layers offset",
+  "layers offset",
+  "angle2",
+  "angle2",
+  "angle2",
+  "angle2",
+  "angle2",
+  "angle2",
+  "angle2"
+};
+
+static bool mouse_taken = false;
+glm::vec3 mouse_pos() {
+  auto p = Inputs::Mouse().guiPos;
+  p /= RESOLUTION_MULT;
+  p.y *= -1;
+  p += glm::vec2(96, 224);
+  return {p, 0};
+}
+
+void bm_bullet_content(EnemyBulletShooter_t& bm) {
+  ImGui::InputFloat3("shoot position", &bm.__vec3_8[0]);
+  combobox("type", BULLET_TYPES, &bm.type);
+  if (bm.type < 25 || (bm.type > 28 && bm.type < 39) || bm.type == 43) {
+    ComboboxOptions* colors = &COLOR16;
+    if (bm.type == 17) colors = &COLORCOIN;
+    if (bm.type == 32) colors = &COLOR4;
+    if ((bm.type >= 18 && bm.type <= 24) ||
+        (bm.type >= 29 && bm.type <= 31) ||
+        bm.type == 33 || bm.type == 43) colors = &COLOR8;
+    combobox("color", *colors, reinterpret_cast<int *>(&bm.__color));
+  }
+  combobox("aim_type", AIM_TYPES, &bm.aim_type);
+  ImGui::InputFloat(ANGLE_AIM[bm.aim_type], &bm.ang_aim);
+  ImGui::InputFloat(ANGLE_BUL_DIST[bm.aim_type], &bm.ang_bullet_dist);
+  ImGui::InputFloat("max speed", &bm.spd1);
+  ImGui::InputFloat("min speed", &bm.spd2);
+  int cnt1 = bm.cnt_count, cnt2 = bm.cnt_layers;
+  ImGui::InputInt("count per layer", &cnt1);
+  ImGui::InputInt("layer count", &cnt2);
+  bm.cnt_count = cnt1, bm.cnt_layers = cnt2;
+  ImGui::InputFloat("initial distance", &bm.distance);
+  ImGui::InputInt("sfx flag (?)", reinterpret_cast<int *>(&bm.sfx_flag));
+  ImGui::InputInt("shot sfx", reinterpret_cast<int *>(&bm.shot_sfx));
+  ImGui::InputInt("transform sfx",
+                  reinterpret_cast<int *>(&bm.__shot_transform_sfx));
+  ImGui::InputInt("start transform",
+                  reinterpret_cast<int *>(&bm.__start_transform));
+
+  if (ImGui::Button("shoot bullets")) {
+    BulletManager::GetInstance()->Shoot(&bm);
+  }
+
+  if (Inputs::Mouse().Pressed(NSM_leftclick) && mouse_taken) {
+    bm.__vec3_8 = mouse_pos();
+    BulletManager::GetInstance()->Shoot(&bm);
+  }
+}
+
+void bm_laser_content(EnemyBulletShooter_t const& bm) {
+  static LaserLineInner_t inner{.spd_1 = 1.f};
+
+  ImGui::InputFloat3("shoot position", &inner.start_pos[0]);
+  combobox("type", BULLET_TYPES, &inner.bullet_type);
+  if (inner.bullet_type < 25 || (inner.bullet_type > 28
+    && inner.bullet_type < 39) || inner.bullet_type == 43) {
+    ComboboxOptions* colors = &COLOR16;
+    if (inner.bullet_type == 17) colors = &COLORCOIN;
+    if (inner.bullet_type == 32) colors = &COLOR4;
+    if ((inner.bullet_type >= 18 && inner.bullet_type <= 24) ||
+        (inner.bullet_type >= 29 && inner.bullet_type <= 31) ||
+        inner.bullet_type == 33 || inner.bullet_type == 43) colors = &COLOR8;
+    combobox("color", *colors, reinterpret_cast<int *>(&inner.bullet_color));
+  }
+  ImGui::InputFloat("shoot angle", &inner.ang_aim);
+  ImGui::InputFloat("speed", &inner.spd_1);
+  ImGui::InputFloat("initial length", &inner.laser_new_arg_1);
+  ImGui::InputFloat("final length", &inner.laser_new_arg_2);
+  ImGui::InputFloat("width", &inner.laser_new_arg_4);
+  ImGui::InputFloat("travel distance", &inner.laser_new_arg_3);
+  ImGui::InputFloat("initial distance", &inner.distance);
+  ImGui::InputInt("shot sfx", &inner.shot_sfx);
+  ImGui::InputInt("transform sfx", &inner.shot_transform_sfx);
+  ImGui::InputInt("flags", &inner.flags);
+
+  static bool autoaimplayer = false;
+  ImGui::Checkbox("auto aim player", &autoaimplayer);
+
+  if (ImGui::Button("shoor laser")) {
+    for (int i = 0; i < 20; i++)
+      inner.et_ex[i] = bm.ex[i];
+    inner.flags |= 1;
+    if (autoaimplayer) inner.ang_aim = math::point_direction(
+      inner.start_pos, PLAYER_PTR->inner.pos);
+    allocate_new_laser(0, &inner);
+  }
+
+  if (Inputs::Mouse().Pressed(NSM_leftclick) && mouse_taken) {
+    inner.start_pos = mouse_pos();
+    for (int i = 0; i < 20; i++)
+      inner.et_ex[i] = bm.ex[i];
+    inner.flags |= 1;
+    if (autoaimplayer) inner.ang_aim = math::point_direction(
+      inner.start_pos, PLAYER_PTR->inner.pos);
+    allocate_new_laser(0, &inner);
+  }
+}
+
+void bm_laser_st_content(EnemyBulletShooter_t const& bm) {
+  static LaserInfiniteInner_t inner{};
+
+  ImGui::InputFloat3("shoot position", &inner.start_pos[0]);
+  combobox("type", BULLET_TYPES, &inner.type);
+  if (inner.type < 25 || (inner.type > 28 && inner.type < 39)
+      || inner.type == 43) {
+    ComboboxOptions* colors = &COLOR16;
+    if (inner.type == 17) colors = &COLORCOIN;
+    if (inner.type == 32) colors = &COLOR4;
+    if ((inner.type >= 18 && inner.type <= 24) ||
+        (inner.type >= 29 && inner.type <= 31) ||
+        inner.type == 33 || inner.type == 43) colors = &COLOR8;
+    combobox("color", *colors, reinterpret_cast<int *>(&inner.color));
+  }
+  ImGui::InputFloat("shoot angle", &inner.ang_aim);
+  ImGui::InputFloat("speed", &inner.spd_1);
+  ImGui::InputFloat("initial length", &inner.laser_new_arg1);
+  ImGui::InputFloat("final length", &inner.laser_new_arg2);
+  ImGui::InputFloat("width", &inner.laser_new_arg4);
+  ImGui::InputInt("start time", &inner.laser_time_start);
+  ImGui::InputInt("turn on time", &inner.laser_trans_1);
+  ImGui::InputInt("active time", &inner.laser_duration);
+  ImGui::InputInt("turn off time", &inner.laser_trans_2);
+  ImGui::InputFloat("initial distance", &inner.distance);
+  ImGui::InputInt("shot sfx", &inner.shot_sfx);
+  ImGui::InputInt("transform sfx", &inner.shot_transform_sfx);
+  ImGui::InputInt("flags", &inner.flags);
+  ImGui::InputInt("laser handle", &inner.laser_st_on_arg1);
+
+  // button for handling laser ?
+
+  if (ImGui::Button("shoor laser")) {
+    for (int i = 0; i < 20; i++)
+      inner.ex[i] = bm.ex[i];
+    inner.flags |= 2;
+    allocate_new_laser(1, &inner);
+  }
+
+  if (Inputs::Mouse().Pressed(NSM_leftclick) && mouse_taken) {
+    inner.start_pos = mouse_pos();
+    for (int i = 0; i < 20; i++)
+      inner.ex[i] = bm.ex[i];
+    inner.flags |= 2;
+    allocate_new_laser(1, &inner);
+  }
+}
+
+void bm_laser_cu_content(EnemyBulletShooter_t const& bm) {
+  static LaserCurveInner_t inner{.init_1 = 1};
+
+  ImGui::InputFloat3("shoot position", &inner.start_pos[0]);
+  combobox("type", BULLET_TYPES, &inner.type);
+  if (inner.type < 25 || (inner.type > 28 && inner.type < 39)
+      || inner.type == 43) {
+    ComboboxOptions* colors = &COLOR16;
+    if (inner.type == 17) colors = &COLORCOIN;
+    if (inner.type == 32) colors = &COLOR4;
+    if ((inner.type >= 18 && inner.type <= 24) ||
+        (inner.type >= 29 && inner.type <= 31) ||
+        inner.type == 33 || inner.type == 43) colors = &COLOR8;
+    combobox("color", *colors, reinterpret_cast<int *>(&inner.color));
+  }
+  ImGui::InputFloat("shoot angle", &inner.ang_aim);
+  ImGui::InputFloat("speed", &inner.spd_1);
+  ImGui::InputInt("length", &inner.laser_time_start);
+  ImGui::InputFloat("width", &inner.laser_new_arg4);
+  ImGui::InputFloat("initial distance", &inner.distance);
+  ImGui::InputInt("shot sfx", &inner.shot_sfx);
+  ImGui::InputInt("transform sfx", &inner.shot_transform_sfx);
+
+  if (ImGui::Button("shoor laser")) {
+    for (int i = 0; i < 20; i++)
+        inner.ex[i] = bm.ex[i];
+    allocate_new_laser(2, &inner);
+  }
+
+  if (Inputs::Mouse().Pressed(NSM_leftclick) && mouse_taken) {
+    inner.start_pos = mouse_pos();
+    for (int i = 0; i < 20; i++)
+        inner.ex[i] = bm.ex[i];
+    allocate_new_laser(2, &inner);
+  }
+}
+
+static ComboboxOptions ETEX_TYPES = {
+  "NONE",
+  "SPEEDUP",
+  "ANIM",
+  "ACCEL",
+  "ANGLE_ACCEL",
+  "STEP",
+  "",
+  "BOUNCE",
+  "INVULN",
+  "OFFSCREEN",
+  "SETSPRITE",
+  "DELETE",
+  "PLAYSOUND",
+  "WRAP",
+  "SHOOTPREP",
+  "SHOOT",
+  "REACT",
+  "GOTO",
+  "MOVE",
+  "VEL",
+  "VELADD",
+  "BRIGHT",
+  "ACCELWEIRD",
+  "SIZE",
+  "SAVE",
+  "ENMCREATE",
+  "LAYER",
+  "DELAY",
+  "LASER",
+  "",
+  "HITBOX",
+  "",
+  "WAIT",
+};
+
+int bit(int i) {
+  for (int b = 0; b < 32; b++) {
+    if (i & 1) return b;
+    i >>= 1;
+  }
+  return -1;
+}
+
+EtEx_t* the_dialog = nullptr;
+void et_ex_dialog(EtEx_t* ex) {
+  if (!ex) return;
+  ImGui::Begin("Et ex", NULL);
+  int type = bit(ex->type) + 1;
+  if (combobox("type", ETEX_TYPES, &type)) {
+    memset(reinterpret_cast<void*>(ex), 0, sizeof(EtEx_t));
+  }
+  if (type == 0) ex->type = 0;
+  else ex->type = 1 << (type - 1);
+
+  if (type == 2) {
+    ImGui::InputInt("anim type", &ex->a);
+  }
+
+  if (type == 3) {
+    ImGui::InputInt("duration", &ex->a);
+    ImGui::InputFloat("acceleration", &ex->r);
+    if (ex->s <= -999990.0) {
+        ImGui::Text("Bullet will keep the same angle");
+        if (ImGui::Button("aim player")) {
+          ex->s = 999999.0;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("select angle")) {
+          ex->s = 0;
+        }
+    } else if (ex->s >= 999990.0) {
+        ImGui::Text("Bullet will aim the player");
+        if (ImGui::Button("select angle")) {
+          ex->s = 0;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("keep angle")) {
+          ex->s = -999999.0;
+        }
+    } else {
+        ImGui::InputFloat("angle", &ex->s);
+        if (ImGui::Button("aim player")) {
+          ex->s = 999999.0;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("keep angle")) {
+          ex->s = -999999.0;
+        }
+    }
+  }
+
+  if (type == 4) {
+    ImGui::InputInt("duration", &ex->a);
+    ImGui::InputFloat("tangential acceleration", &ex->r);
+    ImGui::InputFloat("angular velocity", &ex->s);
+  }
+
+  if (type == 5) {
+    ImGui::Text("TODO: step");
+  }
+
+  if (type == 7) {
+    ImGui::InputInt("max rebounds", &ex->a);
+    if (ex->r < -990.0) {
+      ImGui::Text("speed kept");
+      if (ImGui::Button("choose speed")) {
+        ex->r = 0;
+      }
+    } else {
+      ImGui::InputFloat("bounce speed", &ex->r);
+      if (ImGui::Button("keep speed")) {
+        ex->r = -999;
+      }
+    }
+    bool b1 = ex->b & 1;
+    bool b2 = ex->b & 2;
+    bool b3 = ex->b & 4;
+    bool b4 = ex->b & 8;
+    bool b5 = ex->b & 32;
+    ImGui::Checkbox("up", &b1);
+    ImGui::Checkbox("down", &b2);
+    ImGui::Checkbox("left", &b3);
+    ImGui::Checkbox("right", &b4);
+    ImGui::Checkbox("custom walls", &b5);
+    if (b5) {
+      glm::vec2 a = {ex->s, ex->m};
+      ImGui::InputFloat2("walls dimensions", &a[0]);
+      ex->s = a.x, ex->m = a.y;
+    }
+    ex->b = b1 | (b2 << 1) | (b3 << 2) | (b4 << 3) | (b5 << 5);
+  }
+
+  if (type > 7) {
+    ImGui::InputInt("a", &ex->a);
+    ImGui::InputInt("b", &ex->b);
+    ImGui::InputInt("c", &ex->c);
+    ImGui::InputInt("d", &ex->d);
+    ImGui::InputFloat("r", &ex->r);
+    ImGui::InputFloat("s", &ex->s);
+    ImGui::InputFloat("m", &ex->m);
+    ImGui::InputFloat("n", &ex->n);
+  }
+
+  if (ImGui::Button("Done")) {
+    the_dialog = nullptr;
+  }
+  ImGui::End();
+}
+
+void imgui_et_ex_render(EtEx_t* ex, int key) {
+  ImGui::PushID(key);
+  if (ImGui::Button(ETEX_TYPES[bit(ex->type) + 1])) {
+    the_dialog = ex;
+  }
+  ImGui::PopID();
+}
+
+void bm_window(bool *open) {
+  if (!*open)
+    return;
+  ImGui::Begin("Bullet manager", open);
+  static int tab = 0;
+  static EnemyBulletShooter_t bm{};
+  if (ImGui::Button(mouse_taken ? "free mouse" : "shoot at mouse")) {
+    mouse_taken = !mouse_taken;
+  }
+  if (ImGui::CollapsingHeader("Properties")) {
+    if (ImGui::Button("Bullet")) tab = 0;
+    ImGui::SameLine();
+    if (ImGui::Button("Laser")) tab = 1;
+    ImGui::SameLine();
+    if (ImGui::Button("LaserSt")) tab = 2;
+    ImGui::SameLine();
+    if (ImGui::Button("LaserCu")) tab = 3;
+    if (tab == 0) bm_bullet_content(bm);
+    if (tab == 1) bm_laser_content(bm);
+    if (tab == 2) bm_laser_st_content(bm);
+    if (tab == 3) bm_laser_cu_content(bm);
+  }
+  if (ImGui::CollapsingHeader("Et ex")) {
+    for (int i = 0; i < 20; i++) {
+      imgui_et_ex_render(&bm.ex[i], i);
+    }
+  }
+  // EtEx_t ex[20] = {};
+  ImGui::End();
+
+  et_ex_dialog(the_dialog);
 }
 
 void main_menu_window(bool *open) {
@@ -672,6 +1217,9 @@ void main_menu_window(bool *open) {
   static bool screff_w_open = false;
   screff_window(&screff_w_open);
 
+  static bool bm_w_open = false;
+  bm_window(&bm_w_open);
+
   ImGui::Begin("Anm viewer main menu", open);
   ImGui::PushID("MainMenu");
   if (ImGui::Button("open files window")) {
@@ -692,13 +1240,16 @@ void main_menu_window(bool *open) {
   if (ImGui::Button("screen effect")) {
     screff_w_open = !screff_w_open;
   }
+  if (ImGui::Button("bullet manager")) {
+    bm_w_open = !bm_w_open;
+  }
 
   ImGui::InputFloat("RESOLUTION_MULT", &RESOLUTION_MULT);
   if (ImGui::Button("ADD_ARCADE")) {
-      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_0);
-      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_1);
-      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_2__handles_upscaling);
-      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_3__handles_seija);
+    ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_0);
+    ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_1);
+    ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_2__handles_upscaling);
+    ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_3__handles_seija);
   }
   ImGui::PopID();
   ImGui::End();

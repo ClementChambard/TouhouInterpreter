@@ -18,6 +18,18 @@
     a : (GLOBALS.inner.DIFFICULTY == 1 ? b : \
     (GLOBALS.inner.DIFFICULTY == 2 ? c : d)))
 
+struct EnemySpawnData_t {
+    glm::vec3 pos{};
+    int32_t score_reward = 0;
+    int32_t main_drop = 0;
+    int32_t life = 0;
+    int32_t mirrored = 0;
+    int32_t flag_4000000 = 0;
+    int32_t ecl_int_vars[4]{};
+    float ecl_float_vars[8]{};
+    int32_t parent_enemy_id = 0;
+};
+
 class EnemyManager;
 extern EnemyManager* ENEMY_MANAGER_PTR;
 class EnemyManager {
@@ -33,16 +45,14 @@ public:
     }
     static void Cleanup() { delete GetInstance(); }
     void Start(std::string const& eclFile, std::string const& sub = "main");
-    void Update();
-    Enemy* SpawnEnemy(std::string sub, float x, float y, int life, int score,
-                      int item);
+    Enemy* allocate_new_enemy(char const* sub, EnemySpawnData_t const& spawn);
     int32_t closest_enemy_id(glm::vec2 pos);
     void EnmKillAll(const Enemy* caller = nullptr, bool byDialog = false);
     Enemy* EnmFind(int id) {
         // std::cout << "\n finding " << id << "...\n";
-        for (auto n = active_enemy_list_head->next;
-             n != active_enemy_list_tail; n = n->next)
-            if (n->value && n->value->enemyId == id) {
+        for (auto n = active_enemy_list_head;
+             n; n = n->next)
+            if (n->value->enemyId == id) {
                 // std::cout << "found!\n";
                 return n->value;
             }

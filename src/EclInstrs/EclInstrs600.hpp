@@ -226,8 +226,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     STAGE_PTR->interrupt(s);
 
     _ins(631, lifeHide) _S(t) _args
-    if (t) ENEMY_MANAGER_PTR->flags &= 0xfffffffe;
-    else   ENEMY_MANAGER_PTR->flags |= 0x00000001;
+    ENEMY_MANAGER_PTR->flags ^= (ENEMY_MANAGER_PTR->flags ^ t) & 0x1;
 
     _ins(632, funcSet) _S(id) _args
     enemy.is_func_set_2 = 0;

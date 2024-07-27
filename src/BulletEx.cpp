@@ -5,6 +5,7 @@
 #include "./Player.h"
 #include "./math/Random.h"
 #include "./math/math.h"
+#include "EnemyManager.h"
 
 extern int BULLET_ADDITIONAL_CANCEL_SCR[18];
 
@@ -764,22 +765,22 @@ int Bullet::run_et_ex() {
             ex_save.saved_speed = speed;
         }
 
-        /* spawn enemy TODO */
+        /* spawn enemy */
         if (ex_type == 0x1000000) {
-            // zEnemySpawnData spawn;
-            // spawn.pos = pos;
-            // spawn.score_reward = 0;
-            // spawn.main_drop = 0;
-            // spawn.life = 10000;
-            // spawn.__in_flag_18 = 0;
-            // spawn.__in_flag_1c = 0;
-            // spawn.ecl_vars_int[0] = et_ex->a;
-            // spawn.ecl_vars_int[1] = et_ex->b;
-            // spawn.ecl_vars_int[2] = et_ex->c;
-            // spawn.ecl_vars_int[3] = et_ex->d;
-            // for (int i = 0; i < 8; i++) spawn.ecl_vars_float[i] = 0.f;
-            // spawn.parent_enemy_id = 0;
-            // zEnemyManager__allocate_new_enemy(ENEMY_MANAGER_PTR, et_ex->string, &spawn);
+            EnemySpawnData_t spawn{};
+            spawn.pos = pos;
+            spawn.score_reward = 0;
+            spawn.main_drop = 0;
+            spawn.life = 10000;
+            spawn.mirrored = 0;
+            spawn.flag_4000000 = 0;
+            spawn.ecl_int_vars[0] = et_ex->a;
+            spawn.ecl_int_vars[1] = et_ex->b;
+            spawn.ecl_int_vars[2] = et_ex->c;
+            spawn.ecl_int_vars[3] = et_ex->d;
+            for (int i = 0; i < 8; i++) spawn.ecl_float_vars[i] = 0.f;
+            spawn.parent_enemy_id = 0;
+            ENEMY_MANAGER_PTR->allocate_new_enemy(et_ex->string, spawn);
         }
 
         /* Set layer */

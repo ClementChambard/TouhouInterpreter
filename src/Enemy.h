@@ -6,7 +6,7 @@
 #include "./EclFileManager.h"
 #include <Interp.hpp>
 #include "./PosVel.h"
-#include "Fog.hpp"
+#include "./Fog.hpp"
 #include <iostream>
 #include <string>
 
@@ -56,7 +56,7 @@ struct EnemyLife_t {
     int32_t curx7 = 0;
     int32_t nextAtk = 0;
     int32_t totalDmgIncIgn = 0;
-    int32_t isSpell;
+    int32_t isSpell = 0;
 };
 
 using NSEngine::Interp;
@@ -66,8 +66,8 @@ struct EnemyData {
     PosVel final_pos = {};
     PosVel abs_pos = {};
     PosVel rel_pos = {};
-    glm::vec2 hurtbox_size = {};
-    glm::vec2 hitbox_size = {};
+    glm::vec2 hurtbox_size = {24, 24};
+    glm::vec2 hitbox_size = {24, 24};
     float rotation = 0.f;
     AnmID anmIds[16] = {};
     glm::vec3 anmPos[16] = {};
@@ -79,14 +79,14 @@ struct EnemyData {
     int32_t anmSetMain = -1;
     int32_t anmMainSubscr = -1;
     int32_t ecl550 = 0;
-    int32_t anmLayers = 0;
+    int32_t anmLayers = 1;
     glm::vec3 lastDmgPos = {};
     int32_t ecl_int_vars[4] = {};
     float ecl_float_vars[8] = {};
     int32_t timeInEcl = 0;
     int32_t timeAlive = 0;
     float slowdown = 0;
-    EnemyList_t* node = nullptr;
+    EnemyList_t node = {};
     InterpStrange abs_pos_i = {};
     InterpStrange rel_pos_i = {};
     Interp<float> abs_angle_i = {};
@@ -139,11 +139,13 @@ struct EnemyData {
     int step_game_logic();
     void update_distorsion();
     void calc_final_pos();
+    void enm_create_from_ecl();
 };
 
 class Enemy {
 public:
     Enemy();
+    explicit Enemy(char const* sub);
     ~Enemy();
 
     void Init(std::string const& sub);

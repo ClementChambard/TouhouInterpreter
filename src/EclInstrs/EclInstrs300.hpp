@@ -32,66 +32,80 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
         // ENEMY CREATION AND ANM SCRIPT
 
-    _ins(321, enmMapleEnemy) _z(sub) _f(x) _f(y) _S(hp) _S(score)
-                             _S(item) _args
-    // is it the same ?
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
-        x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
-    if (e)
-        COPY_VARS_TO(e);
+   // _ins(321, enmMapleEnemy) _z(sub) _f(x) _f(y) _S(hp) _S(score)
+   //                          _S(item) _args
+   // // is it the same ?
+   // auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+   //     x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
+   // if (e)
+   //     COPY_VARS_TO(e);
 
-    _ins(300, enmCreate) _noprint _z(sub) _f(x) _f(y) _S(hp)
-                                  _S(score) _S(item) _args
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
-        x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
-    if (e)
-        COPY_VARS_TO(e);
-    _ins(301, enmCreateA) _noprint _z(sub) _f(x) _f(y) _S(hp)
-                                   _S(score) _S(item) _args
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
-        x, y, hp, score, item);
-    if (e)
-        COPY_VARS_TO(e);
-    _ins(304, enmCreateM) _noprint _z(sub) _f(x) _f(y) _S(hp)
-                                   _S(score) _S(item) _args
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
-        x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
-    if (e)
-        COPY_VARS_TO_M(e);
-    _ins(305, enmCreateAM) _noprint _z(sub) _f(x) _f(y) _S(hp)
-                                    _S(score) _S(item) _args
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
-        x, y, hp, score, item);
-    if (e)
-        COPY_VARS_TO_M(e);
-    _ins(309, enmCreateF) _noprint _z(sub) _f(x) _f(y) _S(hp)
-                                   _S(score) _S(item) _args
-    if (isBoss_) break;
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
-        x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
-    if (e)
-        COPY_VARS_TO(e);
-    _ins(310, enmCreateAF) _noprint _z(sub) _f(x) _f(y) _S(hp)
-                                    _S(score) _S(item) _args
-    if (isBoss_) break;
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
-        x, y, hp, score, item);
-    if (e)
-        COPY_VARS_TO(e);
-    _ins(311, enmCreateMF) _noprint _z(sub) _f(x) _f(y) _S(hp)
-                                    _S(score) _S(item) _args
-    if (isBoss_) break;
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
-        x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
-    if (e)
-        COPY_VARS_TO_M(e);
-    _ins(312, enmCreateAMF) _noprint _z(sub) _f(x) _f(y) _S(hp)
-                                     _S(score) _S(item) _args
-    if (isBoss_) break;
-    auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
-        x, y, hp, score, item);
-    if (e)
-        COPY_VARS_TO_M(e);
+   // _ins(300, enmCreate) _noprint _z(sub) _f(x) _f(y) _S(hp)
+   //                               _S(score) _S(item) _args
+   // auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+   //     x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
+   // if (e)
+   //     COPY_VARS_TO(e);
+   // _ins(301, enmCreateA) _noprint _z(sub) _f(x) _f(y) _S(hp)
+   //                                _S(score) _S(item) _args
+   // auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+   //     x, y, hp, score, item);
+   // if (e)
+   //     COPY_VARS_TO(e);
+   // _ins(304, enmCreateM) _noprint _z(sub) _f(x) _f(y) _S(hp)
+   //                                _S(score) _S(item) _args
+   // auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+   //     x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
+   // if (e)
+   //     COPY_VARS_TO_M(e);
+   // _ins(305, enmCreateAM) _noprint _z(sub) _f(x) _f(y) _S(hp)
+   //                                 _S(score) _S(item) _args
+   // auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+   //     x, y, hp, score, item);
+   // if (e)
+   //     COPY_VARS_TO_M(e);
+   // _ins(309, enmCreateF) _noprint _z(sub) _f(x) _f(y) _S(hp)
+   //                                _S(score) _S(item) _args
+   // if (isBoss_) break;
+   // auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+   //     x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
+   // if (e)
+   //     COPY_VARS_TO(e);
+   // _ins(310, enmCreateAF) _noprint _z(sub) _f(x) _f(y) _S(hp)
+   //                                 _S(score) _S(item) _args
+   // if (isBoss_) break;
+   // auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+   //     x, y, hp, score, item);
+   // if (e)
+   //     COPY_VARS_TO(e);
+   // _ins(311, enmCreateMF) _noprint _z(sub) _f(x) _f(y) _S(hp)
+   //                                 _S(score) _S(item) _args
+   // if (isBoss_) break;
+   // auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+   //     x + enemy.final_pos.pos.x, y + enemy.final_pos.pos.y, hp, score, item);
+   // if (e)
+   //     COPY_VARS_TO_M(e);
+   // _ins(312, enmCreateAMF) _noprint _z(sub) _f(x) _f(y) _S(hp)
+   //                                  _S(score) _S(item) _args
+   // if (isBoss_) break;
+   // auto e = EnemyManager::GetInstance()->SpawnEnemy(sub,
+   //     x, y, hp, score, item);
+   // if (e)
+   //     COPY_VARS_TO_M(e);
+
+    break; }
+    case 0x135:
+    case 0x136:
+    case 0x137:
+    case 0x138:
+        if (ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0])) break;
+        [[fallthrough]];
+    case 300:
+    case 0x12d:
+    case 0x130:
+    case 0x131:
+    case 0x141: {
+        enemy.enm_create_from_ecl();
 
     _ins(302, anmSelect) _S(anmID) _args enemy.selectedAnmID = anmID;
 
@@ -101,14 +115,21 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     if (-1 < scr) {
         enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
             ->createEffectFront(scr, enemy.anmLayers + 7);
-        auto vm = AnmManager::getVM(enemy.anmIds[slot]);
         if (slot == 0) {
             enemy.anm0scr = scr;
             enemy.anm0anmID = enemy.selectedAnmID;
-            enemy.finalSpriteSize = vm->sprite_size * vm->scale;
         }
-        if (enemy.flags & 0x20) {
-            vm->bitflags.f530_1 = 0;
+        auto vm = AnmManager::getVM(enemy.anmIds[slot]);
+        if (vm) {
+            if (slot == 0) {
+                enemy.finalSpriteSize.x = vm->sprite_size.y * vm->scale.y;
+                enemy.finalSpriteSize.y = vm->sprite_size.x * vm->scale.x;
+            }
+            if (enemy.flags & 0x20) {
+                vm->clear_flag_1_rec();
+            }
+        } else {
+            enemy.anmIds[slot] = 0;
         }
     }
 
@@ -122,15 +143,16 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
         break;
     }
     if (enemy.flags & 0x20) {
-        vm->bitflags.f530_1 = 0;
+        vm->clear_flag_1_rec();
     }
     if (slot == 0) {
-        enemy.finalSpriteSize = vm->sprite_size * vm->scale;
+        enemy.finalSpriteSize.x = vm->sprite_size.y * vm->scale.y;
+        enemy.finalSpriteSize.y = vm->sprite_size.x * vm->scale.x;
         enemy.flags |= 0x100000;
         enemy.anm0scr = scr;
-        enemy.anm0anmID = enemy.selectedAnmID;
         enemy.anmSetMain = scr;
         enemy.anmMainSubscr = 0;
+        enemy.anm0anmID = enemy.selectedAnmID;
     }
 
     _ins(307, anmPlay) _S(anm) _S(scr) _args
@@ -153,9 +175,13 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
         ->createEffectFront(enemy.anmSetMain + 5, enemy.anmLayers + 7);
     auto vm = AnmManager::getVM(enemy.anmIds[slot]);
-    if (!vm) enemy.anmIds[slot] = 0;
+    if (!vm) {
+        enemy.anmIds[slot] = 0;
+        break;
+    }
     if (slot == 0) {
-        enemy.finalSpriteSize = vm->sprite_size * vm->scale;
+        enemy.finalSpriteSize.x = vm->sprite_size.y * vm->scale.y;
+        enemy.finalSpriteSize.y = vm->sprite_size.x * vm->scale.x;
     }
     if (enemy.flags & 0x20) {
         vm->bitflags.f530_1 = 0;
@@ -191,9 +217,13 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
         ->createEffectFront(scr, enemy.anmLayers + 7);
     auto vm = AnmManager::getVM(enemy.anmIds[slot]);
-    if (!vm) enemy.anmIds[slot] = 0;
+    if (!vm) {
+        enemy.anmIds[slot] = 0;
+        break;
+    }
     if (slot == 0) {
-        enemy.finalSpriteSize = vm->sprite_size * vm->scale;
+        enemy.finalSpriteSize.x = vm->sprite_size.y * vm->scale.y;
+        enemy.finalSpriteSize.y = vm->sprite_size.x * vm->scale.x;
     }
     if (enemy.flags & 0x20) {
         vm->bitflags.f530_1 = 0;

@@ -17,6 +17,7 @@
 Enemy::Enemy() {
     fileManager = EclFileManager::GetInstance();
     enemy.enemy = this;
+    enemy.node.value = this;
     if (GLOBALS.inner.STAGE_NUM == 7)
         GLOBALS.inner.DIFFICULTY = 5;
     context.primaryContext.difficultyMask = 1 << GLOBALS.inner.DIFFICULTY;
@@ -37,8 +38,28 @@ Enemy::~Enemy() {
     if (enemy.fog.fog_ptr) delete enemy.fog.fog_ptr;
 }
 
+// TODO
+Enemy::Enemy(char const* sub) {
+  // EclVm::init_prolly(&this->ecl);
+  // EclVm::reset_ecl_prolly(&this->ecl);
+  enemy.enemy = this;
+  enemy.node.value = this;
+  enemyId = ENEMY_MANAGER_PTR->next_enemy_id;
+  ENEMY_MANAGER_PTR->last_enemy_id = ENEMY_MANAGER_PTR->next_enemy_id;
+  ENEMY_MANAGER_PTR->next_enemy_id++;
+  if (ENEMY_MANAGER_PTR->next_enemy_id == 0) {
+    ENEMY_MANAGER_PTR->next_enemy_id++;
+  }
+  fileManager = ENEMY_MANAGER_PTR->fileManager;
+  // this->set_sub(sub);
+  Init(sub);
+  context.currentContext->currentLocation.offset = 0;
+  context.currentContext->time = 0.0;
+}
+
 void Enemy::Init(std::string const& sub) {
     eclContextInit(&context.primaryContext, fileManager->getSubId(sub));
+    context.currentContext = &context.primaryContext;
 }
 
 void EnemyDrop_t::eject_all_drops(glm::vec3 const& pos) {
@@ -227,7 +248,7 @@ int Enemy::die() {
                                         enemy.lastDmgPos.y);
     // ENEMY_MANAGER_PTR->field_0x190 = rot_z;
     if (enemy.deathScr >= 0) {
-        AnmManager::getLoaded(enemy.deathAnm)
+        ENEMY_MANAGER_PTR->loadedAnms[enemy.deathAnm]
             ->createEffectPos(enemy.deathScr, rot_z, enemy.final_pos.pos, 3);
     }
 
@@ -843,4 +864,89 @@ void Enemy::Die() {
         AnmManager::deleteVM(enemy.anmIds[i].val);
         enemy.anmIds[i].val = 0;
     }
+}
+
+void EnemyData::enm_create_from_ecl() {
+    if (ENEMY_MANAGER_PTR->enemy_count_real >=
+        ENEMY_MANAGER_PTR->enemy_limit) return;
+    auto context = enemy->context.currentContext;
+    if (context->currentLocation.offset == -1 ||
+        context->currentLocation.sub_id == -1) return;
+    EnemySpawnData_t enemy_spawn_data;
+
+    const EclRawInstr_t* ins = reinterpret_cast<const EclRawInstr_t*>(
+        enemy->fileManager->getSubStartPtr(context->currentLocation.sub_id)
+        + context->currentLocation.offset);
+
+    uint8_t* __arg = const_cast<uint8_t*>(ins->data);
+    int __argmask = 1;
+    int32_t __sub_name_size = *reinterpret_cast<int32_t*>(__arg);
+    __arg += 4;
+    std::string sub_name = "";
+    for (int i = 0; i < __sub_name_size; i++)
+        if (__arg[i] != 0)
+            sub_name += __arg[i];
+    __arg += __sub_name_size;
+    __argmask *= 2;
+
+    float x = *reinterpret_cast<float*>(__arg);
+    if (ins->param_mask & __argmask) {
+        x = enemy->checkVarF(x);
+    }
+    __arg += 4;
+    __argmask *= 2;
+
+    float y = *reinterpret_cast<float*>(__arg);
+    if (ins->param_mask & __argmask) {
+        y = enemy->checkVarF(y);
+    }
+    __arg += 4;
+    __argmask *= 2;
+
+    int32_t life = *reinterpret_cast<int32_t*>(__arg);
+    if (ins->param_mask & __argmask) {
+        life = enemy->checkVarI(life);
+    }
+    __arg += 4;
+    __argmask *= 2;
+
+    int32_t score_reward = *reinterpret_cast<int32_t*>(__arg);
+    if (ins->param_mask & __argmask) {
+        score_reward = enemy->checkVarI(score_reward);
+    }
+    __arg += 4;
+    __argmask *= 2;
+
+    int32_t main_drop = *reinterpret_cast<int32_t*>(__arg);
+    if (ins->param_mask & __argmask) {
+        main_drop = enemy->checkVarI(main_drop);
+    }
+    context->stack.stackOffset -= enemy->stackToRemove;
+    enemy->stackToRemove = 0;
+
+    enemy_spawn_data.pos.y = 0.0;
+    enemy_spawn_data.pos.z = 0.0;
+    enemy_spawn_data.mirrored = 0;
+    enemy_spawn_data.flag_4000000 = 0;
+    enemy_spawn_data.pos.x = x;
+    enemy_spawn_data.pos.y = y;
+    int oc = ins->id;
+    if (oc == 300 || oc == 309 || oc == 321 || oc == 311 || oc == 304) {
+        enemy_spawn_data.pos.x += final_pos.pos.x;
+        enemy_spawn_data.pos.y += final_pos.pos.y;
+    }
+    if (oc == 311 || oc == 304 || oc == 312 || oc == 305) {
+        enemy_spawn_data.mirrored = 1;
+    }
+    if (flags & 0x80000) {
+        enemy_spawn_data.pos.x = enemy_spawn_data.pos.x * -1.0;
+        enemy_spawn_data.mirrored ^= 1;
+    }
+    enemy_spawn_data.life = life;
+    enemy_spawn_data.score_reward = score_reward;
+    enemy_spawn_data.main_drop = main_drop;
+    memcpy(enemy_spawn_data.ecl_int_vars, ecl_int_vars,
+           4 * sizeof(int32_t) + 8 * sizeof(float));
+    enemy_spawn_data.parent_enemy_id = enemy->enemyId;
+    ENEMY_MANAGER_PTR->allocate_new_enemy(sub_name.c_str(), enemy_spawn_data);
 }
