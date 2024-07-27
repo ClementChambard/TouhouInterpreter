@@ -15,6 +15,18 @@
 
 #include <cmath> // round
 
+anm::Stats ANM_MGR_STATS;
+static void reset_stats() {
+  ANM_MGR_STATS.n_flush_vbos = 0;
+  ANM_MGR_STATS.n_total_initiated_draws = 0;
+  ANM_MGR_STATS.n_vm_drawn_world = 0;
+  ANM_MGR_STATS.n_vm_drawn_ui = 0;
+  ANM_MGR_STATS.n_vm_drawn = 0;
+  ANM_MGR_STATS.n_vm_ticked_world = 0;
+  ANM_MGR_STATS.n_vm_ticked_ui = 0;
+  ANM_MGR_STATS.n_vm_ticked = 0;
+}
+
 namespace anm {
 
 f32 RESOLUTION_MULT = 1.f;
@@ -108,6 +120,10 @@ struct AnmManagerState {
 };
 
 static AnmManagerState *AM;
+
+void get_stats(Stats &stats) {
+  stats = ANM_MGR_STATS;
+}
 
 void setup_vao() {
   glGenVertexArrays(1, &AM->vaoID);
@@ -225,8 +241,10 @@ void cleanup() {
   while (AM->world_list_head) {
     auto n = AM->world_list_head;
     AM->world_list_head = AM->world_list_head->next;
-    if ((n->value->id.val & ID::fastIdMask) == ID::fastIdMask)
+    if ((n->value->id.val & ID::fastIdMask) == ID::fastIdMask) {
+      ANM_MGR_STATS.n_non_fast_vm_alive--;
       delete n->value;
+    }
   }
   AM->world_list_tail = nullptr;
 
@@ -234,8 +252,10 @@ void cleanup() {
   while (AM->ui_list_head) {
     auto n = AM->ui_list_head;
     AM->ui_list_head = AM->ui_list_head->next;
-    if ((n->value->id.val & ID::fastIdMask) == ID::fastIdMask)
+    if ((n->value->id.val & ID::fastIdMask) == ID::fastIdMask) {
+      ANM_MGR_STATS.n_non_fast_vm_alive--;
       delete n->value;
+    }
   }
   AM->ui_list_tail = nullptr;
 
@@ -277,6 +297,7 @@ VM *allocate_vm() {
     fvm->vm.list_of_children = {&fvm->vm, nullptr, nullptr};
     return &fvm->vm;
   }
+  ANM_MGR_STATS.n_non_fast_vm_alive++;
   auto vm = new VM();
   vm->sprite_id = -1;
   vm->instr_offset = -1;
@@ -379,8 +400,10 @@ void killAll() {
   while (AM->world_list_head) {
     auto n = AM->world_list_head->value;
     AM->world_list_head = AM->world_list_head->next;
-    if ((n->id.val & ID::fastIdMask) == ID::fastIdMask)
+    if ((n->id.val & ID::fastIdMask) == ID::fastIdMask) {
+      ANM_MGR_STATS.n_non_fast_vm_alive--;
       delete n;
+    }
   }
   AM->world_list_tail = nullptr;
 
@@ -388,8 +411,10 @@ void killAll() {
   while (AM->ui_list_head) {
     auto n = AM->ui_list_head->value;
     AM->ui_list_head = AM->ui_list_head->next;
-    if ((n->id.val & ID::fastIdMask) == ID::fastIdMask)
+    if ((n->id.val & ID::fastIdMask) == ID::fastIdMask) {
+      ANM_MGR_STATS.n_non_fast_vm_alive--;
       delete n;
+    }
   }
 
   /* CLEAN FAST VMS */
@@ -583,6 +608,7 @@ i32 destroy_possibly_managed_vm(VM *vm) {
   // if (fast_array > vm || this + 0x18600d4 <= vm) {
   if (vm->id.getFastId() == ID::fastIdMask) {
     delete vm;
+    ANM_MGR_STATS.n_non_fast_vm_alive--;
     return 0;
   }
   AM->fastArray[vm->fast_id].isAlive = false;
@@ -611,6 +637,8 @@ i32 on_tick_world() {
   VMList_t todelete = {};
 
   for (auto node = AM->world_list_head; node; node = node->next) {
+    ANM_MGR_STATS.n_vm_ticked++;
+    ANM_MGR_STATS.n_vm_ticked_world++;
     node->value->new_field_added_in_1_00b = 0;
     node->value->next_in_layer__disused = 0;
     if (node->value->bitflags.activeFlags == 0b01 ||
@@ -633,10 +661,14 @@ i32 on_tick_ui() {
   //     layer_list_dummy_heads__unused_as_of_1[i].next_in_layer__disused =
   //     nullptr;
   // }
+  reset_stats();
+  
   AM->render_loop_ctr_0xd8 = 0;
   VMList_t todelete = {};
 
   for (auto node = AM->ui_list_head; node; node = node->next) {
+    ANM_MGR_STATS.n_vm_ticked++;
+    ANM_MGR_STATS.n_vm_ticked_ui++;
     node->value->new_field_added_in_1_00b = 0;
     node->value->next_in_layer__disused = 0;
     if (node->value->bitflags.activeFlags == 0b01 ||
@@ -694,6 +726,8 @@ i32 render_layer(u32 layer) {
       l -= 12;
     }
     if (l == layer) {
+      ANM_MGR_STATS.n_vm_drawn++;
+      ANM_MGR_STATS.n_vm_drawn_world++;
       drawVM(node->value);
     }
     AM->render_loop_ctr_0xd8++;
@@ -708,6 +742,8 @@ i32 render_layer(u32 layer) {
       l = 38;
     }
     if (l == layer) {
+      ANM_MGR_STATS.n_vm_drawn++;
+      ANM_MGR_STATS.n_vm_drawn_ui++;
       drawVM(node->value);
     }
     AM->render_loop_ctr_0xd8++;
@@ -719,6 +755,7 @@ void flush_vbos() {
   if (AM->batch->is_empty()) return;
   AM->curr_shader->use();
   AM->batch->submit();
+  ANM_MGR_STATS.n_flush_vbos++;
   return;
   // TODO: REAL
   if (AM->vertex_buffers.unrendered_sprite_count != 0) {
@@ -883,6 +920,7 @@ void calc_mat_world(VM *vm) {
 }
 
 void drawVM(VM *vm) {
+  ANM_MGR_STATS.n_total_initiated_draws++;
   if (vm->index_of_on_draw && Funcs::on_draw(vm->index_of_on_draw))
     Funcs::on_draw(vm->index_of_on_draw)(vm);
 

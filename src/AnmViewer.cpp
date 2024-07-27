@@ -2,6 +2,7 @@
 #include "./Anm/AnmManager.h"
 #include "./Player.h"
 #include "./Supervisor.h"
+#include <imgui.h>
 #include <imgui_ns.hpp>
 
 #include <input.hpp>
@@ -14,6 +15,8 @@
 AnmViewer *ANM_VIEWER_PTR = nullptr;
 static UpdateFunc *ANM_VIEWER_ON_TICK = nullptr;
 static UpdateFunc *ANM_VIEWER_ON_DRAW = nullptr;
+
+static anm::Stats last_frame_stats;
 
 AnmViewer::AnmViewer() {
   ANM_VIEWER_PTR = this;
@@ -679,6 +682,22 @@ void main_menu_window(bool *open) {
   ImGui::End();
 }
 
+void anm_mgr_stats(bool *open) {
+  if (!*open) return;
+
+  ImGui::Begin("Anm mgr stats", open);
+  ImGui::Text("ticked world: %lld", last_frame_stats.n_vm_ticked_world);
+  ImGui::Text("ticked ui   : %lld", last_frame_stats.n_vm_ticked_ui);
+  ImGui::Text("ticked total: %lld", last_frame_stats.n_vm_ticked);
+  ImGui::Text("drawn world : %lld", last_frame_stats.n_vm_drawn_world);
+  ImGui::Text("drawn ui    : %lld", last_frame_stats.n_vm_drawn_ui);
+  ImGui::Text("drawn total : %lld", last_frame_stats.n_vm_drawn);
+  ImGui::Text("draw started: %lld", last_frame_stats.n_total_initiated_draws);
+  ImGui::Text("drawcalls   : %lld", last_frame_stats.n_flush_vbos);
+  ImGui::Text("non fast vms: %lld", last_frame_stats.n_non_fast_vm_alive);
+  ImGui::End();
+}
+
 void AnmViewer::on_tick() {
   static int gc_timer = 0;
   if (gc_timer++ == 60) {
@@ -693,7 +712,13 @@ void AnmViewer::on_tick() {
     anmMenu = !anmMenu;
   }
 
+  static bool anmmgrstats = false;
+  if (ns::keyboard::pressed(ns::Key::T)) {
+    anmmgrstats = !anmmgrstats;
+  }
+
   main_menu_window(&anmMenu);
+  anm_mgr_stats(&anmmgrstats);
 
   for (auto &v : m_anmviews) {
     anm_view_window(&v);
@@ -706,7 +731,10 @@ void AnmViewer::on_tick() {
 }
 
 void AnmViewer::on_draw() {
+
   ns::ImGuiContext::getInstance()->render();
+
+  anm::get_stats(last_frame_stats);
 }
 
 void AnmViewer::check_anmviews() {

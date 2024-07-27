@@ -116,6 +116,20 @@ void set_effect_508(usize i, i16 anm_loaded_index, i16 script_index,
                     i32 index_of_on_copy_1__disused = 0,
                     i32 index_of_on_copy_2__disused = 0);
 
+struct Stats {
+  usize n_vm_ticked;
+  usize n_vm_ticked_world;
+  usize n_vm_ticked_ui;
+  usize n_vm_drawn;
+  usize n_vm_drawn_world;
+  usize n_vm_drawn_ui;
+  usize n_total_initiated_draws;
+  usize n_flush_vbos;
+  usize n_non_fast_vm_alive = 0;
+};
+
+void get_stats(Stats& stats);
+
 }; // namespace AnmManager
 
 #endif // ANMMANAGER_H_
