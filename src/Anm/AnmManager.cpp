@@ -7,6 +7,7 @@
 #include "CopyTextures.hpp"
 #include "Text.hpp"
 #include <DrawFuncs.h>
+#include <DrawBatch.h>
 #include <TextureManager.h>
 #include <cstring>
 #include <fstream>
@@ -102,7 +103,7 @@ struct AnmManagerState {
   bool initialized = false;
   GLuint vboID = 0;
   GLuint vaoID = 0;
-  ns::SpriteBatch *batch{};
+  ns::DrawBatch *batch{};
   BaseShader *shader = nullptr;
   BlitShader *bshader = nullptr;
   FogShader *fshader = nullptr;
@@ -123,6 +124,36 @@ static AnmManagerState *AM;
 
 void get_stats(Stats &stats) {
   stats = ANM_MGR_STATS;
+}
+
+
+// expose these functions ?
+static void anm_use_texture(u32 tex_id) {
+  if (AM->last_used_texture != tex_id) {
+    AM->last_used_texture = tex_id;
+    flush_vbos();
+    AM->last_used_scrollmodex = 255;
+    AM->last_used_scrollmodey = 255;
+    AM->last_used_resamplemode = 255;
+    // SUPERVISOR.d3d_device->SetTexture(0, tex_id);
+    glBindTexture(GL_TEXTURE_2D, AM->last_used_texture);
+  }
+}
+
+inline void anm_use_texture(ns::Texture* tex) {
+  anm_use_texture(tex->get_opengl_id());
+}
+
+inline void anm_use_texture(VM* vm) {
+  anm_use_texture(vm->getSprite().opengl_texid);
+}
+
+static void anm_use_default_texture() {
+  if (AM->last_used_texture != 1) {
+    AM->last_used_texture = 1;
+    flush_vbos();
+    glBindTexture(GL_TEXTURE_2D, 1);
+  }
 }
 
 void setup_vao() {
@@ -198,8 +229,7 @@ void init() {
   // AM->pause_related[3].anm_loaded = -1;
 
   // setup_vao();
-  AM->batch = new ns::SpriteBatch();
-  AM->batch->init();
+  AM->batch = new ns::DrawBatch();
   AM->shader = new BaseShader();
   AM->bshader = new BlitShader();
   AM->fshader = new FogShader();
@@ -686,35 +716,6 @@ i32 on_tick_ui() {
   return 1;
 }
 
-// void draw() {
-//   for (auto node = AM->world_list_head; node; node = node->next) {
-//     if (node->value->bitflags.activeFlags)
-//       continue;
-//     auto l = node->value->layer;
-//     auto oldl = l;
-//     if (node->value->layer <= 42 && node->value->layer >= 36) {
-//       l -= 12;
-//     }
-//     node->value->layer = l;
-//     node->value->draw();
-//     node->value->layer = oldl;
-//   }
-//   for (auto node = ui_list_head; node; node = node->next) {
-//     if (node->value->bitflags.activeFlags)
-//       continue;
-//     auto l = node->value->layer;
-//     auto oldl = l;
-//     if (24 <= l && l < 32) {
-//       l += 12;
-//     } else if (l < 36 || l > 42) {
-//       l = 38;
-//     }
-//     node->value->layer = l;
-//     node->value->draw();
-//     node->value->layer = oldl;
-//   }
-// }
-
 void on_draw(u32 layer) { render_layer(layer); }
 
 i32 render_layer(u32 layer) {
@@ -781,10 +782,11 @@ void flush_vbos() {
   }
 }
 
-void setup_render_state_for_vm(VM *vm) {
-  if (AM->last_used_blendmode != vm->bitflags.blendmode) {
+// ???: expose these ?
+static void anm_use_blendmode(u32 blendmode) {
+  if (AM->last_used_blendmode != blendmode) {
     flush_vbos();
-    AM->last_used_blendmode = vm->bitflags.blendmode;
+    AM->last_used_blendmode = blendmode;
     switch (AM->last_used_blendmode) {
     case 0:
       glEnable(GL_ALPHA_TEST);
@@ -838,10 +840,14 @@ void setup_render_state_for_vm(VM *vm) {
       break;
     }
   }
+}
 
-  if (AM->last_used_resamplemode != vm->bitflags.resampleMode) {
+static void anm_use_resamplemode(u32 resamplemode) {
+  // TODO: In GL, this is by texture, so  it should work differently.
+
+  if (AM->last_used_resamplemode != resamplemode) {
     flush_vbos();
-    AM->last_used_resamplemode = vm->bitflags.resampleMode;
+    AM->last_used_resamplemode = resamplemode;
     if (AM->last_used_resamplemode == 0) {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -850,10 +856,14 @@ void setup_render_state_for_vm(VM *vm) {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
   }
+}
 
-  if (AM->last_used_scrollmodex != vm->bitflags.scrollX) {
+static void  anm_use_scrollmode_x(u32 scrollmode) {
+  // TODO: In GL, this is by texture, so  it should work differently.
+
+  if (AM->last_used_scrollmodex != scrollmode) {
     flush_vbos();
-    AM->last_used_scrollmodex = vm->bitflags.scrollX;
+    AM->last_used_scrollmodex = scrollmode;
     if (AM->last_used_scrollmodex == 0)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     else if (AM->last_used_scrollmodex == 1)
@@ -861,10 +871,14 @@ void setup_render_state_for_vm(VM *vm) {
     else if (AM->last_used_scrollmodex == 2)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
   }
+}
 
-  if (AM->last_used_scrollmodey != vm->bitflags.scrollY) {
+static void anm_use_scrollmode_y(u32 scrollmode) {
+  // TODO: In GL, this is by texture, so  it should work differently.
+
+  if (AM->last_used_scrollmodey != scrollmode) {
     flush_vbos();
-    AM->last_used_scrollmodey = vm->bitflags.scrollY;
+    AM->last_used_scrollmodey = scrollmode;
     if (AM->last_used_scrollmodey == 0)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     else if (AM->last_used_scrollmodey == 1)
@@ -872,7 +886,13 @@ void setup_render_state_for_vm(VM *vm) {
     else if (AM->last_used_scrollmodey == 2)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
   }
+}
 
+void setup_render_state_for_vm(VM *vm) {
+  anm_use_blendmode(vm->bitflags.blendmode);
+  anm_use_resamplemode(vm->bitflags.resampleMode);
+  anm_use_scrollmode_x(vm->bitflags.scrollX);
+  anm_use_scrollmode_y(vm->bitflags.scrollY);
   AM->processed_anm_ctr_0xc8++;
   return;
 }
@@ -1254,14 +1274,7 @@ void draw_vm__modes_0_1_2_3(VM *vm, i32 i) {
       (vm->uv_quad_of_sprite[3].y - vm->uv_quad_of_sprite[1].y) *
           vm->uv_scale.y;
 
-  if (AM->last_used_texture != vm->getSprite().opengl_texid) {
-    AM->last_used_texture = vm->getSprite().opengl_texid;
-    flush_vbos();
-    glBindTexture(GL_TEXTURE_2D, AM->last_used_texture);
-    AM->last_used_scrollmodex = 255;
-    AM->last_used_scrollmodey = 255;
-    AM->last_used_resamplemode = 255;
-  }
+  anm_use_texture(vm);
 
   if (AM->field_0x18607ca != 1) {
     flush_vbos();
@@ -1318,8 +1331,7 @@ void draw_vm__modes_0_1_2_3(VM *vm, i32 i) {
   ns::Vertex bl = {ns::vec3(SPRITE_TEMP_BUFFER[1].transformed_pos),
                    SPRITE_TEMP_BUFFER[1].diffuse_color,
                    SPRITE_TEMP_BUFFER[1].texture_uv};
-  AM->batch->draw(vm->getSprite().texID, tl, tr, br, bl,
-                  AM->last_used_blendmode);
+  AM->batch->draw(tl, tr, br, bl);
 }
 
 i32 draw_vm__mode_6(VM *vm) {
@@ -1520,16 +1532,7 @@ LAB_0046ecb8:
   // }
   local_90[2][3] = vm->entity_pos.z + vm->pos.z + vm->__pos_2.z;
   // SUPERVISOR.d3d_device->SetTransform(0x100, (D3DMATRIX *)local_90);
-  if (AM->last_used_texture != vm->getSprite().opengl_texid) {
-    AM->last_used_texture = vm->getSprite().opengl_texid;
-    flush_vbos();
-    glBindTexture(GL_TEXTURE_2D, AM->last_used_texture);
-    AM->last_used_scrollmodex = 255;
-    AM->last_used_scrollmodey = 255;
-    AM->last_used_resamplemode = 255;
-    // SUPERVISOR.d3d_device->SetTexture(0, vm->getSprite().opengl_texid);
-  }
-
+  anm_use_texture(vm);
   setup_render_state_for_vm(vm);
 
   // My version
@@ -1551,8 +1554,7 @@ LAB_0046ecb8:
   ns::Vertex br = {ns::vec3(local_90 * ns::vec4(right, bottom, 0, 1)), col, {u2, v2}};
   ns::Vertex bl = {ns::vec3(local_90 * ns::vec4(left, bottom, 0, 1)), col, {u1, v2}};
 
-  AM->batch->draw(vm->getSprite().texID, tl, tr, br, bl,
-                  AM->last_used_blendmode);
+  AM->batch->draw(tl, tr, br, bl);
   // TODO: real ?
   // What I did is equivalent to below (don't understand TextureStageState
   // though)
@@ -1598,15 +1600,7 @@ void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData,
   //   field_0x18607ca = 3;
   // }
   setup_render_state_for_vm(vm);
-  if (AM->last_used_texture != vm->getSprite().opengl_texid) {
-    AM->last_used_texture = vm->getSprite().opengl_texid;
-    flush_vbos();
-    // SUPERVISOR.d3d_device->SetTexture(0, last_used_texture);
-    AM->last_used_scrollmodex = 255;
-    AM->last_used_scrollmodey = 255;
-    AM->last_used_resamplemode = 255;
-    glBindTexture(GL_TEXTURE_2D, AM->last_used_texture);
-  }
+  anm_use_texture(vm);
   disable_zwrite();
   // if (field_0x18607ca != 1) {
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
@@ -1623,12 +1617,10 @@ void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData,
     auto tr = vertexData[i * 2 + 1];
     auto br = vertexData[i * 2 + 2];
     auto bl = vertexData[i * 2 + 3];
-    AM->batch->draw(vm->getSprite().texID,
-                    {ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
+    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
                     {ns::vec3(tr.transformed_pos), tr.diffuse_color, {1, 0}},
                     {ns::vec3(br.transformed_pos), br.diffuse_color, {1, 1}},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}},
-                    AM->last_used_blendmode);
+                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}});
   }
 }
 
@@ -1639,15 +1631,7 @@ void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData,
   if (AM->vertex_buffers.unrendered_sprite_count != 0) {
     flush_vbos();
   }
-  if (AM->last_used_texture != vm->getSprite().opengl_texid) {
-    AM->last_used_texture = vm->getSprite().opengl_texid;
-    flush_vbos();
-    AM->last_used_scrollmodex = 255;
-    AM->last_used_scrollmodey = 255;
-    AM->last_used_resamplemode = 255;
-    // SUPERVISOR.d3d_device->SetTexture(0, vm->getSprite().opengl_texid);
-    glBindTexture(GL_TEXTURE_2D, AM->last_used_texture);
-  }
+  anm_use_texture(vm);
   // if (field_0x18607ca != 3) {
   //   SUPERVISOR.d3d_device->SetFVF(0x144);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
@@ -1669,12 +1653,10 @@ void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData,
     auto tr = vertexData[i * 2 + 1];
     auto bl = vertexData[i * 2 + 2];
     auto br = vertexData[i * 2 + 3];
-    AM->batch->draw(vm->getSprite().texID,
-                    {ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv},
+    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv},
                     {ns::vec3(tr.transformed_pos), tr.diffuse_color, tr.texture_uv},
                     {ns::vec3(br.transformed_pos), br.diffuse_color, br.texture_uv},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv},
-                    AM->last_used_blendmode);
+                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv});
   }
   return;
 }
@@ -1723,17 +1705,11 @@ i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
   cursor[3].transformed_pos.w = 1.0;
   disable_zwrite();
   // My version
-  if (AM->last_used_texture != 1) {
-    AM->last_used_texture = 1;
-    flush_vbos();
-    glBindTexture(GL_TEXTURE_2D, 1);
-  }
-  AM->batch->draw(AM->last_used_texture,
-                  {ns::vec3(cursor[0].transformed_pos), cursor[0].diffuse_color, {0, 0}},
+  anm_use_default_texture();
+  AM->batch->draw({ns::vec3(cursor[0].transformed_pos), cursor[0].diffuse_color, {0, 0}},
                   {ns::vec3(cursor[1].transformed_pos), cursor[1].diffuse_color, {0, 0}},
                   {ns::vec3(cursor[3].transformed_pos), cursor[3].diffuse_color, {0, 0}},
-                  {ns::vec3(cursor[2].transformed_pos), cursor[2].diffuse_color, {0, 0}},
-                  AM->last_used_blendmode);
+                  {ns::vec3(cursor[2].transformed_pos), cursor[2].diffuse_color, {0, 0}});
   return 0;
   flush_vbos();
   // if (field_0x18607cf != 0) {
@@ -1774,17 +1750,25 @@ i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z,
   cursor[0].diffuse_color = col1;
   cursor[1].diffuse_color = col2;
   disable_zwrite();
-  if (AM->last_used_texture != 1) {
-    AM->last_used_texture = 1;
-    flush_vbos();
-    glBindTexture(GL_TEXTURE_2D, 1);
-  }
-  ns::draw_set_blend(AM->last_used_blendmode);
-  ns::batch_draw_line_color(
-      AM->batch, cursor[0].transformed_pos.x, cursor[0].transformed_pos.y,
-      cursor[1].transformed_pos.x, cursor[1].transformed_pos.y, 1,
-      cursor[0].diffuse_color, cursor[1].diffuse_color);
-  ns::draw_set_blend(0);
+  anm_use_default_texture();
+  // ns::draw_set_blend(AM->last_used_blendmode);
+
+
+    f32 angle = math::point_direction(cursor[0].transformed_pos.x, cursor[0].transformed_pos.y, cursor[1].transformed_pos.x, cursor[1].transformed_pos.y);
+    f32 dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
+    f32 diry = math::lengthdir_y(1.f / 2.f, angle + 90);
+    ns::Vertex g1 = {{cursor[0].transformed_pos.x - dirx, cursor[0].transformed_pos.y - diry,0.f}, cursor[0].diffuse_color, {0,0}};
+    ns::Vertex d1 = {{cursor[0].transformed_pos.x + dirx, cursor[0].transformed_pos.y + diry,0.f}, cursor[0].diffuse_color, {1,0}};
+    ns::Vertex d2 = {{cursor[1].transformed_pos.x + dirx, cursor[1].transformed_pos.y + diry,0.f}, cursor[1].diffuse_color, {1,1}};
+    ns::Vertex g2 = {{cursor[1].transformed_pos.x - dirx, cursor[1].transformed_pos.y - diry,0.f}, cursor[1].diffuse_color, {0,1}};
+    AM->batch->draw(g1, d1, d2, g2);
+
+
+  //ns::batch_draw_line_color(
+  //    AM->batch, cursor[0].transformed_pos.x, cursor[0].transformed_pos.y,
+  //    cursor[1].transformed_pos.x, cursor[1].transformed_pos.y, 1,
+  //    cursor[0].diffuse_color, cursor[1].diffuse_color);
+  // ns::draw_set_blend(0);
   return 0;
   flush_vbos();
   // if (field_0x18607cf != 0) {
@@ -1842,19 +1826,76 @@ i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rotz,
   cursor[4].transformed_pos.w = 1.0;
   cursor[4].diffuse_color = col1;
   disable_zwrite();
-  if (AM->last_used_texture != 1) {
-    AM->last_used_texture = 1;
-    flush_vbos();
-    glBindTexture(GL_TEXTURE_2D, 1);
-  }
-  ns::draw_set_blend(AM->last_used_blendmode);
-  ns::batch_draw_quad_color_2d(
-      AM->batch, 
-      ns::vec2(cursor[0].transformed_pos), ns::vec2(cursor[1].transformed_pos),
-      ns::vec2(cursor[2].transformed_pos), ns::vec2(cursor[3].transformed_pos),
-      cursor[0].diffuse_color, cursor[1].diffuse_color, cursor[2].diffuse_color,
-      cursor[3].diffuse_color, true);
-  ns::draw_set_blend(0);
+  anm_use_default_texture();
+  // ns::draw_set_blend(AM->last_used_blendmode);
+  // ns::batch_draw_line_color(AM->batch,cursor[0].transformed_pos.x, cursor[0].transformed_pos.y,cursor[1].transformed_pos.x,cursor[1].transformed_pos.y,1,cursor[0].diffuse_color,cursor[1].diffuse_color);
+  // ns::batch_draw_line_color(AM->batch,cursor[0].transformed_pos.x, cursor[0].transformed_pos.y,cursor[3].transformed_pos.x,cursor[3].transformed_pos.y,1,cursor[0].diffuse_color,cursor[3].diffuse_color);
+  // ns::batch_draw_line_color(AM->batch,cursor[1].transformed_pos.x,cursor[1].transformed_pos.y,cursor[2].transformed_pos.x,cursor[2].transformed_pos.y,1,cursor[1].diffuse_color,cursor[2].diffuse_color);
+  // ns::batch_draw_line_color(AM->batch,cursor[3].transformed_pos.x,cursor[3].transformed_pos.y,cursor[2].transformed_pos.x,cursor[2].transformed_pos.y,1,cursor[3].diffuse_color,cursor[2].diffuse_color);
+  // ns::draw_set_blend(0);
+
+
+  f32 angle = math::point_direction(cursor[0].transformed_pos.x,cursor[0].transformed_pos.y,cursor[1].transformed_pos.x,cursor[1].transformed_pos.y);
+  f32 dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
+  f32 diry = math::lengthdir_y(1.f / 2.f, angle + 90);
+
+  ns::vec3 diag1 = ns::vec3(-dirx, diry, 0.f);
+  ns::vec3 diag2 = ns::vec3(dirx, diry, 0.f);
+
+  ns::Vertex tlX = {ns::vec3(cursor[0].transformed_pos) - diag1, cursor[0].diffuse_color, {0, 0}};
+  ns::Vertex tlI = {ns::vec3(cursor[0].transformed_pos) + diag1, cursor[0].diffuse_color, {0, 0}};
+  ns::Vertex trX = {ns::vec3(cursor[1].transformed_pos) - diag2, cursor[1].diffuse_color, {0, 0}};
+  ns::Vertex trI = {ns::vec3(cursor[1].transformed_pos) + diag2, cursor[1].diffuse_color, {0, 0}};
+  ns::Vertex brX = {ns::vec3(cursor[2].transformed_pos) - diag1, cursor[2].diffuse_color, {0, 0}};
+  ns::Vertex brI = {ns::vec3(cursor[2].transformed_pos) + diag1, cursor[2].diffuse_color, {0, 0}};
+  ns::Vertex blX = {ns::vec3(cursor[3].transformed_pos) - diag2, cursor[3].diffuse_color, {0, 0}};
+  ns::Vertex blI = {ns::vec3(cursor[3].transformed_pos) + diag2, cursor[3].diffuse_color, {0, 0}};
+
+  AM->batch->draw(tlX, tlI, blX, blI);
+  AM->batch->draw(trX, trI, tlI, tlX);
+  AM->batch->draw(brI, brX, trI, trX);
+  AM->batch->draw(blX, blI, brI, brX);
+
+  // int p1 = 0, p2 = 1;
+  // f32 angle = math::point_direction(cursor[p1].transformed_pos.x,cursor[p1].transformed_pos.y,cursor[p2].transformed_pos.x,cursor[p2].transformed_pos.y);
+  // f32 dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
+  // f32 diry = math::lengthdir_y(1.f / 2.f, angle + 90);
+  // ns::Vertex g1 = {{cursor[p1].transformed_pos.x - dirx,cursor[p1].transformed_pos.y - diry,0.f}, cursor[p1].diffuse_color, {0,0}};
+  // ns::Vertex d1 = {{cursor[p1].transformed_pos.x + dirx,cursor[p1].transformed_pos.y + diry,0.f}, cursor[p1].diffuse_color, {1,0}};
+  // ns::Vertex d2 = {{cursor[p2].transformed_pos.x + dirx,cursor[p2].transformed_pos.y + diry,0.f}, cursor[p2].diffuse_color, {1,1}};
+  // ns::Vertex g2 = {{cursor[p2].transformed_pos.x - dirx,cursor[p2].transformed_pos.y - diry,0.f}, cursor[p2].diffuse_color, {0,1}};
+  // AM->batch->draw(g1, d1, d2, g2);
+  // 
+  // p1 = 0, p2 = 3;
+  // angle = math::point_direction(cursor[p1].transformed_pos.x,cursor[p1].transformed_pos.y,cursor[p2].transformed_pos.x,cursor[p2].transformed_pos.y);
+  // dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
+  // diry = math::lengthdir_y(1.f / 2.f, angle + 90);
+  // g1 = {{cursor[p1].transformed_pos.x - dirx,cursor[p1].transformed_pos.y - diry,0.f}, cursor[p1].diffuse_color, {0,0}};
+  // d1 = {{cursor[p1].transformed_pos.x + dirx,cursor[p1].transformed_pos.y + diry,0.f}, cursor[p1].diffuse_color, {1,0}};
+  // d2 = {{cursor[p2].transformed_pos.x + dirx,cursor[p2].transformed_pos.y + diry,0.f}, cursor[p2].diffuse_color, {1,1}};
+  // g2 = {{cursor[p2].transformed_pos.x - dirx,cursor[p2].transformed_pos.y - diry,0.f}, cursor[p2].diffuse_color, {0,1}};
+  // AM->batch->draw(g1, d1, d2, g2);
+  // 
+  // p1 = 1, p2 = 2;
+  // angle = math::point_direction(cursor[p1].transformed_pos.x,cursor[p1].transformed_pos.y,cursor[p2].transformed_pos.x,cursor[p2].transformed_pos.y);
+  // dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
+  // diry = math::lengthdir_y(1.f / 2.f, angle + 90);
+  // g1 = {{cursor[p1].transformed_pos.x - dirx,cursor[p1].transformed_pos.y - diry,0.f}, cursor[p1].diffuse_color, {0,0}};
+  // d1 = {{cursor[p1].transformed_pos.x + dirx,cursor[p1].transformed_pos.y + diry,0.f}, cursor[p1].diffuse_color, {1,0}};
+  // d2 = {{cursor[p2].transformed_pos.x + dirx,cursor[p2].transformed_pos.y + diry,0.f}, cursor[p2].diffuse_color, {1,1}};
+  // g2 = {{cursor[p2].transformed_pos.x - dirx,cursor[p2].transformed_pos.y - diry,0.f}, cursor[p2].diffuse_color, {0,1}};
+  // AM->batch->draw(g1, d1, d2, g2);
+  // 
+  // p1 = 3, p2 = 2;
+  // angle = math::point_direction(cursor[p1].transformed_pos.x,cursor[p1].transformed_pos.y,cursor[p2].transformed_pos.x,cursor[p2].transformed_pos.y);
+  // dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
+  // diry = math::lengthdir_y(1.f / 2.f, angle + 90);
+  // g1 = {{cursor[p1].transformed_pos.x - dirx,cursor[p1].transformed_pos.y - diry,0.f}, cursor[p1].diffuse_color, {0,0}};
+  // d1 = {{cursor[p1].transformed_pos.x + dirx,cursor[p1].transformed_pos.y + diry,0.f}, cursor[p1].diffuse_color, {1,0}};
+  // d2 = {{cursor[p2].transformed_pos.x + dirx,cursor[p2].transformed_pos.y + diry,0.f}, cursor[p2].diffuse_color, {1,1}};
+  // g2 = {{cursor[p2].transformed_pos.x - dirx,cursor[p2].transformed_pos.y - diry,0.f}, cursor[p2].diffuse_color, {0,1}};
+  // AM->batch->draw(g1, d1, d2, g2);
+
   return 0;
   // flush_vbos();
   // if (field_0x18607cf != 0) {
@@ -1901,34 +1942,27 @@ i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0,
   disable_zwrite();
   disable_ztest();
   // My version
-  if (AM->last_used_texture != 1) {
-    AM->last_used_texture = 1;
-    flush_vbos();
-    glBindTexture(GL_TEXTURE_2D, 1);
-  }
+  anm_use_default_texture();
   for (i32 i = 0; i < vertex_count / 2; i++) {
     auto tl = AM->vertex_buffers.primitive_write_cursor[0];
     auto tr = AM->vertex_buffers.primitive_write_cursor[i * 2 + 1];
     auto br = AM->vertex_buffers.primitive_write_cursor[i * 2 + 2];
     auto bl = AM->vertex_buffers.primitive_write_cursor[i * 2 + 3];
-    AM->batch->draw(AM->last_used_texture,
-                    {ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
+    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
                     {ns::vec3(tr.transformed_pos), tr.diffuse_color, {1, 0}},
                     {ns::vec3(br.transformed_pos), br.diffuse_color, {1, 1}},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}},
-                    AM->last_used_blendmode);
+                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}});
+                    
   }
   if (vertex_count % 2) {
     auto tl = AM->vertex_buffers.primitive_write_cursor[0];
     auto tr = AM->vertex_buffers.primitive_write_cursor[vertex_count];
     auto br = AM->vertex_buffers.primitive_write_cursor[1];
     auto bl = AM->vertex_buffers.primitive_write_cursor[1];
-    AM->batch->draw(AM->last_used_texture,
-                    {ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
+    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
                     {ns::vec3(tr.transformed_pos), tr.diffuse_color, {1, 0}},
                     {ns::vec3(br.transformed_pos), br.diffuse_color, {1, 1}},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}},
-                    AM->last_used_blendmode);
+                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}});
   }
   return 0;
   // if (field_0x18607cf != 0) {
@@ -1970,18 +2004,25 @@ i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0,
   }
 
   // My version
-  if (AM->last_used_texture != 1) {
-    AM->last_used_texture = 1;
-    flush_vbos();
-    glBindTexture(GL_TEXTURE_2D, 1);
-  }
+  anm_use_default_texture();
   for (i32 i = 0; i < nb_vertex; i++) {
     auto p1 = AM->vertex_buffers.primitive_write_cursor[i];
     auto p2 = AM->vertex_buffers.primitive_write_cursor[i + 1];
-    ns::batch_draw_line_color(AM->batch, p1.transformed_pos.x,
-                              p1.transformed_pos.y, p2.transformed_pos.x,
-                              p2.transformed_pos.y, 1, p1.diffuse_color,
-                              p2.diffuse_color);
+    // ns::batch_draw_line_color(AM->batch, p1.transformed_pos.x,
+    //                           p1.transformed_pos.y, p2.transformed_pos.x,
+    //                           p2.transformed_pos.y, 1, p1.diffuse_color,
+    //                           p2.diffuse_color);
+
+    f32 angle = math::point_direction(p1.transformed_pos.x, p1.transformed_pos.y, p2.transformed_pos.x, p2.transformed_pos.y);
+    f32 dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
+    f32 diry = math::lengthdir_y(1.f / 2.f, angle + 90);
+    ns::Vertex g1 = {{p1.transformed_pos.x - dirx,p1.transformed_pos.y - diry,0.f}, p1.diffuse_color, {0,0}};
+    ns::Vertex d1 = {{p1.transformed_pos.x + dirx,p1.transformed_pos.y + diry,0.f}, p1.diffuse_color, {1,0}};
+    ns::Vertex d2 = {{p2.transformed_pos.x + dirx,p2.transformed_pos.y + diry,0.f}, p2.diffuse_color, {1,1}};
+    ns::Vertex g2 = {{p2.transformed_pos.x - dirx,p2.transformed_pos.y - diry,0.f}, p2.diffuse_color, {0,1}};
+    AM->batch->draw(g1, d1, d2, g2);
+
+
   }
   return 0;
   flush_vbos();
@@ -2032,22 +2073,17 @@ i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0,
   }
 
   // My version
-  if (AM->last_used_texture != 1) {
-    AM->last_used_texture = 1;
-    flush_vbos();
-    glBindTexture(GL_TEXTURE_2D, 1);
-  }
+  anm_use_default_texture();
   for (i32 i = 0; i < vertex_count; i++) {
     auto tl = AM->vertex_buffers.primitive_write_cursor[i * 2 + 0];
     auto tr = AM->vertex_buffers.primitive_write_cursor[i * 2 + 1];
     auto bl = AM->vertex_buffers.primitive_write_cursor[i * 2 + 2];
     auto br = AM->vertex_buffers.primitive_write_cursor[i * 2 + 3];
-    AM->batch->draw(AM->last_used_texture,
-                    {ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
+    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
                     {ns::vec3(tr.transformed_pos), tr.diffuse_color, {1, 0}},
                     {ns::vec3(br.transformed_pos), br.diffuse_color, {1, 1}},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}},
-                    AM->last_used_blendmode);
+                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}});
+                    
   }
 
   return 0;
@@ -2104,15 +2140,7 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
   }
   setup_render_state_for_vm(vm);
 
-  if (AM->last_used_texture != vm->getSprite().opengl_texid) {
-    AM->last_used_texture = vm->getSprite().opengl_texid;
-    AM->last_used_scrollmodex = 255;
-    AM->last_used_scrollmodey = 255;
-    AM->last_used_resamplemode = 255;
-    flush_vbos();
-    // SUPERVISOR.d3d_device->SetTexture(0, last_used_texture);
-    glBindTexture(GL_TEXTURE_2D, AM->last_used_texture);
-  }
+  anm_use_texture(vm);
 
   auto cursor = reinterpret_cast<RenderVertex_t *>(buff);
   std::vector<RenderVertex_t> data(cursor, &cursor[cnt]);
@@ -2126,12 +2154,10 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
     auto &tr = data[i * 2 + 1];
     auto &bl = data[i * 2 + 2];
     auto &br = data[i * 2 + 3];
-    AM->batch->draw(vm->getSprite().texID,
-                    {ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv},
+    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv},
                     {ns::vec3(tr.transformed_pos), tr.diffuse_color, tr.texture_uv},
                     {ns::vec3(br.transformed_pos), br.diffuse_color, br.texture_uv},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv},
-                    AM->last_used_blendmode);
+                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv});
   }
   return;
 
@@ -2153,7 +2179,7 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
   //   this->field28_0x18607ca = 5;
   // }
   // if (ANM_MANAGER_PTR->field33_0x18607cf != 1) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 4);
+  //   SUPERVISOR.d3d
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 4);
   //   ANM_MANAGER_PTR->field33_0x18607cf = 1;
   // }
@@ -2367,10 +2393,10 @@ void draw_rect_col(ns::vec4 const &rect, ns::Color c) {
   //(*(SUPERVISOR.d3d_device)->vtable->SetRenderState)(SUPERVISOR.d3d_device,D3DRS_DESTBLEND,6);
   //(*(SUPERVISOR.d3d_device)->vtable->SetFVF)(SUPERVISOR.d3d_device,0x44);
   //(*(SUPERVISOR.d3d_device)->vtable->DrawPrimitiveUP)(SUPERVISOR.d3d_device,D3DPT_TRIANGLESTRIP,2,vertices,0x14);
-  AM->batch->draw(1, {{rect.x, rect.y, 0.f}, c, {0.f, 0.f}},
+  AM->batch->draw({{rect.x, rect.y, 0.f}, c, {0.f, 0.f}},
                   {{rect.z, rect.y, 0.f}, c, {1.f, 0.f}},
                   {{rect.z, rect.w, 0.f}, c, {1.f, 1.f}},
-                  {{rect.x, rect.w, 0.f}, c, {0.f, 1.f}}, 0);
+                  {{rect.x, rect.w, 0.f}, c, {0.f, 1.f}});
   flush_vbos();
   AM->field_0x18607c9 = 255;
   AM->field_0x18607ca = 255;
@@ -2437,20 +2463,24 @@ void _set_cam_vec2_fc(ns::vec2 v) {
 
 void raw_batch_draw(u32 texture, RenderVertex_t tl, RenderVertex_t tr,
                                 RenderVertex_t br, RenderVertex_t bl, u8 blendmode) {
+  anm_use_texture(texture);
+  anm_use_blendmode(blendmode);
   ns::Vertex ns_tl = {ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv};
   ns::Vertex ns_tr = {ns::vec3(tr.transformed_pos), tr.diffuse_color, tr.texture_uv};
   ns::Vertex ns_br = {ns::vec3(br.transformed_pos), br.diffuse_color, br.texture_uv};
   ns::Vertex ns_bl = {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv};
-  AM->batch->draw(texture, ns_tl, ns_tr, ns_br, ns_bl, blendmode);
+  AM->batch->draw(ns_tl, ns_tr, ns_br, ns_bl);
 }
 
 void raw_batch_draw(ns::Texture* texture, RenderVertex_t tl, RenderVertex_t tr,
                                 RenderVertex_t br, RenderVertex_t bl, u8 blendmode) {
+  anm_use_texture(texture);
+  anm_use_blendmode(blendmode);
   ns::Vertex ns_tl = {ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv};
   ns::Vertex ns_tr = {ns::vec3(tr.transformed_pos), tr.diffuse_color, tr.texture_uv};
   ns::Vertex ns_br = {ns::vec3(br.transformed_pos), br.diffuse_color, br.texture_uv};
   ns::Vertex ns_bl = {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv};
-  AM->batch->draw(texture, ns_tl, ns_tr, ns_br, ns_bl, blendmode);
+  AM->batch->draw(ns_tl, ns_tr, ns_br, ns_bl);
 }
 
 } // namespace anm
