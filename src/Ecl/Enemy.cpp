@@ -33,7 +33,7 @@ Enemy::~Enemy() {
       ENEMY_MANAGER_PTR->boss_ids[enemy.ownBossId] = 0;
     }
     for (int i = 0; i < 16; i++)
-        anm::deleteVM(enemy.anmIds[i].val);
+        anm::delete_vm(enemy.anmIds[i].val);
     /* Clear async list */
     clear_async_contexts();
     ENEMY_MANAGER_PTR->enemy_count_real--;
@@ -178,14 +178,14 @@ int EnemyData::step_interpolators() {
                 }
             }
 
-            vm0 = anm::getVM(anmIds[0].val);
+            vm0 = anm::get_vm(anmIds[0].val);
             if (vm0 == nullptr) {
                 anmIds[0].val = 0;
             }
             ns::vec3 pos = { 0, 0, 0 };
             if (vm0) {
                 pos = vm0->pos;
-                anm::deleteVM(anmIds[0].val);
+                anm::delete_vm(anmIds[0].val);
                 anmIds[0].val = 0;
             }
             anmIds[0] = ENEMY_MANAGER_PTR->loadedAnms[anm0anmID]->spawnVMExt(anm0scr + scr, 0, pos, 8, anmLayers + 7);
@@ -194,7 +194,7 @@ int EnemyData::step_interpolators() {
     }
 
     // update sprite size
-    vm0 = anm::getVM(anmIds[0].val);
+    vm0 = anm::get_vm(anmIds[0].val);
     if (vm0) {
         auto s = vm0->getSprite();
         finalSpriteSize.x = ns::abs(s.w * vm0->scale.x);
@@ -495,7 +495,7 @@ int EnemyData::step_game_logic() {
     if (timerCountDown > 0)
         timerCountDown--;
 
-    auto vm0 = anm::getVM(anmIds[0]);
+    auto vm0 = anm::get_vm(anmIds[0]);
     if (!vm0) {
         anmIds[0] = 0;
         return 0;
@@ -631,15 +631,15 @@ int EnemyData::update() {
 
         if (flags & 0x4000000) {
             for (size_t i = 0; i < 14; i++) {
-                if (auto vm = anm::getVM(anmIds[i]); vm)
+                if (auto vm = anm::get_vm(anmIds[i]); vm)
                     vm->entity_pos = final_pos.pos;
             }
         } else {
             for (size_t i = 0; i < 14; i++) {
-                if (auto vm = anm::getVM(anmIds[i]); vm) {
+                if (auto vm = anm::get_vm(anmIds[i]); vm) {
                     ns::vec3 p = anmPos[i] + final_pos.pos;
                     if (anmRelated[i] >= 0) {
-                        if (auto vm2 = anm::getVM(
+                        if (auto vm2 = anm::get_vm(
                             anmIds[anmRelated[i]]); vm2)
                             p += vm2->pos;
                         else
@@ -681,7 +681,7 @@ int Enemy::update() {
         }
 
         for (size_t i = 0; i < 16; i++) {
-            if (auto vm = anm::getVM(enemy.anmIds[i]); vm)
+            if (auto vm = anm::get_vm(enemy.anmIds[i]); vm)
                 vm->slowdown = enemy.slowdown;
             else
                 enemy.anmIds[i] = 0;
@@ -694,7 +694,7 @@ int Enemy::update() {
     }
     if (enemy.flags & 0x100000000) {
         for (size_t i = 0; i < 16; i++) {
-            if (auto vm = anm::getVM(enemy.anmIds[i]); vm)
+            if (auto vm = anm::get_vm(enemy.anmIds[i]); vm)
                 vm->slowdown = 0;
             else
                 enemy.anmIds[i] = 0;
@@ -740,13 +740,13 @@ void Enemy::Tick() {
 
     /* Update position of attached anims  */
     for (int i = 0; i < 16; i++) {
-        auto anm = anm::getVM(enemy.anmIds[i].val);
+        auto anm = anm::get_vm(enemy.anmIds[i].val);
         if (!anm) {
             enemy.anmIds[i].val = 0;
             continue;
         }
         ns::vec3 pos = enemy.final_pos.pos + enemy.anmPos[i];
-        anm->setEntityPos(pos.x, pos.y, enemy.final_pos.pos.z);
+        anm->entity_pos = {pos.x, pos.y, enemy.final_pos.pos.z};
     }
 
     /* Update time variables */
@@ -836,7 +836,7 @@ void Enemy::Die() {
     context.primaryContext.currentLocation.sub_id = -1;
     context.primaryContext.currentLocation.offset = -1;
     for (int i = 0; i < 16; i++) {
-        anm::deleteVM(enemy.anmIds[i].val);
+        anm::delete_vm(enemy.anmIds[i].val);
         enemy.anmIds[i].val = 0;
     }
 }

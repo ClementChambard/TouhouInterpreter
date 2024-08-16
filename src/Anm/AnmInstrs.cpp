@@ -21,7 +21,7 @@ int VM::exec_instruction(bytes ins) {
         case   0: // nop
             break;
         case   1: // destroy
-            anm::deleteVM(this);
+            anm::delete_vm(this);
             // bitflags.activeFlags = ANMVM_DELETE;
             break;
         case   2: // freeze
@@ -430,13 +430,13 @@ int VM::exec_instruction(bytes ins) {
         case 505: {// scriptNewPos
             auto id = anm::getLoaded(anm_loaded_index)
                 ->create_child_vm(S(0), this, 0);
-            auto vm = anm::getVM(id);
+            auto vm = anm::get_vm(id);
             vm->__pos_2 = { f(1), f(2), 0.f };
             break; }
         case 506: {// scriptNewPosRoot
             auto id = anm::getLoaded(anm_loaded_index)
                 ->new_root(S(0), this);
-            auto vm = anm::getVM(id);
+            auto vm = anm::get_vm(id);
             vm->__pos_2 = { f(1), f(2), 0.f };
             break;}
         case 507: // ins_507 (ignore parent)

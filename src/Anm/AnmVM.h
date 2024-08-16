@@ -17,42 +17,36 @@ struct FastVM;
 
 struct ID {
   ID() {}
-  ID(i32 i) { val = i; }
-  operator i32() { return val; }
-  static constexpr u32 fastIdMask = 8191;
-  static constexpr u32 disctOffset = 14;
-  u32 val = 0;
-  void setDiscriminator(i32 discr) {
-    val = (val & fastIdMask) | (discr << disctOffset);
-  }
-  void setFastId(i32 fast) {
-    val = (val & ~fastIdMask) | (fast & fastIdMask);
-  }
-  u32 getFastId() { return val & fastIdMask; }
-  bool operator==(u32 other) { return val == other; }
-  bool operator!=(u32 other) { return val != other; }
-};
-
-struct VMList_t {
-  VM *value = nullptr;
-  VMList_t *next = nullptr;
-  VMList_t *previous = nullptr;
-};
-
-struct FastVMList_t {
-  FastVM *value = nullptr;
-  FastVMList_t *next = nullptr;
-  FastVMList_t *previous = nullptr;
+  ID(u32 i) { val = i; }
+  operator u32() { return val; }
+  static constexpr u32 fast_id_mask = 8191;
+  union {
+    u32 val = 0;
+    struct {
+      u32 fast_id : 13;
+      u32 what : 1;
+      u32 discriminator : 18;
+    };
+  };
+  bool operator==(ID other) { return val == other.val; }
+  bool operator!=(ID other) { return val != other.val; }
 };
 
 struct VM {
+
+  struct List_t {
+    VM *value = nullptr;
+    List_t *next = nullptr;
+    List_t *previous = nullptr;
+  };
 
   VM() {}
   VM(u32 script_id, u32 anim_slot);
 
   ~VM();
 
-  i32 update(bool printInstr = false);
+  i32 update();
+  i32 run();
   void destroy();
   void interrupt(i32 i);
   void interruptRun(i32 i);
@@ -62,56 +56,33 @@ struct VM {
   void set_flag_1_rec();
   void reset();
 
+  // private
   i32 &check_ref(i32 i);
   f32 &check_ref(f32 f);
   i32 check_val(i32 i);
   f32 check_val(f32 f);
   i32 exec_instruction(bytes ins);
-  VM* search_children(i32 a, i32 b);
-
-  void setPos(f32 x, f32 y, f32 z) { pos = {x, y, z}; }
-  void setEntityPos(f32 x, f32 y, f32 z) { entity_pos = {x, y, z}; }
-  void setPos2(f32 x, f32 y, f32 z) { __pos_2 = {x, y, z}; }
-  void setScale(f32 x, f32 y) { scale = {x, y}; }
-  void setScale2(f32 x, f32 y) { scale_2 = {x, y}; }
-  void setI(i32 i, i32 v) { int_script_vars[i] = v; }
-  void setf(i32 i, i32 v) { float_script_vars[i] = v; }
-  void setLayer(u32 i);
-  void setEntity(void *e) { associated_game_entity = e; }
-  void setRotz(f32 z) { rotation.z = z; }
-  void setFlags(VM_flags_t const &flags) { bitflags = flags; }
-  VM_flags_t getFlags() const { return bitflags; }
-  i32 getMode() const;
-  i32 getLayer() const { return layer; }
-  i32 getZdis() const;
-  ns::vec3 getRotation();
-  void *getEntity() const { return associated_game_entity; }
-  VMList_t *getChild() { return list_of_children.next; }
-  u32 getID() const { return id.val; }
-  Sprite getSprite() const;
-  void getSpriteCorners2D(ns::vec2 *corners);
-  void getParentData(ns::vec3 &pos, ns::vec3 &rot, ns::vec2 &scale);
-
-  i32 run();
   void step_interpolators();
   void update_variables_growth();
+  void write_texture_circle_vertices();
+
+  VM *search_children(i32 a, i32 b);
+
+  void setLayer(u32 i);
+  ns::vec3 getRotation();
+  Sprite getSprite() const;
+  void getSpriteCorners2D(ns::vec2 *corners);
 
   void alloc_special_vertex_buffer(i32 size);
   void transform_coordinate(ns::vec3 &pos);
   ns::vec3 get_pos_with_root();
   ns::vec3 get_own_transformed_pos();
   void write_sprite_corners_2d(ns::vec4 *corners);
-  void write_sprite_corners__without_rot(ns::vec4 &v1, ns::vec4 &v2,
-                                         ns::vec4 &v3, ns::vec4 &v4);
-  void write_sprite_corners__with_z_rot(ns::vec4 &v1, ns::vec4 &v2,
-                                        ns::vec4 &v3, ns::vec4 &v4);
+  void write_sprite_corners__without_rot(ns::vec4 &v1, ns::vec4 &v2, ns::vec4 &v3, ns::vec4 &v4);
+  void write_sprite_corners__with_z_rot(ns::vec4 &v1, ns::vec4 &v2, ns::vec4 &v3, ns::vec4 &v4);
   i32 write_sprite_corners__mode_4();
 
-  void write_texture_circle_vertices();
-
   i32 wait(f32 old_gamespeed = 1.f);
-  
-  static i32 cnt;
 
   // PREFIX
   ns::Timer_t interrupt_return_time = -99;
@@ -180,10 +151,10 @@ struct VM {
   i32 fast_id = 0;
   ns::Timer_t time_in_script = 0;
   ns::Timer_t __timer_1c = 0;
-  VMList_t node_in_global_list = {this, nullptr, nullptr};
-  VMList_t __node_as_child = {this, nullptr, nullptr};
-  VMList_t list_of_children = {};
-  VMList_t __wierd_list = {this, nullptr, nullptr};
+  List_t node_in_global_list = {this, nullptr, nullptr};
+  List_t __node_as_child = {this, nullptr, nullptr};
+  List_t list_of_children = {};
+  List_t __wierd_list = {this, nullptr, nullptr};
   VM *next_in_layer__disused = nullptr;
   i32 new_field_added_in_1_00b = 0;
   VM *__root_vm__or_maybe_not = nullptr;
@@ -205,8 +176,14 @@ struct VM {
 };
 
 struct FastVM {
+  struct List_t {
+    FastVM *value = nullptr;
+    List_t *next = nullptr;
+    List_t *previous = nullptr;
+  };
+
   VM vm;
-  FastVMList_t freelistNode = {this, nullptr, nullptr};
+  List_t freelistNode = {this, nullptr, nullptr};
   bool isAlive = false;
   ID fastID = 0;
 };

@@ -94,12 +94,12 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(302, anmSelect) _S(anmID) _args enemy.selectedAnmID = anmID;
 
     _ins(303, anmSetSpr) _S(slot) _S(scr) _args
-    anm::deleteVM(enemy.anmIds[slot]);
+    anm::delete_vm(enemy.anmIds[slot]);
     enemy.anmIds[slot] = 0;
     if (-1 < scr) {
         enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
             ->createEffectFront(scr, enemy.anmLayers + 7);
-        auto vm = anm::getVM(enemy.anmIds[slot]);
+        auto vm = anm::get_vm(enemy.anmIds[slot]);
         if (slot == 0) {
             enemy.anm0scr = scr;
             enemy.anm0anmID = enemy.selectedAnmID;
@@ -111,10 +111,10 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
 
     _ins(306, anmSetMain) _S(slot) _S(scr) _args
-    anm::deleteVM(enemy.anmIds[slot]);
+    anm::delete_vm(enemy.anmIds[slot]);
     enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
         ->createEffectFront(scr, enemy.anmLayers + 7);
-    auto vm = anm::getVM(enemy.anmIds[slot]);
+    auto vm = anm::get_vm(enemy.anmIds[slot]);
     if (!vm) {
         enemy.anmIds[slot] = 0;
         break;
@@ -147,10 +147,10 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     // }
 
     _ins(313, anmSelPlay) _S(slot) _args
-    anm::deleteVM(enemy.anmIds[slot]);
+    anm::delete_vm(enemy.anmIds[slot]);
     enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
         ->createEffectFront(enemy.anmSetMain + 5, enemy.anmLayers + 7);
-    auto vm = anm::getVM(enemy.anmIds[slot]);
+    auto vm = anm::get_vm(enemy.anmIds[slot]);
     if (!vm) enemy.anmIds[slot] = 0;
     if (slot == 0) {
         enemy.finalSpriteSize = vm->sprite_size * vm->scale;
@@ -170,7 +170,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(315, anmPlayRotate) _S(anm) _S(scr) _f(rot) _args
     auto id = ENEMY_MANAGER_PTR->loadedAnms[anm]->spawnVMExt(
             scr, 0, enemy.final_pos.pos, 2);
-    auto vm = anm::getVM(id);
+    auto vm = anm::get_vm(id);
     if (vm) {
         vm->entity_pos = enemy.final_pos.pos;
         vm->rotation.z = rot;
@@ -183,12 +183,12 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
 
     _ins(316, anm316) _S(slot) _S(scr) _args
-    anm::deleteVM(enemy.anmIds[slot]);
+    anm::delete_vm(enemy.anmIds[slot]);
     enemy.anmIds[slot] = 0;
     scr = (scr < 0) ? enemy.anmSetMain : scr + 5 + enemy.anmSetMain;
     enemy.anmIds[slot] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
         ->createEffectFront(scr, enemy.anmLayers + 7);
-    auto vm = anm::getVM(enemy.anmIds[slot]);
+    auto vm = anm::get_vm(enemy.anmIds[slot]);
     if (!vm) enemy.anmIds[slot] = 0;
     if (slot == 0) {
         enemy.finalSpriteSize = vm->sprite_size * vm->scale;
@@ -201,7 +201,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     anm::interrupt_tree(enemy.anmIds[slot], switc);
 
     _ins(318, anmReset)
-    anm::deleteVM(enemy.anmIds[0]);
+    anm::delete_vm(enemy.anmIds[0]);
     enemy.anmIds[0] = ENEMY_MANAGER_PTR->loadedAnms[enemy.selectedAnmID]
         ->createEffectFront(enemy.anmSetMain, enemy.anmLayers + 7);
     enemy.flags &= 0xffffffffffefffff;
@@ -211,7 +211,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     ///// TODO: Check from here
     _ins(319, anmRotate) _S(slot) _f(angle) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->rotation.z = angle;
     if (vm)
@@ -238,52 +238,52 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     }
 
     _ins(325, anmCol) _S(slot) _S(r) _S(g) _S(b) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->color_1 = { (uint8_t)r, (uint8_t)g, (uint8_t)b, vm->color_1.a };
 
     _ins(326, anmColT) _S(slot) _S(t) _S(m) _S(r) _S(g) _S(b) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->rgb1_i.start(ns::vec3(vm->color_1.r, vm->color_1.g, vm->color_1.b),
                          ns::vec3((uint8_t)r, (uint8_t)g, (uint8_t)b), t, m);
 
     _ins(327, anmAlpha) _S(slot) _S(a) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->color_1.a = a;
 
     _ins(328, anmAlphaT) _S(slot) _S(t) _S(m) _S(a) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->alpha1_i.start(vm->color_1.a, a, t, m);
 
     _ins(329, anmScale) _S(slot) _f(x) _f(y) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
-        vm->setScale(x, y);
+        vm->scale = {x, y};
     if (vm)
         vm->bitflags.scaled = true;
 
     _ins(330, anmScaleT) _S(slot) _S(t) _S(m) _f(x) _f(y) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->scale_i.start(vm->scale, { x, y }, t, m);
 
     _ins(331, anmAlpha2) _S(slot) _S(a) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->color_2.a = a;
 
     _ins(332, anmAlpha2T) _S(slot) _S(t) _S(m) _S(a) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->alpha2_i.start(vm->color_2.a, a, t, m);
     if (vm)
         vm->bitflags.colmode = 1;
 
     _ins(333, anmPosT) _S(slot) _S(t) _S(m) _f(x) _f(y) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->pos_i.start(vm->pos, { x, y, 0.f }, t, m);
 
@@ -292,14 +292,14 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     // set result to effectmanager
 
     _ins(335, anmScale2) _S(slot) _f(x) _f(y) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->bitflags.scaled = 1;
     if (vm)
         vm->scale_2 = { x, y };
 
     _ins(336, anmLayer) _S(slot) _S(layer) _args
-    auto vm = anm::getVM(enemy.anmIds[slot].val);
+    auto vm = anm::get_vm(enemy.anmIds[slot].val);
     if (vm)
         vm->setLayer(layer);
 
@@ -307,9 +307,9 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     if (TOUHOU_VERSION < 16) { _S(anm) _S(scr) _f(x) _f(y) _f(z) _args
         anm::VM* vm;
         ENEMY_MANAGER_PTR->loadedAnms[anm]->createEffect(scr, -1, &vm);
-        vm->setPos2(x, y, z);
+        vm->__pos_2 = {x, y, z};
     } else { _S(slot) _S(bm) _args
-        auto vm = anm::getVM(enemy.anmIds[slot].val);
+        auto vm = anm::get_vm(enemy.anmIds[slot].val);
         if (vm)
             vm->bitflags.blendmode = bm;
     }
@@ -324,7 +324,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(339, anm339) _S(a) _S(b) _S(c) _args
     auto id = ENEMY_MANAGER_PTR->loadedAnms[a]->spawnVMExt(b, 0, {}, 2);
     // set it to effectmanager
-    auto vm = anm::getVM(id);
+    auto vm = anm::get_vm(id);
     for (int i = 0; i < c; i++) {
         vm->update();
     }

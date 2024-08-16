@@ -549,7 +549,7 @@ int Bullet::run_et_ex() {
             BULLET_MANAGER_PTR->bullet_anm->load_external_vm(
                 &vm, sprite_data["script"].asInt());
             vm.bitflags.originMode = 1;
-            anm::deleteVM(anm_extra_id);
+            anm::delete_vm(anm_extra_id);
             anm_extra_id = 0;
             if (sprite_data["__field_114"].asInt() != 0) {
                 anm_extra_id = BULLET_MANAGER_PTR->bullet_anm->createEffectPos(

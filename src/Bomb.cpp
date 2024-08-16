@@ -37,9 +37,9 @@ Bomb::Bomb() {
 }
 
 Bomb::~Bomb() {
-    anm::deleteVM(anmid_0x5c);
-    anm::deleteVM(anmid_0x60);
-    anm::deleteVM(anmid_0x64);
+    anm::delete_vm(anmid_0x5c);
+    anm::delete_vm(anmid_0x60);
+    anm::delete_vm(anmid_0x64);
     if (on_tick) UPDATE_FUNC_REGISTRY.unregister(on_tick);
     if (on_draw) UPDATE_FUNC_REGISTRY.unregister(on_draw);
     if (ptr_0x70) ns::free_raw(ptr_0x70, sizeof(BombReimu::Buffer_t), ns::MemTag::GAME);
@@ -200,7 +200,7 @@ void BombReimu::Buffer_t::Orb_t::explode() {
         }
         ds = 0;
     } else {
-        anm::deleteVM(anmid);
+        anm::delete_vm(anmid);
         anmid = 0;
     }
 }
@@ -255,7 +255,7 @@ void BombReimu::Buffer_t::Orb_t::update() {
     ns::vec3 oldpos = pos.pos;
     pos.update_velocities();
     pos.update_position();
-    if (auto vm = anm::getVM(anmid); vm) {
+    if (auto vm = anm::get_vm(anmid); vm) {
         vm->entity_pos = pos.pos;
     }
     velocity = pos.pos - oldpos;
@@ -270,14 +270,14 @@ void BombReimu::Buffer_t::explode_all() {
 
 int BombReimu::f_on_tick_() {
     PLAYER_PTR->inner.iframes = 40;
-    if (auto vm = anm::getVM(anmid_0x64); vm) {
+    if (auto vm = anm::get_vm(anmid_0x64); vm) {
         vm->entity_pos = PLAYER_PTR->inner.pos;
     }
     auto buffer = reinterpret_cast<Buffer_t*>(ptr_0x70);
     if (timer_0x34 > 0x77) {
         int i = 0;
         anm::VM* vm;
-        while (vm = anm::getVM(buffer->orbs[i].anmid), !vm) {
+        while (vm = anm::get_vm(buffer->orbs[i].anmid), !vm) {
             buffer->orbs[i].anmid = 0;
             i++;
             if (i > 0x17) {
@@ -383,7 +383,7 @@ int BombMarisa::method_10() {
     int i = 0;
     int scr = 28 + (GLOBALS.inner.SHOTTYPE == 1) * 7;
     anm::VM* vm;
-    while (vm = anm::getVM(anmid_0x5c), vm) {
+    while (vm = anm::get_vm(anmid_0x5c), vm) {
         vm = vm->search_children(scr, i);
         if (!vm) return 0;
         ns::vec2 scale = vm->scale * ns::vec2(48.0, 160.0);
@@ -398,7 +398,7 @@ int BombMarisa::method_10() {
 
 int BombMarisa::f_on_tick_() {
     PLAYER_PTR->inner.iframes = 40;
-    auto vm = anm::getVM(anmid_0x5c);
+    auto vm = anm::get_vm(anmid_0x5c);
     if (vm == NULL) {
         anmid_0x5c = 0;
         anm::interrupt_tree(anmid_0x64, 1);
@@ -436,10 +436,10 @@ int BombMarisa::f_on_tick_() {
             PLAYER_PTR->inner.damage_sources[ds - 1].ds_on_hit = 3;
         }
     }
-    if (auto vm = anm::getVM(anmid_0x5c); vm) {
+    if (auto vm = anm::get_vm(anmid_0x5c); vm) {
         vm->entity_pos = field_0x14;
     }
-    if (auto vm = anm::getVM(anmid_0x64); vm) {
+    if (auto vm = anm::get_vm(anmid_0x64); vm) {
         vm->entity_pos = field_0x14;
     }
     method_10();
@@ -510,7 +510,7 @@ int BombYoumu::f_on_tick_() {
     }
     timer2088--;
     for (int i = 0; i < 0x104; i++) {
-        auto vm = anm::getVM(anmids[i]);
+        auto vm = anm::get_vm(anmids[i]);
         if (vm == NULL) {
             anmids[i] = 0;
         } else {

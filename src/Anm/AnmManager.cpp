@@ -6,8 +6,8 @@
 #include "./FogShader.h"
 #include "CopyTextures.hpp"
 #include "Text.hpp"
+#include <DrawBatch2.h>
 #include <DrawFuncs.h>
-#include <DrawBatch.h>
 #include <TextureManager.h>
 #include <cstring>
 #include <fstream>
@@ -30,6 +30,29 @@ static void reset_stats() {
 
 namespace anm {
 
+// Forward declarations for private functions
+void draw_vm__modes_0_1_2_3(VM *vm, i32 i);
+i32 draw_vm__mode_6(VM *vm);
+void draw_vm__mode_8_15(VM *vm);
+void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData, i32 nVert);
+void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData, i32 nVert);
+i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z, ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
+i32 draw_vm__ins_607(f32 x, f32 y, f32 width, f32 height, f32 rot_z, ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
+i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rot_z, ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
+i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z, ns::Color col1, ns::Color col2, i32 anchor);
+i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0, f32 radius, f32 thickness, i32 vertex_count, ns::Color col);
+i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0, f32 radius, i32 nb_vertex, ns::Color col);
+i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0, f32 radius, i32 vertex_count, ns::Color color_1, ns::Color color_2);
+void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt);
+
+void calc_mat_world(VM *vm);
+void setup_render_state_for_vm(VM *vm);
+void prepare_vm_for_delete(VM *vm, VM::List_t *list);
+i32 destroy_possibly_managed_vm(VM *vm);
+
+
+
+
 f32 RESOLUTION_MULT = 1.f;
 ns::vec2 BACK_BUFFER_SIZE = {0, 0};
 
@@ -45,17 +68,6 @@ struct TableAnm508_t {
   i32 index_of_on_copy_2__disused = 0;
 };
 
-struct AnmVertexBuffers_t {
-  i32 unrendered_sprite_count = 0;
-  RenderVertex_t sprite_vertex_data[131072]{};
-  RenderVertex_t *sprite_write_cursor = sprite_vertex_data;
-  RenderVertex_t *sprite_render_cursor = sprite_vertex_data;
-  i32 unrendered_primitive_count = 0;
-  RenderVertex_t primitive_vertex_data[32768]{};
-  RenderVertex_t *primitive_write_cursor = primitive_vertex_data;
-  RenderVertex_t *primitive_render_cursor = primitive_vertex_data;
-};
-
 struct AnmManagerState {
   // zThread
   // zAnmSaveRelated[4] pause_related
@@ -66,15 +78,15 @@ struct AnmManagerState {
   f32 cam_vec2_fc_y = 0.f;
   i32 render_loop_ctr_0xd8 = 0;
   VM __anm_vm_dc{};
-  VMList_t *world_list_head = nullptr;
-  VMList_t *world_list_tail = nullptr;
-  VMList_t *ui_list_head = nullptr;
-  VMList_t *ui_list_tail = nullptr;
+  VM::List_t *world_list_head = nullptr;
+  VM::List_t *world_list_tail = nullptr;
+  VM::List_t *ui_list_head = nullptr;
+  VM::List_t *ui_list_tail = nullptr;
   FastVM fastArray[8191]{};
   i32 __lolk_next_snapshot_fast_id = 0;
   i32 __lolk_next_snapshot_discriminator = 0;
-  VMList_t __lolk_vm_snapshot_list_head{};
-  FastVMList_t freelist_head{};
+  VM::List_t __lolk_vm_snapshot_list_head{};
+  FastVM::List_t freelist_head{};
   // undefined4
   std::array<File, 32> loadedFiles;
   ns::mat4 __matrix_186017c = ns::mat4(1.f);
@@ -94,7 +106,6 @@ struct AnmManagerState {
   u8 last_used_scrollmodey = 0;
   // undefined2
   f32 some_positions[22]{};
-  AnmVertexBuffers_t vertex_buffers{};
   // dummy head (unused)
   i32 last_id_discriminator = 1;
   ns::Color custom_color_1c90a48{};
@@ -103,7 +114,7 @@ struct AnmManagerState {
   bool initialized = false;
   GLuint vboID = 0;
   GLuint vaoID = 0;
-  ns::DrawBatch *batch{};
+  ns::DrawBatch2 *batch{};
   BaseShader *shader = nullptr;
   BlitShader *bshader = nullptr;
   FogShader *fshader = nullptr;
@@ -122,10 +133,7 @@ struct AnmManagerState {
 
 static AnmManagerState *AM;
 
-void get_stats(Stats &stats) {
-  stats = ANM_MGR_STATS;
-}
-
+void get_stats(Stats &stats) { stats = ANM_MGR_STATS; }
 
 // expose these functions ?
 static void anm_use_texture(u32 tex_id) {
@@ -140,11 +148,11 @@ static void anm_use_texture(u32 tex_id) {
   }
 }
 
-inline void anm_use_texture(ns::Texture* tex) {
+inline void anm_use_texture(ns::Texture *tex) {
   anm_use_texture(tex->get_opengl_id());
 }
 
-inline void anm_use_texture(VM* vm) {
+inline void anm_use_texture(VM *vm) {
   anm_use_texture(vm->getSprite().opengl_texid);
 }
 
@@ -154,49 +162,6 @@ static void anm_use_default_texture() {
     flush_vbos();
     glBindTexture(GL_TEXTURE_2D, 1);
   }
-}
-
-void setup_vao() {
-  glGenVertexArrays(1, &AM->vaoID);
-  glBindVertexArray(AM->vaoID);
-  glGenBuffers(1, &AM->vboID);
-  glBindBuffer(GL_ARRAY_BUFFER, AM->vboID);
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-
-  glVertexAttribPointer(
-      0, 3, GL_FLOAT, GL_FALSE, sizeof(RenderVertex_t),
-      reinterpret_cast<void *>(offsetof(RenderVertex_t, transformed_pos)));
-  glVertexAttribPointer(
-      1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(RenderVertex_t),
-      reinterpret_cast<void *>(offsetof(RenderVertex_t, diffuse_color)));
-  glVertexAttribPointer(
-      2, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex_t),
-      reinterpret_cast<void *>(offsetof(RenderVertex_t, texture_uv)));
-}
-
-void cleanup_vao() {
-  glBindVertexArray(0);
-  if (AM->vboID)
-    glDeleteBuffers(1, &AM->vboID);
-  if (AM->vaoID)
-    glDeleteVertexArrays(1, &AM->vaoID);
-}
-
-void bind_vao() {
-  glBindVertexArray(AM->vaoID);
-  glBindBuffer(GL_ARRAY_BUFFER, AM->vboID);
-}
-
-void drawBuffer(RenderVertex_t *start, u32 count) {
-  // SUPERVISOR.d3d_device->SetFVF(0x144);
-  // SUPERVISOR.d3d_device->DrawPrimitiveUP(D3DPT_TRIANGLELIST,
-  // vertex_buffers.unrendered_sprite_count * 2,
-  // vertex_buffers.sprite_render_cursor, 0x1c);
-  glBufferData(GL_ARRAY_BUFFER, count * sizeof(RenderVertex_t), start, GL_DYNAMIC_DRAW);
-  glDrawArrays(GL_TRIANGLES, 0, count);
 }
 
 void init() {
@@ -229,7 +194,7 @@ void init() {
   // AM->pause_related[3].anm_loaded = -1;
 
   // setup_vao();
-  AM->batch = new ns::DrawBatch();
+  AM->batch = new ns::DrawBatch2();
   AM->shader = new BaseShader();
   AM->bshader = new BlitShader();
   AM->fshader = new FogShader();
@@ -271,7 +236,7 @@ void cleanup() {
   while (AM->world_list_head) {
     auto n = AM->world_list_head;
     AM->world_list_head = AM->world_list_head->next;
-    if ((n->value->id.val & ID::fastIdMask) == ID::fastIdMask) {
+    if ((n->value->id.val & ID::fast_id_mask) == ID::fast_id_mask) {
       ANM_MGR_STATS.n_non_fast_vm_alive--;
       delete n->value;
     }
@@ -282,7 +247,7 @@ void cleanup() {
   while (AM->ui_list_head) {
     auto n = AM->ui_list_head;
     AM->ui_list_head = AM->ui_list_head->next;
-    if ((n->value->id.val & ID::fastIdMask) == ID::fastIdMask) {
+    if ((n->value->id.val & ID::fast_id_mask) == ID::fast_id_mask) {
       ANM_MGR_STATS.n_non_fast_vm_alive--;
       delete n->value;
     }
@@ -351,8 +316,8 @@ ID insert_in_world_list_back(VM *vm) {
   if (AM->last_id_discriminator == 0) {
     AM->last_id_discriminator = 1;
   }
-  vm->id.setDiscriminator(AM->last_id_discriminator);
-  vm->id.setFastId(vm->fast_id);
+  vm->id.discriminator = AM->last_id_discriminator;
+  vm->id.fast_id = vm->fast_id;
   return vm->id;
 }
 
@@ -371,8 +336,8 @@ ID insert_in_world_list_front(VM *vm) {
   if (AM->last_id_discriminator == 0) {
     AM->last_id_discriminator = 1;
   }
-  vm->id.setDiscriminator(AM->last_id_discriminator);
-  vm->id.setFastId(vm->fast_id);
+  vm->id.discriminator = AM->last_id_discriminator;
+  vm->id.fast_id = vm->fast_id;
   return vm->id;
 }
 
@@ -391,8 +356,8 @@ ID insert_in_ui_list_back(VM *vm) {
   if (AM->last_id_discriminator == 0) {
     AM->last_id_discriminator = 1;
   }
-  vm->id.setDiscriminator(AM->last_id_discriminator);
-  vm->id.setFastId(vm->fast_id);
+  vm->id.discriminator = AM->last_id_discriminator;
+  vm->id.fast_id = vm->fast_id;
   return vm->id;
 }
 
@@ -411,13 +376,13 @@ ID insert_in_ui_list_front(VM *vm) {
   if (AM->last_id_discriminator == 0) {
     AM->last_id_discriminator = 1;
   }
-  vm->id.setDiscriminator(AM->last_id_discriminator);
-  vm->id.setFastId(vm->fast_id);
+  vm->id.discriminator = AM->last_id_discriminator;
+  vm->id.fast_id = vm->fast_id;
   return vm->id;
 }
 
 void recreate_vm(ID &id, i32 new_script) {
-  auto vm = getVM(id);
+  auto vm = get_vm(id);
   if (vm) {
     vm->bitflags.visible = false;
     vm->instr_offset = -1;
@@ -425,44 +390,13 @@ void recreate_vm(ID &id, i32 new_script) {
   }
 }
 
-void killAll() {
-  /* DESTROY HEAP VMS IN WORLD LIST */
-  while (AM->world_list_head) {
-    auto n = AM->world_list_head->value;
-    AM->world_list_head = AM->world_list_head->next;
-    if ((n->id.val & ID::fastIdMask) == ID::fastIdMask) {
-      ANM_MGR_STATS.n_non_fast_vm_alive--;
-      delete n;
-    }
-  }
-  AM->world_list_tail = nullptr;
-
-  /* DESTROY HEAP VMS IN UI LIST */
-  while (AM->ui_list_head) {
-    auto n = AM->ui_list_head->value;
-    AM->ui_list_head = AM->ui_list_head->next;
-    if ((n->id.val & ID::fastIdMask) == ID::fastIdMask) {
-      ANM_MGR_STATS.n_non_fast_vm_alive--;
-      delete n;
-    }
-  }
-
-  /* CLEAN FAST VMS */
-  for (usize i = 0; i < 8191; i++)
-    AM->fastArray[i].vm.destroy();
-
-  /* CLEAN PREINIT VM */
-  // for (auto f : AM->loadedFiles)
-  // f.Cleanup();
-}
-
-void deleteVM(u32 id) {
+void delete_vm(ID id) {
   if (!id)
     return;
-  deleteVM(getVM(id));
+  delete_vm(get_vm(id));
 }
 
-void deleteVM(VM *vm) {
+void delete_vm(VM *vm) {
   if (!vm)
     return;
   if (vm->bitflags.f534_27_31) {
@@ -470,13 +404,13 @@ void deleteVM(VM *vm) {
   }
   vm->bitflags.activeFlags = 0b01;
   for (auto node = vm->list_of_children.next; node; node = node->next) {
-    deleteVM(node->value);
+    delete_vm(node->value);
   }
 }
 
 void _destroyFastVM(VM *vm) {
-  AM->fastArray[vm->id.val & ID::fastIdMask].isAlive = false;
-  auto node = &AM->fastArray[vm->id.val & ID::fastIdMask].freelistNode;
+  AM->fastArray[vm->id.val & ID::fast_id_mask].isAlive = false;
+  auto node = &AM->fastArray[vm->id.val & ID::fast_id_mask].freelistNode;
   if (AM->freelist_head.next)
     AM->freelist_head.next->previous = node;
   node->next = AM->freelist_head.next;
@@ -502,25 +436,12 @@ void delete_of_file(File *f) {
   //         deleteVM(node->value);
 }
 
-bool isAlive(u32 id) {
-  if ((id & ID::fastIdMask) == ID::fastIdMask) {
-    for (auto node = AM->world_list_head; node; node = node->next)
-      if (node->value->id == id)
-        return true;
-    for (auto node = AM->ui_list_head; node; node = node->next)
-      if (node->value->id == id)
-        return true;
-    return false;
-  }
-  if (AM->fastArray[id & ID::fastIdMask].vm.id != id)
-    return false;
-  return AM->fastArray[id & ID::fastIdMask].isAlive;
-}
+bool is_alive(ID id) { return get_vm(id) != nullptr; }
 
-VM *getVM(u32 id) {
-  if (id == 0)
+VM *get_vm(ID id) {
+  if (id.val == 0)
     return nullptr;
-  if ((id & ID::fastIdMask) == ID::fastIdMask) {
+  if (id.fast_id == ID::fast_id_mask) {
     for (auto node = AM->world_list_head; node; node = node->next)
       if (node->value->id == id)
         return node->value;
@@ -529,14 +450,12 @@ VM *getVM(u32 id) {
         return node->value;
     return nullptr;
   }
-  if (AM->fastArray[id & ID::fastIdMask].vm.id != id)
+  if (AM->fastArray[id.fast_id].vm.id != id)
     return nullptr;
-  if (AM->fastArray[id & ID::fastIdMask].isAlive)
-    return &(AM->fastArray[id & ID::fastIdMask].vm);
+  if (AM->fastArray[id.fast_id].isAlive)
+    return &(AM->fastArray[id.fast_id].vm);
   return nullptr;
 }
-
-VM *getVM(ID id) { return getVM(id.val); }
 
 File *loadFile(usize slot, cstr filename) {
   std::ifstream ifile;
@@ -558,20 +477,7 @@ File *loadFile(usize slot, cstr filename) {
   return &AM->loadedFiles[slot];
 }
 
-void update(bool /*printInstr*/) {
-  on_tick_ui();
-  on_tick_world();
-}
-
-i32 getFreeAnm() {
-  i32 n = 0;
-  for (i32 i = 0; i < 8191; i++)
-    if (!AM->fastArray[i].isAlive)
-      n++;
-  return n;
-}
-
-void prepare_vm_for_delete(VM *vm, VMList_t *list) {
+void prepare_vm_for_delete(VM *vm, VM::List_t *list) {
   for (auto node = vm->list_of_children.next; node; node = node->next) {
     prepare_vm_for_delete(node->value, list);
   }
@@ -612,8 +518,7 @@ i32 destroy_possibly_managed_vm(VM *vm) {
   if (&vm->node_in_global_list == AM->ui_list_head) {
     AM->ui_list_head = vm->node_in_global_list.next;
   }
-  if (vm->index_of_on_destroy &&
-      Funcs::on_destroy(vm->index_of_on_destroy)) {
+  if (vm->index_of_on_destroy && Funcs::on_destroy(vm->index_of_on_destroy)) {
     Funcs::on_destroy(vm->index_of_on_destroy)(vm);
   }
   if (vm->node_in_global_list.next) {
@@ -636,7 +541,7 @@ i32 destroy_possibly_managed_vm(VM *vm) {
   vm->parent_vm = nullptr;
   // if not in fast array
   // if (fast_array > vm || this + 0x18600d4 <= vm) {
-  if (vm->id.getFastId() == ID::fastIdMask) {
+  if (vm->id.fast_id == ID::fast_id_mask) {
     delete vm;
     ANM_MGR_STATS.n_non_fast_vm_alive--;
     return 0;
@@ -649,7 +554,8 @@ i32 destroy_possibly_managed_vm(VM *vm) {
   AM->freelist_head.next = &AM->fastArray[vm->fast_id].freelistNode;
   AM->fastArray[vm->fast_id].freelistNode.previous = &AM->freelist_head;
   if (vm->special_vertex_buffer_data) {
-    ns::free_raw(vm->special_vertex_buffer_data, vm->special_vertex_buffer_size, ns::MemTag::GAME);
+    ns::free_raw(vm->special_vertex_buffer_data, vm->special_vertex_buffer_size,
+                 ns::MemTag::GAME);
   }
   vm->special_vertex_buffer_data = nullptr;
   vm->special_vertex_buffer_size = 0;
@@ -664,7 +570,7 @@ i32 on_tick_world() {
   //     nullptr;
   // }
 
-  VMList_t todelete = {};
+  VM::List_t todelete = {};
 
   for (auto node = AM->world_list_head; node; node = node->next) {
     ANM_MGR_STATS.n_vm_ticked++;
@@ -677,7 +583,7 @@ i32 on_tick_world() {
     }
   }
 
-  VMList_t *next = nullptr;
+  VM::List_t *next = nullptr;
   for (auto node = todelete.next; node; node = next) {
     next = node->next;
     destroy_possibly_managed_vm(node->value);
@@ -692,9 +598,9 @@ i32 on_tick_ui() {
   //     nullptr;
   // }
   reset_stats();
-  
+
   AM->render_loop_ctr_0xd8 = 0;
-  VMList_t todelete = {};
+  VM::List_t todelete = {};
 
   for (auto node = AM->ui_list_head; node; node = node->next) {
     ANM_MGR_STATS.n_vm_ticked++;
@@ -707,7 +613,7 @@ i32 on_tick_ui() {
     }
   }
 
-  VMList_t *next = nullptr;
+  VM::List_t *next = nullptr;
   for (auto node = todelete.next; node; node = next) {
     next = node->next;
     destroy_possibly_managed_vm(node->value);
@@ -715,8 +621,6 @@ i32 on_tick_ui() {
 
   return 1;
 }
-
-void on_draw(u32 layer) { render_layer(layer); }
 
 i32 render_layer(u32 layer) {
   for (auto node = AM->world_list_head; node; node = node->next) {
@@ -729,7 +633,7 @@ i32 render_layer(u32 layer) {
     if (l == layer) {
       ANM_MGR_STATS.n_vm_drawn++;
       ANM_MGR_STATS.n_vm_drawn_world++;
-      drawVM(node->value);
+      draw_vm(node->value);
     }
     AM->render_loop_ctr_0xd8++;
   }
@@ -745,7 +649,7 @@ i32 render_layer(u32 layer) {
     if (l == layer) {
       ANM_MGR_STATS.n_vm_drawn++;
       ANM_MGR_STATS.n_vm_drawn_ui++;
-      drawVM(node->value);
+      draw_vm(node->value);
     }
     AM->render_loop_ctr_0xd8++;
   }
@@ -753,33 +657,24 @@ i32 render_layer(u32 layer) {
 }
 
 void flush_vbos() {
-  if (AM->batch->is_empty()) return;
+  if (AM->batch->is_empty())
+    return;
   AM->curr_shader->use();
   AM->batch->submit();
   ANM_MGR_STATS.n_flush_vbos++;
-  return;
-  // TODO: REAL
-  if (AM->vertex_buffers.unrendered_sprite_count != 0) {
-    // if (field_0x18607cf != 1) {
-    //  IDK
-    // SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP,
-    // D3DTOP_MODULATE); SUPERVISOR.d3d_device->SetTextureStageState(0,
-    // D3DTSS_COLOROP, D3DTOP_MODULATE);
-    AM->field_0x18607cf = 1;
-    //}
-    // IDK
-    // SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
-    // SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
-
-    // RENDER
-    bind_vao();
-    drawBuffer(AM->vertex_buffers.sprite_render_cursor,
-               AM->vertex_buffers.unrendered_sprite_count * 6);
-    AM->draw_call_ctr_0xcc++;
-    AM->vertex_buffers.sprite_render_cursor =
-        AM->vertex_buffers.sprite_write_cursor;
-    AM->vertex_buffers.unrendered_sprite_count = 0;
-  }
+  // if (AM->vertex_buffers.unrendered_sprite_count == 0) return;
+  // if (field_0x18607cf != 1) {
+  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP,
+  //   D3DTOP_MODULATE); SUPERVISOR.d3d_device->SetTextureStageState(0,
+  //   D3DTSS_COLOROP, D3DTOP_MODULATE);
+  //   AM->field_0x18607cf = 1;
+  // }
+  // SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
+  // SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
+  // AM->draw_call_ctr_0xcc++;
+  // AM->vertex_buffers.sprite_render_cursor =
+  // AM->vertex_buffers.sprite_write_cursor;
+  // AM->vertex_buffers.unrendered_sprite_count = 0;
 }
 
 // ???: expose these ?
@@ -858,7 +753,7 @@ static void anm_use_resamplemode(u32 resamplemode) {
   }
 }
 
-static void  anm_use_scrollmode_x(u32 scrollmode) {
+static void anm_use_scrollmode_x(u32 scrollmode) {
   // TODO: In GL, this is by texture, so  it should work differently.
 
   if (AM->last_used_scrollmodex != scrollmode) {
@@ -897,22 +792,6 @@ void setup_render_state_for_vm(VM *vm) {
   return;
 }
 
-void write_sprite(const RenderVertex_t *buffer) {
-  if ((u64)&AM->vertex_buffers.sprite_write_cursor <=
-      (u64)AM->vertex_buffers.sprite_write_cursor + 6)
-    return;
-
-  AM->vertex_buffers.sprite_write_cursor[0] = buffer[0];
-  AM->vertex_buffers.sprite_write_cursor[1] = buffer[1];
-  AM->vertex_buffers.sprite_write_cursor[2] = buffer[2];
-  AM->vertex_buffers.sprite_write_cursor[3] = buffer[1];
-  AM->vertex_buffers.sprite_write_cursor[4] = buffer[2];
-  AM->vertex_buffers.sprite_write_cursor[5] = buffer[3];
-
-  AM->vertex_buffers.sprite_write_cursor += 6;
-  AM->vertex_buffers.unrendered_sprite_count++;
-}
-
 f32 DAT_00524710 = 0.f;
 f32 DAT_00524714 = 448.f;
 
@@ -939,7 +818,7 @@ void calc_mat_world(VM *vm) {
   AM->__matrix_186017c = vm->__matrix_2.translate(p);
 }
 
-void drawVM(VM *vm) {
+void draw_vm(VM *vm) {
   ANM_MGR_STATS.n_total_initiated_draws++;
   if (vm->index_of_on_draw && Funcs::on_draw(vm->index_of_on_draw))
     Funcs::on_draw(vm->index_of_on_draw)(vm);
@@ -1023,9 +902,10 @@ void drawVM(VM *vm) {
     auto col [[maybe_unused]] =
         vm->bitflags.colmode ? vm->color_2 : vm->color_1;
     for (i32 i = 0; i < 4; i++) {
-      ns::vec3 v = ns::vec3(AM->__matrix_186017c * ns::vec4(AM->some_positions[2],
-                                                     AM->some_positions[3],
-                                                     AM->some_positions[4], 1));
+      ns::vec3 v =
+          ns::vec3(AM->__matrix_186017c * ns::vec4(AM->some_positions[2],
+                                                   AM->some_positions[3],
+                                                   AM->some_positions[4], 1));
       if (math::point_distance(v, AM->current_camera->position) <=
           AM->current_camera->sky.begin_distance) {
         SPRITE_TEMP_BUFFER[i].diffuse_color = col;
@@ -1318,7 +1198,6 @@ void draw_vm__modes_0_1_2_3(VM *vm, i32 i) {
   }
 
   setup_render_state_for_vm(vm);
-  // write_sprite(SPRITE_TEMP_BUFFER);
   ns::Vertex tl = {ns::vec3(SPRITE_TEMP_BUFFER[0].transformed_pos),
                    SPRITE_TEMP_BUFFER[0].diffuse_color,
                    SPRITE_TEMP_BUFFER[0].texture_uv};
@@ -1331,7 +1210,7 @@ void draw_vm__modes_0_1_2_3(VM *vm, i32 i) {
   ns::Vertex bl = {ns::vec3(SPRITE_TEMP_BUFFER[1].transformed_pos),
                    SPRITE_TEMP_BUFFER[1].diffuse_color,
                    SPRITE_TEMP_BUFFER[1].texture_uv};
-  AM->batch->draw(tl, tr, br, bl);
+  AM->batch->draw_quad(tl, tr, br, bl);
 }
 
 i32 draw_vm__mode_6(VM *vm) {
@@ -1342,7 +1221,7 @@ i32 draw_vm__mode_6(VM *vm) {
       vm->entity_pos + vm->pos + vm->__pos_2 - AM->current_camera->position;
   if (vm->bitflags.originMode != 0 && !vm->parent_vm) {
     pos_from_cam += ns::vec3(BACK_BUFFER_SIZE.x * 0.5,
-                              (BACK_BUFFER_SIZE.y - 448.0) * 0.5, 0);
+                             (BACK_BUFFER_SIZE.y - 448.0) * 0.5, 0);
   }
   f32 dist_to_cam = math::point_distance({0, 0, 0}, pos_from_cam);
   f32 fog_factor;
@@ -1433,13 +1312,26 @@ i32 draw_vm__mode_6(VM *vm) {
   }
 }
 
+void draw_vm_as_quad(VM *vm) {
+  vm->write_sprite_corners__with_z_rot(SPRITE_TEMP_BUFFER[0].transformed_pos,
+                                       SPRITE_TEMP_BUFFER[1].transformed_pos,
+                                       SPRITE_TEMP_BUFFER[2].transformed_pos,
+                                       SPRITE_TEMP_BUFFER[3].transformed_pos);
+  draw_vm__modes_0_1_2_3(vm, 0);
+}
+
+void draw_vm_as_quad_no_rot(VM *vm) {
+  vm->write_sprite_corners__without_rot(SPRITE_TEMP_BUFFER[0].transformed_pos,
+                                        SPRITE_TEMP_BUFFER[1].transformed_pos,
+                                        SPRITE_TEMP_BUFFER[2].transformed_pos,
+                                        SPRITE_TEMP_BUFFER[3].transformed_pos);
+  draw_vm__modes_0_1_2_3(vm, 1);
+}
+
 void draw_vm__mode_8_15(VM *vm) {
   if (!vm->bitflags.visible || !vm->bitflags.f530_1 || vm->color_1.a == 0) {
     return;
   }
-  // if (AM->vertex_buffers.unrendered_sprite_count != 0) {
-  //   flush_vbos();
-  // }
   if (vm->bitflags.zwritedis) {
     disable_zwrite();
   } else {
@@ -1549,12 +1441,16 @@ LAB_0046ecb8:
   f32 v1 = (vm->getSprite().v1 + vm->uv_scroll_pos.y) * vm->uv_scale.y;
   f32 v2 = (vm->getSprite().v2 + vm->uv_scroll_pos.y) * vm->uv_scale.y;
 
-  ns::Vertex tl = {ns::vec3(local_90 * ns::vec4(left, top, 0, 1)), col, {u1, v1}};
-  ns::Vertex tr = {ns::vec3(local_90 * ns::vec4(right, top, 0, 1)), col, {u2, v1}};
-  ns::Vertex br = {ns::vec3(local_90 * ns::vec4(right, bottom, 0, 1)), col, {u2, v2}};
-  ns::Vertex bl = {ns::vec3(local_90 * ns::vec4(left, bottom, 0, 1)), col, {u1, v2}};
+  ns::Vertex tl = {
+      ns::vec3(local_90 * ns::vec4(left, top, 0, 1)), col, {u1, v1}};
+  ns::Vertex tr = {
+      ns::vec3(local_90 * ns::vec4(right, top, 0, 1)), col, {u2, v1}};
+  ns::Vertex br = {
+      ns::vec3(local_90 * ns::vec4(right, bottom, 0, 1)), col, {u2, v2}};
+  ns::Vertex bl = {
+      ns::vec3(local_90 * ns::vec4(left, bottom, 0, 1)), col, {u1, v2}};
 
-  AM->batch->draw(tl, tr, br, bl);
+  AM->batch->draw_quad(tl, tr, br, bl);
   // TODO: real ?
   // What I did is equivalent to below (don't understand TextureStageState
   // though)
@@ -1590,11 +1486,7 @@ LAB_0046ecb8:
   // (uVar7 >> 0x15 & 3)) * 4, 2);
 }
 
-void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData,
-                                      i32 nVert) {
-  if (AM->vertex_buffers.unrendered_sprite_count != 0) {
-    flush_vbos();
-  }
+void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData, i32 nVert) {
   // if (field_0x18607ca != 3) {
   //   SUPERVISOR.d3d_device->SetFVF(0x144);
   //   field_0x18607ca = 3;
@@ -1611,34 +1503,59 @@ void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData,
   // SUPERVISOR.d3d_device->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nVert - 2,
   //                                        vertexData, 0x1c);
   // My version
-  i32 nQuad = (nVert - 2) / 2;
-  for (i32 i = 0; i < nQuad; i++) {
-    auto tl = vertexData[0];
-    auto tr = vertexData[i * 2 + 1];
-    auto br = vertexData[i * 2 + 2];
-    auto bl = vertexData[i * 2 + 3];
-    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
-                    {ns::vec3(tr.transformed_pos), tr.diffuse_color, {1, 0}},
-                    {ns::vec3(br.transformed_pos), br.diffuse_color, {1, 1}},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}});
+  // i32 nQuad = (nVert - 2) / 2;
+  // for (i32 i = 0; i < nQuad; i++) {
+  //   auto tl = vertexData[0];
+  //   auto tr = vertexData[i * 2 + 1];
+  //   auto br = vertexData[i * 2 + 2];
+  //   auto bl = vertexData[i * 2 + 3];
+  //   AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
+  //                   {ns::vec3(tr.transformed_pos), tr.diffuse_color, {1, 0}},
+  //                   {ns::vec3(br.transformed_pos), br.diffuse_color, {1, 1}},
+  //                   {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0,
+  //                   1}});
+  // }
+  u32 center = AM->batch->add_vertex({ns::vec3(vertexData[0].transformed_pos),
+                                      vertexData[0].diffuse_color,
+                                      vertexData[0].texture_uv});
+  u32 last = AM->batch->add_vertex({ns::vec3(vertexData[1].transformed_pos),
+                                    vertexData[1].diffuse_color,
+                                    vertexData[1].texture_uv});
+  for (i32 i = 2; i < nVert; i++) {
+    u32 new_vert = AM->batch->add_vertex(
+        {ns::vec3(vertexData[i].transformed_pos), vertexData[i].diffuse_color,
+         vertexData[i].texture_uv});
+    AM->batch->draw_tri(center, last, new_vert);
+    last = new_vert;
   }
 }
 
-void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData,
-                                        i32 nVert) {
+void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData, i32 nVert) {
   if (!vm->bitflags.visible || !vm->bitflags.f530_1 || vm->color_1.a == 0)
     return;
-  if (AM->vertex_buffers.unrendered_sprite_count != 0) {
-    flush_vbos();
-  }
   anm_use_texture(vm);
+  setup_render_state_for_vm(vm);
+  u32 last2 = AM->batch->add_vertex({ns::vec3(vertexData[0].transformed_pos),
+                                     vertexData[0].diffuse_color,
+                                     vertexData[0].texture_uv});
+  u32 last = AM->batch->add_vertex({ns::vec3(vertexData[1].transformed_pos),
+                                    vertexData[1].diffuse_color,
+                                    vertexData[1].texture_uv});
+  for (i32 i = 2; i < nVert; i++) {
+    u32 new_vert = AM->batch->add_vertex(
+        {ns::vec3(vertexData[i].transformed_pos), vertexData[i].diffuse_color,
+         vertexData[i].texture_uv});
+    AM->batch->draw_tri(last2, i % 2 ? new_vert : last,
+                        i % 2 ? last : new_vert);
+    last2 = last;
+    last = new_vert;
+  }
   // if (field_0x18607ca != 3) {
   //   SUPERVISOR.d3d_device->SetFVF(0x144);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
   //   field_0x18607ca = 3;
   // }
-  setup_render_state_for_vm(vm);
   // if (field_0x18607cf != 1) {
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 4);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 4);
@@ -1646,24 +1563,11 @@ void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData,
   // }
   // SUPERVISOR.d3d_device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, nVert - 2,
   //                                        vertexData, 0x1c);
-  // My version
-  i32 nb_segments = (nVert - 2) / 2;
-  for (i32 i = 0; i < nb_segments; i++) {
-    auto tl = vertexData[i * 2 + 0];
-    auto tr = vertexData[i * 2 + 1];
-    auto bl = vertexData[i * 2 + 2];
-    auto br = vertexData[i * 2 + 3];
-    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv},
-                    {ns::vec3(tr.transformed_pos), tr.diffuse_color, tr.texture_uv},
-                    {ns::vec3(br.transformed_pos), br.diffuse_color, br.texture_uv},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv});
-  }
   return;
 }
 
 i32 draw_vm__ins_607(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
-                                 ns::Color col1, ns::Color col2, i32 anchorX,
-                                 i32 anchorY) {
+                     ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY) {
   draw_vm__ins_603(x, y, width + 1.0, height + 1.0, rot_z,
                    {col1.r, col1.g, col1.b, static_cast<u8>(col1.a / 2)},
                    {col2.r, col2.g, col2.b, static_cast<u8>(col2.a / 2)},
@@ -1673,43 +1577,24 @@ i32 draw_vm__ins_607(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
 }
 
 i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
-                                 ns::Color col1, ns::Color col2, i32 anchorX,
-                                 i32 anchorY) {
-  if (reinterpret_cast<u64>(AM->vertex_buffers.primitive_write_cursor + 4) >=
-      reinterpret_cast<u64>(&AM->vertex_buffers.primitive_write_cursor))
-    return 0;
+                     ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY) {
   f32 x1 = anchorX == 0 ? -width / 2.0 : anchorX == 1 ? 0.0 : -width;
   f32 x2 = anchorX == 0 ? width / 2.0 : anchorX == 1 ? width : 0.0;
   f32 y1 = anchorY == 0 ? -height / 2.0 : anchorY == 1 ? 0.0 : -height;
   f32 y2 = anchorY == 0 ? height / 2.0 : anchorY == 1 ? height : 0.0;
-  auto cursor = AM->vertex_buffers.primitive_write_cursor;
-  cursor[0].transformed_pos.x = x1 * cos(rot_z) - y1 * sin(rot_z) + x;
-  cursor[1].transformed_pos.x = x2 * cos(rot_z) - y1 * sin(rot_z) + x;
-  cursor[2].transformed_pos.x = x1 * cos(rot_z) - y2 * sin(rot_z) + x;
-  cursor[3].transformed_pos.x = x2 * cos(rot_z) - y2 * sin(rot_z) + x;
-  cursor[0].transformed_pos.y = x1 * sin(rot_z) + y1 * cos(rot_z) + y;
-  cursor[1].transformed_pos.y = x2 * sin(rot_z) + y1 * cos(rot_z) + y;
-  cursor[2].transformed_pos.y = x1 * sin(rot_z) + y2 * cos(rot_z) + y;
-  cursor[3].transformed_pos.y = x2 * sin(rot_z) + y2 * cos(rot_z) + y;
-  cursor[0].diffuse_color = col1;
-  cursor[1].diffuse_color = col2;
-  cursor[2].diffuse_color = col1;
-  cursor[3].diffuse_color = col2;
-  cursor[0].transformed_pos.z = 0.0;
-  cursor[1].transformed_pos.z = 0.0;
-  cursor[2].transformed_pos.z = 0.0;
-  cursor[3].transformed_pos.z = 0.0;
-  cursor[0].transformed_pos.w = 1.0;
-  cursor[1].transformed_pos.w = 1.0;
-  cursor[2].transformed_pos.w = 1.0;
-  cursor[3].transformed_pos.w = 1.0;
+  float cz = cos(rot_z);
+  float sz = sin(rot_z);
+  ns::vec2 pos0 = { x1 * cz - y1 * sz + x, x1 * sz + y1 * cz + y };
+  ns::vec2 pos1 = { x2 * cz - y1 * sz + x, x2 * sz + y1 * cz + y };
+  ns::vec2 pos2 = { x2 * cz - y2 * sz + x, x2 * sz + y2 * cz + y };
+  ns::vec2 pos3 = { x1 * cz - y2 * sz + x, x1 * sz + y2 * cz + y };
   disable_zwrite();
-  // My version
   anm_use_default_texture();
-  AM->batch->draw({ns::vec3(cursor[0].transformed_pos), cursor[0].diffuse_color, {0, 0}},
-                  {ns::vec3(cursor[1].transformed_pos), cursor[1].diffuse_color, {0, 0}},
-                  {ns::vec3(cursor[3].transformed_pos), cursor[3].diffuse_color, {0, 0}},
-                  {ns::vec3(cursor[2].transformed_pos), cursor[2].diffuse_color, {0, 0}});
+  AM->batch->draw_quad(
+      {{pos0, 0.f}, col1, {}},
+      {{pos1, 0.f}, col2, {}},
+      {{pos2, 0.f}, col2, {}},
+      {{pos3, 0.f}, col1, {}});
   return 0;
   flush_vbos();
   // if (field_0x18607cf != 0) {
@@ -1726,51 +1611,28 @@ i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
   // SUPERVISOR.d3d_device->DrawPrimitiveUP(
   //     D3DPT_TRIANGLESTRIP, 2, this->vertex_buffers.primitive_write_cursor,
   //     0x14);
-  // vertex_buffers.primitive_write_cursor += 4;
-  // draw_call_ctr_0xcc++;
+  // AM->vertex_buffers.primitive_write_cursor += 4;
+  AM->draw_call_ctr_0xcc++;
   return 0;
 }
 
-i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z,
-                                 ns::Color col1, ns::Color col2, i32 anchor) {
-  if (reinterpret_cast<u64>(AM->vertex_buffers.primitive_write_cursor + 2) >=
-      reinterpret_cast<u64>(&AM->vertex_buffers.primitive_write_cursor))
-    return 0;
+i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z, ns::Color col1,
+                     ns::Color col2, i32 anchor) {
   f32 x1 = anchor == 0 ? -width / 2.0 : anchor == 1 ? 0.0 : -width;
   f32 x2 = anchor == 0 ? width / 2.0 : anchor == 1 ? width : 0.0;
-  auto cursor = AM->vertex_buffers.primitive_write_cursor;
-  cursor[0].transformed_pos.x = x1 * cos(rot_z) + x;
-  cursor[1].transformed_pos.x = x2 * cos(rot_z) + x;
-  cursor[0].transformed_pos.y = x1 * sin(rot_z) + y;
-  cursor[1].transformed_pos.y = x2 * sin(rot_z) + y;
-  cursor[0].transformed_pos.z = 0.0;
-  cursor[1].transformed_pos.z = 0.0;
-  cursor[0].transformed_pos.w = 1.0;
-  cursor[1].transformed_pos.w = 1.0;
-  cursor[0].diffuse_color = col1;
-  cursor[1].diffuse_color = col2;
+  ns::vec2 pos0 = { x1 * ns::cos(rot_z) + x, x1 * ns::sin(rot_z) + y };
+  ns::vec2 pos1 = { x2 * ns::cos(rot_z) + x, x2 * ns::sin(rot_z) + y };
+
   disable_zwrite();
   anm_use_default_texture();
-  // ns::draw_set_blend(AM->last_used_blendmode);
 
+  f32 angle = math::point_direction(pos0, pos1);
+  ns::vec2 dir = math::lengthdir_vec(1.f / 2.f, angle + 90);
 
-    f32 angle = math::point_direction(cursor[0].transformed_pos.x, cursor[0].transformed_pos.y, cursor[1].transformed_pos.x, cursor[1].transformed_pos.y);
-    f32 dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
-    f32 diry = math::lengthdir_y(1.f / 2.f, angle + 90);
-    ns::Vertex g1 = {{cursor[0].transformed_pos.x - dirx, cursor[0].transformed_pos.y - diry,0.f}, cursor[0].diffuse_color, {0,0}};
-    ns::Vertex d1 = {{cursor[0].transformed_pos.x + dirx, cursor[0].transformed_pos.y + diry,0.f}, cursor[0].diffuse_color, {1,0}};
-    ns::Vertex d2 = {{cursor[1].transformed_pos.x + dirx, cursor[1].transformed_pos.y + diry,0.f}, cursor[1].diffuse_color, {1,1}};
-    ns::Vertex g2 = {{cursor[1].transformed_pos.x - dirx, cursor[1].transformed_pos.y - diry,0.f}, cursor[1].diffuse_color, {0,1}};
-    AM->batch->draw(g1, d1, d2, g2);
-
-
-  //ns::batch_draw_line_color(
-  //    AM->batch, cursor[0].transformed_pos.x, cursor[0].transformed_pos.y,
-  //    cursor[1].transformed_pos.x, cursor[1].transformed_pos.y, 1,
-  //    cursor[0].diffuse_color, cursor[1].diffuse_color);
-  // ns::draw_set_blend(0);
-  return 0;
-  flush_vbos();
+  AM->batch->draw_quad({{pos0 - dir, 0.f}, col1, {}},
+                       {{pos0 + dir, 0.f}, col1, {}},
+                       {{pos1 + dir, 0.f}, col2, {}},
+                       {{pos1 - dir, 0.f}, col2, {}});
   // if (field_0x18607cf != 0) {
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
@@ -1784,118 +1646,43 @@ i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z,
   // SUPERVISOR.d3d_device->SetFVF(0x44);
   // SUPERVISOR.d3d_device->DrawPrimitiveUP(
   //     D3DPT_LINESTRIP, 1, this->vertex_buffers.primitive_write_cursor, 0x14);
-  AM->vertex_buffers.primitive_write_cursor += 2;
+  // AM->vertex_buffers.primitive_write_cursor += 2;
   AM->draw_call_ctr_0xcc++;
   return 0;
 }
 
 i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rotz,
-                                 ns::Color col1, ns::Color col2, i32 anchorX,
-                                 i32 anchorY) {
-  if (reinterpret_cast<u64>(AM->vertex_buffers.primitive_write_cursor + 5) >=
-      reinterpret_cast<u64>(&AM->vertex_buffers.primitive_write_cursor))
-    return 0;
+                     ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY) {
   f32 x1 = anchorX == 0 ? -width / 2.0 : anchorX == 1 ? 0.0 : -width;
   f32 x2 = anchorX == 0 ? width / 2.0 : anchorX == 1 ? width : 0.0;
   f32 y1 = anchorY == 0 ? -height / 2.0 : anchorY == 1 ? 0.0 : -height;
   f32 y2 = anchorY == 0 ? height / 2.0 : anchorY == 1 ? height : 0.0;
-  auto cursor = AM->vertex_buffers.primitive_write_cursor;
-  cursor[0].transformed_pos.x = x1 * cos(rotz) - y1 * sin(rotz) + x;
-  cursor[1].transformed_pos.x = x2 * cos(rotz) - y1 * sin(rotz) + x;
-  cursor[2].transformed_pos.x = x2 * cos(rotz) - y2 * sin(rotz) + x;
-  cursor[3].transformed_pos.x = x1 * cos(rotz) - y2 * sin(rotz) + x;
-  cursor[0].transformed_pos.y = x1 * sin(rotz) + y1 * cos(rotz) + y;
-  cursor[1].transformed_pos.y = x2 * sin(rotz) + y1 * cos(rotz) + y;
-  cursor[2].transformed_pos.y = x2 * sin(rotz) + y2 * cos(rotz) + y;
-  cursor[3].transformed_pos.y = x1 * sin(rotz) + y2 * cos(rotz) + y;
-  cursor[0].diffuse_color = col1;
-  cursor[1].diffuse_color = col2;
-  cursor[2].diffuse_color = col2;
-  cursor[3].diffuse_color = col1;
-  cursor[0].transformed_pos.z = 0.0;
-  cursor[1].transformed_pos.z = 0.0;
-  cursor[2].transformed_pos.z = 0.0;
-  cursor[3].transformed_pos.z = 0.0;
-  cursor[0].transformed_pos.w = 1.0;
-  cursor[1].transformed_pos.w = 1.0;
-  cursor[2].transformed_pos.w = 1.0;
-  cursor[3].transformed_pos.w = 1.0;
-  cursor[4].transformed_pos.x = cursor[0].transformed_pos.x;
-  cursor[4].transformed_pos.y = cursor[0].transformed_pos.y;
-  cursor[4].transformed_pos.z = 0.0;
-  cursor[4].transformed_pos.w = 1.0;
-  cursor[4].diffuse_color = col1;
+  float cz = cos(rotz);
+  float sz = sin(rotz);
+  ns::vec2 pos0 = { x1 * cz - y1 * sz + x, x1 * sz + y1 * cz + y };
+  ns::vec2 pos1 = { x2 * cz - y1 * sz + x, x2 * sz + y1 * cz + y };
+  ns::vec2 pos2 = { x2 * cz - y2 * sz + x, x2 * sz + y2 * cz + y };
+  ns::vec2 pos3 = { x1 * cz - y2 * sz + x, x1 * sz + y2 * cz + y };
+  f32 angle = math::point_direction(pos0, pos1);
+  ns::vec2 diag2 = math::lengthdir_vec(1.f / 2.f, angle + 90);
+  ns::vec2 diag1 = ns::vec2(-diag2.x, diag2.y);
+
   disable_zwrite();
   anm_use_default_texture();
-  // ns::draw_set_blend(AM->last_used_blendmode);
-  // ns::batch_draw_line_color(AM->batch,cursor[0].transformed_pos.x, cursor[0].transformed_pos.y,cursor[1].transformed_pos.x,cursor[1].transformed_pos.y,1,cursor[0].diffuse_color,cursor[1].diffuse_color);
-  // ns::batch_draw_line_color(AM->batch,cursor[0].transformed_pos.x, cursor[0].transformed_pos.y,cursor[3].transformed_pos.x,cursor[3].transformed_pos.y,1,cursor[0].diffuse_color,cursor[3].diffuse_color);
-  // ns::batch_draw_line_color(AM->batch,cursor[1].transformed_pos.x,cursor[1].transformed_pos.y,cursor[2].transformed_pos.x,cursor[2].transformed_pos.y,1,cursor[1].diffuse_color,cursor[2].diffuse_color);
-  // ns::batch_draw_line_color(AM->batch,cursor[3].transformed_pos.x,cursor[3].transformed_pos.y,cursor[2].transformed_pos.x,cursor[2].transformed_pos.y,1,cursor[3].diffuse_color,cursor[2].diffuse_color);
-  // ns::draw_set_blend(0);
 
+  u32 tlX = AM->batch->add_vertex({{pos0 - diag1, 0.f}, col1, {}});
+  u32 tlI = AM->batch->add_vertex({{pos0 + diag1, 0.f}, col1, {}});
+  u32 trX = AM->batch->add_vertex({{pos1 - diag2, 0.f}, col2, {}});
+  u32 trI = AM->batch->add_vertex({{pos1 + diag2, 0.f}, col2, {}});
+  u32 brX = AM->batch->add_vertex({{pos2 - diag1, 0.f}, col2, {}});
+  u32 brI = AM->batch->add_vertex({{pos2 + diag1, 0.f}, col2, {}});
+  u32 blX = AM->batch->add_vertex({{pos3 - diag2, 0.f}, col1, {}});
+  u32 blI = AM->batch->add_vertex({{pos3 + diag2, 0.f}, col1, {}});
 
-  f32 angle = math::point_direction(cursor[0].transformed_pos.x,cursor[0].transformed_pos.y,cursor[1].transformed_pos.x,cursor[1].transformed_pos.y);
-  f32 dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
-  f32 diry = math::lengthdir_y(1.f / 2.f, angle + 90);
-
-  ns::vec3 diag1 = ns::vec3(-dirx, diry, 0.f);
-  ns::vec3 diag2 = ns::vec3(dirx, diry, 0.f);
-
-  ns::Vertex tlX = {ns::vec3(cursor[0].transformed_pos) - diag1, cursor[0].diffuse_color, {0, 0}};
-  ns::Vertex tlI = {ns::vec3(cursor[0].transformed_pos) + diag1, cursor[0].diffuse_color, {0, 0}};
-  ns::Vertex trX = {ns::vec3(cursor[1].transformed_pos) - diag2, cursor[1].diffuse_color, {0, 0}};
-  ns::Vertex trI = {ns::vec3(cursor[1].transformed_pos) + diag2, cursor[1].diffuse_color, {0, 0}};
-  ns::Vertex brX = {ns::vec3(cursor[2].transformed_pos) - diag1, cursor[2].diffuse_color, {0, 0}};
-  ns::Vertex brI = {ns::vec3(cursor[2].transformed_pos) + diag1, cursor[2].diffuse_color, {0, 0}};
-  ns::Vertex blX = {ns::vec3(cursor[3].transformed_pos) - diag2, cursor[3].diffuse_color, {0, 0}};
-  ns::Vertex blI = {ns::vec3(cursor[3].transformed_pos) + diag2, cursor[3].diffuse_color, {0, 0}};
-
-  AM->batch->draw(tlX, tlI, blX, blI);
-  AM->batch->draw(trX, trI, tlI, tlX);
-  AM->batch->draw(brI, brX, trI, trX);
-  AM->batch->draw(blX, blI, brI, brX);
-
-  // int p1 = 0, p2 = 1;
-  // f32 angle = math::point_direction(cursor[p1].transformed_pos.x,cursor[p1].transformed_pos.y,cursor[p2].transformed_pos.x,cursor[p2].transformed_pos.y);
-  // f32 dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
-  // f32 diry = math::lengthdir_y(1.f / 2.f, angle + 90);
-  // ns::Vertex g1 = {{cursor[p1].transformed_pos.x - dirx,cursor[p1].transformed_pos.y - diry,0.f}, cursor[p1].diffuse_color, {0,0}};
-  // ns::Vertex d1 = {{cursor[p1].transformed_pos.x + dirx,cursor[p1].transformed_pos.y + diry,0.f}, cursor[p1].diffuse_color, {1,0}};
-  // ns::Vertex d2 = {{cursor[p2].transformed_pos.x + dirx,cursor[p2].transformed_pos.y + diry,0.f}, cursor[p2].diffuse_color, {1,1}};
-  // ns::Vertex g2 = {{cursor[p2].transformed_pos.x - dirx,cursor[p2].transformed_pos.y - diry,0.f}, cursor[p2].diffuse_color, {0,1}};
-  // AM->batch->draw(g1, d1, d2, g2);
-  // 
-  // p1 = 0, p2 = 3;
-  // angle = math::point_direction(cursor[p1].transformed_pos.x,cursor[p1].transformed_pos.y,cursor[p2].transformed_pos.x,cursor[p2].transformed_pos.y);
-  // dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
-  // diry = math::lengthdir_y(1.f / 2.f, angle + 90);
-  // g1 = {{cursor[p1].transformed_pos.x - dirx,cursor[p1].transformed_pos.y - diry,0.f}, cursor[p1].diffuse_color, {0,0}};
-  // d1 = {{cursor[p1].transformed_pos.x + dirx,cursor[p1].transformed_pos.y + diry,0.f}, cursor[p1].diffuse_color, {1,0}};
-  // d2 = {{cursor[p2].transformed_pos.x + dirx,cursor[p2].transformed_pos.y + diry,0.f}, cursor[p2].diffuse_color, {1,1}};
-  // g2 = {{cursor[p2].transformed_pos.x - dirx,cursor[p2].transformed_pos.y - diry,0.f}, cursor[p2].diffuse_color, {0,1}};
-  // AM->batch->draw(g1, d1, d2, g2);
-  // 
-  // p1 = 1, p2 = 2;
-  // angle = math::point_direction(cursor[p1].transformed_pos.x,cursor[p1].transformed_pos.y,cursor[p2].transformed_pos.x,cursor[p2].transformed_pos.y);
-  // dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
-  // diry = math::lengthdir_y(1.f / 2.f, angle + 90);
-  // g1 = {{cursor[p1].transformed_pos.x - dirx,cursor[p1].transformed_pos.y - diry,0.f}, cursor[p1].diffuse_color, {0,0}};
-  // d1 = {{cursor[p1].transformed_pos.x + dirx,cursor[p1].transformed_pos.y + diry,0.f}, cursor[p1].diffuse_color, {1,0}};
-  // d2 = {{cursor[p2].transformed_pos.x + dirx,cursor[p2].transformed_pos.y + diry,0.f}, cursor[p2].diffuse_color, {1,1}};
-  // g2 = {{cursor[p2].transformed_pos.x - dirx,cursor[p2].transformed_pos.y - diry,0.f}, cursor[p2].diffuse_color, {0,1}};
-  // AM->batch->draw(g1, d1, d2, g2);
-  // 
-  // p1 = 3, p2 = 2;
-  // angle = math::point_direction(cursor[p1].transformed_pos.x,cursor[p1].transformed_pos.y,cursor[p2].transformed_pos.x,cursor[p2].transformed_pos.y);
-  // dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
-  // diry = math::lengthdir_y(1.f / 2.f, angle + 90);
-  // g1 = {{cursor[p1].transformed_pos.x - dirx,cursor[p1].transformed_pos.y - diry,0.f}, cursor[p1].diffuse_color, {0,0}};
-  // d1 = {{cursor[p1].transformed_pos.x + dirx,cursor[p1].transformed_pos.y + diry,0.f}, cursor[p1].diffuse_color, {1,0}};
-  // d2 = {{cursor[p2].transformed_pos.x + dirx,cursor[p2].transformed_pos.y + diry,0.f}, cursor[p2].diffuse_color, {1,1}};
-  // g2 = {{cursor[p2].transformed_pos.x - dirx,cursor[p2].transformed_pos.y - diry,0.f}, cursor[p2].diffuse_color, {0,1}};
-  // AM->batch->draw(g1, d1, d2, g2);
-
+  AM->batch->draw_quad(tlX, tlI, blX, blI);
+  AM->batch->draw_quad(trX, trI, tlI, tlX);
+  AM->batch->draw_quad(brI, brX, trI, trX);
+  AM->batch->draw_quad(blX, blI, brI, brX);
   return 0;
   // flush_vbos();
   // if (field_0x18607cf != 0) {
@@ -1910,61 +1697,29 @@ i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rotz,
   // }
   // SUPERVISOR.d3d_device->SetFVF(0x44);
   // SUPERVISOR.d3d_device->DrawPrimitiveUP(D3DPT_LINESTRIP, 4, cursor, 0x14);
-  AM->vertex_buffers.primitive_write_cursor += 5;
+  // AM->vertex_buffers.primitive_write_cursor += 5;
   AM->draw_call_ctr_0xcc++;
   return 0;
 }
 
-i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0,
-                                             f32 radius, i32 vertex_count,
-                                             ns::Color color_1,
-                                             ns::Color color_2) {
-  auto *cursor = AM->vertex_buffers.primitive_write_cursor;
-  if (reinterpret_cast<u64>(cursor + vertex_count + 2) >=
-      reinterpret_cast<u64>(&AM->vertex_buffers.primitive_write_cursor))
-    return 0;
-  cursor->diffuse_color = color_1;
-  cursor->transformed_pos.x = x;
-  cursor->transformed_pos.y = y;
-  cursor->transformed_pos.z = 0.0;
-  cursor->transformed_pos.w = 1.0;
+i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0, f32 radius,
+                                 i32 vertex_count, ns::Color color_1,
+                                 ns::Color color_2) {
+  disable_zwrite();
+  disable_ztest();
+  anm_use_default_texture();
+  u32 center = AM->batch->add_vertex({{x, y, 0.0f}, color_1, {}});
   f32 angle_inc = ns::PI_2<f32> / vertex_count;
-  i32 n = vertex_count;
-  while (n-- >= 0) {
-    cursor++;
-    cursor->transformed_pos = {math::lengthdir_vec(radius, angle_0), 0.0, 1.0};
-    cursor->transformed_pos.x += x;
-    cursor->transformed_pos.y += y;
-    cursor->diffuse_color = color_2;
+  for (i32 i = 0; i < vertex_count - 1; i++) {
+    ns::vec2 pos = math::lengthdir_vec(radius, angle_0) + ns::vec2(x, y);
+    u32 pt = AM->batch->add_vertex({{pos, 0.0}, color_2, {}});
+    AM->batch->draw_tri(center, pt, pt + 1);
     angle_0 += angle_inc;
     math::angle_normalize(angle_0);
   }
-  disable_zwrite();
-  disable_ztest();
-  // My version
-  anm_use_default_texture();
-  for (i32 i = 0; i < vertex_count / 2; i++) {
-    auto tl = AM->vertex_buffers.primitive_write_cursor[0];
-    auto tr = AM->vertex_buffers.primitive_write_cursor[i * 2 + 1];
-    auto br = AM->vertex_buffers.primitive_write_cursor[i * 2 + 2];
-    auto bl = AM->vertex_buffers.primitive_write_cursor[i * 2 + 3];
-    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
-                    {ns::vec3(tr.transformed_pos), tr.diffuse_color, {1, 0}},
-                    {ns::vec3(br.transformed_pos), br.diffuse_color, {1, 1}},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}});
-                    
-  }
-  if (vertex_count % 2) {
-    auto tl = AM->vertex_buffers.primitive_write_cursor[0];
-    auto tr = AM->vertex_buffers.primitive_write_cursor[vertex_count];
-    auto br = AM->vertex_buffers.primitive_write_cursor[1];
-    auto bl = AM->vertex_buffers.primitive_write_cursor[1];
-    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
-                    {ns::vec3(tr.transformed_pos), tr.diffuse_color, {1, 0}},
-                    {ns::vec3(br.transformed_pos), br.diffuse_color, {1, 1}},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}});
-  }
-  return 0;
+  ns::vec2 pos = math::lengthdir_vec(radius, angle_0) + ns::vec2(x, y);
+  u32 pt = AM->batch->add_vertex({{pos, 0.0}, color_2, {}});
+  AM->batch->draw_tri(center, pt, center + 1);
   // if (field_0x18607cf != 0) {
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
@@ -1979,53 +1734,35 @@ i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0,
   // SUPERVISOR.d3d_device->DrawPrimitiveUP(
   //     D3DPT_TRIANGLEFAN, vertex_count,
   //     vertex_buffers.primitive_write_cursor, 0x14);
-  AM->vertex_buffers.primitive_write_cursor += vertex_count + 2;
+  // AM->vertex_buffers.primitive_write_cursor += vertex_count + 2;
   AM->draw_call_ctr_0xcc++;
   return 0;
 }
 
-i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0,
-                                                   f32 radius, i32 nb_vertex,
-                                                   ns::Color col) {
-  auto *cursor = AM->vertex_buffers.primitive_write_cursor;
-  if (reinterpret_cast<u64>(cursor + nb_vertex + 1) >=
-      reinterpret_cast<u64>(&AM->vertex_buffers.primitive_write_cursor))
-    return 0;
+i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0, f32 radius,
+                                       i32 nb_vertex, ns::Color col) {
+  anm_use_default_texture();
+
+  u32 first = AM->batch->get_next_vid();
   f32 angle_inc = ns::PI_2<f32> / nb_vertex;
-  i32 n = nb_vertex;
-  while (n-- > -1) {
-    cursor->transformed_pos = {math::lengthdir_vec(radius, angle_0), 0.0, 1.0};
-    cursor->transformed_pos.x += x;
-    cursor->transformed_pos.y += y;
-    cursor->diffuse_color = col;
-    cursor++;
+
+  for (i32 i = 0; i < nb_vertex - 1; i++) {
+    ns::vec2 pos = math::lengthdir_vec(radius + 0.5, angle_0) + ns::vec2(x, y);
+    u32 v1 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
+    pos = math::lengthdir_vec(radius - 0.5, angle_0) + ns::vec2(x, y);
+    u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
+    AM->batch->draw_quad(v1, v2, v2 + 2, v1 + 2);
+
     angle_0 += angle_inc;
     math::angle_normalize(angle_0);
   }
 
-  // My version
-  anm_use_default_texture();
-  for (i32 i = 0; i < nb_vertex; i++) {
-    auto p1 = AM->vertex_buffers.primitive_write_cursor[i];
-    auto p2 = AM->vertex_buffers.primitive_write_cursor[i + 1];
-    // ns::batch_draw_line_color(AM->batch, p1.transformed_pos.x,
-    //                           p1.transformed_pos.y, p2.transformed_pos.x,
-    //                           p2.transformed_pos.y, 1, p1.diffuse_color,
-    //                           p2.diffuse_color);
+  ns::vec2 pos = math::lengthdir_vec(radius + 0.5, angle_0) + ns::vec2(x, y);
+  u32 v1 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
+  pos = math::lengthdir_vec(radius - 0.5, angle_0) + ns::vec2(x, y);
+  u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
+  AM->batch->draw_quad(v1, v2, first + 1, first);
 
-    f32 angle = math::point_direction(p1.transformed_pos.x, p1.transformed_pos.y, p2.transformed_pos.x, p2.transformed_pos.y);
-    f32 dirx = math::lengthdir_x(1.f / 2.f, angle + 90);
-    f32 diry = math::lengthdir_y(1.f / 2.f, angle + 90);
-    ns::Vertex g1 = {{p1.transformed_pos.x - dirx,p1.transformed_pos.y - diry,0.f}, p1.diffuse_color, {0,0}};
-    ns::Vertex d1 = {{p1.transformed_pos.x + dirx,p1.transformed_pos.y + diry,0.f}, p1.diffuse_color, {1,0}};
-    ns::Vertex d2 = {{p2.transformed_pos.x + dirx,p2.transformed_pos.y + diry,0.f}, p2.diffuse_color, {1,1}};
-    ns::Vertex g2 = {{p2.transformed_pos.x - dirx,p2.transformed_pos.y - diry,0.f}, p2.diffuse_color, {0,1}};
-    AM->batch->draw(g1, d1, d2, g2);
-
-
-  }
-  return 0;
-  flush_vbos();
   // if (field_0x18607cf != 0) {
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
@@ -2040,54 +1777,35 @@ i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0,
   // SUPERVISOR.d3d_device->DrawPrimitiveUP(
   //     D3DPT_LINESTRIP, nb_vertex, vertex_buffers.primitive_write_cursor,
   //     0x14);
-  AM->vertex_buffers.primitive_write_cursor += nb_vertex + 1;
+  // AM->vertex_buffers.primitive_write_cursor += nb_vertex + 1;
   AM->draw_call_ctr_0xcc++;
   return 0;
 }
 
-i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0,
-                                           f32 radius, f32 thickness,
-                                           i32 vertex_count, ns::Color col) {
-  auto *cursor = AM->vertex_buffers.primitive_write_cursor;
-  if (reinterpret_cast<u64>(cursor + vertex_count * 2 + 2) >=
-      reinterpret_cast<u64>(&AM->vertex_buffers.primitive_write_cursor))
-    return 0;
+i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0, f32 radius,
+                               f32 thickness, i32 vertex_count, ns::Color col) {
   f32 radius_1 = radius - thickness * 0.5;
   f32 radius_2 = thickness * 0.5 + radius;
-  f32 ang_inc = ns::PI_2<f32> / vertex_count;
-  i32 n = vertex_count;
-  while (n-- > -1) {
-    cursor[0].transformed_pos = {math::lengthdir_vec(radius_1, angle_0), 0.0,
-                                 1.0};
-    cursor[0].transformed_pos.x += x;
-    cursor[0].transformed_pos.y += y;
-    cursor[0].diffuse_color = col;
-    cursor[1].transformed_pos = {math::lengthdir_vec(radius_2, angle_0), 0.0,
-                                 1.0};
-    cursor[1].transformed_pos.x += x;
-    cursor[1].transformed_pos.y += y;
-    cursor[1].diffuse_color = col;
-    cursor += 2;
-    angle_0 += ang_inc;
+  f32 angle_inc = ns::PI_2<f32> / vertex_count;
+  u32 first = AM->batch->get_next_vid();
+
+  for (i32 i = 0; i < vertex_count - 1; i++) {
+    ns::vec2 pos = math::lengthdir_vec(radius_2, angle_0) + ns::vec2(x, y);
+    u32 v1 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
+    pos = math::lengthdir_vec(radius_1, angle_0) + ns::vec2(x, y);
+    u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
+    AM->batch->draw_quad(v1, v2, v2 + 2, v1 + 2);
+
+    angle_0 += angle_inc;
     math::angle_normalize(angle_0);
   }
 
-  // My version
-  anm_use_default_texture();
-  for (i32 i = 0; i < vertex_count; i++) {
-    auto tl = AM->vertex_buffers.primitive_write_cursor[i * 2 + 0];
-    auto tr = AM->vertex_buffers.primitive_write_cursor[i * 2 + 1];
-    auto bl = AM->vertex_buffers.primitive_write_cursor[i * 2 + 2];
-    auto br = AM->vertex_buffers.primitive_write_cursor[i * 2 + 3];
-    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, {0, 0}},
-                    {ns::vec3(tr.transformed_pos), tr.diffuse_color, {1, 0}},
-                    {ns::vec3(br.transformed_pos), br.diffuse_color, {1, 1}},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, {0, 1}});
-                    
-  }
+  ns::vec2 pos = math::lengthdir_vec(radius_2, angle_0) + ns::vec2(x, y);
+  u32 v1 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
+  pos = math::lengthdir_vec(radius_1, angle_0) + ns::vec2(x, y);
+  u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
+  AM->batch->draw_quad(v1, v2, first + 1, first);
 
-  return 0;
-  flush_vbos();
   // if (field_0x18607cf != 0) {
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
@@ -2102,7 +1820,7 @@ i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0,
   // SUPERVISOR.d3d_device->DrawPrimitiveUP(
   //     D3DPT_TRIANGLESTRIP, vertex_count * 2,
   //     vertex_buffers.primitive_write_cursor, 0x14);
-  AM->vertex_buffers.primitive_write_cursor += vertex_count * 2 + 2;
+  // AM->vertex_buffers.primitive_write_cursor += vertex_count * 2 + 2;
   AM->draw_call_ctr_0xcc++;
   return 0;
 }
@@ -2110,9 +1828,6 @@ i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0,
 void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
   if (!(vm->bitflags.visible) || !(vm->bitflags.f530_1))
     return;
-  if (AM->vertex_buffers.unrendered_sprite_count != 0) {
-    flush_vbos();
-  }
   if (vm->bitflags.zwritedis) {
     disable_zwrite();
   } else {
@@ -2142,22 +1857,45 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
 
   anm_use_texture(vm);
 
-  auto cursor = reinterpret_cast<RenderVertex_t *>(buff);
-  std::vector<RenderVertex_t> data(cursor, &cursor[cnt]);
-  for (auto &v : data) {
-    v.transformed_pos = DStack_e0 * v.transformed_pos;
-  }
-
   i32 nb_segments = (cnt - 2) / 2;
+  auto cursor = reinterpret_cast<RenderVertex_t *>(buff);
+  // std::vector<RenderVertex_t> data(cursor, &cursor[cnt]);
+  // for (auto &v : data) {
+  //   v.transformed_pos = DStack_e0 * v.transformed_pos;
+  // }
+
+  // for (i32 i = 0; i < nb_segments; i++) {
+  //   auto &tl = data[i * 2 + 0];
+  //   auto &tr = data[i * 2 + 1];
+  //   auto &bl = data[i * 2 + 2];
+  //   auto &br = data[i * 2 + 3];
+  //   AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color,
+  //   tl.texture_uv},
+  //                   {ns::vec3(tr.transformed_pos), tr.diffuse_color,
+  //                   tr.texture_uv}, {ns::vec3(br.transformed_pos),
+  //                   br.diffuse_color, br.texture_uv},
+  //                   {ns::vec3(bl.transformed_pos), bl.diffuse_color,
+  //                   bl.texture_uv});
+  // }
+
+  u32 tl =
+      AM->batch->add_vertex({ns::vec3(DStack_e0 * cursor[0].transformed_pos),
+                             cursor[0].diffuse_color, cursor[0].texture_uv});
+  u32 tr =
+      AM->batch->add_vertex({ns::vec3(DStack_e0 * cursor[1].transformed_pos),
+                             cursor[1].diffuse_color, cursor[1].texture_uv});
+
   for (i32 i = 0; i < nb_segments; i++) {
-    auto &tl = data[i * 2 + 0];
-    auto &tr = data[i * 2 + 1];
-    auto &bl = data[i * 2 + 2];
-    auto &br = data[i * 2 + 3];
-    AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv},
-                    {ns::vec3(tr.transformed_pos), tr.diffuse_color, tr.texture_uv},
-                    {ns::vec3(br.transformed_pos), br.diffuse_color, br.texture_uv},
-                    {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv});
+    auto *here = &cursor[i * 2 + 2];
+    auto bl =
+        AM->batch->add_vertex({ns::vec3(DStack_e0 * here[0].transformed_pos),
+                               here[0].diffuse_color, here[0].texture_uv});
+    auto br =
+        AM->batch->add_vertex({ns::vec3(DStack_e0 * here[1].transformed_pos),
+                               here[1].diffuse_color, here[1].texture_uv});
+    AM->batch->draw_quad(tl, tr, bl, br);
+    tl = bl;
+    tr = br;
   }
   return;
 
@@ -2188,13 +1926,11 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
   // return;
 }
 
-void set_effect_508(usize i, int16_t anm_loaded_index,
-                                int16_t script_index, i32 index_of_on_create,
-                                i32 index_of_on_tick, i32 index_of_on_draw,
-                                i32 index_of_on_destroy,
-                                i32 index_of_on_interrupt,
-                                i32 index_of_on_copy_1__disused,
-                                i32 index_of_on_copy_2__disused) {
+void set_effect_508(usize i, int16_t anm_loaded_index, int16_t script_index,
+                    i32 index_of_on_create, i32 index_of_on_tick,
+                    i32 index_of_on_draw, i32 index_of_on_destroy,
+                    i32 index_of_on_interrupt, i32 index_of_on_copy_1__disused,
+                    i32 index_of_on_copy_2__disused) {
   if (i >= AM->effect_table.size())
     AM->effect_table.resize(i + 1);
   AM->effect_table[i].anm_loaded_index = anm_loaded_index;
@@ -2330,9 +2066,7 @@ void set_viewport(Viewport_t viewport) {
   glViewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
 }
 
-void set_viewport(Camera_t &camera) {
-  set_viewport(camera.viewport);
-}
+void set_viewport(Camera_t &camera) { set_viewport(camera.viewport); }
 
 void clear_framebuffer_color(ns::Color c) {
   glClearColor(c.r / 255.f, c.g / 255.f, c.b / 255.f, c.a / 255.f);
@@ -2369,13 +2103,13 @@ void reset_blend_eq() { glBlendEquation(GL_FUNC_ADD); }
 File *getLoaded(i32 i) { return &AM->loadedFiles[i]; }
 
 void interrupt_tree(ID id, i32 interrupt) {
-  auto vm = getVM(id.val);
+  auto vm = get_vm(id.val);
   if (vm)
     vm->interruptRec(interrupt);
 }
 
 void interrupt_tree_run(ID id, i32 interrupt) {
-  auto vm = getVM(id.val);
+  auto vm = get_vm(id.val);
   if (vm)
     vm->interruptRecRun(interrupt);
 }
@@ -2393,10 +2127,10 @@ void draw_rect_col(ns::vec4 const &rect, ns::Color c) {
   //(*(SUPERVISOR.d3d_device)->vtable->SetRenderState)(SUPERVISOR.d3d_device,D3DRS_DESTBLEND,6);
   //(*(SUPERVISOR.d3d_device)->vtable->SetFVF)(SUPERVISOR.d3d_device,0x44);
   //(*(SUPERVISOR.d3d_device)->vtable->DrawPrimitiveUP)(SUPERVISOR.d3d_device,D3DPT_TRIANGLESTRIP,2,vertices,0x14);
-  AM->batch->draw({{rect.x, rect.y, 0.f}, c, {0.f, 0.f}},
-                  {{rect.z, rect.y, 0.f}, c, {1.f, 0.f}},
-                  {{rect.z, rect.w, 0.f}, c, {1.f, 1.f}},
-                  {{rect.x, rect.w, 0.f}, c, {0.f, 1.f}});
+  AM->batch->draw_quad({{rect.x, rect.y, 0.f}, c, {0.f, 0.f}},
+                       {{rect.z, rect.y, 0.f}, c, {1.f, 0.f}},
+                       {{rect.z, rect.w, 0.f}, c, {1.f, 1.f}},
+                       {{rect.x, rect.w, 0.f}, c, {0.f, 1.f}});
   flush_vbos();
   AM->field_0x18607c9 = 255;
   AM->field_0x18607ca = 255;
@@ -2462,25 +2196,33 @@ void _set_cam_vec2_fc(ns::vec2 v) {
 }
 
 void raw_batch_draw(u32 texture, RenderVertex_t tl, RenderVertex_t tr,
-                                RenderVertex_t br, RenderVertex_t bl, u8 blendmode) {
+                    RenderVertex_t br, RenderVertex_t bl, u8 blendmode) {
   anm_use_texture(texture);
   anm_use_blendmode(blendmode);
-  ns::Vertex ns_tl = {ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv};
-  ns::Vertex ns_tr = {ns::vec3(tr.transformed_pos), tr.diffuse_color, tr.texture_uv};
-  ns::Vertex ns_br = {ns::vec3(br.transformed_pos), br.diffuse_color, br.texture_uv};
-  ns::Vertex ns_bl = {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv};
-  AM->batch->draw(ns_tl, ns_tr, ns_br, ns_bl);
+  ns::Vertex ns_tl = {ns::vec3(tl.transformed_pos), tl.diffuse_color,
+                      tl.texture_uv};
+  ns::Vertex ns_tr = {ns::vec3(tr.transformed_pos), tr.diffuse_color,
+                      tr.texture_uv};
+  ns::Vertex ns_br = {ns::vec3(br.transformed_pos), br.diffuse_color,
+                      br.texture_uv};
+  ns::Vertex ns_bl = {ns::vec3(bl.transformed_pos), bl.diffuse_color,
+                      bl.texture_uv};
+  AM->batch->draw_quad(ns_tl, ns_tr, ns_br, ns_bl);
 }
 
-void raw_batch_draw(ns::Texture* texture, RenderVertex_t tl, RenderVertex_t tr,
-                                RenderVertex_t br, RenderVertex_t bl, u8 blendmode) {
+void raw_batch_draw(ns::Texture *texture, RenderVertex_t tl, RenderVertex_t tr,
+                    RenderVertex_t br, RenderVertex_t bl, u8 blendmode) {
   anm_use_texture(texture);
   anm_use_blendmode(blendmode);
-  ns::Vertex ns_tl = {ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv};
-  ns::Vertex ns_tr = {ns::vec3(tr.transformed_pos), tr.diffuse_color, tr.texture_uv};
-  ns::Vertex ns_br = {ns::vec3(br.transformed_pos), br.diffuse_color, br.texture_uv};
-  ns::Vertex ns_bl = {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv};
-  AM->batch->draw(ns_tl, ns_tr, ns_br, ns_bl);
+  ns::Vertex ns_tl = {ns::vec3(tl.transformed_pos), tl.diffuse_color,
+                      tl.texture_uv};
+  ns::Vertex ns_tr = {ns::vec3(tr.transformed_pos), tr.diffuse_color,
+                      tr.texture_uv};
+  ns::Vertex ns_br = {ns::vec3(br.transformed_pos), br.diffuse_color,
+                      br.texture_uv};
+  ns::Vertex ns_bl = {ns::vec3(bl.transformed_pos), bl.diffuse_color,
+                      bl.texture_uv};
+  AM->batch->draw_quad(ns_tl, ns_tr, ns_br, ns_bl);
 }
 
 } // namespace anm

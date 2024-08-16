@@ -10,7 +10,7 @@
 
 namespace anm {
 
-int VM::cnt = 0;
+void _destroyFastVM(VM *vm);
 
 #define GAME_SPEED ns::get_instance()->game_speed()
 
@@ -43,12 +43,12 @@ void VM::interruptRun(int i) {
     Funcs::on_switch(index_of_on_interrupt)(this, i);
   }
   pending_interrupt = i;
-  update();  // run
+  update(); // run
 }
 
 void VM::interruptRec(int i) {
   interrupt(i);
-  for (VMList_t *child = list_of_children.next; child != nullptr;
+  for (List_t *child = list_of_children.next; child != nullptr;
        child = child->next) {
     if (child->value)
       child->value->interruptRec(i);
@@ -57,7 +57,7 @@ void VM::interruptRec(int i) {
 
 void VM::interruptRecRun(int i) {
   interruptRun(i);
-  for (VMList_t *child = list_of_children.next; child != nullptr;
+  for (List_t *child = list_of_children.next; child != nullptr;
        child = child->next) {
     if (child->value)
       child->value->interruptRecRun(i);
@@ -83,7 +83,8 @@ VM::VM(u32 script_id, u32 anim_slot) {
 
 VM::~VM() {
   if (special_vertex_buffer_data)
-    ns::free_raw(special_vertex_buffer_data, special_vertex_buffer_size, ns::MemTag::GAME);
+    ns::free_raw(special_vertex_buffer_data, special_vertex_buffer_size,
+                 ns::MemTag::GAME);
   destroy();
 }
 
@@ -91,30 +92,10 @@ Sprite VM::getSprite() const {
   return anm::getLoaded(anm_loaded_index)->getSprite(sprite_id);
 }
 
-void VM::getParentData(ns::vec3 &pos, ns::vec3 &rot, ns::vec2 &scale) {
-  if (parent_vm) {
-    parent_vm->getParentData(pos, rot, scale);
-    pos.x += parent_vm->pos.x + parent_vm->entity_pos.x;
-    pos.y += -parent_vm->pos.y - parent_vm->entity_pos.y;
-    pos.z += parent_vm->pos.z + parent_vm->entity_pos.z;
-    rot += parent_vm->rotation;
-    scale *= parent_vm->scale;
-    // if (parent_vm->bitflags.resolutionMode == 2) {
-    //     pos /= 2.f;
-    //     scale /= 2.f;
-    // }
-    if (parent_vm->getFlags().originMode == 0) {
-      pos.x -= 224.f;
-      pos.y += 16.f;
-    }
-  }
-}
-
-int VM::update(bool /*printInstr*/) {
+int VM::update() {
   /* VM IS NOT RUNNING */
   if (bitflags.activeFlags == ANMVM_DELETE && !time_in_script.had_value(-1))
     return 1;
-  cnt++;
 
   if (bitflags.activeFlags == ANMVM_FROZEN || !bitflags.f530_1)
     return 0;
@@ -161,8 +142,7 @@ int VM::update(bool /*printInstr*/) {
   // // GAME_SPEED = saved_game_speed;
   // return 0;
 
-  bytes instructions =
-      anm::getLoaded(anm_loaded_index)->getScript(script_id);
+  bytes instructions = anm::getLoaded(anm_loaded_index)->getScript(script_id);
   if (instructions == nullptr)
     return 1;
 
@@ -179,8 +159,8 @@ int VM::update(bool /*printInstr*/) {
           *reinterpret_cast<uint16_t *>(&(instructions[offset + 2]));
       int16_t instime =
           *reinterpret_cast<int16_t *>(&(instructions[offset + 4]));
-      if (instype == 5 && *reinterpret_cast<int32_t *>(&(
-                              instructions[offset + 8])) == -1) {
+      if (instype == 5 &&
+          *reinterpret_cast<int32_t *>(&(instructions[offset + 8])) == -1) {
         offset_of_interrupt_m1 = offset;
         time_of_interrupt_m1 = instime;
       }
@@ -197,11 +177,11 @@ int VM::update(bool /*printInstr*/) {
       offset += inslength;
     }
     if (!interrupt_found && offset_of_interrupt_m1 >= 0) {
-        interrupt_return_offset = instr_offset;
-        interrupt_return_time = time_in_script;
-        instr_offset = offset_of_interrupt_m1;
-        time_in_script = time_of_interrupt_m1;
-        bitflags.visible = 1;
+      interrupt_return_offset = instr_offset;
+      interrupt_return_time = time_in_script;
+      instr_offset = offset_of_interrupt_m1;
+      time_in_script = time_of_interrupt_m1;
+      bitflags.visible = 1;
     }
     pending_interrupt = 0;
   }
@@ -214,9 +194,10 @@ int VM::update(bool /*printInstr*/) {
   if (instr_offset >= 0) {
     if (instructions[instr_offset] == 0xff)
       return 1;
-    int16_t instime = *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
-    while (instime <= time_in_script &&
-           (bitflags.activeFlags == ANMVM_ACTIVE || time_in_script.had_value(-1))) {
+    int16_t instime =
+        *reinterpret_cast<int16_t *>(&(instructions[instr_offset + 4]));
+    while (instime <= time_in_script && (bitflags.activeFlags == ANMVM_ACTIVE ||
+                                         time_in_script.had_value(-1))) {
       int ret = exec_instruction(&(instructions[instr_offset]));
       if (ret == 1)
         return 0;
@@ -232,10 +213,6 @@ int VM::update(bool /*printInstr*/) {
 
   return 0;
 }
-int VM::getMode() const { return bitflags.rendermode; }
-int VM::getZdis() const {
-  return bitflags.zwritedis || bitflags.blendmode != 0;
-}
 
 void VM::getSpriteCorners2D(ns::vec2 *corners) {
   ns::vec4 pos4 = ns::vec4(pos, 0);
@@ -249,37 +226,37 @@ void VM::getSpriteCorners2D(ns::vec2 *corners) {
   float b = t - 1;
   ns::mat4 rotate;
   pos4 = ns::vec4(pos4.x + entity_pos.x, -pos4.y + entity_pos.y,
-                   pos4.z + entity_pos.z, 0);
+                  pos4.z + entity_pos.z, 0);
   pos4.z = 0;
   rotate = ns::mat4::mk_rotate_z(-rotation.z);
   corners[0] = {pos4 + rotate * ns::vec4(l * s.w * XS + anchor_offset.x,
-                                          t * s.h * YS + anchor_offset.y, 0,
-                                          0)};
+                                         t * s.h * YS + anchor_offset.y, 0, 0)};
   corners[1] = {pos4 + rotate * ns::vec4(r * s.w * XS + anchor_offset.x,
-                                          t * s.h * YS + anchor_offset.y, 0,
-                                          0)};
+                                         t * s.h * YS + anchor_offset.y, 0, 0)};
   corners[2] = {pos4 + rotate * ns::vec4(r * s.w * XS + anchor_offset.x,
-                                          b * s.h * YS + anchor_offset.y, 0,
-                                          0)};
+                                         b * s.h * YS + anchor_offset.y, 0, 0)};
   corners[3] = {pos4 + rotate * ns::vec4(l * s.w * XS + anchor_offset.x,
-                                          b * s.h * YS + anchor_offset.y, 0,
-                                          0)};
+                                         b * s.h * YS + anchor_offset.y, 0, 0)};
 }
 
 void VM::destroy() {
-  if (id.val && (id.val & ID::fastIdMask) != ID::fastIdMask) {
+  if (id.val && (id.val & ID::fast_id_mask) != ID::fast_id_mask) {
     anm::_destroyFastVM(this);
   }
 
   bitflags = {};
 
-  if (node_in_global_list.previous) node_in_global_list.previous->next = node_in_global_list.next;
-  if (node_in_global_list.next) node_in_global_list.next->previous = node_in_global_list.previous;
+  if (node_in_global_list.previous)
+    node_in_global_list.previous->next = node_in_global_list.next;
+  if (node_in_global_list.next)
+    node_in_global_list.next->previous = node_in_global_list.previous;
   node_in_global_list.previous = nullptr;
   node_in_global_list.next = nullptr;
 
-  if (__node_as_child.previous) __node_as_child.previous->next = __node_as_child.next;
-  if (__node_as_child.next) __node_as_child.next->previous = __node_as_child.previous;
+  if (__node_as_child.previous)
+    __node_as_child.previous->next = __node_as_child.next;
+  if (__node_as_child.next)
+    __node_as_child.next->previous = __node_as_child.previous;
   __node_as_child.previous = nullptr;
   __node_as_child.next = nullptr;
 
@@ -323,7 +300,6 @@ void VM::destroy() {
   associated_game_entity = nullptr;
 }
 
-
 ns::vec3 VM::get_pos_with_root() {
   ns::vec3 p = pos + entity_pos + __pos_2;
   auto root = __root_vm__or_maybe_not;
@@ -331,7 +307,8 @@ ns::vec3 VM::get_pos_with_root() {
     if (bitflags.parRotate) {
       auto savedpy = p.y;
       p.y = p.y * ns::cos(root->rotation.z) + p.x * ns::sin(root->rotation.z);
-      p.x = p.x * ns::cos(root->rotation.z) - savedpy * ns::sin(root->rotation.z);
+      p.x =
+          p.x * ns::cos(root->rotation.z) - savedpy * ns::sin(root->rotation.z);
     }
     p += root->get_pos_with_root();
   }
@@ -355,7 +332,7 @@ void VM::write_sprite_corners_2d(ns::vec4 *corners) {
 }
 
 void VM::write_sprite_corners__without_rot(ns::vec4 &tl, ns::vec4 &tr,
-                                              ns::vec4 &bl, ns::vec4 &br) {
+                                           ns::vec4 &bl, ns::vec4 &br) {
   tl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
   tr.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
   bl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
@@ -415,7 +392,6 @@ void VM::write_sprite_corners__without_rot(ns::vec4 &tl, ns::vec4 &tr,
   return;
 }
 
-
 ns::vec3 VM::getRotation() {
   __rotation_related = rotation;
   if (__root_vm__or_maybe_not && !bitflags.noParent) {
@@ -429,7 +405,7 @@ ns::vec3 VM::getRotation() {
 }
 
 void VM::write_sprite_corners__with_z_rot(ns::vec4 &tl, ns::vec4 &tr,
-                                             ns::vec4 &bl, ns::vec4 &br) {
+                                          ns::vec4 &bl, ns::vec4 &br) {
   tl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
   tr.x = bitflags.anchorX == 0 ? 0.5f : (bitflags.anchorX == 1 ? 1 : 0);
   bl.x = bitflags.anchorX == 0 ? -0.5f : (bitflags.anchorX == 1 ? 0 : -1);
@@ -504,15 +480,17 @@ int VM::write_sprite_corners__mode_4() {
   ns::vec2 s = scale * scale_2 * sprite_size / 2.f;
 
   // Good enough for now
-  auto& vwmx = anm::get_camera()->view_matrix;
+  auto &vwmx = anm::get_camera()->view_matrix;
   ns::vec3 ViewZ = ns::vec3(vwmx[0][2], vwmx[1][2], vwmx[2][2]);
   ns::mat4 rot = ns::mat4::mk_rotate(rotation.z, ViewZ);
-  ns::vec3 ViewX = (ns::vec3)(rot * ns::vec4(vwmx[0][0], vwmx[1][0], vwmx[2][0], 1.f));
-  ns::vec3 ViewY = (ns::vec3)(rot * ns::vec4(vwmx[0][1], vwmx[1][1], vwmx[2][1], 1.f));
-  ns::vec3 postl = pp - s.x/2 * ViewX + s.y/2 * ViewY;
-  ns::vec3 postr = pp + s.x/2 * ViewX + s.y/2 * ViewY;
-  ns::vec3 posbr = pp + s.x/2 * ViewX - s.y/2 * ViewY;
-  ns::vec3 posbl = pp - s.x/2 * ViewX - s.y/2 * ViewY;
+  ns::vec3 ViewX =
+      (ns::vec3)(rot * ns::vec4(vwmx[0][0], vwmx[1][0], vwmx[2][0], 1.f));
+  ns::vec3 ViewY =
+      (ns::vec3)(rot * ns::vec4(vwmx[0][1], vwmx[1][1], vwmx[2][1], 1.f));
+  ns::vec3 postl = pp - s.x / 2 * ViewX + s.y / 2 * ViewY;
+  ns::vec3 postr = pp + s.x / 2 * ViewX + s.y / 2 * ViewY;
+  ns::vec3 posbr = pp + s.x / 2 * ViewX - s.y / 2 * ViewY;
+  ns::vec3 posbl = pp - s.x / 2 * ViewX - s.y / 2 * ViewY;
 
   /*
   ns::vec3 f = ns::normalize(SUPERVISOR.current_camera->position - pp);
@@ -545,8 +523,9 @@ int VM::write_sprite_corners__mode_4() {
 
   SPRITE_TEMP_BUFFER[0].transformed_pos = p + rotmat * ns::vec4{top + left, 0};
   SPRITE_TEMP_BUFFER[1].transformed_pos = p + rotmat * ns::vec4{top + right, 0};
-  SPRITE_TEMP_BUFFER[2].transformed_pos = p + rotmat * ns::vec4{bottom + left, 0};
-  SPRITE_TEMP_BUFFER[3].transformed_pos = p + rotmat * ns::vec4{bottom + right, 0};
+  SPRITE_TEMP_BUFFER[2].transformed_pos = p + rotmat * ns::vec4{bottom + left,
+  0}; SPRITE_TEMP_BUFFER[3].transformed_pos = p + rotmat * ns::vec4{bottom +
+  right, 0};
 */
   SPRITE_TEMP_BUFFER[0].transformed_pos = ns::vec4(postl, 1.f);
   SPRITE_TEMP_BUFFER[1].transformed_pos = ns::vec4(postr, 1.f);
@@ -564,7 +543,8 @@ int VM::write_sprite_corners__mode_4() {
   // ns::vec4 sprite_right =
   //     SUPERVISOR.current_camera->projection_matrix *
   //     SUPERVISOR.current_camera->view_matrix *
-  //     ns::vec4((pos + __pos_2 + entity_pos) + SUPERVISOR.current_camera->right,
+  //     ns::vec4((pos + __pos_2 + entity_pos) +
+  //     SUPERVISOR.current_camera->right,
   //               1.f);
   // float half_sprite_size =
   //     math::point_distance(ns::vec3(sprite_right), ns::vec3(pp)) * 0.5;
@@ -643,13 +623,13 @@ ns::vec3 VM::get_own_transformed_pos() {
 }
 
 float getSlowdown(VM *vm) {
-    if (!vm->__root_vm__or_maybe_not || vm->bitflags.noParent) {
-        return vm->slowdown;
-    } else {
-        while (vm->__root_vm__or_maybe_not && !vm->bitflags.noParent)
-          vm = vm->__root_vm__or_maybe_not;
-        return vm->slowdown;
-    }
+  if (!vm->__root_vm__or_maybe_not || vm->bitflags.noParent) {
+    return vm->slowdown;
+  } else {
+    while (vm->__root_vm__or_maybe_not && !vm->bitflags.noParent)
+      vm = vm->__root_vm__or_maybe_not;
+    return vm->slowdown;
+  }
 }
 
 void VM::clear_flag_1_rec() {
@@ -716,83 +696,85 @@ static constexpr int CONTINUE = 3;
 
 int VM::run() {
   return update();
-    float gamespeed_real = GAME_SPEED;
-    if (bitflags.noSlowdown) ns::get_instance()->set_game_speed(1.0);
-    float slow = getSlowdown(this);
-    if (slow > 0.0) {
-        ns::get_instance()
-            ->set_game_speed(gamespeed_real - slow * gamespeed_real);
-        if (GAME_SPEED < 0) ns::get_instance()->set_game_speed(0.0);
-    }
-    if (index_of_on_tick && Funcs::on_tick(index_of_on_tick)(this)) {
-        ns::get_instance()->set_game_speed(gamespeed_real);
-        return FAILURE;
-    }
-    if (instr_offset < 0x0 || bitflags.f530_20) {
-        ns::get_instance()->set_game_speed(gamespeed_real);
-        return SUCCESS;
-    }
-    __timer_1c++;
-    using Ins = opener::anm_instr_t;
-    if (pending_interrupt) {
-        int offset = 0;
-        Ins* scr = reinterpret_cast<Ins*>(
-            anm::getLoaded(anm_loaded_index)->getScript(script_id));
-        Ins* m1IntIns = nullptr;
-        int m1IntOffset = 0;
-        while (1) {
-            if (scr->type == static_cast<uint16_t>(-1)) break;
-            if (scr->type == 5) {
-                if (pending_interrupt ==
-                    *reinterpret_cast<int32_t*>(&scr->data[0])) break;
-                if (*reinterpret_cast<int32_t*>(&scr->data[0]) == -0x1) {
-                    m1IntIns = scr;
-                    m1IntOffset = offset;
-                }
-            }
-            offset += scr->length;
-            scr = reinterpret_cast<Ins*>(
-                reinterpret_cast<int64_t>(scr) + scr->length);
+  float gamespeed_real = GAME_SPEED;
+  if (bitflags.noSlowdown)
+    ns::get_instance()->set_game_speed(1.0);
+  float slow = getSlowdown(this);
+  if (slow > 0.0) {
+    ns::get_instance()->set_game_speed(gamespeed_real - slow * gamespeed_real);
+    if (GAME_SPEED < 0)
+      ns::get_instance()->set_game_speed(0.0);
+  }
+  if (index_of_on_tick && Funcs::on_tick(index_of_on_tick)(this)) {
+    ns::get_instance()->set_game_speed(gamespeed_real);
+    return FAILURE;
+  }
+  if (instr_offset < 0x0 || bitflags.f530_20) {
+    ns::get_instance()->set_game_speed(gamespeed_real);
+    return SUCCESS;
+  }
+  __timer_1c++;
+  using Ins = opener::anm_instr_t;
+  if (pending_interrupt) {
+    int offset = 0;
+    Ins *scr = reinterpret_cast<Ins *>(
+        anm::getLoaded(anm_loaded_index)->getScript(script_id));
+    Ins *m1IntIns = nullptr;
+    int m1IntOffset = 0;
+    while (1) {
+      if (scr->type == static_cast<uint16_t>(-1))
+        break;
+      if (scr->type == 5) {
+        if (pending_interrupt == *reinterpret_cast<int32_t *>(&scr->data[0]))
+          break;
+        if (*reinterpret_cast<int32_t *>(&scr->data[0]) == -0x1) {
+          m1IntIns = scr;
+          m1IntOffset = offset;
         }
-        bitflags.f530_14 = 0;
-        pending_interrupt = 0;
-        if (scr->type != 5) {
-            scr = m1IntIns;
-            if (scr == 0) {
-                time_in_script--;
-                return wait(gamespeed_real);
-            }
-            offset = m1IntOffset;
-        }
-        interrupt_return_time = time_in_script;
-        // dword ptr [EBX + 0x14] = dword ptr [EBX + 0x28];
-        time_in_script = scr->time;
-        instr_offset = offset + scr->length;
-        bitflags.visible = true;
-    } else {
+      }
+      offset += scr->length;
+      scr =
+          reinterpret_cast<Ins *>(reinterpret_cast<int64_t>(scr) + scr->length);
+    }
+    bitflags.f530_14 = 0;
+    pending_interrupt = 0;
+    if (scr->type != 5) {
+      scr = m1IntIns;
+      if (scr == 0) {
+        time_in_script--;
+        return wait(gamespeed_real);
+      }
+      offset = m1IntOffset;
+    }
+    interrupt_return_time = time_in_script;
+    // dword ptr [EBX + 0x14] = dword ptr [EBX + 0x28];
+    time_in_script = scr->time;
+    instr_offset = offset + scr->length;
+    bitflags.visible = true;
+  } else {
     // if (bitflags.f534_14_15 == 1 && GAME_THREAD_PTR &&
     //     GAME_THREAD_PTR->field_0x8c & 0x2) {
     //    GAME_SPEED = local_20;
     //    return 0;
     // }
-    }
-    while (true) {
-        auto instr = &anm::getLoaded(anm_loaded_index)
-            ->getScript(script_id)[instr_offset];
+  }
+  while (true) {
+    auto instr =
+        &anm::getLoaded(anm_loaded_index)->getScript(script_id)[instr_offset];
 
-        if (reinterpret_cast<Ins*>(instr)->time > time_in_script)
-            return wait(gamespeed_real);
-        auto res = exec_instruction(instr);
+    if (reinterpret_cast<Ins *>(instr)->time > time_in_script)
+      return wait(gamespeed_real);
+    auto res = exec_instruction(instr);
 
-        if (res == CONTINUE) {
-            continue;
-        } else if (res == WAIT) {
-            return wait(gamespeed_real);
-        } else {
-            ns::get_instance()->set_game_speed(gamespeed_real);
-            return res;
-        }
+    if (res == CONTINUE) {
+      continue;
+    } else if (res == WAIT) {
+      return wait(gamespeed_real);
+    } else {
+      ns::get_instance()->set_game_speed(gamespeed_real);
+      return res;
     }
+  }
 }
 
 void VM::step_interpolators() {
@@ -942,32 +924,31 @@ void VM::write_texture_circle_vertices() {
       scale2 *= RESOLUTION_MULT / 2.f;
       scale1 *= RESOLUTION_MULT / 2.f;
     }
-    auto cursor = reinterpret_cast<RenderVertex_t*>(special_vertex_buffer_data);
+    auto cursor =
+        reinterpret_cast<RenderVertex_t *>(special_vertex_buffer_data);
     for (int i = 0; i < n_segment; i++) {
       cursor[i * 2 + 0].transformed_pos =
           lengthdir_vec4(scale2, rotation.z + i * ang_inc) + pos;
       cursor[i * 2 + 0].diffuse_color = color_1;
-      cursor[i * 2 + 0].texture_uv.x =
-          uv_quad_of_sprite[0].x + uv_scroll_pos.x;
+      cursor[i * 2 + 0].texture_uv.x = uv_quad_of_sprite[0].x + uv_scroll_pos.x;
       cursor[i * 2 + 0].texture_uv.y = v_inc * i + uv_scroll_pos.y;
       cursor[i * 2 + 1].transformed_pos =
           lengthdir_vec4(scale1, rotation.z + i * ang_inc) + pos;
       cursor[i * 2 + 1].diffuse_color = col2;
-      cursor[i * 2 + 1].texture_uv.x =
-          uv_quad_of_sprite[1].x + uv_scroll_pos.x;
+      cursor[i * 2 + 1].texture_uv.x = uv_quad_of_sprite[1].x + uv_scroll_pos.x;
       cursor[i * 2 + 1].texture_uv.y = v_inc * i + uv_scroll_pos.y;
     }
     cursor[n_segment * 2 + 0] =
-        reinterpret_cast<RenderVertex_t*>(special_vertex_buffer_data)[0];
+        reinterpret_cast<RenderVertex_t *>(special_vertex_buffer_data)[0];
     cursor[n_segment * 2 + 0].texture_uv.y =
         int_script_vars[1] + uv_scroll_pos.y;
     cursor[n_segment * 2 + 1] =
-        reinterpret_cast<RenderVertex_t*>(special_vertex_buffer_data)[1];
+        reinterpret_cast<RenderVertex_t *>(special_vertex_buffer_data)[1];
     cursor[n_segment * 2 + 1].texture_uv.y =
         int_script_vars[1] + uv_scroll_pos.y;
 
     return;
-    }
+  }
   case 13:
   case 14: {
     int npts = int_script_vars[0];
@@ -1000,28 +981,26 @@ void VM::write_texture_circle_vertices() {
       scale2 *= RESOLUTION_MULT / 2.f;
     }
 
-    auto cursor = reinterpret_cast<RenderVertex_t*>(special_vertex_buffer_data);
+    auto cursor =
+        reinterpret_cast<RenderVertex_t *>(special_vertex_buffer_data);
     for (int i = 0; i < npts; i++) {
       cursor[i * 2 + 0].transformed_pos =
           lengthdir_vec4(scale2, start_ang + ang_inc * i) + pos;
       cursor[i * 2 + 0].diffuse_color = col;
-      cursor[i * 2 + 0].texture_uv.x =
-          uv_quad_of_sprite[0].x + uv_scroll_pos.x;
+      cursor[i * 2 + 0].texture_uv.x = uv_quad_of_sprite[0].x + uv_scroll_pos.x;
       cursor[i * 2 + 0].texture_uv.y = v_inc * i + uv_scroll_pos.y;
       cursor[i * 2 + 1].transformed_pos =
           lengthdir_vec4(scale1, start_ang + ang_inc * i) + pos;
       cursor[i * 2 + 1].diffuse_color = col;
-      cursor[i * 2 + 1].texture_uv.x =
-          uv_quad_of_sprite[1].x + uv_scroll_pos.x;
+      cursor[i * 2 + 1].texture_uv.x = uv_quad_of_sprite[1].x + uv_scroll_pos.x;
       cursor[i * 2 + 1].texture_uv.y = v_inc * i + uv_scroll_pos.y;
     }
-    }
+  }
     return;
   case 24:
   case 25: {
     int ptnb = int_script_vars[0];
-    float ang_start =
-        float_script_vars[3] - float_script_vars[0] / 2.f;
+    float ang_start = float_script_vars[3] - float_script_vars[0] / 2.f;
     float ang_inc = float_script_vars[0] / (ptnb - 0x1);
     float v_inc = int_script_vars[1] / static_cast<float>(ptnb - 0x1);
     ns::Color col;
@@ -1039,7 +1018,8 @@ void VM::write_texture_circle_vertices() {
       scale2 += float_script_vars[1] / 2.f;
     }
 
-    auto cursor = reinterpret_cast<RenderVertex_t*>(special_vertex_buffer_data);
+    auto cursor =
+        reinterpret_cast<RenderVertex_t *>(special_vertex_buffer_data);
     // actually it uses vertices without w component (since it's untransformed)
     for (int i = 0; i < ptnb; i++) {
       ns::vec2 rotpos = math::lengthdir_vec(scale1, ang_start + i * ang_inc);
@@ -1048,8 +1028,7 @@ void VM::write_texture_circle_vertices() {
       cursor[i * 2 + 0].transformed_pos.z = rotpos.y;
       cursor[i * 2 + 0].transformed_pos.w = 1.f;
       cursor[i * 2 + 0].diffuse_color = col;
-      cursor[i * 2 + 0].texture_uv.x =
-          uv_quad_of_sprite[0].x + uv_scroll_pos.x;
+      cursor[i * 2 + 0].texture_uv.x = uv_quad_of_sprite[0].x + uv_scroll_pos.x;
       cursor[i * 2 + 0].texture_uv.y = i * v_inc + uv_scroll_pos.y;
       rotpos = math::lengthdir_vec(scale2, ang_start + i * ang_inc);
       cursor[i * 2 + 1].transformed_pos.x = rotpos.x;
@@ -1057,11 +1036,10 @@ void VM::write_texture_circle_vertices() {
       cursor[i * 2 + 1].transformed_pos.z = rotpos.y;
       cursor[i * 2 + 1].transformed_pos.w = 1.f;
       cursor[i * 2 + 1].diffuse_color = col;
-      cursor[i * 2 + 1].texture_uv.x =
-          uv_quad_of_sprite[1].x + uv_scroll_pos.x;
+      cursor[i * 2 + 1].texture_uv.x = uv_quad_of_sprite[1].x + uv_scroll_pos.x;
       cursor[i * 2 + 1].texture_uv.y = i * v_inc + uv_scroll_pos.y;
     }
-    }
+  }
     return;
   default:
     return;
@@ -1069,42 +1047,42 @@ void VM::write_texture_circle_vertices() {
 }
 
 int VM::wait(float old_game_speed) {
-    if (bitflags.hasGrowth) {
-        update_variables_growth();
-    }
-    if (bitflags.f530_15) {
-        entity_pos += anm::get_3d_camera()->__vec3_104;
-    }
-    if (bitflags.ins419) {
-        ns::vec4 temp_quad[4];
-        write_sprite_corners_2d(temp_quad);
-        uv_quad_of_sprite[0].x = math::max(0.f, temp_quad[0].x / 640.f);
-        uv_quad_of_sprite[0].y = math::max(0.f, temp_quad[0].y / 480.f);
-        uv_quad_of_sprite[1].x = math::max(0.f, temp_quad[1].x / 640.f);
-        uv_quad_of_sprite[1].y = math::max(0.f, temp_quad[1].y / 480.f);
-        uv_quad_of_sprite[2].x = math::max(0.f, temp_quad[2].x / 640.f);
-        uv_quad_of_sprite[2].y = math::max(0.f, temp_quad[2].y / 480.f);
-        uv_quad_of_sprite[3].x = math::max(0.f, temp_quad[3].x / 640.f);
-        uv_quad_of_sprite[3].y = math::max(0.f, temp_quad[3].y / 480.f);
-    }
-    step_interpolators();
-    write_texture_circle_vertices();
-    if (index_of_on_wait && Funcs::on_wait(index_of_on_wait) &&
-        Funcs::on_wait(index_of_on_wait)(this) == 0) {
-        ns::get_instance()->set_game_speed(old_game_speed);
-        return 1;
-    }
-    time_in_script++;
+  if (bitflags.hasGrowth) {
+    update_variables_growth();
+  }
+  if (bitflags.f530_15) {
+    entity_pos += anm::get_3d_camera()->__vec3_104;
+  }
+  if (bitflags.ins419) {
+    ns::vec4 temp_quad[4];
+    write_sprite_corners_2d(temp_quad);
+    uv_quad_of_sprite[0].x = math::max(0.f, temp_quad[0].x / 640.f);
+    uv_quad_of_sprite[0].y = math::max(0.f, temp_quad[0].y / 480.f);
+    uv_quad_of_sprite[1].x = math::max(0.f, temp_quad[1].x / 640.f);
+    uv_quad_of_sprite[1].y = math::max(0.f, temp_quad[1].y / 480.f);
+    uv_quad_of_sprite[2].x = math::max(0.f, temp_quad[2].x / 640.f);
+    uv_quad_of_sprite[2].y = math::max(0.f, temp_quad[2].y / 480.f);
+    uv_quad_of_sprite[3].x = math::max(0.f, temp_quad[3].x / 640.f);
+    uv_quad_of_sprite[3].y = math::max(0.f, temp_quad[3].y / 480.f);
+  }
+  step_interpolators();
+  write_texture_circle_vertices();
+  if (index_of_on_wait && Funcs::on_wait(index_of_on_wait) &&
+      Funcs::on_wait(index_of_on_wait)(this) == 0) {
     ns::get_instance()->set_game_speed(old_game_speed);
-    return 0;
+    return 1;
+  }
+  time_in_script++;
+  ns::get_instance()->set_game_speed(old_game_speed);
+  return 0;
 }
 
-  void VM::alloc_special_vertex_buffer(i32 size) {
-    if (special_vertex_buffer_data)
-      ns::free_raw(special_vertex_buffer_data, special_vertex_buffer_size, ns::MemTag::GAME);
-    special_vertex_buffer_size = size;
-    special_vertex_buffer_data = ns::alloc_raw(size, ns::MemTag::GAME);
-  }
-
+void VM::alloc_special_vertex_buffer(i32 size) {
+  if (special_vertex_buffer_data)
+    ns::free_raw(special_vertex_buffer_data, special_vertex_buffer_size,
+                 ns::MemTag::GAME);
+  special_vertex_buffer_size = size;
+  special_vertex_buffer_data = ns::alloc_raw(size, ns::MemTag::GAME);
+}
 
 } // namespace anm

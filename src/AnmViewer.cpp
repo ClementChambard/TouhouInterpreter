@@ -38,7 +38,7 @@ bool AnmSlotSelector(const char *label, std::string *strval, int *selected) {
   if (ImGui::BeginCombo(label, strval->c_str())) {
     for (int i = 0; i < 31; i++) {
       std::string t = anm::getLoaded(i)->getName();
-      if (t == "notLoaded")
+      if (t == "")
         t = "-";
       t = std::to_string(i) + ": " + t;
       if (ImGui::Selectable(t.c_str())) {
@@ -192,7 +192,7 @@ void TextureViewerWindow(bool *open) {
 
 void AnmView::renderInList() {
   if (ok)
-    ok = anm::isAlive(anmId) || vm;
+    ok = anm::is_alive(anmId) || vm;
   if (!ok) {
     windowOpen = false;
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 0, 0, 1.0));
@@ -201,7 +201,7 @@ void AnmView::renderInList() {
     return;
   }
   ImGui::PushID(("AnmId" + std::to_string(anmId)).c_str());
-  auto vm = this->vm ? this->vm : anm::getVM(anmId);
+  auto vm = this->vm ? this->vm : anm::get_vm(anmId);
   auto name = anm::getLoaded(vm->anm_loaded_index)->name;
   if (parentId != 0)
     ImGui::Text("%s: script %d (%d->%d)", name.c_str(), vm->script_id, anmId, parentId);
@@ -211,7 +211,7 @@ void AnmView::renderInList() {
     windowOpen = !windowOpen;
   }
   if (!this->vm && (ImGui::SameLine(), ImGui::Button("X"))) {
-    anm::deleteVM(anmId);
+    anm::delete_vm(anmId);
   }
   ImGui::PopID();
 }
@@ -288,7 +288,7 @@ void anm_view_window(AnmView *v) {
   ImGui::PushID(("viewWin" + std::to_string(v->anmId)).c_str());
 
   ImGui::Text("Id: %d", v->anmId);
-  auto vm = anm::getVM(v->anmId);
+  auto vm = anm::get_vm(v->anmId);
   if (v->anmId == 0) vm = v->vm;
   if (!vm) {
     ImGui::PopID();
@@ -564,7 +564,7 @@ void openedFiles_window(bool *open) {
     for (int i = 0; i < 31; i++) {
       ImGui::PushID(("slot_" + std::to_string(i)).c_str());
       auto loaded = anm::getLoaded(i);
-      if (!loaded || strcmp(loaded->getName(), "notLoaded") == 0) {
+      if (!loaded || strcmp(loaded->getName(), "") == 0) {
         ImGui::Text("%02d: Empty", i);
         ImGui::SameLine();
         if (ImGui::Button("Open")) {
@@ -723,7 +723,7 @@ void AnmViewer::on_tick() {
   for (auto &v : m_anmviews) {
     anm_view_window(&v);
     if (v.ok && v.followPlayer && PLAYER_PTR) {
-      auto vm = anm::getVM(v.anmId);
+      auto vm = anm::get_vm(v.anmId);
       if (vm)
         vm->entity_pos = PLAYER_PTR->inner.pos;
     }

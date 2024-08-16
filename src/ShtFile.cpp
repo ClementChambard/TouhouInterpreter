@@ -265,7 +265,7 @@ int sht_on_tick_2(PlayerBullet_t* bullet) {
 
     // FUN_0044db90(bullet.pos.pos,(bullet->pos).angle, bullet->hitbox.x * 0.5);
 
-    if (auto vm = anm::getVM(bullet->anmId); vm) {
+    if (auto vm = anm::get_vm(bullet->anmId); vm) {
         vm->bitflags.scaled = true;
         vm->bitflags.zoomed = true;
         vm->sprite_size.x = bullet->hitbox.x;
@@ -371,7 +371,7 @@ int pl_b_default_on_hit(PlayerBullet_t& b)
     b.pos.pos.z = 0.1;
     b.active = 2;
     b.pos.speed *= 0.125;
-    auto vm = anm::getVM(b.anmId);
+    auto vm = anm::get_vm(b.anmId);
     if (vm) {
         anm::interrupt_tree(b.anmId, 1);
         vm->entity_pos = b.pos.pos;

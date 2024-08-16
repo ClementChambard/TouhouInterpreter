@@ -55,7 +55,7 @@ Fog_t::Fog_t(int count) {
   vm->associated_game_entity = this;
   for (int i = 0; i < vm_count - 1; i++) {
     anmid_array[i] = fog_init_sub_anms(vertex_count);
-    vm_array[i] = anm::getVM(anmid_array[i]);
+    vm_array[i] = anm::get_vm(anmid_array[i]);
     vm_array[i]->bitflags.blendmode &= 0b1100;
     vm_array[i]->bitflags.originMode = 0;
   }
@@ -63,7 +63,7 @@ Fog_t::Fog_t(int count) {
 }
 
 Fog_t::~Fog_t() {
-  anm::deleteVM(anmid);
+  anm::delete_vm(anmid);
   if (vertex_array) {
     delete[] vertex_array;
   }
@@ -71,7 +71,7 @@ Fog_t::~Fog_t() {
     delete[] pos_array;
   }
   for (int i = 0; i < vm_count - 1; i++) {
-    anm::deleteVM(anmid_array[i]);
+    anm::delete_vm(anmid_array[i]);
   }
   if (anmid_array) {
     delete[] anmid_array;

@@ -177,11 +177,11 @@ int Stage::f_on_tick() {
 void Stage::run_std() {
   auto instr = reinterpret_cast<StdOpener::std_instr_t *>(
       reinterpret_cast<uint64_t>(beginning_of_script) + inner.instr_offset);
-  while (
-      static_cast<i32>(instr->time) <=
-      inner.time_in_script.current) { // conditionnal jump depends on unitialized value
-    switch (instr->type) {    // invalid read of size 2 ???
-    case 0:                   /* STOP */
+  while (static_cast<i32>(instr->time) <=
+         inner.time_in_script
+             .current) {   // conditionnal jump depends on unitialized value
+    switch (instr->type) { // invalid read of size 2 ???
+    case 0:                /* STOP */
       goto update_rest;
     case 1:                         /* JUMP */
       inner.instr_offset = IARG(0); // Before stage3 boss spawn th16 TODO: Use
@@ -344,22 +344,29 @@ update_rest:
   case 1:
     intensity = math::min(inner.rocking_timer.current_f / 512.f, 1.0f);
     inner.camera.__rocking_vector_1.x =
-        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x200) * -10.0 * intensity;
+        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x200) * -10.0 *
+        intensity;
     inner.camera.__rocking_vector_1.z =
-        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x100) * -10.0 * intensity;
+        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x100) * -10.0 *
+        intensity;
     inner.camera.__rocking_vector_2.x =
-        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x200) * 5.0 * intensity;
+        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x200) * 5.0 *
+        intensity;
     inner.camera.__rocking_vector_2.z =
-        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x100) * 5.0 * intensity;
+        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x100) * 5.0 *
+        intensity;
     inner.camera.up.x =
-        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x200) * -0.01 * intensity;
+        ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x200) * -0.01 *
+        intensity;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x800)
       inner.rocking_timer.set(0x400);
     break;
   case 2:
-    inner.camera.up.x = -ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x600);
-    inner.camera.up.z = ns::cos(inner.rocking_timer.current_f * ns::PI<f32> / 0x600);
+    inner.camera.up.x =
+        -ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x600);
+    inner.camera.up.z =
+        ns::cos(inner.rocking_timer.current_f * ns::PI<f32> / 0x600);
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0xc00)
       inner.rocking_timer.set(0);
@@ -369,17 +376,21 @@ update_rest:
     inner.camera.__rocking_vector_1.y = 0.0;
     inner.camera.__rocking_vector_1.z = 0.0;
     inner.camera.__rocking_vector_1.x =
-        ns::sin((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200) * intensity;
+        ns::sin((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200) *
+        intensity;
     inner.camera.__rocking_vector_2.x =
-        (ns::sin((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200) * intensity) /
+        (ns::sin((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200) *
+         intensity) /
         -10.0;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x800)
       inner.rocking_timer.set(0x400);
     break;
   case 4:
-    inner.camera.up.x = -ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x600);
-    inner.camera.up.z = -ns::cos(inner.rocking_timer.current_f * ns::PI<f32> / 0x600);
+    inner.camera.up.x =
+        -ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x600);
+    inner.camera.up.z =
+        -ns::cos(inner.rocking_timer.current_f * ns::PI<f32> / 0x600);
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0xc00)
       inner.rocking_timer.set(0);
@@ -387,14 +398,14 @@ update_rest:
   case 5:
     intensity = math::min(1.f, inner.rocking_timer.current_f / 0x200);
     inner.camera.__rocking_vector_1.x =
-        ns::sin(((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200)) * -5.0 *
-        intensity;
+        ns::sin(((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200)) *
+        -5.0 * intensity;
     inner.camera.__rocking_vector_2.x =
-        ns::sin(((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200)) * 2.5 *
-        intensity * intensity;
+        ns::sin(((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200)) *
+        2.5 * intensity * intensity;
     inner.camera.up.x =
-        ns::sin(((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200)) * -0.005 *
-        intensity;
+        ns::sin(((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200)) *
+        -0.005 * intensity;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x800)
       inner.rocking_timer.set(0x400);
@@ -405,9 +416,11 @@ update_rest:
     inner.camera.__rocking_vector_1.y = 0.0;
     inner.camera.__rocking_vector_1.z = 0.0;
     inner.camera.__rocking_vector_1.x =
-        ns::sin((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200) * intensity;
+        ns::sin((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200) *
+        intensity;
     inner.camera.__rocking_vector_2.x =
-        (ns::sin((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200) * intensity) /
+        (ns::sin((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200) *
+         intensity) /
         -10.0;
     inner.rocking_timer.increment();
     inner.rocking_6_timer.increment();
@@ -416,29 +429,43 @@ update_rest:
     break;
   case 9:
     inner.camera.__rocking_vector_1.x =
-        ns::sin(((inner.rocking_timer.current_f * ns::PI<f32>) / 0x400 - ns::PI<f32>)) * 70.0;
+        ns::sin(((inner.rocking_timer.current_f * ns::PI<f32>) / 0x400 -
+                 ns::PI<f32>)) *
+        70.0;
     inner.camera.__rocking_vector_1.z =
-        ns::sin(2 * ((inner.rocking_timer.current_f * ns::PI<f32>) / 0x400 - ns::PI<f32>)) * 200.0;
+        ns::sin(2 * ((inner.rocking_timer.current_f * ns::PI<f32>) / 0x400 -
+                     ns::PI<f32>)) *
+        200.0;
     inner.camera.up.x =
-        ns::sin(((inner.rocking_timer.current_f * ns::PI<f32>) / 0x400 - ns::PI<f32>)) * -0.1;
+        ns::sin(((inner.rocking_timer.current_f * ns::PI<f32>) / 0x400 -
+                 ns::PI<f32>)) *
+        -0.1;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x800)
       inner.rocking_timer.set(0);
     break;
   case 10:
     inner.camera.__rocking_vector_1.x =
-        ns::sin((inner.rocking_timer.current_f * ns::PI<f32>) / 0x200 - ns::PI<f32>) * -50.0;
+        ns::sin((inner.rocking_timer.current_f * ns::PI<f32>) / 0x200 -
+                ns::PI<f32>) *
+        -50.0;
     inner.camera.up.x =
-        ns::sin((inner.rocking_timer.current_f * ns::PI<f32>) / 0x200 - ns::PI<f32>) * -0.1;
+        ns::sin((inner.rocking_timer.current_f * ns::PI<f32>) / 0x200 -
+                ns::PI<f32>) *
+        -0.1;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x400)
       inner.rocking_timer.set(0);
     break;
   case 11:
     inner.camera.__rocking_vector_1.x =
-        ns::sin((inner.rocking_timer.current_f * ns::PI<f32>) / 0x100 - ns::PI<f32>) * -15.0;
+        ns::sin((inner.rocking_timer.current_f * ns::PI<f32>) / 0x100 -
+                ns::PI<f32>) *
+        -15.0;
     inner.camera.up.x =
-        ns::sin((inner.rocking_timer.current_f * ns::PI<f32>) / 0x100 - ns::PI<f32>) * -0.01;
+        ns::sin((inner.rocking_timer.current_f * ns::PI<f32>) / 0x100 -
+                ns::PI<f32>) *
+        -0.01;
     inner.rocking_timer.increment();
     if (inner.rocking_timer.current >= 0x200)
       inner.rocking_timer.set(0);
@@ -446,12 +473,14 @@ update_rest:
   }
 }
 
-void CameraSkyInterp_t::start(anm::CameraSky_t const &begin, anm::CameraSky_t const &end,
-                              int32_t time, int32_t mode) {
+void CameraSkyInterp_t::start(anm::CameraSky_t const &begin,
+                              anm::CameraSky_t const &end, int32_t time,
+                              int32_t mode) {
   begin_dist.start(begin.begin_distance, end.begin_distance, time, mode);
   end_dist.start(begin.end_distance, end.end_distance, time, mode);
-  color.start(ns::vec4(begin.color.r, begin.color.g, begin.color.b, begin.color.a),
-              ns::vec4(end.color.r, end.color.g, end.color.b, end.color.a), time, mode);
+  color.start(
+      ns::vec4(begin.color.r, begin.color.g, begin.color.b, begin.color.a),
+      ns::vec4(end.color.r, end.color.g, end.color.b, end.color.a), time, mode);
   end_time = time;
 }
 
@@ -472,7 +501,8 @@ anm::CameraSky_t CameraSkyInterp_t::step() {
   out.color.g = static_cast<uint8_t>(color.current.g);
   out.color.b = static_cast<uint8_t>(color.current.b);
   out.color.a = static_cast<uint8_t>(color.current.a);
-  out.color_components = ns::vec4(out.color.b, out.color.g, out.color.r, out.color.a);
+  out.color_components =
+      ns::vec4(out.color.b, out.color.g, out.color.r, out.color.a);
   return out;
 }
 
@@ -524,7 +554,7 @@ void StageInner_t::update_distortion() {
         auto &v = distortion.fog_ptr
                       ->vertex_array[j + i * distortion.fog_ptr->vertex_count];
         ns::vec2 local_18 = {p.x - anm::BACK_BUFFER_SIZE.x / 2.f,
-                              p.y - anm::BACK_BUFFER_SIZE.y / 2.f};
+                             p.y - anm::BACK_BUFFER_SIZE.y / 2.f};
         float distin = distortion.r * distortion.r - math::veclensq(local_18);
         if (distin < 0.0) {
           v.diffuse_color.a = 0;
@@ -566,9 +596,8 @@ int Stage::f_on_draw_1() {
     anm::set_camera(SUPERVISOR.cameras[3].as_3d_matrix());
     anm::enable_zwrite();
     anm::enable_ztest();
-    anm::set_fog_params(inner.camera.sky.color,
-                               inner.camera.sky.begin_distance,
-                               inner.camera.sky.end_distance);
+    anm::set_fog_params(inner.camera.sky.color, inner.camera.sky.begin_distance,
+                        inner.camera.sky.end_distance);
     if (!(flags & 4) || 33 < num_ticks_alive_2)
       color = inner.camera.sky.color;
     else
@@ -632,9 +661,8 @@ int Stage::f_on_draw_2() {
     anm::render_layer(32);
     anm::enable_ztest();
     anm::render_layer(33);
-    anm::set_fog_params(inner.camera.sky.color,
-                               inner.camera.sky.begin_distance,
-                               inner.camera.sky.end_distance);
+    anm::set_fog_params(inner.camera.sky.color, inner.camera.sky.begin_distance,
+                        inner.camera.sky.end_distance);
   }
   if ((flags & 4) && some_countdown_timer >= 30)
     inner.some_bg_color_unrelated_to_ins_13.a = 0;
@@ -670,7 +698,7 @@ bool shouldBeCulledAt(StdOpener::std_entry_header_t *ent,
                       float draw_dstce) {
   return false;
   ns::vec3 fcam = (face_pos + ns::vec3(ent->x, ent->y, ent->z)) -
-                   (cam.position + cam.__rocking_vector_1);
+                  (cam.position + cam.__rocking_vector_1);
   if (fcam.x * fcam.x + fcam.y * fcam.y + fcam.z * fcam.z > draw_dstce)
     return true;
   ns::vec3 in_verts[16];
@@ -769,7 +797,7 @@ void Stage::draw_layer(int layer) {
       continue;
     // if (this->inner.vms[i].sprite_id > 0)
     //   continue;
-    anm::drawVM(&this->inner.vms[i]);
+    anm::draw_vm(&this->inner.vms[i]);
     // inner.vms[i].draw();
   }
   anm::enable_ztest();
@@ -819,7 +847,7 @@ void Stage::draw_layer(int layer) {
         anm::enable_zwrite();
       }
 
-      anm::drawVM(vm);
+      anm::draw_vm(vm);
       // vm->draw();
       num_vms_drawn++;
     }

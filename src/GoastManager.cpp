@@ -59,7 +59,7 @@ void GoastManager::delete_tokens() {
     while (node) {
         auto ptr = node->entry;
         node = ptr->node.next;
-        anm::deleteVM(ptr->anm_id);
+        anm::delete_vm(ptr->anm_id);
         delete ptr;
         token_count--;
     }
@@ -79,7 +79,7 @@ int GoastManager::_on_tick() {
             if (ptr->node.prev) ptr->node.prev->next = ptr->node.next;
             ptr->node.next = nullptr;
             ptr->node.prev = nullptr;
-            anm::deleteVM(ptr->anm_id);
+            anm::delete_vm(ptr->anm_id);
             delete ptr;
             token_count--;
         }
@@ -111,7 +111,7 @@ int GoastManager::FUN_0040e920() {
   float local_18;
   float local_14;
 
-  if (auto vm = anm::getVM(extra_beast_anmid); vm) {
+  if (auto vm = anm::get_vm(extra_beast_anmid); vm) {
     vm->entity_pos = 2.f * PLAYER_PTR->inner.pos;
   }
   GLOBALS.inner.__unknown_timer++;
@@ -121,7 +121,7 @@ int GoastManager::FUN_0040e920() {
   if (GLOBALS.inner.__unknown_timer < 120) {
     return 0;
   }
-  anm::deleteVM(extra_beast_anmid);
+  anm::delete_vm(extra_beast_anmid);
   extra_beast_anmid = 0;
   if (PLAYER_PTR->inner.pos.y < 160.0) {
     if (PLAYER_PTR->inner.pos.x < -80.f) {
@@ -200,11 +200,11 @@ int Token_t::update() {
         speed = (PLAYER_PTR->inner.pos - pos) * 0.25f;
         pos += speed * ns::get_instance()->game_speed();
         if (__timer_30 >= 10) {
-            anm::deleteVM(anm_id);
+            anm::delete_vm(anm_id);
             anm_id = 0;
             return 1;
         } else {
-            if (auto vm = anm::getVM(anm_id); vm) {
+            if (auto vm = anm::get_vm(anm_id); vm) {
                 vm->entity_pos = pos;
             }
             __timer_30++;
@@ -250,7 +250,7 @@ int Token_t::update() {
         } else if (__timer_58 < 1) {
             __timer_58 = 0xb4;
             token_type = (token_type % 3) + 1;
-            anm::deleteVM(anm_id);
+            anm::delete_vm(anm_id);
             anm_id = GOAST_MANAGER_PTR->anm_file->createEffect(token_type - 1);
             if (0x1e77 < __timer_30) anm::interrupt_tree(anm_id, 9);
             // SoundManager::play_sound_at_position(0x4e);
@@ -259,7 +259,7 @@ int Token_t::update() {
     if (ns::abs(pos.x) > 208.0 || ns::abs(pos.y - 224.0) > 240.0) {
         __timer_44++;
         if (0x77 < __timer_44 || 0x81 < __timer_30) {
-            anm::deleteVM(anm_id);
+            anm::delete_vm(anm_id);
             anm_id = 0;
             return 1;
         }
@@ -283,7 +283,7 @@ int Token_t::update() {
                                                             speed.x, speed.y));
         }
     }
-    if (auto vm = anm::getVM(anm_id); vm) {
+    if (auto vm = anm::get_vm(anm_id); vm) {
         vm->entity_pos = pos;
     }
     __timer_30++;
@@ -328,7 +328,7 @@ int GoastManager::spawn_token(ns::vec3 const& pos, int type, float param_4) {
         token->token_type = type;
     }
     token->pos = pos;
-    if (auto vm = anm::getVM(token->anm_id); vm) {
+    if (auto vm = anm::get_vm(token->anm_id); vm) {
         vm->entity_pos = pos;
     }
     choose_angle(token, param_4);
@@ -357,7 +357,7 @@ LAB_0040ef69:
       GLOBALS.inner.HYPER_FLAGS |= 0x400;
     }
     if ((GLOBALS.inner.HYPER_FLAGS & 0x400U) != 0) {
-      auto vm = anm::getVM(hyper_time_bar_anmid2);
+      auto vm = anm::get_vm(hyper_time_bar_anmid2);
       if (!vm) {
         hyper_time_bar_anmid2 = 0;
         // vm = &ANM_MANAGER_PTR->__anm_vm_dc;
@@ -366,7 +366,7 @@ LAB_0040ef69:
       }
     }
     if (GLOBALS.inner.HYPER_FLAGS & 0x100U) {
-      if (auto vm = anm::getVM(hyper_bg_anmid); vm) {
+      if (auto vm = anm::get_vm(hyper_bg_anmid); vm) {
         vm->set_flag_1_rec();
         // vm->clear_flag_20_rec();
       }
@@ -383,7 +383,7 @@ LAB_0040ef69:
         otter_hyper_anms[i] = 0;
       }
     }
-    if (auto vm = anm::getVM(hyper_bg_anmid); vm) {
+    if (auto vm = anm::get_vm(hyper_bg_anmid); vm) {
       vm->clear_flag_1_rec();
       // vm->set_flag_20_rec();
     }
@@ -393,22 +393,22 @@ LAB_0040ef69:
     field_0x50--;
   }
   if (!(GLOBALS.inner.HYPER_FLAGS & 4U)) {
-    if (auto vm = anm::getVM(hyper_time_bar_anmid1); vm) {
+    if (auto vm = anm::get_vm(hyper_time_bar_anmid1); vm) {
       vm->entity_pos = 2.f * PLAYER_PTR->inner.pos;
     }
-    if (auto vm = anm::getVM(hyper_time_bar_anmid2); vm) {
+    if (auto vm = anm::get_vm(hyper_time_bar_anmid2); vm) {
       vm->entity_pos = 2.f * PLAYER_PTR->inner.pos;
     }
-    if (auto vm = anm::getVM(hyper_bg_anmid); vm) {
+    if (auto vm = anm::get_vm(hyper_bg_anmid); vm) {
       vm->entity_pos = PLAYER_PTR->inner.pos;
     }
-    if (auto vm = anm::getVM(hyper_aura_anmid); vm) {
+    if (auto vm = anm::get_vm(hyper_aura_anmid); vm) {
       vm->entity_pos = PLAYER_PTR->inner.pos;
     }
     if ((GLOBALS.inner.HYPER_FLAGS & 0x100U) == 0) {
       if (GLOBALS.inner.HYPER_TYPE == 2) {
         for (int i = 0; i < 3; i++) {
-          auto vm = anm::getVM(otter_hyper_anms[i]);
+          auto vm = anm::get_vm(otter_hyper_anms[i]);
           if (!vm) {
             otter_hyper_anms[i] = 0;
           } else {
@@ -429,7 +429,7 @@ LAB_0040ef69:
   if (GLOBALS.inner.HYPER_TIME < 1) {
     if ((GLOBALS.inner.HYPER_FLAGS & 4U) == 0) {
       if (extra_beast_anmid) {
-        anm::deleteVM(extra_beast_anmid);
+        anm::delete_vm(extra_beast_anmid);
       }
       extra_beast_anmid =
         anm_file->createEffectPos(0x2c, 0.0, 2.f * PLAYER_PTR->inner.pos);
@@ -491,7 +491,7 @@ LAB_0040ef69:
 
 void GoastManager::create_otter_hyper_anms() {
     for (int i = 0; i < 3; i++) {
-        anm::deleteVM(otter_hyper_anms[i]);
+        anm::delete_vm(otter_hyper_anms[i]);
         otter_hyper_anms[i] =
             anm_file->createEffectPos(0x25 + i, 0, PLAYER_PTR->inner.pos);
     }
@@ -510,7 +510,7 @@ void GoastManager::hyper_die(bool actually_die) {
     hyper_aura_anmid = 0;
     if (GLOBALS.inner.HYPER_TYPE == 2) {
         for (int i = 0; i < 3; i++) {
-            anm::deleteVM(otter_hyper_anms[i]);
+            anm::delete_vm(otter_hyper_anms[i]);
             otter_hyper_anms[i] = 0;
         }
     }
@@ -542,7 +542,7 @@ void GoastManager::hyper_die(bool actually_die) {
 
 void GoastManager::update_gui(int tid) {
   anm::VM* child1 = nullptr, *child2 = nullptr;
-  anm::VM* vm = anm::getVM(gui_anmid);
+  anm::VM* vm = anm::get_vm(gui_anmid);
   if (!vm) {
     gui_anmid = 0;
   } else {
@@ -692,11 +692,11 @@ int GoastManager::hyper_start() {
   GLOBALS.inner.HYPER_REFILL = 0xb4;
 
   anm::VM* vm;
-  anm::deleteVM(hyper_time_bar_anmid1);
+  anm::delete_vm(hyper_time_bar_anmid1);
   hyper_time_bar_anmid1 = anm_file->createEffect(0x1e, -1, &vm);
   vm->bitflags.scaled = true;
   vm->sprite_size.x = GLOBALS.inner.MAX_HYPER_TIME * 0.125 + 2.0;
-  anm::deleteVM(hyper_time_bar_anmid2);
+  anm::delete_vm(hyper_time_bar_anmid2);
   hyper_time_bar_anmid2 = anm_file->createEffect(0x1f, -1, &vm);
   vm->bitflags.scaled = true;
   vm->sprite_size.x = GLOBALS.inner.HYPER_TIME.current_f * 0.125;
@@ -709,7 +709,7 @@ int GoastManager::hyper_start() {
     hyper_aura_anmid = anm_file->createEffectPos(
         GLOBALS.inner.HYPER_TYPE + 0x28, 0, PLAYER_PTR->inner.pos);
   }
-  anm::deleteVM(hyper_bg_anmid);
+  anm::delete_vm(hyper_bg_anmid);
   hyper_bg_anmid = anm_file->createEffectPos(0x20, 0.0, PLAYER_PTR->inner.pos);
   // SoundManager::play_sound_centered(0x4d);
   GLOBALS.inner.HYPER_FLAGS &= 0xffffff0f;
@@ -746,14 +746,14 @@ int GoastManager::hyper_start() {
 
 void GoastManager::update_hyper_bar() {
   anm::VM* vm;
-  vm = anm::getVM(hyper_time_bar_anmid1);
+  vm = anm::get_vm(hyper_time_bar_anmid1);
   if (!vm) {
     hyper_time_bar_anmid1 = 0;
   } else {
     vm->bitflags.scaled = true;
     vm->sprite_size.x = GLOBALS.inner.MAX_HYPER_TIME * 0.125 + 2.0;
   }
-  vm = anm::getVM(hyper_time_bar_anmid2);
+  vm = anm::get_vm(hyper_time_bar_anmid2);
   if (!vm) {
     hyper_time_bar_anmid2 = 0;
   } else {
@@ -776,19 +776,19 @@ void GoastManager::reset() {
   auto uVar3 = GLOBALS.inner.HYPER_FLAGS & 2;
   GLOBALS.inner.HYPER_FLAGS &= 0xfffffdfe;
   if (uVar3 != 0) {
-    anm::deleteVM(hyper_time_bar_anmid1);
+    anm::delete_vm(hyper_time_bar_anmid1);
     hyper_time_bar_anmid1 = anm_file->createEffectPos(
         0x1e, 0, PLAYER_PTR->inner.pos);
-    anm::deleteVM(hyper_time_bar_anmid2);
+    anm::delete_vm(hyper_time_bar_anmid2);
     hyper_time_bar_anmid2 = anm_file->createEffectPos(
         0x1f, 0, PLAYER_PTR->inner.pos);
     update_hyper_bar();
-    anm::deleteVM(hyper_aura_anmid);
+    anm::delete_vm(hyper_aura_anmid);
     if (GLOBALS.inner.HYPER_TYPE != 4) {
       hyper_aura_anmid = anm_file->createEffectPos(
         GLOBALS.inner.HYPER_TYPE + 0x28, 0, PLAYER_PTR->inner.pos);
     }
-    anm::deleteVM(hyper_bg_anmid);
+    anm::delete_vm(hyper_bg_anmid);
     hyper_bg_anmid = anm_file->createEffectPos(0x20, 0, PLAYER_PTR->inner.pos);
   }
   return;

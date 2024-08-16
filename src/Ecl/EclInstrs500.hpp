@@ -34,7 +34,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.flags |= n;
     if (enemy.flags & 0x20) {
       for (int i = 0; i < 16; i++) {
-        auto vm = anm::getVM(enemy.anmIds[i]);
+        auto vm = anm::get_vm(enemy.anmIds[i]);
         if (!vm) continue;
         vm->clear_flag_1_rec();
       }
@@ -44,7 +44,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.flags &= (~n);
     if (!(enemy.flags & 0x20)) {
       for (int i = 0; i < 16; i++) {
-        auto vm = anm::getVM(enemy.anmIds[i]);
+        auto vm = anm::get_vm(enemy.anmIds[i]);
         if (!vm) continue;
         vm->set_flag_1_rec();
       }
@@ -304,7 +304,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
 
     _ins(543, unknown543) _args
     SPELLCARD_PTR->flags |= 0x10;
-    anm::deleteVM(SPELLCARD_PTR->spell_circle_anmid);
+    anm::delete_vm(SPELLCARD_PTR->spell_circle_anmid);
     SPELLCARD_PTR->spell_circle_anmid = 0;
 
     _ins(544, unknown544) _S(a) _args _alert
@@ -354,7 +354,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
             enm->enemy.__bool_cleared_by_ecl_570 = 0;
             enm->die();
             for (int i = 0; i < 0x10; i++)
-                anm::deleteVM(enm->enemy.anmIds[i]);
+                anm::delete_vm(enm->enemy.anmIds[i]);
             enm->enemy.flags |= 0x2000000;
         }
     }
@@ -461,7 +461,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
         enemy.__bool_cleared_by_ecl_570 = 0;
         enemy.setDeath[0] = 0;
         die();
-        for (int i = 0; i < 16; i++) anm::deleteVM(enemy.anmIds[i]);
+        for (int i = 0; i < 16; i++) anm::delete_vm(enemy.anmIds[i]);
         enemy.flags |= 0x2000000;
       }
     }

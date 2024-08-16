@@ -269,26 +269,15 @@ void AsciiManager::render_string(AsciiStr_t const &str) {
       __vm_1.pos.x += anm::RESOLUTION_MULT * 2.f;
       __vm_1.pos.y += anm::RESOLUTION_MULT * 2.f;
 
-      __vm_1.write_sprite_corners__without_rot(
-          anm::SPRITE_TEMP_BUFFER[0].transformed_pos,
-          anm::SPRITE_TEMP_BUFFER[1].transformed_pos,
-          anm::SPRITE_TEMP_BUFFER[2].transformed_pos,
-          anm::SPRITE_TEMP_BUFFER[3].transformed_pos);
-      anm::draw_vm__modes_0_1_2_3(&__vm_1, 1);
-      // __vm_1.draw();
+      anm::draw_vm_as_quad_no_rot(&__vm_1);
 
       __vm_1.pos.x -= anm::RESOLUTION_MULT * 2.f;
       __vm_1.pos.y -= anm::RESOLUTION_MULT * 2.f;
       __vm_1.color_1 = str.color;
     }
 
-    __vm_1.write_sprite_corners__without_rot(
-        anm::SPRITE_TEMP_BUFFER[0].transformed_pos,
-        anm::SPRITE_TEMP_BUFFER[1].transformed_pos,
-        anm::SPRITE_TEMP_BUFFER[2].transformed_pos,
-        anm::SPRITE_TEMP_BUFFER[3].transformed_pos);
-    anm::draw_vm__modes_0_1_2_3(&__vm_1, 1);
-    // __vm_1.draw();
+    anm::draw_vm_as_quad_no_rot(&__vm_1);
+    
     __vm_1.pos.x += anm::RESOLUTION_MULT * next_char_pos;
     c++;
   }

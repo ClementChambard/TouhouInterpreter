@@ -6,7 +6,7 @@
 LaserManager* LASER_MANAGER_PTR = nullptr;
 
 int32_t on_sprite_set_laser(anm::VM* vm, int32_t v) {
-    auto b = reinterpret_cast<Laser*>(vm->getEntity());
+    auto b = reinterpret_cast<Laser*>(vm->associated_game_entity);
     if (BULLET_TYPE_TABLE[b->bullet_type]["colors"][0]
         ["main_sprite_id"].asInt() < 0)
         return v;
@@ -23,7 +23,7 @@ int32_t on_sprite_set_laser(anm::VM* vm, int32_t v) {
 }
 
 int32_t on_sprite_set_laser_curve(anm::VM* vm, int32_t) {
-    return reinterpret_cast<Laser*>(vm->getEntity())
+    return reinterpret_cast<Laser*>(vm->associated_game_entity)
         ->bullet_color + LASER_DATA["laser_curve"]["sprite_first"].asInt();
 }
 

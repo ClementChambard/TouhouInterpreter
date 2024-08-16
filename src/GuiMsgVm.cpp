@@ -18,8 +18,8 @@ GuiMsgVm_t::GuiMsgVm_t(MsgIns_t* instr) {
     current_instr = instr;
     anm_id_text_line_1 = SUPERVISOR.text_anm->createEffect(0);
     anm_id_text_line_2 = SUPERVISOR.text_anm->createEffect(0);
-    auto anm_text_line_1 = anm::getVM(anm_id_text_line_1);
-    auto anm_text_line_2 = anm::getVM(anm_id_text_line_2);
+    auto anm_text_line_1 = anm::get_vm(anm_id_text_line_1);
+    auto anm_text_line_2 = anm::get_vm(anm_id_text_line_2);
     anm_text_line_1->font_dims[0] = 21;
     anm_text_line_1->font_dims[1] = 21;
     anm_text_line_1->bitflags.f534_12 = 1;
@@ -31,8 +31,8 @@ GuiMsgVm_t::GuiMsgVm_t(MsgIns_t* instr) {
     anm_text_line_2->index_of_on_draw = 5;
     anm_id_furigana_1 = SUPERVISOR.text_anm->createEffect(1);
     anm_id_furigana_2 = SUPERVISOR.text_anm->createEffect(1);
-    auto anm_furigana_1 = anm::getVM(anm_id_furigana_1);
-    auto anm_furigana_2 = anm::getVM(anm_id_furigana_2);
+    auto anm_furigana_1 = anm::get_vm(anm_id_furigana_1);
+    auto anm_furigana_2 = anm::get_vm(anm_id_furigana_2);
     anm_furigana_1->font_dims[0] = 21;
     anm_furigana_1->font_dims[1] = 21;
     anm_furigana_1->bitflags.f534_12 = 1;
@@ -48,72 +48,72 @@ GuiMsgVm_t::GuiMsgVm_t(MsgIns_t* instr) {
 }
 
 GuiMsgVm_t::~GuiMsgVm_t() {
-    anm::deleteVM(anm_id_player_face);
-    anm::deleteVM(anm_id_enemy_face[0]);
-    anm::deleteVM(anm_id_enemy_face[1]);
-    anm::deleteVM(anm_id_enemy_face[2]);
-    anm::deleteVM(anm_id_enemy_face[3]);
-    anm::deleteVM(__anm_id_idfk);
-    anm::deleteVM(anm_id_text_line_1);
-    anm::deleteVM(anm_id_text_line_2);
-    anm::deleteVM(anm_id_furigana_1);
-    anm::deleteVM(anm_id_furigana_2);
-    anm::deleteVM(anm_id_intro);
-    anm::deleteVM(anm_id_speechBubble);
+    anm::delete_vm(anm_id_player_face);
+    anm::delete_vm(anm_id_enemy_face[0]);
+    anm::delete_vm(anm_id_enemy_face[1]);
+    anm::delete_vm(anm_id_enemy_face[2]);
+    anm::delete_vm(anm_id_enemy_face[3]);
+    anm::delete_vm(__anm_id_idfk);
+    anm::delete_vm(anm_id_text_line_1);
+    anm::delete_vm(anm_id_text_line_2);
+    anm::delete_vm(anm_id_furigana_1);
+    anm::delete_vm(anm_id_furigana_2);
+    anm::delete_vm(anm_id_intro);
+    anm::delete_vm(anm_id_speechBubble);
 }
 
 void GuiMsgVm_t::hideVms() {
-    auto vm = anm::getVM(anm_id_player_face);
+    auto vm = anm::get_vm(anm_id_player_face);
     if (vm) vm->clear_flag_1_rec();
     for (int i = 0; i < 4; i++) {
-        vm = anm::getVM(anm_id_enemy_face[i]);
+        vm = anm::get_vm(anm_id_enemy_face[i]);
         if (vm) vm->clear_flag_1_rec();
     }
-    vm = anm::getVM(__anm_id_idfk);
+    vm = anm::get_vm(__anm_id_idfk);
     if (vm) vm->clear_flag_1_rec();
-    vm = anm::getVM(anm_id_text_line_1);
+    vm = anm::get_vm(anm_id_text_line_1);
     if (vm) vm->clear_flag_1_rec();
-    vm = anm::getVM(anm_id_text_line_2);
+    vm = anm::get_vm(anm_id_text_line_2);
     if (vm) vm->clear_flag_1_rec();
-    vm = anm::getVM(anm_id_furigana_1);
+    vm = anm::get_vm(anm_id_furigana_1);
     if (vm) vm->clear_flag_1_rec();
-    vm = anm::getVM(anm_id_furigana_2);
+    vm = anm::get_vm(anm_id_furigana_2);
     if (vm) vm->clear_flag_1_rec();
-    vm = anm::getVM(anm_id_intro);
+    vm = anm::get_vm(anm_id_intro);
     if (vm) vm->clear_flag_1_rec();
-    vm = anm::getVM(__anm_id_70);
+    vm = anm::get_vm(__anm_id_70);
     if (vm) vm->clear_flag_1_rec();
-    vm = anm::getVM(anm_id_speechBubble);
+    vm = anm::get_vm(anm_id_speechBubble);
     if (vm) vm->clear_flag_1_rec();
 }
 
 void GuiMsgVm_t::unhideVms() {
-    auto vm = anm::getVM(anm_id_player_face);
+    auto vm = anm::get_vm(anm_id_player_face);
     if (vm) vm->set_flag_1_rec();
     for (int i = 0; i < 4; i++) {
-        vm = anm::getVM(anm_id_enemy_face[i]);
+        vm = anm::get_vm(anm_id_enemy_face[i]);
         if (vm) vm->set_flag_1_rec();
     }
-    vm = anm::getVM(__anm_id_idfk);
+    vm = anm::get_vm(__anm_id_idfk);
     if (vm) vm->set_flag_1_rec();
-    vm = anm::getVM(anm_id_text_line_1);
+    vm = anm::get_vm(anm_id_text_line_1);
     if (vm) vm->set_flag_1_rec();
-    vm = anm::getVM(anm_id_text_line_2);
+    vm = anm::get_vm(anm_id_text_line_2);
     if (vm) vm->set_flag_1_rec();
-    vm = anm::getVM(anm_id_furigana_1);
+    vm = anm::get_vm(anm_id_furigana_1);
     if (vm) vm->set_flag_1_rec();
-    vm = anm::getVM(anm_id_furigana_2);
+    vm = anm::get_vm(anm_id_furigana_2);
     if (vm) vm->set_flag_1_rec();
-    vm = anm::getVM(anm_id_intro);
+    vm = anm::get_vm(anm_id_intro);
     if (vm) vm->set_flag_1_rec();
-    vm = anm::getVM(__anm_id_70);
+    vm = anm::get_vm(__anm_id_70);
     if (vm) vm->set_flag_1_rec();
-    vm = anm::getVM(anm_id_speechBubble);
+    vm = anm::get_vm(anm_id_speechBubble);
     if (vm) vm->set_flag_1_rec();
 }
 
 void GuiMsgVm_t::setBubbleLength(float l) {
-  auto vm = anm::getVM(anm_id_speechBubble);
+  auto vm = anm::get_vm(anm_id_speechBubble);
   if (!vm) return;
   int i = 0;
   anm::VM* cvm = nullptr;
@@ -127,7 +127,7 @@ void GuiMsgVm_t::setBubbleLength(float l) {
 
 void GuiMsgVm_t::OpenSpeechBubble(int bubble,
                                   ns::vec3 const& pos, float length) {
-    anm::deleteVM(anm_id_speechBubble);
+    anm::delete_vm(anm_id_speechBubble);
     anm_id_speechBubble =
         GUI_PTR->front_anm->createEffectPos(bubble + GUI_ANMS["speech_bubble"].asInt(), 0, pos);
     setBubbleLength(length);
@@ -186,7 +186,7 @@ int GuiMsgVm_t::tick() {
         anm::interrupt_tree(anm_id_text_line_2, 1);
         anm::interrupt_tree(anm_id_furigana_1, 1);
         anm::interrupt_tree(anm_id_furigana_2, 1);
-        anm::deleteVM(anm_id_speechBubble);
+        anm::delete_vm(anm_id_speechBubble);
         anm_id_speechBubble = 0;
         break;
       case 7:
@@ -196,13 +196,13 @@ int GuiMsgVm_t::tick() {
         anm::interrupt_tree_run(anm_id_player_face, 2);
         anm::interrupt_tree(__anm_id_idfk, 2);
         active_side = 0;
-        vm = anm::getVM(anm_id_text_line_1);
+        vm = anm::get_vm(anm_id_text_line_1);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_text_line_2);
+        vm = anm::get_vm(anm_id_text_line_2);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_furigana_1);
+        vm = anm::get_vm(anm_id_furigana_1);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_furigana_2);
+        vm = anm::get_vm(anm_id_furigana_2);
         if (vm) vm->__pos_2.y = 0.0;
         flags &= 0xfffffffd;
         next_text_line = 0;
@@ -217,13 +217,13 @@ int GuiMsgVm_t::tick() {
         }
         anm::interrupt_tree(__anm_id_idfk, 3);
         active_side = 1;
-        vm = anm::getVM(anm_id_text_line_1);
+        vm = anm::get_vm(anm_id_text_line_1);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_text_line_2);
+        vm = anm::get_vm(anm_id_text_line_2);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_furigana_1);
+        vm = anm::get_vm(anm_id_furigana_1);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_furigana_2);
+        vm = anm::get_vm(anm_id_furigana_2);
         if (vm) vm->__pos_2.y = 0.0;
         flags &= 0xfffffffd;
         next_text_line = 0;
@@ -236,13 +236,13 @@ int GuiMsgVm_t::tick() {
         }
         anm::interrupt_tree(__anm_id_idfk, 3);
         active_side = 2;
-        vm = anm::getVM(anm_id_text_line_1);
+        vm = anm::get_vm(anm_id_text_line_1);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_text_line_2);
+        vm = anm::get_vm(anm_id_text_line_2);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_furigana_1);
+        vm = anm::get_vm(anm_id_furigana_1);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_furigana_2);
+        vm = anm::get_vm(anm_id_furigana_2);
         if (vm) vm->__pos_2.y = 0.0;
         flags &= 0xfffffffd;
         next_text_line = 0;
@@ -283,7 +283,7 @@ int GuiMsgVm_t::tick() {
         anm::interrupt_tree_run(anm_id_enemy_face[arg1], arg0 + 0x11);
         break;
       case 15:
-        vm = anm::getVM(anm_id_text_line_1);
+        vm = anm::get_vm(anm_id_text_line_1);
         {auto s = std::string(reinterpret_cast<char*>(current_instr->data), current_instr->argsize);
         util_xor(reinterpret_cast<uint8_t*>(s.data()), s.size(), 0x77, 7, 16);
         s = s.data();
@@ -292,7 +292,7 @@ int GuiMsgVm_t::tick() {
         anm::interrupt_tree(anm_id_text_line_1, 2);
         break;
       case 16:
-        vm = anm::getVM(anm_id_text_line_2);
+        vm = anm::get_vm(anm_id_text_line_2);
         {auto s = std::string(reinterpret_cast<char*>(current_instr->data), current_instr->argsize);
         util_xor(reinterpret_cast<uint8_t*>(s.data()), s.size(), 0x77, 7, 16);
         s = s.data();
@@ -304,16 +304,16 @@ int GuiMsgVm_t::tick() {
         if (next_text_line == 0) {
           if (field_0x198 == 0) {
             speechBubbleLength = 0.0;
-            vm = anm::getVM(anm_id_text_line_1);
+            vm = anm::get_vm(anm_id_text_line_1);
             anm::text::FUN_00475000(vm, text_colors[active_side], c_black,
                          (uint)flags >> 2 & 1, 0, 0, "  ");
-            vm = anm::getVM(anm_id_text_line_2);
+            vm = anm::get_vm(anm_id_text_line_2);
             anm::text::FUN_00475000(vm, text_colors[active_side], c_black,
                          (uint)flags >> 1 & 1, 0, 0, "  ");
-            vm = anm::getVM(anm_id_furigana_1);
+            vm = anm::get_vm(anm_id_furigana_1);
             anm::text::FUN_00475000(vm, text_colors[active_side], c_black,
                          (uint)flags >> 1 & 1, 0, 1, "  ");
-            vm = anm::getVM(anm_id_furigana_2);
+            vm = anm::get_vm(anm_id_furigana_2);
             anm::text::FUN_00475000(vm, text_colors[active_side], c_black,
                          (uint)flags >> 1 & 1, 0, 1, "  ");
             field_0x198 = 1;
@@ -330,7 +330,7 @@ int GuiMsgVm_t::tick() {
             s = std::strchr(&s[1], 0x2c);
             int iVar17 = std::atoi(&s[1]);
             s = &std::strchr(&s[1], 0x2c)[1];
-            vm = anm::getVM(anm_id_furigana_1);
+            vm = anm::get_vm(anm_id_furigana_1);
             if (vm) {
                 vm->bitflags.f534_12 = true;
                 vm->entity_pos = callout_pos;
@@ -348,20 +348,20 @@ int GuiMsgVm_t::tick() {
           OpenSpeechBubble((flags >> 2 & 0xf) * 3 + active_side,
                            callout_pos, speechBubbleLength);
           setBubbleLength(speechBubbleLength);
-          vm = anm::getVM(anm_id_text_line_1);
+          vm = anm::get_vm(anm_id_text_line_1);
           anm::text::FUN_00475000(vm, text_colors[active_side], c_black,
                        flags >> 1 & 1, 0, 0, sj2utf8(s));
           if (active_side == 0) {
-            vm = anm::getVM(anm_id_text_line_1);
+            vm = anm::get_vm(anm_id_text_line_1);
             if (vm) vm->entity_pos = callout_pos;
           } else if (active_side - 1U < 2) {
-            vm = anm::getVM(anm_id_text_line_1);
+            vm = anm::get_vm(anm_id_text_line_1);
             if (vm) vm->entity_pos = callout_pos;
-            vm = anm::getVM(anm_id_furigana_1);
+            vm = anm::get_vm(anm_id_furigana_1);
             if (vm) vm->entity_pos = callout_pos;
-            vm = anm::getVM(anm_id_text_line_2);
+            vm = anm::get_vm(anm_id_text_line_2);
             if (vm) vm->entity_pos = callout_pos;
-            vm = anm::getVM(anm_id_furigana_2);
+            vm = anm::get_vm(anm_id_furigana_2);
             if (vm) vm->entity_pos = callout_pos;
           }
           anm::interrupt_tree_run(anm_id_text_line_1, 2);
@@ -375,7 +375,7 @@ int GuiMsgVm_t::tick() {
             s = std::strchr(&s[1], 0x2c);
             int iVar17 = std::atoi(&s[1]);
             s = &std::strchr(&s[1], 0x2c)[1];
-            vm = anm::getVM(anm_id_furigana_2);
+            vm = anm::get_vm(anm_id_furigana_2);
             if (vm) {
                 vm->bitflags.f534_12 = true;
                 vm->entity_pos = callout_pos;
@@ -393,20 +393,20 @@ int GuiMsgVm_t::tick() {
           OpenSpeechBubble((((uint)flags >> 2 & 0xf) + 8) * 3 + active_side,
                            callout_pos, speechBubbleLength);
           setBubbleLength(speechBubbleLength);
-          vm = anm::getVM(anm_id_text_line_2);
+          vm = anm::get_vm(anm_id_text_line_2);
           anm::text::FUN_00475000(vm, text_colors[active_side], c_black,
                        (flags >> 1) & 1, 0, 0, sj2utf8(s));
           if (active_side == 0) {
-            vm = anm::getVM(anm_id_text_line_1);
+            vm = anm::get_vm(anm_id_text_line_1);
             if (vm) vm->entity_pos = callout_pos;
           } else if (active_side - 1U < 2) {
-            vm = anm::getVM(anm_id_text_line_1);
+            vm = anm::get_vm(anm_id_text_line_1);
             if (vm) vm->entity_pos = callout_pos;
-            vm = anm::getVM(anm_id_furigana_1);
+            vm = anm::get_vm(anm_id_furigana_1);
             if (vm) vm->entity_pos = callout_pos;
-            vm = anm::getVM(anm_id_text_line_2);
+            vm = anm::get_vm(anm_id_text_line_2);
             if (vm) vm->entity_pos = callout_pos;
-            vm = anm::getVM(anm_id_furigana_2);
+            vm = anm::get_vm(anm_id_furigana_2);
             if (vm) vm->entity_pos = callout_pos;
           }
           anm::interrupt_tree_run(anm_id_text_line_2, 2);
@@ -415,7 +415,7 @@ int GuiMsgVm_t::tick() {
         }
         break;
       case 18:
-        anm::deleteVM(anm_id_speechBubble);
+        anm::delete_vm(anm_id_speechBubble);
         anm_id_speechBubble = 0;
         anm::interrupt_tree(anm_id_text_line_1, 3);
         anm::interrupt_tree(anm_id_text_line_2, 3);
@@ -437,7 +437,7 @@ int GuiMsgVm_t::tick() {
         anm_id_intro = ENEMY_MANAGER_PTR->loadedAnms
             [CURRENT_STAGE_DATA["boss_data"][arg0]["msg_ename_anim_index"].asInt()]
             ->createEffect(CURRENT_STAGE_DATA["boss_data"][arg0]["msg_ename_anm_script"].asInt());
-        vm = anm::getVM(GUI_PTR->boss_name_anmid);
+        vm = anm::get_vm(GUI_PTR->boss_name_anmid);
         if (!vm) {
             int i = 0;
             if (GLOBALS.inner.CURRENT_CHAPTER < 41) {
@@ -482,13 +482,13 @@ int GuiMsgVm_t::tick() {
         break;
       case 25:
         arg0 = *reinterpret_cast<int32_t*>(current_instr->data);
-        vm = anm::getVM(anm_id_text_line_1);
+        vm = anm::get_vm(anm_id_text_line_1);
         if (vm) vm->__pos_2.y = arg0;
-        vm = anm::getVM(anm_id_text_line_2);
+        vm = anm::get_vm(anm_id_text_line_2);
         if (vm) vm->__pos_2.y = arg0;
-        vm = anm::getVM(anm_id_furigana_1);
+        vm = anm::get_vm(anm_id_furigana_1);
         if (vm) vm->__pos_2.y = arg0;
-        vm = anm::getVM(anm_id_furigana_2);
+        vm = anm::get_vm(anm_id_furigana_2);
         if (vm) vm->__pos_2.y = arg0;
         break;
       case 26:
@@ -517,13 +517,13 @@ int GuiMsgVm_t::tick() {
       case 32:
         anm::interrupt_tree(__anm_id_idfk, 3);
         active_side = *reinterpret_cast<int32_t*>(current_instr->data);
-        vm = anm::getVM(anm_id_text_line_1);
+        vm = anm::get_vm(anm_id_text_line_1);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_text_line_2);
+        vm = anm::get_vm(anm_id_text_line_2);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_furigana_1);
+        vm = anm::get_vm(anm_id_furigana_1);
         if (vm) vm->__pos_2.y = 0.0;
-        vm = anm::getVM(anm_id_furigana_2);
+        vm = anm::get_vm(anm_id_furigana_2);
         if (vm) vm->__pos_2.y = 0.0;
         flags &= 0xfffffffd;
         next_text_line = 0;
@@ -558,7 +558,7 @@ int GuiMsgVm_t::tick() {
   }
   time_in_script++;
   LAB_0042ee3b:
-  vm = anm::getVM(anm_id_speechBubble);
+  vm = anm::get_vm(anm_id_speechBubble);
   if (!vm) return 0;
   vm = vm->search_children(speechBubbleType + GUI_ANMS["speech_bubble_child"].asInt(), 0);
   if (!vm) return 0;
@@ -577,13 +577,13 @@ int GuiMsgVm_t::tick() {
   } else if (active_side == 2) {
     p.x += ((vm->scale.x + 0.125) * 16.0 - 6.0);
   }
-  vm = anm::getVM(anm_id_text_line_1);
+  vm = anm::get_vm(anm_id_text_line_1);
   if (vm) vm->entity_pos = p;
-  vm = anm::getVM(anm_id_furigana_1);
+  vm = anm::get_vm(anm_id_furigana_1);
   if (vm) vm->entity_pos = p;
-  vm = anm::getVM(anm_id_text_line_2);
+  vm = anm::get_vm(anm_id_text_line_2);
   if (vm) vm->entity_pos = p;
-  vm = anm::getVM(anm_id_furigana_2);
+  vm = anm::get_vm(anm_id_furigana_2);
   if (vm) vm->entity_pos = p;
   return 0;
 }

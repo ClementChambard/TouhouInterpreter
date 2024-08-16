@@ -145,7 +145,7 @@ inline int Enemy::execInstr(EclRunContext_t *cont, const EclRawInstr_t *instr) {
   allocate_new_laser(2, &inner);
 
   _ins(712, etCancelRect) _f(w) _f(h) _args
-  auto vm = anm::getVM(enemy.anmIds[0]);
+  auto vm = anm::get_vm(enemy.anmIds[0]);
   float z_rot = 0.f;
   if (vm) z_rot = vm->rotation.z;
   BULLET_MANAGER_PTR->cancel_rectangle_as_bomb(

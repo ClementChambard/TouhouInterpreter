@@ -11,6 +11,19 @@
 
 namespace anm {
 
+
+// Forward declarations of private functions:
+
+VM *allocate_vm();
+ID insert_in_world_list_back(VM *vm);
+ID insert_in_world_list_front(VM *vm);
+ID insert_in_ui_list_back(VM *vm);
+ID insert_in_ui_list_front(VM *vm);
+void delete_of_file(File *f);
+
+
+
+
 void Sprite::genTexCoords(f32 tw, f32 th) {
     u1 = x / tw;
     v1 = y / th;

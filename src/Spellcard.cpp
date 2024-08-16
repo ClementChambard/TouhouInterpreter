@@ -50,7 +50,7 @@ int Spellcard::on_tick() {
   auto e = ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]);
   if (e)
     boss0_pos = (e->getData()->final_pos.pos - boss0_pos) * 0.05f + boss0_pos;
-  auto vm = anm::getVM(spell_circle_anmid);
+  auto vm = anm::get_vm(spell_circle_anmid);
   if (vm) {
     vm->entity_pos = boss0_pos;
   }
@@ -100,7 +100,7 @@ int Spellcard::on_tick() {
 int Spellcard::on_draw() {
   if (!(flags & 1))
     return 1;
-  auto anm__18 = anm::getVM(ascii_anmid_18);
+  auto anm__18 = anm::get_vm(ascii_anmid_18);
   if (!anm__18) {
     ascii_anmid_18 = 0;
     return 1;
@@ -147,12 +147,12 @@ void Spellcard::Stop() {
   anm::interrupt_tree(text_anmid_14, 1);
   anm::interrupt_tree(ascii_anmid_18, 1);
   flags &= 0xfffffffe;
-  anm::deleteVM(spell_bg_anm_id);
+  anm::delete_vm(spell_bg_anm_id);
   spell_bg_anm_id = 0;
   flags &= 0xffffffdf;
   GUI_PTR->vm_timer_digit_hi->interrupt(3);
   GUI_PTR->vm_timer_digit_lo->interrupt(3);
-  anm::deleteVM(spell_circle_anmid);
+  anm::delete_vm(spell_circle_anmid);
   spell_circle_anmid = 0;
   if (!(flags & 2)) {
     GUI_PTR->midScreenInfo(0, 1);
@@ -268,7 +268,7 @@ void Spellcard::Init(int id, int time, int mode, std::string name) {
   text_anmid_14 = SUPERVISOR.text_anm->createEffect(2);
   ascii_anmid_18 = ASCII_MANAGER_PTR->ascii_anm->createEffect(1);
 
-  auto vm = anm::getVM(text_anmid_14);
+  auto vm = anm::get_vm(text_anmid_14);
   anm::text::FUN_00475120(vm, c_white, c_black, 0, 0, sj2utf8(name), name.size());
 
   // SoundManager::play_sound_centered(0x21);
@@ -276,7 +276,7 @@ void Spellcard::Init(int id, int time, int mode, std::string name) {
   spell_circle_anmid = anm::getLoaded(8)->createEffect(13);
   auto boss_0 = ENEMY_MANAGER_PTR->EnmFind(ENEMY_MANAGER_PTR->boss_ids[0]);
   boss0_pos = boss_0->getData()->final_pos.pos;
-  auto spell_circle = anm::getVM(spell_circle_anmid);
+  auto spell_circle = anm::get_vm(spell_circle_anmid);
   if (!spell_circle) {
     spell_circle_anmid = 0;
   } else {

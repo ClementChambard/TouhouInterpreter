@@ -108,13 +108,8 @@ int AsciiPopupManager::f_on_draw() {
         anm::getLoaded(vm.anm_loaded_index)
             ->setSprite(&vm, popups[i].nums[num] + 21 + fst);
       }
-      vm.write_sprite_corners__without_rot(
-          anm::SPRITE_TEMP_BUFFER[0].transformed_pos,
-          anm::SPRITE_TEMP_BUFFER[1].transformed_pos,
-          anm::SPRITE_TEMP_BUFFER[2].transformed_pos,
-          anm::SPRITE_TEMP_BUFFER[3].transformed_pos);
-      anm::draw_vm__modes_0_1_2_3(&this->vm, 1);
-      // vm.draw();
+      anm::draw_vm_as_quad_no_rot(&vm);
+
       vm.entity_pos.x += size;
     }
   }

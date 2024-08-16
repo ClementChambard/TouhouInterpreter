@@ -78,7 +78,7 @@ int (*ECL_EXTDMG_FUNC[10])(EnemyData*, int) = {
     },
     [](EnemyData* enm, int dmg) -> int {
         uint a = 0;
-        auto vm1 = anm::getVM(enm->anmIds[1]);
+        auto vm1 = anm::get_vm(enm->anmIds[1]);
         if (!vm1) {
             enm->anmIds[1] = 0;
         } else {

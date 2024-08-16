@@ -219,7 +219,7 @@ static bool check_input(int i) {
 
 int PauseMenu::f_on_draw() {
   ASCII_MANAGER_PTR->draw_shadows = 1;
-  auto vm = anm::getVM(pause_blur_anmid);
+  auto vm = anm::get_vm(pause_blur_anmid);
   if (!vm) {
     pause_blur_anmid = 0;
   } else {
@@ -288,7 +288,7 @@ int PauseMenu::f_on_tick() {
           timer5_0x20 = 0;
           // GAME_THREAD_PTR->flags |= 0x10;
           front_anm = GUI_PTR->front_anm;
-          anm::deleteVM(menu_anmid);
+          anm::delete_vm(menu_anmid);
           // if (GAME_THREAD_PTR->field18_0xa8 == 0) {
           menu_anmid = front_anm->new_vm_ui_back(0x9f);
           // } else {
@@ -312,7 +312,7 @@ int PauseMenu::f_on_tick() {
           // DAT_00524778 = 0;
           if (GUI_PTR->msg) GUI_PTR->msg->hideVms();
 
-          auto vm = anm::getVM(GUI_PTR->th15_chapter_end_anmid);
+          auto vm = anm::get_vm(GUI_PTR->th15_chapter_end_anmid);
           if (vm) vm->clear_flag_1_rec();
           flags_3f0 &= 0xfffffffb;
         }
@@ -323,7 +323,7 @@ int PauseMenu::f_on_tick() {
 }
 
 void PauseMenu::init_pause_blur_effect() {
-  anm::deleteVM(pause_blur_anmid);
+  anm::delete_vm(pause_blur_anmid);
   anm::VM* vm;
   int a = 52;
   if (TOUHOU_VERSION == 18) a = 59;
@@ -346,7 +346,7 @@ static bool menu_confirm() {
     return ns::keyboard::pressed(ns::Key::W) || ns::keyboard::pressed(ns::Key::RETURN);
 }
 
-#define child_interrupt(cid, inte) vm = anm::getVM(menu_anmid)->search_children(cid, 0); if (vm) vm->interrupt(inte);
+#define child_interrupt(cid, inte) vm = anm::get_vm(menu_anmid)->search_children(cid, 0); if (vm) vm->interrupt(inte);
 void PauseMenu::update_submenus() {
     anm::VM* vm;
     if (timer4_0xc.ticked() && timer4_0xc.was_modulo(60) && (SUPERVISOR.flags & 0x400U)) {
@@ -651,7 +651,7 @@ void PauseMenu::update_submenus() {
       if (timer4_0xc < 0x14) break;
       flags_3f0 = (flags_3f0 & 0xfffffffd) | 1;
       go_to_submenu(11);
-      anm::getVM(menu_anmid)->clear_flag_1_rec();
+      anm::get_vm(menu_anmid)->clear_flag_1_rec();
       menu_helper.push_selection();
       menu_helper.num_choices = 0x19;
       menu_helper.option_wrapping = 1;
@@ -704,7 +704,7 @@ void PauseMenu::update_submenus() {
             return;
           }
           go_to_submenu(6);
-          anm::getVM(menu_anmid)->set_flag_1_rec();
+          anm::get_vm(menu_anmid)->set_flag_1_rec();
           if (GLOBALS.FLAGS & 0x30U) {
             menu_helper.disable_option(0);
             menu_helper.disable_option(3);
@@ -909,14 +909,14 @@ void PauseMenu::update_submenus() {
       return;
     case 0xe:
       if (timer4_0xc.had_value(0x14)) {
-        anm::getVM(menu_anmid)->clear_flag_1_rec();
+        anm::get_vm(menu_anmid)->clear_flag_1_rec();
         // HelpManual::operator_new();
         // HELP_MANUAL_PTR->field74_0x128 = 0x42000000;
       // }
       // if (HELP_MANUAL_PTR && (HELP_MANUAL_PTR->field73_0x124 != 0)) {
       //   delete HELP_MANUAL_PTR;
         go_to_submenu(6);
-        anm::getVM(menu_anmid)->set_flag_1_rec();
+        anm::get_vm(menu_anmid)->set_flag_1_rec();
         return;
       }
       break;
@@ -928,7 +928,7 @@ void PauseMenu::update_submenus() {
         // }
         // GAME_THREAD_PTR->flags = GAME_THREAD_PTR->flags & 0xffffffef;
         GAME_PAUSED = false;
-        if (vm = anm::getVM(GUI_PTR->th15_chapter_end_anmid); vm)
+        if (vm = anm::get_vm(GUI_PTR->th15_chapter_end_anmid); vm)
             vm->set_flag_1_rec();
         if (GUI_PTR->msg) GUI_PTR->msg->unhideVms();
         // GAME_SPEED = saved_game_speed;
@@ -997,8 +997,8 @@ void PauseMenu::update_submenus() {
         // SUPERVISOR.gamemode_to_switch_to =
         // (-(uint)((SUPERVISOR.flags & 0x2000U) != 0) & 0xfffffffe) + 4;
       } else if (menu_helper.selection == 4) {
-        anm::deleteVM(pause_blur_anmid);
-        anm::deleteVM(menu_anmid);
+        anm::delete_vm(pause_blur_anmid);
+        anm::delete_vm(menu_anmid);
         pause_blur_anmid = 0;
         menu_anmid = 0;
         // if (GAME_THREAD_PTR->field18_0xa8 == 0) {
@@ -1025,7 +1025,7 @@ void PauseMenu::open_submenu1_finish_replay() {
   // GAME_THREAD_PTR->flags |= 0x10;
   init_pause_blur_effect();
   front_anm = GUI_PTR->front_anm;
-  anm::deleteVM(menu_anmid);
+  anm::delete_vm(menu_anmid);
   menu_anmid = front_anm->new_vm_ui_back(0xa2);
   anm::interrupt_tree(menu_anmid, 3);
   // FUN_00432660(extraout_ECX);
@@ -1147,7 +1147,7 @@ void PauseMenu::open_submenu3() {
   // saved_dat_524778 = DAT_00524778;
   // DAT_00524778 = 1;
   if (GUI_PTR->msg) GUI_PTR->msg->hideVms();
-  if (auto vm = anm::getVM(GUI_PTR->th15_chapter_end_anmid); vm) vm->clear_flag_1_rec();
+  if (auto vm = anm::get_vm(GUI_PTR->th15_chapter_end_anmid); vm) vm->clear_flag_1_rec();
   flags_3f0 |= 4;
   return;
 }

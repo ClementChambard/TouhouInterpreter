@@ -9,10 +9,10 @@ Bullet::~Bullet() {}
 
 void Bullet::Update() {
     on_tick();
-    vm.setEntityPos(pos.x, pos.y, pos.z);
+    vm.entity_pos = pos;
     if (vm.bitflags.autoRotate)
         vm.rotation.z = angle + ns::PI_1_2<f32>;
-    vm.setScale2(scale, scale);
+    vm.scale_2 = {scale, scale};
 }
 
 void Bullet::Reset() {
