@@ -12,8 +12,6 @@
 #include <cstdarg>
 #include <cwchar>
 
-#include <TextureManager.h>
-
 #include <SDL2/SDL_ttf.h>
 
 namespace anm::text {
@@ -128,16 +126,16 @@ int decodeUTF8Character(const std::string& str, size_t& index) {
     return codePoint;
 }
 
-void write_text_on_framebuffer([[maybe_unused]] ns::vec4 const& dest_rect,
-                               [[maybe_unused]] int32_t xoffset,
+void write_text_on_framebuffer(ns::vec4 const& dest_rect,
+                               int32_t xoffset,
                                [[maybe_unused]] int param_3,
-                               [[maybe_unused]] ns::Color text_color,
-                               [[maybe_unused]] ns::Color shadow_color,
-                               [[maybe_unused]] std::string str,
-                               [[maybe_unused]] ns::Texture* texture,
-                               [[maybe_unused]] int font_id,
-                               [[maybe_unused]] int chr_spacing,
-                               [[maybe_unused]] int shadow) {
+                               ns::Color text_color,
+                               ns::Color shadow_color,
+                               std::string str,
+                               ns::Texture* texture,
+                               int font_id,
+                               int chr_spacing,
+                               int shadow) {
   Uint32 clearColor = SDL_MapRGBA(fontRenderSurf->format, 0, 0, 0, 0);
   SDL_FillRect(fontRenderSurf, NULL, clearColor);
   if (chr_spacing == 0) {
@@ -341,7 +339,7 @@ void FUN_00475000(VM *vm,
         text_color,
         shadow_color,
         string,
-        ns::TextureManager::get_texture(spr.texID),
+        spr.texture,
         font_id,
         h_sep_w * 2,
         !vm->bitflags.f534_12);
@@ -372,7 +370,7 @@ void FUN_00475120(VM *vm,
                               text_color,
                               shadow_color,
                               string,
-                              ns::TextureManager::get_texture(spr.texID),
+                              spr.texture,
                               font_id,
                               h_chr_spacing * 2,
                               !vm->bitflags.f534_12);

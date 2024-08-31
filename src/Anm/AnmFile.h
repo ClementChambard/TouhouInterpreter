@@ -19,7 +19,7 @@ struct File {
     VM getPreloaded(usize id) const;
     bytes getScript(usize id) const;
     Sprite getSprite(usize id) const;
-    u32 getTextureFromName(cstr name) const;
+    ns::Texture* getTextureFromName(cstr name) const;
     cstr getName() const { return name.c_str(); }
     usize nbSprites() const { return sprites.size(); }
     usize nbScripts() const { return scripts.size(); }
@@ -45,7 +45,7 @@ struct File {
     u32 slot = 0;
     i32 some_ctr = 0;
     std::string name = "";
-    std::map<std::string, u32> textures;
+    std::map<std::string, ns::Texture*> textures;
     std::vector<Sprite> sprites;
     std::vector<VM> preloaded;
     std::vector<bytes> scripts;

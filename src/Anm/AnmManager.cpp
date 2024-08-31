@@ -8,7 +8,6 @@
 #include "Text.hpp"
 #include <DrawBatch2.h>
 #include <DrawFuncs.h>
-#include <TextureManager.h>
 #include <cstring>
 #include <fstream>
 #include <logger.h>
@@ -36,22 +35,27 @@ i32 draw_vm__mode_6(VM *vm);
 void draw_vm__mode_8_15(VM *vm);
 void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData, i32 nVert);
 void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData, i32 nVert);
-i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z, ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
-i32 draw_vm__ins_607(f32 x, f32 y, f32 width, f32 height, f32 rot_z, ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
-i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rot_z, ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
-i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z, ns::Color col1, ns::Color col2, i32 anchor);
-i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0, f32 radius, f32 thickness, i32 vertex_count, ns::Color col);
-i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0, f32 radius, i32 nb_vertex, ns::Color col);
-i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0, f32 radius, i32 vertex_count, ns::Color color_1, ns::Color color_2);
+i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
+                     ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
+i32 draw_vm__ins_607(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
+                     ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
+i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
+                     ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
+i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z, ns::Color col1,
+                     ns::Color col2, i32 anchor);
+i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0, f32 radius,
+                               f32 thickness, i32 vertex_count, ns::Color col);
+i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0, f32 radius,
+                                       i32 nb_vertex, ns::Color col);
+i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0, f32 radius,
+                                 i32 vertex_count, ns::Color color_1,
+                                 ns::Color color_2);
 void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt);
 
 void calc_mat_world(VM *vm);
 void setup_render_state_for_vm(VM *vm);
 void prepare_vm_for_delete(VM *vm, VM::List_t *list);
 i32 destroy_possibly_managed_vm(VM *vm);
-
-
-
 
 f32 RESOLUTION_MULT = 1.f;
 ns::vec2 BACK_BUFFER_SIZE = {0, 0};
@@ -153,7 +157,7 @@ inline void anm_use_texture(ns::Texture *tex) {
 }
 
 inline void anm_use_texture(VM *vm) {
-  anm_use_texture(vm->getSprite().opengl_texid);
+  anm_use_texture(vm->getSprite().texture);
 }
 
 static void anm_use_default_texture() {
@@ -165,7 +169,7 @@ static void anm_use_default_texture() {
 }
 
 void init() {
-  AM = new AnmManagerState;
+  AM = ns::construct<AnmManagerState>();
   for (usize i = 0; i < 8191; i++) {
     FastVM *fvm = &AM->fastArray[i];
     fvm->vm.reset();
@@ -194,10 +198,10 @@ void init() {
   // AM->pause_related[3].anm_loaded = -1;
 
   // setup_vao();
-  AM->batch = new ns::DrawBatch2();
-  AM->shader = new BaseShader();
-  AM->bshader = new BlitShader();
-  AM->fshader = new FogShader();
+  AM->batch = ns::construct<ns::DrawBatch2>();
+  AM->shader = ns::construct<BaseShader>();
+  AM->bshader = ns::construct<BlitShader>();
+  AM->fshader = ns::construct<FogShader>();
   AM->curr_shader = AM->shader;
 
   // zFloat3_00529ecc.x = 1.0;
@@ -264,12 +268,12 @@ void cleanup() {
 
   // cleanup_vao();
 
-  delete AM->batch;
-  delete AM->shader;
-  delete AM->bshader;
-  delete AM->fshader;
+  ns::destroy(AM->batch);
+  ns::destroy(AM->shader);
+  ns::destroy(AM->bshader);
+  ns::destroy(AM->fshader);
 
-  delete AM;
+  ns::destroy(AM);
 }
 
 VM *allocate_vm() {
@@ -554,8 +558,7 @@ i32 destroy_possibly_managed_vm(VM *vm) {
   AM->freelist_head.next = &AM->fastArray[vm->fast_id].freelistNode;
   AM->fastArray[vm->fast_id].freelistNode.previous = &AM->freelist_head;
   if (vm->special_vertex_buffer_data) {
-    ns::free_raw(vm->special_vertex_buffer_data, vm->special_vertex_buffer_size,
-                 ns::MemTag::GAME);
+    ns::free_raw(vm->special_vertex_buffer_data, vm->special_vertex_buffer_size);
   }
   vm->special_vertex_buffer_data = nullptr;
   vm->special_vertex_buffer_size = 0;
@@ -1584,17 +1587,14 @@ i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
   f32 y2 = anchorY == 0 ? height / 2.0 : anchorY == 1 ? height : 0.0;
   float cz = cos(rot_z);
   float sz = sin(rot_z);
-  ns::vec2 pos0 = { x1 * cz - y1 * sz + x, x1 * sz + y1 * cz + y };
-  ns::vec2 pos1 = { x2 * cz - y1 * sz + x, x2 * sz + y1 * cz + y };
-  ns::vec2 pos2 = { x2 * cz - y2 * sz + x, x2 * sz + y2 * cz + y };
-  ns::vec2 pos3 = { x1 * cz - y2 * sz + x, x1 * sz + y2 * cz + y };
+  ns::vec2 pos0 = {x1 * cz - y1 * sz + x, x1 * sz + y1 * cz + y};
+  ns::vec2 pos1 = {x2 * cz - y1 * sz + x, x2 * sz + y1 * cz + y};
+  ns::vec2 pos2 = {x2 * cz - y2 * sz + x, x2 * sz + y2 * cz + y};
+  ns::vec2 pos3 = {x1 * cz - y2 * sz + x, x1 * sz + y2 * cz + y};
   disable_zwrite();
   anm_use_default_texture();
-  AM->batch->draw_quad(
-      {{pos0, 0.f}, col1, {}},
-      {{pos1, 0.f}, col2, {}},
-      {{pos2, 0.f}, col2, {}},
-      {{pos3, 0.f}, col1, {}});
+  AM->batch->draw_quad({{pos0, 0.f}, col1, {}}, {{pos1, 0.f}, col2, {}},
+                       {{pos2, 0.f}, col2, {}}, {{pos3, 0.f}, col1, {}});
   return 0;
   flush_vbos();
   // if (field_0x18607cf != 0) {
@@ -1620,8 +1620,8 @@ i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z, ns::Color col1,
                      ns::Color col2, i32 anchor) {
   f32 x1 = anchor == 0 ? -width / 2.0 : anchor == 1 ? 0.0 : -width;
   f32 x2 = anchor == 0 ? width / 2.0 : anchor == 1 ? width : 0.0;
-  ns::vec2 pos0 = { x1 * ns::cos(rot_z) + x, x1 * ns::sin(rot_z) + y };
-  ns::vec2 pos1 = { x2 * ns::cos(rot_z) + x, x2 * ns::sin(rot_z) + y };
+  ns::vec2 pos0 = {x1 * ns::cos(rot_z) + x, x1 * ns::sin(rot_z) + y};
+  ns::vec2 pos1 = {x2 * ns::cos(rot_z) + x, x2 * ns::sin(rot_z) + y};
 
   disable_zwrite();
   anm_use_default_texture();
@@ -1629,10 +1629,9 @@ i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z, ns::Color col1,
   f32 angle = math::point_direction(pos0, pos1);
   ns::vec2 dir = math::lengthdir_vec(1.f / 2.f, angle + 90);
 
-  AM->batch->draw_quad({{pos0 - dir, 0.f}, col1, {}},
-                       {{pos0 + dir, 0.f}, col1, {}},
-                       {{pos1 + dir, 0.f}, col2, {}},
-                       {{pos1 - dir, 0.f}, col2, {}});
+  AM->batch->draw_quad(
+      {{pos0 - dir, 0.f}, col1, {}}, {{pos0 + dir, 0.f}, col1, {}},
+      {{pos1 + dir, 0.f}, col2, {}}, {{pos1 - dir, 0.f}, col2, {}});
   // if (field_0x18607cf != 0) {
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
@@ -1659,10 +1658,10 @@ i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rotz,
   f32 y2 = anchorY == 0 ? height / 2.0 : anchorY == 1 ? height : 0.0;
   float cz = cos(rotz);
   float sz = sin(rotz);
-  ns::vec2 pos0 = { x1 * cz - y1 * sz + x, x1 * sz + y1 * cz + y };
-  ns::vec2 pos1 = { x2 * cz - y1 * sz + x, x2 * sz + y1 * cz + y };
-  ns::vec2 pos2 = { x2 * cz - y2 * sz + x, x2 * sz + y2 * cz + y };
-  ns::vec2 pos3 = { x1 * cz - y2 * sz + x, x1 * sz + y2 * cz + y };
+  ns::vec2 pos0 = {x1 * cz - y1 * sz + x, x1 * sz + y1 * cz + y};
+  ns::vec2 pos1 = {x2 * cz - y1 * sz + x, x2 * sz + y1 * cz + y};
+  ns::vec2 pos2 = {x2 * cz - y2 * sz + x, x2 * sz + y2 * cz + y};
+  ns::vec2 pos3 = {x1 * cz - y2 * sz + x, x1 * sz + y2 * cz + y};
   f32 angle = math::point_direction(pos0, pos1);
   ns::vec2 diag2 = math::lengthdir_vec(1.f / 2.f, angle + 90);
   ns::vec2 diag1 = ns::vec2(-diag2.x, diag2.y);

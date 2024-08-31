@@ -7,7 +7,6 @@
 #include "Anm/CopyTextures.hpp"
 #include "Hardcoded.h"
 #include <input.hpp>
-#include <TextureManager.h>
 #include <cstdio>
 
 PauseMenu* PAUSE_MENU_PTR = nullptr;
@@ -328,12 +327,10 @@ void PauseMenu::init_pause_blur_effect() {
   int a = 52;
   if (TOUHOU_VERSION == 18) a = 59;
   pause_blur_anmid = SUPERVISOR.text_anm->new_vm_ui_back(a, &vm);
-  auto srcTexId = ns::TextureManager::
-    get_texture_nsid_by_opengl(SUPERVISOR.surface_atR_1->get_color_texture());
-  auto texsiz = ns::TextureManager::get_texture(srcTexId)->get_size();
+  auto texsiz = SUPERVISOR.surface_atR_1->get_size();
   auto spr = vm->getSprite();
   anm::flush_vbos();
-  anm::cptex::doCopy(srcTexId, spr.opengl_texid, {
+  anm::cptex::doCopy(SUPERVISOR.surface_atR_1, spr.texture, {
       (anm::origin(2).x - anm::RESOLUTION_MULT * 384.f * 0.5f)       / texsiz.x,
       (anm::origin(2).y)                                       / texsiz.y,
       (anm::origin(2).x + anm::RESOLUTION_MULT * 384.f * 0.5f - 1.f) / texsiz.x,

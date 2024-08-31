@@ -83,8 +83,7 @@ VM::VM(u32 script_id, u32 anim_slot) {
 
 VM::~VM() {
   if (special_vertex_buffer_data)
-    ns::free_raw(special_vertex_buffer_data, special_vertex_buffer_size,
-                 ns::MemTag::GAME);
+    ns::free_raw(special_vertex_buffer_data, special_vertex_buffer_size);
   destroy();
 }
 
@@ -1079,10 +1078,9 @@ int VM::wait(float old_game_speed) {
 
 void VM::alloc_special_vertex_buffer(i32 size) {
   if (special_vertex_buffer_data)
-    ns::free_raw(special_vertex_buffer_data, special_vertex_buffer_size,
-                 ns::MemTag::GAME);
+    ns::free_raw(special_vertex_buffer_data, special_vertex_buffer_size);
   special_vertex_buffer_size = size;
-  special_vertex_buffer_data = ns::alloc_raw(size, ns::MemTag::GAME);
+  special_vertex_buffer_data = ns::alloc_raw(size);
 }
 
 } // namespace anm

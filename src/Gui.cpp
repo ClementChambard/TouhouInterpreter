@@ -39,7 +39,7 @@ Gui::Gui() {
     ns::fs::File f;
     ns::fs::open(fname.c_str(), ns::fs::Mode::READ, true, &f);
     ns::fs::fsize(&f, &msg_file_data_size);
-    msg_file_data = ns::alloc_n<byte>(msg_file_data_size, ns::MemTag::GAME);
+    msg_file_data = ns::alloc_n<byte>(msg_file_data_size);
     ns::fs::read_all_bytes(&f, msg_file_data, &msg_file_data_size);
     ns::fs::close(&f);
     NS_INFO("opened %s: %lld bytes", fname.c_str(), msg_file_data_size);
@@ -84,7 +84,7 @@ Gui::~Gui() {
   stage_logo_anmloaded->Cleanup();
   front_anm->Cleanup();
 
-  if (msg_file_data) ns::free_n(msg_file_data, msg_file_data_size, ns::MemTag::GAME);
+  if (msg_file_data) ns::free_n(msg_file_data, msg_file_data_size);
   msg_file_data_size = 0;
 
   if (on_tick)

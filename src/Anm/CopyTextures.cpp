@@ -2,7 +2,6 @@
 #include "./AnmManager.h"
 #include "./CopyShader.h"
 
-#include <TextureManager.h>
 #include <FrameBuffer.h>
 
 namespace anm::cptex {
@@ -79,11 +78,10 @@ void cleanup() {
     delete copyTexturesVbo;
 }
 
-void doCopy(int src_glid, int dst_glid, ns::vec4 const &src_uvs,
+void doCopy(ns::Texture* src, ns::Texture* dst, ns::vec4 const &src_uvs,
                           ns::vec4 const &dst_uvs) {
     auto last_fb = ns::FrameBuffer::BOUND_FRAMEBUFFER;
-    auto fb = ns::TextureManager::get_texture_by_opengl(dst_glid)
-        ->get_framebuffer();
+    auto fb = dst->get_framebuffer();
     if (!fb) return;
     fb->bind();
     copyTexturesVbo->bind();
@@ -96,7 +94,7 @@ void doCopy(int src_glid, int dst_glid, ns::vec4 const &src_uvs,
     copyTexturesVbo->setData(vertices);
     copyTexturesShader->use();
     anm::reset_texture();
-    glBindTexture(GL_TEXTURE_2D, src_glid);
+    glBindTexture(GL_TEXTURE_2D, src->get_opengl_id());
     copyTexturesVbo->draw();
     ns::FrameBuffer::bind_framebuffer(last_fb);
 }

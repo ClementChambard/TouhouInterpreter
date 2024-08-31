@@ -20,13 +20,13 @@ LaserCurve::~LaserCurve() {
   LaserCurveTransform_t *node = transforms.next;
   while (node) {
     auto c = node->next;
-    ns::free(node, ns::MemTag::GAME);
+    ns::free(node);
     node = c;
   }
   if (nodes)
-    ns::free_n(nodes, inner.laser_time_start, ns::MemTag::GAME);
+    ns::free_n(nodes, inner.laser_time_start);
   if (vertices)
-    ns::free_n(vertices, inner.laser_time_start * 2, ns::MemTag::GAME);
+    ns::free_n(vertices, inner.laser_time_start * 2);
 }
 
 void LaserCurveTransform_t::posvel_from_prev(ns::vec3 *out_pos,
@@ -159,7 +159,7 @@ int LaserCurve::initialize(void *arg) {
   inv_timer = 30;
 
   nodes =
-      ns::alloc_n<LaserCurveNode_t>(inner.laser_time_start, ns::MemTag::GAME);
+      ns::alloc_n<LaserCurveNode_t>(inner.laser_time_start);
   for (int i = 0; i < inner.laser_time_start; i++) {
     nodes[i].pos = laser_offset;
     nodes[i].v_speed = {0, 0, 0};
@@ -168,8 +168,7 @@ int LaserCurve::initialize(void *arg) {
   }
   nodes[0].v_speed = laser_speed;
 
-  vertices = ns::alloc_n<anm::RenderVertex_t>(inner.laser_time_start * 2,
-                                              ns::MemTag::GAME);
+  vertices = ns::alloc_n<anm::RenderVertex_t>(inner.laser_time_start * 2);
 
   if (!inner.transforms) {
     transforms.next = nullptr;
@@ -187,7 +186,7 @@ int LaserCurve::initialize(void *arg) {
     transforms = *inner.transforms;
     for (LaserCurveTransform_t *n = inner.transforms->next, *n2 = &transforms;
          n != NULL; n = n->next, n2 = n2->next) {
-      n2->next = ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
+      n2->next = ns::alloc<LaserCurveTransform_t>();
       *n2->next = *n->next;
       n2->next->prev = n2;
     }
@@ -423,7 +422,7 @@ void LaserCurve::run_ex() {
         for (auto t = last_transform->next; t; t = t->next)
           last_transform = t;
         last_transform->next =
-            ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
+            ns::alloc<LaserCurveTransform_t>();
         last_transform->end_time = inner.ex[et_ex_index].b;
         last_transform->next->start_time = inner.ex[et_ex_index].b;
         last_transform->next->next = nullptr;
@@ -444,7 +443,7 @@ void LaserCurve::run_ex() {
               inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
           last_transform = last_transform->next;
           last_transform->next =
-              ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
+              ns::alloc<LaserCurveTransform_t>();
           last_transform->end_time =
               inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
           last_transform->next->start_time =
@@ -467,7 +466,7 @@ void LaserCurve::run_ex() {
         for (auto t = last_transform->next; t; t = t->next)
           last_transform = t;
         last_transform->next =
-            ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
+            ns::alloc<LaserCurveTransform_t>();
         last_transform->end_time = inner.ex[et_ex_index].b;
         last_transform->next->start_time = inner.ex[et_ex_index].b;
         last_transform->next->next = nullptr;
@@ -488,7 +487,7 @@ void LaserCurve::run_ex() {
               inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
           last_transform = last_transform->next;
           last_transform->next =
-              ns::alloc<LaserCurveTransform_t>(ns::MemTag::GAME);
+              ns::alloc<LaserCurveTransform_t>();
           last_transform->end_time =
               inner.ex[et_ex_index].a + inner.ex[et_ex_index].b;
           last_transform->next->start_time =

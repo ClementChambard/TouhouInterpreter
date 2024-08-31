@@ -5,9 +5,8 @@
 #include <imgui.h>
 #include <imgui_ns.hpp>
 
-#include <input.hpp>
-#include <TextureManager.h>
 #include <NSEngine.hpp>
+#include <input.hpp>
 
 #include "./Std/Stage.hpp"
 #include "ScreenEffect.hpp"
@@ -20,8 +19,14 @@ static anm::Stats last_frame_stats;
 
 AnmViewer::AnmViewer() {
   ANM_VIEWER_PTR = this;
-  ANM_VIEWER_ON_TICK = new UpdateFunc([this]() { this->on_tick(); return 1; });
-  ANM_VIEWER_ON_DRAW = new UpdateFunc([this]() { this->on_draw(); return 1; });
+  ANM_VIEWER_ON_TICK = new UpdateFunc([this]() {
+    this->on_tick();
+    return 1;
+  });
+  ANM_VIEWER_ON_DRAW = new UpdateFunc([this]() {
+    this->on_draw();
+    return 1;
+  });
   UPDATE_FUNC_REGISTRY.register_on_tick(ANM_VIEWER_ON_TICK, 3);
   UPDATE_FUNC_REGISTRY.register_on_draw(ANM_VIEWER_ON_DRAW, 100);
 }
@@ -54,7 +59,7 @@ bool AnmSlotSelector(const char *label, std::string *strval, int *selected) {
   return changed;
 }
 
-auto getSpriteRange(anm::File *f, uint32_t texid) {
+auto getSpriteRange(anm::File *f, ns::Texture *tex) {
   struct rge {
     int first = -1;
     int last = -1;
@@ -62,11 +67,11 @@ auto getSpriteRange(anm::File *f, uint32_t texid) {
   int m = 0;
   int i = 0;
   for (auto s : f->sprites) {
-    if (m == 0 && s.texID == texid) {
+    if (m == 0 && s.texture == tex) {
       r.first = i;
       m = 1;
     }
-    if (m == 1 && s.texID != texid) {
+    if (m == 1 && s.texture != tex) {
       r.last = i - 1;
       return r;
     }
@@ -173,19 +178,19 @@ void TextureViewerWindow(bool *open) {
   auto sp = f->sprites[spriteId];
   std::string name = "";
   for (auto pair : f->textures) {
-    if (pair.second == sp.texID) {
+    if (pair.second == sp.texture) {
       name = pair.first;
       break;
     }
   }
   ImGui::Text("%s", name.c_str());
-  auto t = ns::TextureManager::get_texture_id(sp.texID);
-  int w, h;
-  ns::TextureManager::get_texture_size(sp.texID, w, h);
+  int w = sp.texture->get_width();
+  int h = sp.texture->get_height();
   static ImVec2 pos = {0.5, 0.5};
   static float zoom = 1;
-  ImageViewerSprite(reinterpret_cast<ImTextureID>(t), ImVec2(w, h), &pos, &zoom,
-                    true, {sp.u1, sp.v1}, {sp.u2, sp.v2}, 0xFF0000FF);
+  ImageViewerSprite(reinterpret_cast<ImTextureID>(sp.texture->get_opengl_id()),
+                    ImVec2(w, h), &pos, &zoom, true, {sp.u1, sp.v1},
+                    {sp.u2, sp.v2}, 0xFF0000FF);
   ImGui::PopID();
   ImGui::End();
 }
@@ -204,7 +209,8 @@ void AnmView::renderInList() {
   auto vm = this->vm ? this->vm : anm::get_vm(anmId);
   auto name = anm::getLoaded(vm->anm_loaded_index)->name;
   if (parentId != 0)
-    ImGui::Text("%s: script %d (%d->%d)", name.c_str(), vm->script_id, anmId, parentId);
+    ImGui::Text("%s: script %d (%d->%d)", name.c_str(), vm->script_id, anmId,
+                parentId);
   else
     ImGui::Text("%s: script %d (%d)", name.c_str(), vm->script_id, anmId);
   if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -265,8 +271,7 @@ void anms_window(bool *open) {
   ImGui::Checkbox("front", &front);
   if (ImGui::Button("Create")) {
     int mode = ui << 2 | front << 1;
-    int id = anm::getLoaded(slot)->spawnVMExt(script, init_rot, init_pos,
-                                                     mode);
+    int id = anm::getLoaded(slot)->spawnVMExt(script, init_rot, init_pos, mode);
     ANM_VIEWER_PTR->anim(id);
   }
   ImGui::PopID();
@@ -289,7 +294,8 @@ void anm_view_window(AnmView *v) {
 
   ImGui::Text("Id: %d", v->anmId);
   auto vm = anm::get_vm(v->anmId);
-  if (v->anmId == 0) vm = v->vm;
+  if (v->anmId == 0)
+    vm = v->vm;
   if (!vm) {
     ImGui::PopID();
     ImGui::End();
@@ -351,9 +357,8 @@ void anm_view_window(AnmView *v) {
   vm->color_1.g = color.g * 255.f;
   vm->color_1.b = color.b * 255.f;
   vm->color_1.a = color.a * 255.f;
-  color =
-      ns::vec4(vm->color_2.r, vm->color_2.g, vm->color_2.b, vm->color_2.a) /
-      255.f;
+  color = ns::vec4(vm->color_2.r, vm->color_2.g, vm->color_2.b, vm->color_2.a) /
+          255.f;
   ImGui::ColorEdit4("color2", &color[0]);
   vm->color_2.r = color.r * 255.f;
   vm->color_2.g = color.g * 255.f;
@@ -435,7 +440,8 @@ void anm_view_window(AnmView *v) {
     FLAG_CHECKBOX(noParent)
     FLAG_CHECKBOX(f534_17)
     FLAG_COMBOBOX(originMode, "TopLeft", "EclOrigin", "ScaledEclOrigin");
-    FLAG_COMBOBOX(resolutionMode, "AsIs", "UpscaleIfNeeded", "DownscaleIfNeeded");
+    FLAG_COMBOBOX(resolutionMode, "AsIs", "UpscaleIfNeeded",
+                  "DownscaleIfNeeded");
     FLAG_CHECKBOX(parRotate)
     FLAG_CHECKBOX(hasGrowth)
     FLAG_CHECKBOX(colorizeChildren)
@@ -446,10 +452,9 @@ void anm_view_window(AnmView *v) {
   if (vm->list_of_children.next && ImGui::CollapsingHeader("children")) {
     for (auto l = vm->list_of_children.next; l; l = l->next) {
       ImGui::PushID(std::to_string(l->value->id.val).c_str());
-      ImGui::Text(
-          "%s: script %d (%d)",
-          anm::getLoaded(l->value->anm_loaded_index)->name.c_str(),
-          l->value->script_id, l->value->id.val);
+      ImGui::Text("%s: script %d (%d)",
+                  anm::getLoaded(l->value->anm_loaded_index)->name.c_str(),
+                  l->value->script_id, l->value->id.val);
       ImGui::SameLine();
       if (ImGui::Button("see")) {
         ANM_VIEWER_PTR->animP(l->value->id.val, vm->id.val);
@@ -459,27 +464,27 @@ void anm_view_window(AnmView *v) {
   }
 
   if (ImGui::CollapsingHeader("matrices")) {
-      ImGui::Text("matrix 1");
-      ImGui::PushID("matrix1");
-      ImGui::InputFloat4("##row0", &vm->__matrix_1[0][0]);
-      ImGui::InputFloat4("##row1", &vm->__matrix_1[1][0]);
-      ImGui::InputFloat4("##row2", &vm->__matrix_1[2][0]);
-      ImGui::InputFloat4("##row3", &vm->__matrix_1[3][0]);
-      ImGui::PopID();
-      ImGui::Text("matrix 2");
-      ImGui::PushID("matrix2");
-      ImGui::InputFloat4("##row0", &vm->__matrix_2[0][0]);
-      ImGui::InputFloat4("##row1", &vm->__matrix_2[1][0]);
-      ImGui::InputFloat4("##row2", &vm->__matrix_2[2][0]);
-      ImGui::InputFloat4("##row3", &vm->__matrix_2[3][0]);
-      ImGui::PopID();
-      ImGui::Text("matrix 3");
-      ImGui::PushID("matrix3");
-      ImGui::InputFloat4("##row0", &vm->__matrix_3[0][0]);
-      ImGui::InputFloat4("##row1", &vm->__matrix_3[1][0]);
-      ImGui::InputFloat4("##row2", &vm->__matrix_3[2][0]);
-      ImGui::InputFloat4("##row3", &vm->__matrix_3[3][0]);
-      ImGui::PopID();
+    ImGui::Text("matrix 1");
+    ImGui::PushID("matrix1");
+    ImGui::InputFloat4("##row0", &vm->__matrix_1[0][0]);
+    ImGui::InputFloat4("##row1", &vm->__matrix_1[1][0]);
+    ImGui::InputFloat4("##row2", &vm->__matrix_1[2][0]);
+    ImGui::InputFloat4("##row3", &vm->__matrix_1[3][0]);
+    ImGui::PopID();
+    ImGui::Text("matrix 2");
+    ImGui::PushID("matrix2");
+    ImGui::InputFloat4("##row0", &vm->__matrix_2[0][0]);
+    ImGui::InputFloat4("##row1", &vm->__matrix_2[1][0]);
+    ImGui::InputFloat4("##row2", &vm->__matrix_2[2][0]);
+    ImGui::InputFloat4("##row3", &vm->__matrix_2[3][0]);
+    ImGui::PopID();
+    ImGui::Text("matrix 3");
+    ImGui::PushID("matrix3");
+    ImGui::InputFloat4("##row0", &vm->__matrix_3[0][0]);
+    ImGui::InputFloat4("##row1", &vm->__matrix_3[1][0]);
+    ImGui::InputFloat4("##row2", &vm->__matrix_3[2][0]);
+    ImGui::InputFloat4("##row3", &vm->__matrix_3[3][0]);
+    ImGui::PopID();
   }
 
   if (ImGui_BeginPopupCenter("InterruptVM")) {
@@ -514,8 +519,7 @@ void anm_view_window(AnmView *v) {
                &v->spriteShowOpen);
   ImGui::PushID(("spriteWin" + std::to_string(v->anmId)).c_str());
   auto sp = vm->getSprite();
-  ImTextureID tex = reinterpret_cast<ImTextureID>(
-      ns::TextureManager::get_texture_id(sp.texID));
+  ImTextureID tex = reinterpret_cast<ImTextureID>(sp.texture->get_opengl_id());
   ImGui::Image(tex, {sp.w, sp.h}, {sp.u1, sp.v1}, {sp.u2, sp.v2});
   ImGui::PopID();
   ImGui::End();
@@ -527,7 +531,8 @@ void set_camera_window(bool *open) {
   ImGui::Begin("Camera", open);
   ImGui::PushID("CameraWindow");
   static int cam = 0;
-  static const char *camera_names[] = {"Camera 0", "Camera 1", "Camera 2", "Camera 3", "Stage"};
+  static const char *camera_names[] = {"Camera 0", "Camera 1", "Camera 2",
+                                       "Camera 3", "Stage"};
   auto selected = camera_names[cam];
   if (ImGui::BeginCombo("Camera", selected)) {
     for (int i = 0; i < IM_ARRAYSIZE(camera_names); i++) {
@@ -541,9 +546,11 @@ void set_camera_window(bool *open) {
     }
     ImGui::EndCombo();
   }
-  anm::Camera_t* camera;
-  if (cam < 4) camera = &SUPERVISOR.cameras[cam];
-  else camera = &STAGE_PTR->inner.camera;
+  anm::Camera_t *camera;
+  if (cam < 4)
+    camera = &SUPERVISOR.cameras[cam];
+  else
+    camera = &STAGE_PTR->inner.camera;
   ImGui::InputFloat3("position", &camera->position[0]);
   ImGui::InputFloat3("look", &camera->facing[0]);
   ImGui::InputFloat3("up", &camera->up[0]);
@@ -583,7 +590,8 @@ void openedFiles_window(bool *open) {
                 s[s.size() - 3] != 'a' || s[s.size() - 4] != '.') {
               s += ".anm";
             }
-            anm::loadFile(toOpen, strdup(s.c_str())); // XXX: NEVER FREE THIS STRING: LEAK
+            anm::loadFile(
+                toOpen, strdup(s.c_str())); // XXX: NEVER FREE THIS STRING: LEAK
             buf[0] = 0;
             toOpen = -1;
             ImGui::CloseCurrentPopup();
@@ -607,8 +615,9 @@ void openedFiles_window(bool *open) {
   ImGui::End();
 }
 
-void screff_window(bool* open) {
-  if (!*open) return;
+void screff_window(bool *open) {
+  if (!*open)
+    return;
   ImGui::Begin("Screen effect", open);
   static int p1 = 0, p2 = 0, p3 = 0, p4 = 0, p5 = 0, p6 = 0;
   ImGui::InputInt("param_1", &p1);
@@ -669,21 +678,23 @@ void main_menu_window(bool *open) {
   float gs = ns::get_instance()->game_speed();
   float ogs = gs;
   ImGui::SliderFloat("Game speed", &gs, 0.0, 2.0);
-  if (ogs != gs) ns::get_instance()->set_game_speed(gs);
+  if (ogs != gs)
+    ns::get_instance()->set_game_speed(gs);
 
   ImGui::InputFloat("RESOLUTION_MULT", &anm::RESOLUTION_MULT);
   if (ImGui::Button("ADD_ARCADE")) {
-      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_0);
-      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_1);
-      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_2__handles_upscaling);
-      ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_3__handles_seija);
+    ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_0);
+    ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_1);
+    ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_2__handles_upscaling);
+    ANM_VIEWER_PTR->animPtr(SUPERVISOR.arcade_vm_3__handles_seija);
   }
   ImGui::PopID();
   ImGui::End();
 }
 
 void anm_mgr_stats(bool *open) {
-  if (!*open) return;
+  if (!*open)
+    return;
 
   ImGui::Begin("Anm mgr stats", open);
   ImGui::Text("ticked world: %lld", last_frame_stats.n_vm_ticked_world);

@@ -2,7 +2,6 @@
 #include "./AnmFuncs.h"
 #include "./AnmManager.h"
 #include "./anmOpener.h"
-#include <TextureManager.h>
 #include <Texture.hpp>
 #include <cstring>
 #include <numeric>
@@ -43,14 +42,16 @@ void File::Open(cstr filename, u32 slot) {
     i32 at_tex_i = 0;
     i32 atr_tex_i = 0;
     for (auto entry : archive->entries) {
-        u32 tex;
+        ns::Texture *tex;
         std::string name = entry->name;
+        int i = 0;
+        while (textures.find(name) != textures.end()) {
+            name = entry->name + std::to_string(i);
+            i += 1;
+        } 
         if (entry->header->hasdata) {
             opener::image_t img = opener::anm_get_image(entry);
-            ns::Texture* t =
-                new ns::Texture(img.width, img.height, img.data);
-            tex = ns::TextureManager::add_texture(std::move(*t));
-            delete t;
+            tex = ns::construct<ns::Texture, ns::MemTag::TEXTURE>(img.width, img.height, img.data);
             delete[] img.data;
         } else if (entry->name[0] == '@') {
             u32 w = entry->header->w;
@@ -62,20 +63,16 @@ void File::Open(cstr filename, u32 slot) {
             } else {
                 name += std::to_string(at_tex_i++);
             }
-            ns::Texture* t = ns::Texture::as_framebuffer(w, h);
-            tex = ns::TextureManager::add_texture(std::move(*t));
-            ns::destroy(t, ns::MemTag::TEXTURE);
+            tex = ns::Texture::as_framebuffer(w, h);
         } else {
-            tex = 0;
+            tex = nullptr;
         }
-
-        textures.insert(std::pair<std::string, u32>(name, tex));
-        i32 w, h;
-        ns::TextureManager::get_texture_size(tex, w, h);
+        textures.insert(std::pair<std::string, ns::Texture*>(name, tex));
+        i32 w = tex->get_width();
+        i32 h = tex->get_height();
         for (auto spr : entry->sprites) {
-            sprites.push_back({ ns::TextureManager::get_texture(tex), tex, spr->x + entry->header->x, spr->y +
-                entry->header->y, spr->w, spr->h, 0, 0, 0, 0,
-                ns::TextureManager::get_texture_id(tex) });
+            sprites.push_back({ tex, spr->x + entry->header->x, spr->y +
+                entry->header->y, spr->w, spr->h, 0, 0, 0, 0 });
             sprites.back().genTexCoords(w, h);
         }
     }
@@ -113,14 +110,18 @@ void File::Cleanup() {
         delete[] s;
     for (auto vm : preloaded)
         vm.destroy();
+    for (auto tex : textures) {
+        ns::destroy<ns::MemTag::TEXTURE>(tex.second);
+    }
     preloaded.clear();
     this->scripts.clear();
     sprites.clear();
+    textures.clear();
     name = "";
 }
 
 File::~File() {
-    // for (auto s : scripts) delete s;
+    Cleanup();
 }
 
 bytes File::getScript(usize id) const {
@@ -141,7 +142,7 @@ Sprite File::getSprite(usize id) const {
     return sprites[id % sprites.size()];
 }
 
-u32 File::getTextureFromName(cstr name) const {
+ns::Texture* File::getTextureFromName(cstr name) const {
     return textures.at(name);
 }
 

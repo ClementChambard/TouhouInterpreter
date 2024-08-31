@@ -3,7 +3,7 @@
 
 #include "Anm/AnmFile.h"
 #include "Anm/Camera.hpp"
-#include <FrameBuffer.h>
+#include <Texture.hpp>
 #include <color.h>
 
 struct Supervisor_t {
@@ -30,8 +30,8 @@ struct Supervisor_t {
     // present_parameters
     // lot undefined
     // display_mode
-    ns::FrameBuffer* surface_atR_0 = nullptr;
-    ns::FrameBuffer* surface_atR_1 = nullptr;
+    ns::Texture* surface_atR_0 = nullptr;
+    ns::Texture* surface_atR_1 = nullptr;
     // back_buffer
     // undefined4
     anm::VM* arcade_vm_0 = nullptr;

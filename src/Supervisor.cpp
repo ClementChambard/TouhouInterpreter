@@ -4,7 +4,7 @@
 #include "Hardcoded.h"
 #include "UpdateFuncRegistry.h"
 #include <NSEngine.hpp>
-#include <TextureManager.h>
+#include <FrameBuffer.h>
 
 Supervisor_t SUPERVISOR{};
 
@@ -91,12 +91,8 @@ void Supervisor_t::setup_special_anms() {
   // }
   // text_anm->d3d[2].texture->GetSurfaceLevel(0, &surface_atR_0);
   // text_anm->d3d[3].texture->GetSurfaceLevel(0, &surface_atR_1);
-  surface_atR_0 =
-      ns::TextureManager::get_texture(text_anm->textures.find("@R0")->second)
-          ->get_framebuffer();
-  surface_atR_1 =
-      ns::TextureManager::get_texture(text_anm->textures.find("@R1")->second)
-          ->get_framebuffer();
+  surface_atR_0 = text_anm->textures.find("@R0")->second;
+  surface_atR_1 = text_anm->textures.find("@R1")->second;
   if (!arcade_vm_0->bitflags.visible) {
     int i = -1;
     if (anm::BACK_BUFFER_SIZE.x == 640) {
@@ -152,7 +148,7 @@ static int supervisor_on_draw_01() {
     anm::clear_framebuffer(SUPERVISOR.background_color);
   } else {
     anm::clear_framebuffer(c_white);
-    SUPERVISOR.surface_atR_0->bind();
+    SUPERVISOR.surface_atR_0->get_framebuffer()->bind();
     anm::set_viewport(SUPERVISOR.cameras[3]);
     anm::clear_framebuffer(SUPERVISOR.background_color);
     GAME_REGION_WIDTH = 384;
@@ -171,7 +167,7 @@ static int supervisor_on_draw_0e() {
   if (SUPERVISOR.surface_atR_0 == nullptr)
     return 1;
   anm::flush_vbos();
-  SUPERVISOR.surface_atR_1->bind();
+  SUPERVISOR.surface_atR_1->get_framebuffer()->bind();
   anm::set_viewport(SUPERVISOR.cameras[3]);
   anm::clear_framebuffer_depth();
   return 1;
@@ -202,7 +198,7 @@ static int supervisor_on_draw_19() {
   if (SUPERVISOR.surface_atR_0 == nullptr)
     return 1;
   anm::flush_vbos();
-  SUPERVISOR.surface_atR_0->bind();
+  SUPERVISOR.surface_atR_0->get_framebuffer()->bind();
   anm::set_viewport(SUPERVISOR.cameras[3]);
   anm::clear_framebuffer_depth();
   return 1;
@@ -231,7 +227,7 @@ static int supervisor_on_draw_2c() {
   if (SUPERVISOR.surface_atR_0 == nullptr)
     return 1;
   anm::flush_vbos();
-  SUPERVISOR.surface_atR_1->bind();
+  SUPERVISOR.surface_atR_1->get_framebuffer()->bind();
   anm::set_viewport(SUPERVISOR.cameras[1]);
   anm::clear_framebuffer_depth();
   GAME_REGION_WIDTH = anm::RESOLUTION_MULT * 384.0;

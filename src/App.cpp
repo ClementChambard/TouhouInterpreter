@@ -88,7 +88,15 @@ void App::on_create() {
       16);
 }
 
-void App::on_update() { UPDATE_FUNC_REGISTRY.run_all_on_tick(); }
+#include <input.hpp>
+
+void App::on_update() { 
+  UPDATE_FUNC_REGISTRY.run_all_on_tick(); 
+  if (ns::keyboard::pressed(ns::Key::M)) {
+    auto str = ns::get_memory_usage_str();
+    NS_DEBUG("Memory usage: \n%s", str);
+  }
+}
 
 void App::on_render() { UPDATE_FUNC_REGISTRY.run_all_on_draw(); }
 
