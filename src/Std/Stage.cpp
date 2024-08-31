@@ -4,7 +4,7 @@
 #include "../Hardcoded.h"
 #include "../ScreenEffect.hpp"
 #include "../Supervisor.h"
-#include <FileOpener.h>
+#include <platform/filesystem.h>
 #include <math/math.hpp>
 
 Stage *STAGE_PTR = nullptr;
@@ -46,12 +46,17 @@ Stage::Stage() {
   //     return -1;
   //   }
   // }
-  ns::FileOpener::read_file_to_buffer(
-      STAGE_DATA_TABLE[stage_num]["std_filename"].asCString(), std_file,
-      std_file_size);
+  ns::fs::File f;
+  ns::fs::open(STAGE_DATA_TABLE[stage_num]["std_filename"].asCString(), ns::fs::Mode::READ, true, &f);
+  usize size;
+  ns::fs::fsize(&f, &size);
+  std_file = ns::alloc_raw(size, ns::MemTag::GAME);
+  ns::fs::read_all_bytes(&f, reinterpret_cast<bytes>(std_file), &size);
+  std_file_size = size;
+  ns::fs::close(&f);
   this->std_file_data =
-      reinterpret_cast<StdOpener::std_header_10_t *>(malloc(std_file_size));
-  memcpy(std_file_data, std_file, std_file_size);
+      reinterpret_cast<StdOpener::std_header_10_t *>(ns::alloc_raw(std_file_size, ns::MemTag::GAME));
+  ns::mem_copy(std_file_data, std_file, std_file_size);
   /* load anm from string at offset 0x10 in std file */
   stage_anm = anm::loadFile(stage_num % 2 + 3, std_file_data->anm_name);
   // if (!stage_anm) {
@@ -114,9 +119,9 @@ Stage::~Stage() {
   // same for lolk vms
   /* free spawned vms */
   if (std_file)
-    free(std_file);
+    ns::free_raw(std_file, std_file_size, ns::MemTag::GAME);
   if (std_file_data)
-    free(std_file_data);
+    ns::free_raw(std_file_data, std_file_size, ns::MemTag::GAME);
   // if (inner.distortion.fog_ptr)
   //   delete inner.distortion.fog_ptr;
   // same for lolk distortion

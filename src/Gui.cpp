@@ -8,7 +8,7 @@
 #include "./Spellcard.h"
 
 #include <logger.h>
-#include <FileOpener.h>
+#include <platform/filesystem.h>
 #include <cstdlib>
 #include <cstring>
 #include <memory.h>
@@ -36,12 +36,13 @@ Gui::Gui() {
   if (DAT_0052a320 == NULL) {
     auto fname = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["msg_filenames"]
       [PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["msg"].asInt()].asString();
-    std::vector<uint8_t> buffer;
-    ns::FileOpener::read_file_to_buffer(fname.c_str(), buffer);
-    msg_file_data_size = buffer.size();
+    ns::fs::File f;
+    ns::fs::open(fname.c_str(), ns::fs::Mode::READ, true, &f);
+    ns::fs::fsize(&f, &msg_file_data_size);
     msg_file_data = ns::alloc_n<byte>(msg_file_data_size, ns::MemTag::GAME);
+    ns::fs::read_all_bytes(&f, msg_file_data, &msg_file_data_size);
+    ns::fs::close(&f);
     NS_INFO("opened %s: %lld bytes", fname.c_str(), msg_file_data_size);
-    ns::mem_copy(msg_file_data, buffer.data(), msg_file_data_size);
   } else {
     msg_file_data = DAT_0052a320;
     DAT_0052a320 = NULL;
