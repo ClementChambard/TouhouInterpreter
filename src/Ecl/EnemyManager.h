@@ -55,8 +55,6 @@ public:
     int on_tick();
     int on_draw();
 
-    void on_draw_debug();
-
     UpdateFunc* f_on_tick = nullptr;
     UpdateFunc* f_on_draw = nullptr;
     i32 ecl_int_vars[4] = {};

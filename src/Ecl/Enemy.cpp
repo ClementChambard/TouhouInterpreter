@@ -63,34 +63,6 @@ void EnemyDrop_t::eject_all_drops(ns::vec3 const& pos) {
     return;
 }
 
-void Enemy::DebugDraw() {
-    ns::draw_set_layer(ns::DEBUG_LAYER_ID);
-    ns::draw_rectangle_rotated_color(enemy.final_pos.pos.x,
-        -enemy.final_pos.pos.y, enemy.hurtbox_size.x, enemy.hurtbox_size.y,
-        -enemy.rotation, { 255, 0, 255, 90 }, { 255, 0, 255, 90 },
-        { 255, 0, 255, 90 }, { 255, 0, 255, 90 });
-
-    float wt = 64;
-    float ht = 4;
-    float y = -16;
-    ns::draw_rectangle_rotated_color(enemy.final_pos.pos.x,
-        -enemy.final_pos.pos.y + y, wt, ht, 0, { 0, 0, 0, 255 },
-        { 0, 0, 0, 255 }, { 0, 0, 0, 255 }, { 0, 0, 0, 255 });
-    float w = (enemy.life.current / static_cast<float>(enemy.life.max)) * wt;
-    float x = -(wt - w) / 2;
-    ns::draw_rectangle_rotated_color(enemy.final_pos.pos.x + x,
-        -enemy.final_pos.pos.y + y, w, ht, 0, { 255, 0, 0, 255 },
-        { 255, 0, 0, 255 }, { 255, 0, 0, 255 }, { 255, 0, 0, 255 });
-    // if (0 && enemy.moveLimitSize.x > 0)
-    //{
-    // ns::draw_set_color({255,255,0,255});
-    // ns::draw_rectangle(enemy.moveLimitPos.x-enemy.moveLimitSize.x/2,
-    // -enemy.moveLimitPos.y+enemy.moveLimitSize.y/2,
-    // enemy.moveLimitPos.x+enemy.moveLimitSize.x/2,
-    // -enemy.moveLimitPos.y-enemy.moveLimitSize.y/2);
-    //}
-}
-
 void EnemyData::calc_final_pos() {
     final_pos.velocity = rel_pos.pos + abs_pos.pos - final_pos.pos;
     final_pos.update_position();

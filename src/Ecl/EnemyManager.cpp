@@ -162,8 +162,6 @@ int EnemyManager::on_tick() {
 }
 
 int EnemyManager::on_draw() {
-    if (ns::get_instance()->flags().debugInfo)
-        on_draw_debug();
     return 1;
 }
 
@@ -220,14 +218,5 @@ void EnemyManager::EnmKillAll(const Enemy* caller, bool byDialog) {
             e->die();
             e->Die();
         }
-    }
-}
-
-void EnemyManager::on_draw_debug() {
-    for (auto n = active_enemy_list_head->next;
-         n != active_enemy_list_tail; n = n->next) {
-        auto e = n->value;
-        if (e)
-            e->DebugDraw();
     }
 }

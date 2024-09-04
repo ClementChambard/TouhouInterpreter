@@ -1273,22 +1273,6 @@ int Player::_on_draw() {
     vm.bitflags.originMode = 0b01;
     anm::draw_vm(&vm);
   }
-  if (!ns::get_instance()->flags().debugInfo)
-    return 1;
-  ns::draw_set_layer(ns::DEBUG_LAYER_ID);
-  static ns::Color c = {255, 0, 0, 128};
-  static ns::Color c2 = {255, 255, 0, 128};
-  for (int i = 0; i < 256; i++) {
-    auto &d = inner.damage_sources[i];
-    if (!(d.flags & 1))
-      continue;
-    if (d.field_0x84)
-      ns::draw_rectangle_rotated_color(d.pos.pos.x, -d.pos.pos.y, d.hitbox.x,
-                                       d.hitbox.y, -d.angle, c2, c2, c2, c2);
-    else
-      ns::draw_rectangle_rotated_color(d.pos.pos.x, -d.pos.pos.y, d.hitbox.x,
-                                       d.hitbox.y, -d.angle, c, c, c, c);
-  }
   return 1;
 }
 

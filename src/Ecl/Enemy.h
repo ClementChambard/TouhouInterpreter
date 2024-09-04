@@ -149,7 +149,6 @@ public:
     void Die();
     int update();
 
-    void DebugDraw();
     EnemyData* getData() { return &enemy; }
 
 // private:
