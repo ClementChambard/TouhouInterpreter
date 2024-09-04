@@ -1,6 +1,7 @@
 #include "./CopyTextures.hpp"
 #include "./AnmManager.h"
 #include "./CopyShader.h"
+#include <GL/glew.h>
 
 #include <FrameBuffer.h>
 

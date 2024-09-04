@@ -19,7 +19,7 @@ class CopyShader : public ns::ShaderProgram {
         static const char* VERTEX_SHADER_PATH;
         static const char* FRAGMENT_SHADER_PATH;
 
-        GLuint location_tint = 0;
+        u32 location_tint = 0;
         ns::vec4 last_tint{};
 };
 

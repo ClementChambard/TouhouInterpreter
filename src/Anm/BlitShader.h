@@ -20,8 +20,8 @@ class BlitShader : public ns::ShaderProgram {
         static const char* VERTEX_SHADER_PATH;
         static const char* FRAGMENT_SHADER_PATH;
 
-        GLuint location_projectionMatrix = 0;
-        GLuint location_viewMatrix = 0;
+        u32 location_projectionMatrix = 0;
+        u32 location_viewMatrix = 0;
 };
 
 } // namespace anm

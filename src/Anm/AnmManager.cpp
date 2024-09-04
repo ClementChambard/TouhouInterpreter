@@ -6,12 +6,13 @@
 #include "./FogShader.h"
 #include "CopyTextures.hpp"
 #include "Text.hpp"
-#include <DrawBatch2.h>
+#include <DrawBatch.h>
 #include <DrawFuncs.h>
 #include <cstring>
 #include <fstream>
 #include <logger.h>
 #include <memory.h>
+#include <GL/glew.h>
 
 #include <cmath> // round
 
@@ -116,9 +117,7 @@ struct AnmManagerState {
   i32 use_custom_color_1c90a4c = false;
 
   bool initialized = false;
-  GLuint vboID = 0;
-  GLuint vaoID = 0;
-  ns::DrawBatch2 *batch{};
+  ns::DrawBatch *batch{};
   BaseShader *shader = nullptr;
   BlitShader *bshader = nullptr;
   FogShader *fshader = nullptr;
@@ -198,7 +197,7 @@ void init() {
   // AM->pause_related[3].anm_loaded = -1;
 
   // setup_vao();
-  AM->batch = ns::construct<ns::DrawBatch2>();
+  AM->batch = ns::construct<ns::DrawBatch>();
   AM->shader = ns::construct<BaseShader>();
   AM->bshader = ns::construct<BlitShader>();
   AM->fshader = ns::construct<FogShader>();
@@ -558,7 +557,8 @@ i32 destroy_possibly_managed_vm(VM *vm) {
   AM->freelist_head.next = &AM->fastArray[vm->fast_id].freelistNode;
   AM->fastArray[vm->fast_id].freelistNode.previous = &AM->freelist_head;
   if (vm->special_vertex_buffer_data) {
-    ns::free_raw(vm->special_vertex_buffer_data, vm->special_vertex_buffer_size);
+    ns::free_raw(vm->special_vertex_buffer_data,
+                 vm->special_vertex_buffer_size);
   }
   vm->special_vertex_buffer_data = nullptr;
   vm->special_vertex_buffer_size = 0;

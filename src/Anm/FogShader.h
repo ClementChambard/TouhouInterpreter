@@ -22,12 +22,12 @@ class FogShader : public ns::ShaderProgram {
         static const char* VERTEX_SHADER_PATH;
         static const char* FRAGMENT_SHADER_PATH;
 
-        GLuint location_projectionMatrix = 0;
-        GLuint location_viewMatrix = 0;
-        GLuint location_cameraPosition = 0;
-        GLuint location_fogColor = 0;
-        GLuint location_fogMin = 0;
-        GLuint location_fogMax = 0;
+        u32 location_projectionMatrix = 0;
+        u32 location_viewMatrix = 0;
+        u32 location_cameraPosition = 0;
+        u32 location_fogColor = 0;
+        u32 location_fogMin = 0;
+        u32 location_fogMax = 0;
 
 };
 
