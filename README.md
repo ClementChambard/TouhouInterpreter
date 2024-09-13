@@ -20,7 +20,6 @@ You can find more of these in <a href='https://github.com/ClementChambard/Touhou
 ## Compile
 
 This project depends on <a href="https://github.com/ClementChambard/NSEngine">NSEngine</a>, which is my own game engine.
-This project uses the 'new architecture' branch of the engine.
 I use simlinks with relative paths to link to the engine's folder with this folder, but if you only want to compile the project once, you can replace them with their respective folders.
 
 *Currently, this can't be easily compiled on Windows or MacOS. If you want you can modify the CMakeLists.txt to fit your needs*
