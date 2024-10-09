@@ -35,7 +35,6 @@ void draw_vm__modes_0_1_2_3(VM *vm, i32 i);
 i32 draw_vm__mode_6(VM *vm);
 void draw_vm__mode_8_15(VM *vm);
 void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData, i32 nVert);
-void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData, i32 nVert);
 i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
                      ns::Color col1, ns::Color col2, i32 anchorX, i32 anchorY);
 i32 draw_vm__ins_607(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
@@ -257,15 +256,9 @@ void cleanup() {
   }
   AM->ui_list_tail = nullptr;
 
-  /* CLEAN FAST VMS */
-  for (usize i = 0; i < 8191; i++)
-    AM->fastArray[i].vm.destroy();
-
   /* CLEAN PREINIT VM */
   for (auto &f : AM->loadedFiles)
     f.Cleanup();
-
-  // cleanup_vao();
 
   ns::destroy(AM->batch);
   ns::destroy(AM->shader);
@@ -411,16 +404,6 @@ void delete_vm(VM *vm) {
   }
 }
 
-void _destroyFastVM(VM *vm) {
-  AM->fastArray[vm->id.val & ID::fast_id_mask].isAlive = false;
-  auto node = &AM->fastArray[vm->id.val & ID::fast_id_mask].freelistNode;
-  if (AM->freelist_head.next)
-    AM->freelist_head.next->previous = node;
-  node->next = AM->freelist_head.next;
-  AM->freelist_head.next = node;
-  node->previous = &AM->freelist_head;
-}
-
 void delete_of_file(File *f) {
   if (!f)
     return;
@@ -433,10 +416,9 @@ void delete_of_file(File *f) {
   }
   if (id == -1)
     return;
-  // TODO
-  // for (auto node = AM->world_list_head; node; node = node->next)
-  //     if (node->value->anm_loaded_index == id)
-  //         deleteVM(node->value);
+  for (auto node = AM->world_list_head; node; node = node->next)
+      if (node->value->anm_loaded_index == id)
+          delete_vm(node->value);
 }
 
 bool is_alive(ID id) { return get_vm(id) != nullptr; }
@@ -951,7 +933,7 @@ void draw_vm(VM *vm) {
   case 0xc:
   case 0xd:
   case 0xe:
-    draw_vm_triangle_strip(
+    draw_vm_as_triangle_strip(
         vm, reinterpret_cast<RenderVertex_t *>(vm->special_vertex_buffer_data),
         vm->int_script_vars[0] * 2);
     break;
@@ -1533,7 +1515,21 @@ void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData, i32 nVert) {
   }
 }
 
-void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData, i32 nVert) {
+static void some_d3d_stuff() {
+  // if (field_0x18607cf != 0) {
+  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
+  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
+  //   field_0x18607cf = 0;
+  // }
+  // if (field_0x18607ca != 1) {
+  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
+  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
+  //   field_0x18607ca = 1;
+  // }
+  // SUPERVISOR.d3d_device->SetFVF(0x44);
+}
+
+void draw_vm_as_triangle_strip(VM *vm, RenderVertex_t *vertexData, usize nVert) {
   if (!vm->bitflags.visible || !vm->bitflags.f530_1 || vm->color_1.a == 0)
     return;
   anm_use_texture(vm);
@@ -1544,7 +1540,7 @@ void draw_vm_triangle_strip(VM *vm, RenderVertex_t *vertexData, i32 nVert) {
   u32 last = AM->batch->add_vertex({ns::vec3(vertexData[1].transformed_pos),
                                     vertexData[1].diffuse_color,
                                     vertexData[1].texture_uv});
-  for (i32 i = 2; i < nVert; i++) {
+  for (usize i = 2; i < nVert; i++) {
     u32 new_vert = AM->batch->add_vertex(
         {ns::vec3(vertexData[i].transformed_pos), vertexData[i].diffuse_color,
          vertexData[i].texture_uv});
@@ -1597,20 +1593,8 @@ i32 draw_vm__ins_603(f32 x, f32 y, f32 width, f32 height, f32 rot_z,
                        {{pos2, 0.f}, col2, {}}, {{pos3, 0.f}, col1, {}});
   return 0;
   flush_vbos();
-  // if (field_0x18607cf != 0) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
-  //   field_0x18607cf = 0;
-  // }
-  // if (field_0x18607ca != 1) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
-  //   field_0x18607ca = 1;
-  // }
-  // SUPERVISOR.d3d_device->SetFVF(0x44);
-  // SUPERVISOR.d3d_device->DrawPrimitiveUP(
-  //     D3DPT_TRIANGLESTRIP, 2, this->vertex_buffers.primitive_write_cursor,
-  //     0x14);
+  some_d3d_stuff();
+  // SUPERVISOR.d3d_device->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, this->vertex_buffers.primitive_write_cursor, 0x14);
   // AM->vertex_buffers.primitive_write_cursor += 4;
   AM->draw_call_ctr_0xcc++;
   return 0;
@@ -1632,19 +1616,8 @@ i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z, ns::Color col1,
   AM->batch->draw_quad(
       {{pos0 - dir, 0.f}, col1, {}}, {{pos0 + dir, 0.f}, col1, {}},
       {{pos1 + dir, 0.f}, col2, {}}, {{pos1 - dir, 0.f}, col2, {}});
-  // if (field_0x18607cf != 0) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
-  //   field_0x18607cf = 0;
-  // }
-  // if (field_0x18607ca != 1) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
-  //   field_0x18607ca = 1;
-  // }
-  // SUPERVISOR.d3d_device->SetFVF(0x44);
-  // SUPERVISOR.d3d_device->DrawPrimitiveUP(
-  //     D3DPT_LINESTRIP, 1, this->vertex_buffers.primitive_write_cursor, 0x14);
+  some_d3d_stuff();
+  // SUPERVISOR.d3d_device->DrawPrimitiveUP(D3DPT_LINESTRIP, 1, this->vertex_buffers.primitive_write_cursor, 0x14);
   // AM->vertex_buffers.primitive_write_cursor += 2;
   AM->draw_call_ctr_0xcc++;
   return 0;
@@ -1684,17 +1657,7 @@ i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rotz,
   AM->batch->draw_quad(blX, blI, brI, brX);
   return 0;
   // flush_vbos();
-  // if (field_0x18607cf != 0) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
-  //   field_0x18607cf = 0;
-  // }
-  // if (field_0x18607ca != 1) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
-  //   field_0x18607ca = 1;
-  // }
-  // SUPERVISOR.d3d_device->SetFVF(0x44);
+  some_d3d_stuff();
   // SUPERVISOR.d3d_device->DrawPrimitiveUP(D3DPT_LINESTRIP, 4, cursor, 0x14);
   // AM->vertex_buffers.primitive_write_cursor += 5;
   AM->draw_call_ctr_0xcc++;
@@ -1719,20 +1682,8 @@ i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0, f32 radius,
   ns::vec2 pos = math::lengthdir_vec(radius, angle_0) + ns::vec2(x, y);
   u32 pt = AM->batch->add_vertex({{pos, 0.0}, color_2, {}});
   AM->batch->draw_tri(center, pt, center + 1);
-  // if (field_0x18607cf != 0) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
-  //   field_0x18607cf = 0;
-  // }
-  // if (field_0x18607ca != 1) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
-  //   field_0x18607ca = 1;
-  // }
-  // SUPERVISOR.d3d_device->SetFVF(0x44);
-  // SUPERVISOR.d3d_device->DrawPrimitiveUP(
-  //     D3DPT_TRIANGLEFAN, vertex_count,
-  //     vertex_buffers.primitive_write_cursor, 0x14);
+  some_d3d_stuff();
+  // SUPERVISOR.d3d_device->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, vertex_count, vertex_buffers.primitive_write_cursor, 0x14);
   // AM->vertex_buffers.primitive_write_cursor += vertex_count + 2;
   AM->draw_call_ctr_0xcc++;
   return 0;
@@ -1761,21 +1712,8 @@ i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0, f32 radius,
   pos = math::lengthdir_vec(radius - 0.5, angle_0) + ns::vec2(x, y);
   u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
   AM->batch->draw_quad(v1, v2, first + 1, first);
-
-  // if (field_0x18607cf != 0) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
-  //   field_0x18607cf = 0;
-  // }
-  // if (field_0x18607ca != 1) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
-  //   field_0x18607ca = 1;
-  // }
-  // SUPERVISOR.d3d_device->SetFVF(0x44);
-  // SUPERVISOR.d3d_device->DrawPrimitiveUP(
-  //     D3DPT_LINESTRIP, nb_vertex, vertex_buffers.primitive_write_cursor,
-  //     0x14);
+  some_d3d_stuff();
+  // SUPERVISOR.d3d_device->DrawPrimitiveUP(D3DPT_LINESTRIP, nb_vertex, vertex_buffers.primitive_write_cursor, 0x14);
   // AM->vertex_buffers.primitive_write_cursor += nb_vertex + 1;
   AM->draw_call_ctr_0xcc++;
   return 0;
@@ -1804,21 +1742,8 @@ i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0, f32 radius,
   pos = math::lengthdir_vec(radius_1, angle_0) + ns::vec2(x, y);
   u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
   AM->batch->draw_quad(v1, v2, first + 1, first);
-
-  // if (field_0x18607cf != 0) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAOP, 3);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLOROP, 3);
-  //   field_0x18607cf = 0;
-  // }
-  // if (field_0x18607ca != 1) {
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
-  //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_COLORARG2, 0);
-  //   field_0x18607ca = 1;
-  // }
-  // SUPERVISOR.d3d_device->SetFVF(0x44);
-  // SUPERVISOR.d3d_device->DrawPrimitiveUP(
-  //     D3DPT_TRIANGLESTRIP, vertex_count * 2,
-  //     vertex_buffers.primitive_write_cursor, 0x14);
+  some_d3d_stuff();
+  // SUPERVISOR.d3d_device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, vertex_count * 2, vertex_buffers.primitive_write_cursor, 0x14);
   // AM->vertex_buffers.primitive_write_cursor += vertex_count * 2 + 2;
   AM->draw_call_ctr_0xcc++;
   return 0;
@@ -1868,30 +1793,19 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
   //   auto &tr = data[i * 2 + 1];
   //   auto &bl = data[i * 2 + 2];
   //   auto &br = data[i * 2 + 3];
-  //   AM->batch->draw({ns::vec3(tl.transformed_pos), tl.diffuse_color,
-  //   tl.texture_uv},
-  //                   {ns::vec3(tr.transformed_pos), tr.diffuse_color,
-  //                   tr.texture_uv}, {ns::vec3(br.transformed_pos),
-  //                   br.diffuse_color, br.texture_uv},
-  //                   {ns::vec3(bl.transformed_pos), bl.diffuse_color,
-  //                   bl.texture_uv});
+  //   AM->batch->draw_quad({ns::vec3(tl.transformed_pos), tl.diffuse_color, tl.texture_uv},
+  //                        {ns::vec3(tr.transformed_pos), tr.diffuse_color, tr.texture_uv},
+  //                        {ns::vec3(br.transformed_pos), br.diffuse_color, br.texture_uv},
+  //                        {ns::vec3(bl.transformed_pos), bl.diffuse_color, bl.texture_uv});
   // }
 
-  u32 tl =
-      AM->batch->add_vertex({ns::vec3(DStack_e0 * cursor[0].transformed_pos),
-                             cursor[0].diffuse_color, cursor[0].texture_uv});
-  u32 tr =
-      AM->batch->add_vertex({ns::vec3(DStack_e0 * cursor[1].transformed_pos),
-                             cursor[1].diffuse_color, cursor[1].texture_uv});
+  u32 tl = AM->batch->add_vertex({ns::vec3(DStack_e0 * cursor[0].transformed_pos), cursor[0].diffuse_color, cursor[0].texture_uv});
+  u32 tr = AM->batch->add_vertex({ns::vec3(DStack_e0 * cursor[1].transformed_pos), cursor[1].diffuse_color, cursor[1].texture_uv});
 
   for (i32 i = 0; i < nb_segments; i++) {
     auto *here = &cursor[i * 2 + 2];
-    auto bl =
-        AM->batch->add_vertex({ns::vec3(DStack_e0 * here[0].transformed_pos),
-                               here[0].diffuse_color, here[0].texture_uv});
-    auto br =
-        AM->batch->add_vertex({ns::vec3(DStack_e0 * here[1].transformed_pos),
-                               here[1].diffuse_color, here[1].texture_uv});
+    auto bl = AM->batch->add_vertex({ns::vec3(DStack_e0 * here[0].transformed_pos), here[0].diffuse_color, here[0].texture_uv});
+    auto br = AM->batch->add_vertex({ns::vec3(DStack_e0 * here[1].transformed_pos), here[1].diffuse_color, here[1].texture_uv});
     AM->batch->draw_quad(tl, tr, bl, br);
     tl = bl;
     tr = br;

@@ -232,25 +232,20 @@ int sht_on_tick_2(PlayerBullet_t* bullet) {
 
     // float ang1, ang2;
     // if (!PLAYER_PTR->inner.focusing) {
-    // ang1 = shooter.angle;
-    // math::angle_normalize(ang1);
-    //}
-    // else ang1 = -PI1_2;
+    //     ang1 = shooter.angle;
+    //     math::angle_normalize(ang1);
+    // } else {
+    //     ang1 = -ns::PI_1_2<f32>;
+    // }
     //
     // ang2 = bullet->pos.angle - ang1;
     // math::angle_normalize(ang2);
     //
-    // if (abs(ang2) < 0.001) {
-    // if (ang1 - bullet->pos.angle <= 3.141593) {
-    // if (ang2 <= 3.141593) ang1 -= bullet->pos.angle;
-    // else ang1 -= bullet->pos.angle - 6.283185;
-    //}
-    // else {
-    // ang1 -= bullet->pos.angle + 6.283185;
-    //}
-    // math::angle_normalize(ang1);
-    //}
-
+    // if (ns::abs(ang2) < 0.001) {
+    //     ang1 -= bullet->pos.angle;
+    //     math::angle_normalize(ang1);
+    // }
+    //
     // bullet->pos.angle = ang1;
 
     if (bullet->active == 2)

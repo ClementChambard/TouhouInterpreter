@@ -108,8 +108,6 @@ void File::Cleanup() {
     anm::delete_of_file(this);
     for (auto s : this->scripts)
         delete[] s;
-    for (auto vm : preloaded)
-        vm.destroy();
     for (auto tex : textures) {
         ns::destroy<ns::MemTag::TEXTURE>(tex.second);
     }

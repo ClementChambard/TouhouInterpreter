@@ -12,8 +12,12 @@ float GAME_REGION_WIDTH = 0.0;
 float GAME_REGION_HEIGHT = 0.0;
 float GAME_REGION_X = 0.0;
 float GAME_REGION_Y = 0.0;
+float GAME_AREA_RENDER_X = 0.0;
+float GAME_AREA_RENDER_Y = 0.0;
 
 void Supervisor_t::init() { // temporary
+  GAME_AREA_RENDER_X = (anm::BACK_BUFFER_SIZE.x - 384.f) / 2.f;
+  GAME_AREA_RENDER_Y = (anm::BACK_BUFFER_SIZE.y - 448.f) / 2.f;
   initialize();
   text_anm = anm::loadFile(0, "text.anm");
   anm::loadFile(1, "sig.anm");

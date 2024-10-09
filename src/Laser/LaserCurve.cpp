@@ -3,6 +3,7 @@
 #include "../Bullet/BulletManager.h"
 #include "../Hardcoded.h"
 #include "../Player.h"
+#include "../Supervisor.h"
 #include "LaserManager.h"
 #include <NSEngine.hpp>
 #include <memory.h>
@@ -353,48 +354,36 @@ int LaserCurve::on_tick() {
   return 1;
 }
 
-void _dzaww(anm::VM *vm, anm::RenderVertex_t *vertices, int count) {
-  for (int i = 0; i < (count - 1) / 2; i++)
-    anm::raw_batch_draw(vm->getSprite().texture, vertices[i * 2],
-                        vertices[i * 2 + 1], vertices[i * 2 + 3],
-                        vertices[i * 2 + 2], vm->bitflags.blendmode);
-}
-
-int LaserCurve::on_draw() {
+i32 LaserCurve::on_draw() {
   for (int i = 0; i < inner.laser_time_start; i++) {
-    float ang = nodes[i].angle + ns::PI_1_2<f32>;
-    if (i > 0)
+    f32 ang = nodes[i].angle + ns::PI_1_2<f32>;
+    if (i > 0) {
       ang += (nodes[i - 1].angle + ns::PI_1_2<f32> - ang) * 0.5;
+    }
     math::angle_normalize(ang);
     ns::vec2 offset = math::lengthdir_vec(inner.laser_new_arg4 * 0.5, ang);
-    vertices[2 * i].transformed_pos.x = nodes[i].pos.x + offset.x;
-    vertices[2 * i].transformed_pos.y = -(nodes[i].pos.y + offset.y);
-    vertices[2 * i].transformed_pos.z = 0.0;
-    vertices[2 * i].texture_uv.x =
-        (float)i / (float)(inner.laser_time_start - 1);
-    vertices[2 * i].texture_uv.y =
-        vm1.getSprite().v1; // vm1.uv_quad_of_sprite[0].y;
-    vertices[2 * i].diffuse_color = {255, 255, 255, 255};
-    // vertices[2*i].position.x += SURF_ORIGIN_ECL_X;
-    // vertices[2*i].position.y += DAT_00524720;
+    anm::RenderVertex_t &v1 = vertices[2 * i];
+    anm::RenderVertex_t &v2 = vertices[2 * i + 1];
 
-    vertices[2 * i + 1].transformed_pos.x = nodes[i].pos.x - offset.x;
-    vertices[2 * i + 1].transformed_pos.y = -(nodes[i].pos.y - offset.y);
-    vertices[2 * i + 1].transformed_pos.z = 0.0;
-    vertices[2 * i + 1].diffuse_color = {255, 255, 255, 255};
-    vertices[2 * i + 1].texture_uv.x =
-        (float)i / (float)(inner.laser_time_start - 1);
-    vertices[2 * i + 1].texture_uv.y =
-        vm1.getSprite().v2; // vm1.uv_quad_of_sprite[2].y;
-                            // vertices[2*i+1].position.x += SURF_ORIGIN_ECL_X;
-                            // vertices[2*i+1].position.y += DAT_00524720;
+    v1.transformed_pos.x = nodes[i].pos.x + offset.x + anm::BACK_BUFFER_SIZE.x / 2.f;
+    v1.transformed_pos.y = nodes[i].pos.y + offset.y + GAME_AREA_RENDER_Y;
+    v1.transformed_pos.z = 0.0;
+    v1.transformed_pos.w = 1.0;
+    v1.diffuse_color = c_white;
+    v1.texture_uv.x = (f32)i / (f32)(inner.laser_time_start - 1);
+    v1.texture_uv.y = vm1.getSprite().v1; // vm1.uv_quad_of_sprite[0].y;
+
+    v2.transformed_pos.x = nodes[i].pos.x - offset.x + anm::BACK_BUFFER_SIZE.x / 2.f;
+    v2.transformed_pos.y = nodes[i].pos.y - offset.y + GAME_AREA_RENDER_Y;
+    v2.transformed_pos.z = 0.0;
+    v2.transformed_pos.w = 1.0;
+    v2.diffuse_color = c_white;
+    v2.texture_uv.x = (f32)i / (f32)(inner.laser_time_start - 1);
+    v2.texture_uv.y = vm1.getSprite().v2; // vm1.uv_quad_of_sprite[2].y;
   }
-  // anm::draw_vm__mode_textureCircle(ANM_MANAGER_PTR, &vm1, vertices,
-  // inner.laser_time_start * 2);
-  _dzaww(&vm1, vertices, inner.laser_time_start * 2);
+  anm::draw_vm_as_triangle_strip(&vm1, vertices, inner.laser_time_start * 2);
   if (time_alive <= inner.laser_time_start) {
     vm2.pos = nodes[inner.laser_time_start - 1].pos;
-    // vm2.draw();
     anm::draw_vm(&vm2);
   }
   return 0;

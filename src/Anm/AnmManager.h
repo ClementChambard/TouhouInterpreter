@@ -37,6 +37,7 @@ void interrupt_tree_run(ID id, i32 interrupt);
 void draw_vm(VM *vm);
 void draw_vm_as_quad(VM *vm);
 void draw_vm_as_quad_no_rot(VM *vm);
+void draw_vm_as_triangle_strip(VM *vm, RenderVertex_t* vertex, usize vertex_count);
 
 void flush_vbos();
 

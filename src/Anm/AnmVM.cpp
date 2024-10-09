@@ -10,8 +10,6 @@
 
 namespace anm {
 
-void _destroyFastVM(VM *vm);
-
 #define GAME_SPEED ns::get_instance()->game_speed()
 
 void VM::setLayer(u32 i) {
@@ -84,7 +82,6 @@ VM::VM(u32 script_id, u32 anim_slot) {
 VM::~VM() {
   if (special_vertex_buffer_data)
     ns::free_raw(special_vertex_buffer_data, special_vertex_buffer_size);
-  destroy();
 }
 
 Sprite VM::getSprite() const {
@@ -236,67 +233,6 @@ void VM::getSpriteCorners2D(ns::vec2 *corners) {
                                          b * s.h * YS + anchor_offset.y, 0, 0)};
   corners[3] = {pos4 + rotate * ns::vec4(l * s.w * XS + anchor_offset.x,
                                          b * s.h * YS + anchor_offset.y, 0, 0)};
-}
-
-void VM::destroy() {
-  if (id.val && (id.val & ID::fast_id_mask) != ID::fast_id_mask) {
-    anm::_destroyFastVM(this);
-  }
-
-  bitflags = {};
-
-  if (node_in_global_list.previous)
-    node_in_global_list.previous->next = node_in_global_list.next;
-  if (node_in_global_list.next)
-    node_in_global_list.next->previous = node_in_global_list.previous;
-  node_in_global_list.previous = nullptr;
-  node_in_global_list.next = nullptr;
-
-  if (__node_as_child.previous)
-    __node_as_child.previous->next = __node_as_child.next;
-  if (__node_as_child.next)
-    __node_as_child.next->previous = __node_as_child.previous;
-  __node_as_child.previous = nullptr;
-  __node_as_child.next = nullptr;
-
-  interrupt_return_time = -99;
-  interrupt_return_offset = 0;
-  layer = 0;
-  anm_loaded_index = 0;
-  sprite_id = 0;
-  script_id = 0;
-  instr_offset = 0;
-  pos = {0, 0, 0};
-  rotation = {0, 0, 0};
-  angular_velocity = ns::vec3();
-  scale = {1.f, 1.f};
-  scale_2 = {1, 1};
-  scale_growth = ns::vec2();
-  uv_scale = {1, 1};
-  uv_scroll_pos = ns::vec2();
-  anchor_offset = ns::vec2();
-  uv_scroll_vel = ns::vec2();
-  pending_interrupt = 0;
-  for (int i = 0; i < 4; i++) {
-    int_script_vars[i] = 0;
-    float_script_vars[i] = 0;
-  }
-  __script_vars_33_34_35 = ns::vec3();
-  __script_var_8 = 0;
-  __script_var_9 = 0;
-  rand_param_one = 1.f;
-  rand_param_pi = ns::PI<f32>;
-  rand_param_int = 1;
-  __pos_2 = ns::vec3();
-  mode_of_create_child = -1; // mode_of_create_child
-  color_1 = {255, 255, 255, 255};
-  color_2 = {255, 255, 255, 255};
-  id = 0;
-  fast_id = 0;
-  time_in_script = 0;
-  parent_vm = nullptr;
-  entity_pos = ns::vec3(); // pos3 ?
-  associated_game_entity = nullptr;
 }
 
 ns::vec3 VM::get_pos_with_root() {

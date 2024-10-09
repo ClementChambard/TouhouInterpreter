@@ -17,6 +17,7 @@ project(ecl VERSION 0.1)
 
 # add the NSEngine lib
 set(NS_USE_IMGUI ON CACHE BOOL "enable Imgui" FORCE)
+set(NS_USE_AUDIO_PROTO ON CACHE BOOL "enable audio engine prototype" FORCE)
 add_subdirectory(NSEngine "${PROJECT_SOURCE_DIR}/NSEngine/build")
 
 # get source files

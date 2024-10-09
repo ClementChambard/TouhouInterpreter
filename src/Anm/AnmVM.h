@@ -47,7 +47,6 @@ struct VM {
 
   i32 update();
   i32 run();
-  void destroy();
   void interrupt(i32 i);
   void interruptRun(i32 i);
   void interruptRec(i32 i);
