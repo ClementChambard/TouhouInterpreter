@@ -33,7 +33,7 @@ Enemy::~Enemy() {
       ENEMY_MANAGER_PTR->boss_ids[enemy.ownBossId] = 0;
     }
     for (int i = 0; i < 16; i++)
-        anm::delete_vm(enemy.anmIds[i].val);
+        anm::delete_vm(enemy.anmIds[i]);
     /* Clear async list */
     clear_async_contexts();
     ENEMY_MANAGER_PTR->enemy_count_real--;
@@ -157,8 +157,8 @@ int EnemyData::step_interpolators() {
             ns::vec3 pos = { 0, 0, 0 };
             if (vm0) {
                 pos = vm0->pos;
-                anm::delete_vm(anmIds[0].val);
-                anmIds[0].val = 0;
+                anm::delete_vm(anmIds[0]);
+                anmIds[0] = 0;
             }
             anmIds[0] = ENEMY_MANAGER_PTR->loadedAnms[anm0anmID]->spawnVMExt(anm0scr + scr, 0, pos, 8, anmLayers + 7);
             anmMainSubscr = dir;
@@ -808,7 +808,7 @@ void Enemy::Die() {
     context.primaryContext.currentLocation.sub_id = -1;
     context.primaryContext.currentLocation.offset = -1;
     for (int i = 0; i < 16; i++) {
-        anm::delete_vm(enemy.anmIds[i].val);
-        enemy.anmIds[i].val = 0;
+        anm::delete_vm(enemy.anmIds[i]);
+        enemy.anmIds[i] = 0;
     }
 }

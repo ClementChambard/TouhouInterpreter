@@ -315,7 +315,6 @@ void VM::write_sprite_corners__without_rot(ns::vec4 &tl, ns::vec4 &tr,
   br.x *= s.x;
   br.y *= s.y;
   ns::vec4 p = {get_own_transformed_pos(), 0};
-  // p.y *= -1;
   tl += p;
   tr += p;
   bl += p;
@@ -349,6 +348,7 @@ void VM::write_sprite_corners__with_z_rot(ns::vec4 &tl, ns::vec4 &tr,
   tr.y = bitflags.anchorY == 0 ? -0.5f : (bitflags.anchorY == 2 ? -1 : 0);
   bl.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
   br.y = bitflags.anchorY == 0 ? 0.5f : (bitflags.anchorY == 2 ? 0 : 1);
+  tl.z = bl.z = tr.z = br.z = 0;
   tl.x *= sprite_size.x;
   tl.y *= sprite_size.y;
   tr.x *= sprite_size.x;

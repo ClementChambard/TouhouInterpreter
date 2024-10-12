@@ -37,27 +37,27 @@ struct VM_flags_t {
       u32 rendermode : 5; /* 0x3e000000  |  0xc1ffffff */
       u32 scrollY : 2;    /* 0xc0000000  |  0x3fffffff */
 
-      u32 scrollX : 2;
-      u32 rotationMode : 3;
-      u32 activeFlags : 2;
-      u32 autoRotate : 1;
-      u32 f534_8 : 1;
-      u32 noSlowdown : 1;
-      u32 randomMode : 1;
-      u32 resampleMode : 1;
-      u32 f534_12 : 1;
-      u32 ins419 : 1;
-      u32 f534_14_15 : 2;
-      u32 noParent : 1;
-      u32 f534_17 : 1;
-      u32 originMode : 2;
-      u32 resolutionMode : 3;
-      u32 parRotate : 1;
-      u32 hasGrowth : 1;
-      u32 colorizeChildren : 1;
-      u32 f534_26 : 1;
-      u32 f534_27_31 : 4;
-      u32 fadeNearCamera : 1;
+      u32 scrollX : 2;           /* 0x00000003  |  0xfffffffc */
+      u32 rotationMode : 3;      /* 0x0000001c  |  0xffffffe3 */
+      u32 activeFlags : 2;       /* 0x00000060  |  0xffffff9f */
+      u32 autoRotate : 1;        /* 0x00000080  |  0xffffff7f */
+      u32 f534_8 : 1;            /* 0x00000100  |  0xfffffeff */
+      u32 noSlowdown : 1;        /* 0x00000200  |  0xfffffdff */
+      u32 randomMode : 1;        /* 0x00000400  |  0xfffffbff */
+      u32 resampleMode : 1;      /* 0x00000800  |  0xfffff7ff */
+      u32 f534_12 : 1;           /* 0x00001000  |  0xffffefff */
+      u32 ins419 : 1;            /* 0x00002000  |  0xffffdfff */
+      u32 f534_14_15 : 2;        /* 0x0000c000  |  0xffff3fff */
+      u32 noParent : 1;          /* 0x00010000  |  0xfffeffff */
+      u32 f534_17 : 1;           /* 0x00020000  |  0xfffdffff */
+      u32 originMode : 2;        /* 0x000c0000  |  0xfff3ffff */
+      u32 resolutionMode : 3;    /* 0x00700000  |  0xff8fffff */
+      u32 parRotate : 1;         /* 0x00800000  |  0xff7fffff */
+      u32 hasGrowth : 1;         /* 0x01000000  |  0xfeffffff */
+      u32 colorizeChildren : 1;  /* 0x02000000  |  0xfdffffff */
+      u32 f534_26 : 1;           /* 0x04000000  |  0xfbffffff */
+      u32 f534_27_31 : 4;        /* 0x78000000  |  0x87ffffff */
+      u32 fadeNearCamera : 1;    /* 0x80000000  |  0x7fffffff */
     };
   };
 };

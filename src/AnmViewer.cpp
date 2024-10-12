@@ -7,8 +7,10 @@
 
 #include <NSEngine.hpp>
 #include <input.hpp>
+#include <string>
 
 #include "./Std/Stage.hpp"
+#include "Ecl/EnemyManager.h"
 #include "ScreenEffect.hpp"
 
 AnmViewer *ANM_VIEWER_PTR = nullptr;
@@ -208,11 +210,18 @@ void AnmView::renderInList() {
   ImGui::PushID(("AnmId" + std::to_string(anmId)).c_str());
   auto vm = this->vm ? this->vm : anm::get_vm(anmId);
   auto name = anm::getLoaded(vm->anm_loaded_index)->name;
-  if (parentId != 0)
+  if (parentId != 0) {
     ImGui::Text("%s: script %d (%d->%d)", name.c_str(), vm->script_id, anmId,
                 parentId);
-  else
+  } else if (vm->parent_vm != nullptr){
+    ImGui::Text("%s: script %d /%d->%d/", name.c_str(), vm->script_id, anmId,
+                vm->parent_vm->id.val);
+  } else if (vm->__root_vm__or_maybe_not != nullptr){
+    ImGui::Text("%s: script %d %d ==> /%d/", name.c_str(), vm->script_id, anmId,
+                vm->__root_vm__or_maybe_not->id.val);
+  } else {
     ImGui::Text("%s: script %d (%d)", name.c_str(), vm->script_id, anmId);
+  }
   if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     windowOpen = !windowOpen;
   }
@@ -709,6 +718,34 @@ void anm_mgr_stats(bool *open) {
   ImGui::End();
 }
 
+void enm_aaa(Enemy* e) {
+  if (ImGui::CollapsingHeader(("enm: " + std::to_string(e->enemyId)).c_str())) {
+    ImGui::Text("main anm: %d", e->enemy.anmSetMain);
+    for (int i = 0; i < 16; i++) {
+      ImGui::Text("anm[%d]: %d", i, e->enemy.anmIds[i].val);
+    }
+  }
+}
+
+void enm_wnd(bool *open) {
+  if (!*open)
+    return;
+
+  ImGui::Begin("Anm mgr stats", open);
+  for (auto enode = ENEMY_MANAGER_PTR->active_enemy_list_head; enode != nullptr; enode = enode->next) {
+    if (enode->value) enm_aaa(enode->value);
+  }
+  ImGui::End();
+
+  ImGui::Begin("world list", open);
+  auto it = anm::iter_world_list();
+  while (auto vm = it.get()) {
+    ImGui::Text("%d: %s.%d", vm->id.val, anm::getLoaded(vm->anm_loaded_index)->getName(), vm->script_id);
+    it.next();
+  }
+  ImGui::End();
+}
+
 void AnmViewer::on_tick() {
   static int gc_timer = 0;
   if (gc_timer++ == 60) {
@@ -728,6 +765,12 @@ void AnmViewer::on_tick() {
     anmmgrstats = !anmmgrstats;
   }
 
+  static bool enmopen = false;
+  if (ns::keyboard::pressed(ns::Key::E)) {
+    enmopen = !enmopen;
+  }
+
+  enm_wnd(&enmopen);
   main_menu_window(&anmMenu);
   anm_mgr_stats(&anmmgrstats);
 

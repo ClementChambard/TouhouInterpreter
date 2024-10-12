@@ -135,6 +135,34 @@ struct AnmManagerState {
 
 static AnmManagerState *AM;
 
+
+
+
+
+
+void ListIter::next() {
+  if (this->it_ptr == nullptr) return;
+  VM::List_t* ptr = reinterpret_cast<VM::List_t*>(this->it_ptr);
+  ptr = ptr->next;
+  this->it_ptr = reinterpret_cast<void*>(ptr);
+}
+
+VM* ListIter::get() {
+  if (this->it_ptr == nullptr) return nullptr;
+  VM::List_t* ptr = reinterpret_cast<VM::List_t*>(this->it_ptr);
+  return ptr->value;
+}
+
+ListIter iter_world_list() {
+  return ListIter { reinterpret_cast<void*>(AM->world_list_head) };
+}
+
+
+
+
+
+
+
 void get_stats(Stats &stats) { stats = ANM_MGR_STATS; }
 
 // expose these functions ?
@@ -395,8 +423,11 @@ void delete_vm(ID id) {
 void delete_vm(VM *vm) {
   if (!vm)
     return;
-  if (vm->bitflags.f534_27_31) {
+  if (vm->bitflags.f534_26) {
     return;
+  }
+  if (vm->script_id == 99 && (vm->list_of_children.next == nullptr || vm->list_of_children.next->next == nullptr) && vm->anm_loaded_index == 10) {
+    NS_DEBUG("BUG HERE: anm 10:99 should have 2 children");
   }
   vm->bitflags.activeFlags = 0b01;
   for (auto node = vm->list_of_children.next; node; node = node->next) {
@@ -823,7 +854,8 @@ void draw_vm(VM *vm) {
   //   factor;
   // }
 
-  if (vm->bitflags.rendermode != 8 && vm->bitflags.rendermode != 15)
+  if (vm->bitflags.rendermode != 8 && vm->bitflags.rendermode != 15 &&
+      vm->bitflags.rendermode != 24 && vm->bitflags.rendermode != 25)
     disable_zwrite();
 
   /* switch render mode */
@@ -1324,7 +1356,7 @@ void draw_vm__mode_8_15(VM *vm) {
   }
   if (vm->bitflags.f530_16)
     goto LAB_0046ecb8;
-  vm->__matrix_2 = vm->__matrix_1.scale({vm->scale_2 * vm->scale, 1});
+  vm->__matrix_2 = vm->__matrix_1.pre_scale(ns::vec3(vm->scale * vm->scale_2, 1));
   vm->bitflags.scaled = false;
   if (vm->bitflags.resolutionMode == 1) {
     vm->__matrix_2[0][0] *= RESOLUTION_MULT;
@@ -1476,8 +1508,8 @@ void draw_vm_triangle_fan(VM *vm, RenderVertex_t *vertexData, i32 nVert) {
   //   SUPERVISOR.d3d_device->SetFVF(0x144);
   //   field_0x18607ca = 3;
   // }
-  setup_render_state_for_vm(vm);
   anm_use_texture(vm);
+  setup_render_state_for_vm(vm);
   disable_zwrite();
   // if (field_0x18607ca != 1) {
   //   SUPERVISOR.d3d_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, 0);
@@ -1759,7 +1791,7 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
   }
 
   vm->__matrix_1 = ns::mat4(1.f);
-  vm->__matrix_2 = vm->__matrix_1.scale({vm->scale * vm->scale_2, 1});
+  vm->__matrix_2 = vm->__matrix_1.pre_scale({vm->scale * vm->scale_2, 1});
   vm->bitflags.scaled = false;
   if (vm->rotation.z != 0.0)
     vm->__matrix_2 = vm->__matrix_2 * ns::mat4::mk_rotate_z(vm->rotation.z);
@@ -1769,17 +1801,14 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
     vm->__matrix_2 = vm->__matrix_2 * ns::mat4::mk_rotate_x(vm->rotation.x);
   vm->bitflags.rotated = false;
   ns::mat4 DStack_e0 = vm->__matrix_2;
-  DStack_e0[3][0] = vm->entity_pos.x + vm->pos.x + vm->__pos_2.x -
-                    vm->anchor_offset.x * vm->scale.x * vm->scale_2.x;
-  DStack_e0[3][1] = vm->entity_pos.y + vm->pos.y + vm->__pos_2.y -
-                    vm->anchor_offset.y * vm->scale.y * vm->scale_2.y;
-  DStack_e0[3][2] = vm->entity_pos.z + vm->pos.z + vm->__pos_2.z;
+  DStack_e0[0][3] = vm->entity_pos.x + vm->pos.x + vm->__pos_2.x; // - vm->anchor_offset.x * vm->scale.x * vm->scale_2.x;
+  DStack_e0[1][3] = vm->entity_pos.y + vm->pos.y + vm->__pos_2.y; // - vm->anchor_offset.y * vm->scale.y * vm->scale_2.y;
+  DStack_e0[2][3] = vm->entity_pos.z + vm->pos.z + vm->__pos_2.z;
   if (!vm->parent_vm) {
-    DStack_e0[3][0] += AM->origins[vm->bitflags.originMode].x;
+    DStack_e0[0][3] += AM->origins[vm->bitflags.originMode].x;
   }
-  setup_render_state_for_vm(vm);
-
   anm_use_texture(vm);
+  setup_render_state_for_vm(vm);
 
   i32 nb_segments = (cnt - 2) / 2;
   auto cursor = reinterpret_cast<RenderVertex_t *>(buff);
@@ -1806,7 +1835,7 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
     auto *here = &cursor[i * 2 + 2];
     auto bl = AM->batch->add_vertex({ns::vec3(DStack_e0 * here[0].transformed_pos), here[0].diffuse_color, here[0].texture_uv});
     auto br = AM->batch->add_vertex({ns::vec3(DStack_e0 * here[1].transformed_pos), here[1].diffuse_color, here[1].texture_uv});
-    AM->batch->draw_quad(tl, tr, bl, br);
+    AM->batch->draw_quad(tl, tr, br, bl);
     tl = bl;
     tr = br;
   }

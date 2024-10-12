@@ -11,6 +11,15 @@ namespace ns { struct Vertex; }
 
 namespace anm {
 
+// DEBUG ========================
+struct ListIter {
+  void next();
+  VM* get();
+  void* it_ptr;
+};
+ListIter iter_world_list();
+// ==============================
+
 extern f32 RESOLUTION_MULT;
 extern ns::vec2 BACK_BUFFER_SIZE;
 
