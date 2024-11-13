@@ -275,11 +275,11 @@ int Token_t::update() {
         if (pos.y <= 128.0 && speed.y < 0) { speed.y *= -1; bounced = true; }
         if (pos.y >= 384.0 && speed.y > 0) { speed.y *= -1; bounced = true; }
         if (bounced) {
-            if (ns::abs(speed.x) < 0.2) speed.x = (speed.x <= 0) ? Random::Float01()
-                * -0.3 - 0.5 : Random::Float01() * 0.3 + 0.5;
-            if (ns::abs(speed.y) < 0.2) speed.y = (speed.y <= 0) ? Random::Float01()
-                * -0.3 - 0.5 : Random::Float01() * 0.3 + 0.5;
-            GOAST_MANAGER_PTR->choose_angle(this, math::point_direction(0, 0,
+            if (ns::abs(speed.x) < 0.2) speed.x = (speed.x <= 0) ? ns::frand()
+                * -0.3 - 0.5 : ns::frand() * 0.3 + 0.5;
+            if (ns::abs(speed.y) < 0.2) speed.y = (speed.y <= 0) ? ns::frand()
+                * -0.3 - 0.5 : ns::frand() * 0.3 + 0.5;
+            GOAST_MANAGER_PTR->choose_angle(this, ns::point_direction(0, 0,
                                                             speed.x, speed.y));
         }
     }
@@ -291,14 +291,14 @@ int Token_t::update() {
 }
 
 void GoastManager::choose_angle(Token_t* token, float angle) {
-    token->speed = {math::lengthdir_vec(1, angle), 0};
+    token->speed = {ns::lengthdir_vec(1, angle), 0};
 
     for (auto node = list_head.next; node; node = node->entry->node.next) {
         auto other = node->entry;
-        if (other != token && math::point_distance_sq(other->pos, token->pos)
-            < 576.0 && other->speed.dot(token->speed) > 0.96) {
+        if (other != token && ns::point_distance_sq(other->pos, token->pos)
+            < 576.0 && ns::dot(other->speed, token->speed) > 0.96) {
             angle += 3.883222;
-            token->speed = {math::lengthdir_vec(1, angle), 0};
+            token->speed = {ns::lengthdir_vec(1, angle), 0};
         }
     }
 }
@@ -413,7 +413,7 @@ LAB_0040ef69:
             otter_hyper_anms[i] = 0;
           } else {
             vm->entity_pos = PLAYER_PTR->inner.pos;
-            auto pos = PLAYER_PTR->inner.pos + math::lengthdir_vec3(96, vm->rotation.z - 0.3490658);
+            auto pos = PLAYER_PTR->inner.pos + ns::lengthdir_vec3(96, vm->rotation.z - 0.3490658);
             BULLET_MANAGER_PTR->cancel_radius_as_bomb(pos, 1, 28.0);
             LASER_MANAGER_PTR->cancel_in_radius(pos, 1, 1, 28.0);
             auto ds = create_damage_source_3(pos,2,5,28.0,0.0);
@@ -594,7 +594,7 @@ void GoastManager::hyper_end_spawn_items(void) {
       int t = GLOBALS.inner.TOKENS[i] - 5;
       float r = 0.0;
       for (int i = 10; i < 70; i += 2) {
-        float a = Random::Angle();
+        float a = ns::frandangle();
         ns::vec3 p = {r*ns::cos(a), r*ns::sin(a)/2, 0};
         p.x += pos.x;
         p.y += posy_2;
@@ -621,7 +621,7 @@ void GoastManager::hyper_spawn_item(int i, ns::vec3 const& pos) {
       int t = i - 5;
       float r = 0.0;
       for (int i = 10; i < 70; i += 2) {
-        float a = Random::Angle();
+        float a = ns::frandangle();
         ns::vec3 p = {r*ns::cos(a), r*ns::sin(a)/2, 0};
         ITEM_MANAGER_PTR->spawn_item(t, pos + p, -ns::PI_1_2<f32>, 2.2, i, 0x3e);
         r += 2.0;

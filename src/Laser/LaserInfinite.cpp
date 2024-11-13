@@ -59,7 +59,7 @@ int LaserInfinite::initialize(void *arg) {
 
   if (inner.distance != 0.f)
     laser_offset +=
-        ns::vec3(math::lengthdir_vec(inner.distance, inner.ang_aim), 0.f);
+        ns::vec3(ns::lengthdir_vec(inner.distance, inner.ang_aim), 0.f);
   laser_inf_current_length = inner.laser_new_arg1;
   speed = inner.spd_1;
   angle = inner.ang_aim;
@@ -105,7 +105,7 @@ int LaserInfinite::on_tick() {
   }
 
   angle = inner.laser_inf_angular_velocity * GAME_SPEED + angle;
-  math::angle_normalize(angle);
+  ns::angle_normalize(angle);
 
   // if (inner.flags & 1) {
   // pzVar10 = NULL;
@@ -201,7 +201,7 @@ int LaserInfinite::on_tick() {
 
 int LaserInfinite::on_draw() {
   float zrot = angle + 1.570796;
-  math::angle_normalize(zrot);
+  ns::angle_normalize(zrot);
   // vm1.rotation.current.z = vm1.rotation.goal.z = zrot;
   vm1.rotation.z = zrot;
   vm1.bitflags.rotated = true;
@@ -220,7 +220,7 @@ int LaserInfinite::cancel(int, int as_bomb) {
   if (as_bomb && ex_invuln__remaining_frames != 0)
     return 0;
 
-  ns::vec3 inc = {math::lengthdir_vec(8.f, angle), 0.f};
+  ns::vec3 inc = {ns::lengthdir_vec(8.f, angle), 0.f};
   ns::vec3 p = laser_offset + inc;
   inc *= 2;
   int i = 0;
@@ -241,7 +241,7 @@ int LaserInfinite::cancel(int, int as_bomb) {
           0.0 < p.y + 32.0 && p.y - 32.0 < 448.0) {
         BULLET_MANAGER_PTR->__unknown_cancel_counter++;
         ITEM_MANAGER_PTR->spawn_item(
-            9, p, Random::Floatm11() * 0.1745329 - 1.570796, 2.2, 0, -1);
+            9, p, ns::frandm11() * 0.1745329 - 1.570796, 2.2, 0, -1);
       }
     }
     p += inc;
@@ -258,14 +258,14 @@ int LaserInfinite::cancel_as_bomb_rectangle(ns::vec3 p1, ns::vec3 p2, float rot,
     return 0;
 
   float aa = angle - rot;
-  math::angle_normalize(aa);
-  ns::vec3 rect_inc = {math::lengthdir_vec(8.0, aa), 0.f};
+  ns::angle_normalize(aa);
+  ns::vec3 rect_inc = {ns::lengthdir_vec(8.0, aa), 0.f};
   ns::vec3 rect_pos = {ns::cos(-rot) * (laser_offset.x - p1.x) -
                            ns::sin(-rot) * (laser_offset.y - p1.y) + rect_inc.x,
                        ns::sin(-rot) * (laser_offset.x - p1.x) +
                            ns::cos(-rot) * (laser_offset.y - p1.y) + rect_inc.y,
                        0.f};
-  ns::vec3 inc = {math::lengthdir_vec(8.0, angle), 0.f};
+  ns::vec3 inc = {ns::lengthdir_vec(8.0, angle), 0.f};
   ns::vec3 p = laser_offset + inc;
   rect_inc *= 2;
   inc *= 2;

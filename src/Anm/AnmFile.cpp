@@ -164,8 +164,8 @@ void File::setSprite(VM* vm, usize sprite_id) {
     vm->sprite_size.x = s.w;
     vm->sprite_size.y = s.h;
     
-    vm->__matrix_1 = ns::mat4::mk_scale(ns::vec3(vm->sprite_size / 256.f, 1.f));
-    vm->__matrix_3 = ns::mat4::mk_scale(ns::vec3(s.u2 - s.u1, s.v2 - s.v1, 1.f));
+    vm->__matrix_1 = ns::mat::mk4_scale(ns::vec3(vm->sprite_size / 256.f, 1.f));
+    vm->__matrix_3 = ns::mat::mk4_scale(ns::vec3(s.u2 - s.u1, s.v2 - s.v1, 1.f));
     vm->__matrix_2 = vm->__matrix_1;
     return;
 }

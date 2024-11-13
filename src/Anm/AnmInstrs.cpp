@@ -116,7 +116,7 @@ int VM::exec_instruction(bytes ins) {
             rS(0) = S(1) == 0 ? 0 : rand() % S(1);
             break;
         case 123: // fsetrand
-            rf(0) = Random::Float01() * f(1);
+            rf(0) = ns::frand() * f(1);
             break;
         case 124: // fsin
             rf(0) = ns::sin(f(1));
@@ -142,8 +142,8 @@ int VM::exec_instruction(bytes ins) {
             rf(1) = f(3) * ns::sin(f(2));
             break;
         case 131: {// circlePosRand
-            f32 tempvar1 = f(2) + (f(3)-f(2)) * Random::Float01();
-            f32 tempvar2 = Random::Angle();
+            f32 tempvar1 = f(2) + (f(3)-f(2)) * ns::frand();
+            f32 tempvar2 = ns::frandangle();
             rf(0) = tempvar1 * ns::cos(tempvar2);
             rf(1) = tempvar1 * ns::sin(tempvar2);
             break;}

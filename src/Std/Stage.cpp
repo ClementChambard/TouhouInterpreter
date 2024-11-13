@@ -4,6 +4,7 @@
 #include "../Hardcoded.h"
 #include "../ScreenEffect.hpp"
 #include "../Supervisor.h"
+#include <memory.h>
 #include <platform/filesystem.h>
 #include <math/math.hpp>
 
@@ -145,8 +146,7 @@ int Stage::f_on_tick() {
   inner.camera.screen_shake = {0.f, 0.f};
   inner.camera.__vec3_104 = {0.f, 0.f, 0.f};
   inner.some_bg_color_unrelated_to_ins_13 = {128, 128, 128, 0};
-  inner.camera.facing_normalized =
-      (inner.camera.facing + inner.camera.__rocking_vector_2).normalized();
+  inner.camera.facing_normalized = ns::normalize(inner.camera.facing + inner.camera.__rocking_vector_2);
   if (!(flags & 4) || some_countdown_timer < 30) {
     for (int ent_id = 0; ent_id < std_file_data->nb_objects; ent_id++) {
       if (!(std_object_ptrs[ent_id]->vmAliveBits & 1))
@@ -347,7 +347,7 @@ update_rest:
   float intensity;
   switch (inner.rocking_mode) {
   case 1:
-    intensity = math::min(inner.rocking_timer.current_f / 512.f, 1.0f);
+    intensity = ns::min(inner.rocking_timer.current_f / 512.f, 1.0f);
     inner.camera.__rocking_vector_1.x =
         ns::sin(inner.rocking_timer.current_f * ns::PI<f32> / 0x200) * -10.0 *
         intensity;
@@ -377,7 +377,7 @@ update_rest:
       inner.rocking_timer.set(0);
     break;
   case 3:
-    intensity = math::min(80.0f, inner.rocking_timer.current_f / 0x400 * 80.f);
+    intensity = ns::min(80.0f, inner.rocking_timer.current_f / 0x400 * 80.f);
     inner.camera.__rocking_vector_1.y = 0.0;
     inner.camera.__rocking_vector_1.z = 0.0;
     inner.camera.__rocking_vector_1.x =
@@ -401,7 +401,7 @@ update_rest:
       inner.rocking_timer.set(0);
     break;
   case 5:
-    intensity = math::min(1.f, inner.rocking_timer.current_f / 0x200);
+    intensity = ns::min(1.f, inner.rocking_timer.current_f / 0x200);
     inner.camera.__rocking_vector_1.x =
         ns::sin(((inner.rocking_timer.current % 0x400) * ns::PI<f32> / 0x200)) *
         -5.0 * intensity;
@@ -417,7 +417,7 @@ update_rest:
     break;
   case 6:
     intensity =
-        math::max(0.0, (1.0 - inner.rocking_6_timer.current_f / 0x200) * 80.0);
+        ns::max(0.0, (1.0 - inner.rocking_6_timer.current_f / 0x200) * 80.0);
     inner.camera.__rocking_vector_1.y = 0.0;
     inner.camera.__rocking_vector_1.z = 0.0;
     inner.camera.__rocking_vector_1.x =
@@ -520,7 +520,7 @@ void StageInner_t::update_distortion() {
     //   return;
     // }
     distortion.fog_ptr->reset_area(-192.0, 320.0, 384.0, 128.0);
-    float magnitude = math::min(6.f, (distortion.time.current_f * 6.f) / 60.f);
+    float magnitude = ns::min(6.f, (distortion.time.current_f * 6.f) / 60.f);
     float ox = distortion.ox;
     float oy = distortion.oy;
     for (int j = 0; j < distortion.fog_ptr->vm_count; j++) {
@@ -536,15 +536,15 @@ void StageInner_t::update_distortion() {
           v.transformed_pos.y += ns::sin(oy) * strength;
         }
         ox += 0.668424;
-        math::angle_normalize(ox);
+        ns::angle_normalize(ox);
       }
       oy -= 1.495997;
-      math::angle_normalize(oy);
+      ns::angle_normalize(oy);
     }
     distortion.ox += 0.04908739;
-    math::angle_normalize(distortion.ox);
+    ns::angle_normalize(distortion.ox);
     distortion.oy += 0.03926991;
-    math::angle_normalize(distortion.oy);
+    ns::angle_normalize(distortion.oy);
   } else if (distortion.mode == 2) {
     if (distortion.r_target <= distortion.r)
       distortion.r -= 2.0;
@@ -560,12 +560,12 @@ void StageInner_t::update_distortion() {
                       ->vertex_array[j + i * distortion.fog_ptr->vertex_count];
         ns::vec2 local_18 = {p.x - anm::BACK_BUFFER_SIZE.x / 2.f,
                              p.y - anm::BACK_BUFFER_SIZE.y / 2.f};
-        float distin = distortion.r * distortion.r - math::veclensq(local_18);
+        float distin = distortion.r * distortion.r - ns::length_sq(local_18);
         if (distin < 0.0) {
           v.diffuse_color.a = 0;
         } else {
           float s = distin / (distortion.r * distortion.r);
-          local_18 = local_18.normalized() * s * 32.f;
+          local_18 = ns::normalize(local_18) * s * 32.f;
           local_18.x += ns::sin(ox) * s * 8.0;
           local_18.y += ns::sin(oy) * s * 8.0;
           v.diffuse_color = {255, 255, 255, 96};
@@ -573,15 +573,15 @@ void StageInner_t::update_distortion() {
           v.transformed_pos.y += local_18.y;
         }
         ox += 1.570796;
-        math::angle_normalize(ox);
+        ns::angle_normalize(ox);
         oy -= 0.6981317;
-        math::angle_normalize(oy);
+        ns::angle_normalize(oy);
       }
     }
     distortion.ox += 0.04908739;
-    math::angle_normalize(distortion.ox);
-    distortion.oy += (Random::Float01() * ns::PI<f32>) / 40.0 + 0.03926991;
-    math::angle_normalize(distortion.oy);
+    ns::angle_normalize(distortion.ox);
+    distortion.oy += (ns::frand() * ns::PI<f32>) / 40.0 + 0.03926991;
+    ns::angle_normalize(distortion.oy);
   }
   distortion.time++;
 }
@@ -755,7 +755,7 @@ bool shouldBeCulledAt(StdOpener::std_entry_header_t *ent,
   in_verts[15].x = ent->x;
   in_verts[15].y = ent->y + ent->height * 0.5;
   in_verts[15].z = ent->z + ent->depth * 0.25;
-  ns::mat4 world_matrix = ns::mat4::mk_translate(face_pos);
+  ns::mat4 world_matrix = ns::mat::mk4_translate(face_pos);
   ns::mat4 mat = cam.projection_matrix * cam.view_matrix * world_matrix;
   ns::vec3 out_verts[16];
   for (int i = 0; i < 16; i++) {

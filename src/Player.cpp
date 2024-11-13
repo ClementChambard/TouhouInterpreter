@@ -334,7 +334,7 @@ int Player::_on_tick() {
         ITEM_MANAGER_PTR->spawn_item(
             1, inner.pos,
             ((i * 3.141593) / 28.0 +
-             math::point_direction(inner.pos.x, inner.pos.y, 0, -224)) -
+             ns::point_direction(inner.pos.x, inner.pos.y, 0, -224)) -
                 0.3926991,
             3.0, 0, -1);
       }
@@ -390,7 +390,7 @@ int Player::_on_tick() {
       if (inner.damage_sources[i].time_to_live <= 0)
         inner.damage_sources[i].flags &= 0xfffffffe;
 
-      math::angle_normalize(inner.damage_sources[i].angle);
+      ns::angle_normalize(inner.damage_sources[i].angle);
     }
   }
 
@@ -550,7 +550,7 @@ int Player::_on_tick() {
 
 int create_damage_source(ns::vec3 const &pos, float angle, int timeToLive,
                          int damage, float w, float h) {
-  math::angle_normalize(angle);
+  ns::angle_normalize(angle);
 
   // find damage source index
   int id = PLAYER_PTR->inner.last_created_damage_source_index;
@@ -851,23 +851,23 @@ void PlayerBullet_t::init(int shter, int tmer [[maybe_unused]],
   // special angle
   if (pos.angle < 1000.0) {
     if (pos.angle < 995.0)
-      math::angle_normalize(pos.angle);
+      ns::angle_normalize(pos.angle);
     else if ((shooter.option & 0xf) == 0)
-      math::angle_normalize(pos.angle);
+      ns::angle_normalize(pos.angle);
     else {
       pos.angle = inner.options[((int)(char)shooter.option & 0xfU) - 1]
                       .shoot_angle_maybe;
-      math::angle_normalize(pos.angle);
+      ns::angle_normalize(pos.angle);
     }
   } else {
     if ((shooter.option & 0xf) != 0) {
-      pos.angle = (Random::Floatm11() * 3.141593) / 12.0 +
+      pos.angle = (ns::frandm11() * 3.141593) / 12.0 +
                   inner.options[((int)(char)shooter.option & 0xfU) - 1]
                       .shoot_angle_maybe;
-      math::angle_normalize(pos.angle);
-      pos.speed = 2 * Random::Floatm11() + shooter.speed;
+      ns::angle_normalize(pos.angle);
+      pos.speed = 2 * ns::frandm11() + shooter.speed;
     } else {
-      math::angle_normalize(pos.angle);
+      ns::angle_normalize(pos.angle);
     }
   }
 
@@ -1322,10 +1322,10 @@ void FUN_0044d8a0(ns::vec3 const &param_1) {
         i->item_type = 9;
         i->__field_c60__init_to_item_type_but_only_for_piv_items = 9;
         i->position = param_1;
-        i->velocity_angle = Random::Floatm11() * 0.5235988 - 1.570796;
-        i->velocity_magnitude = Random::Float01() * 1.2 + 1.0;
+        i->velocity_angle = ns::frandm11() * 0.5235988 - 1.570796;
+        i->velocity_magnitude = ns::frand() * 1.2 + 1.0;
         i->velocity = {
-            math::lengthdir_vec(i->velocity_magnitude, i->velocity_angle), 0};
+            ns::lengthdir_vec(i->velocity_magnitude, i->velocity_angle), 0};
         ITEM_MANAGER_PTR->cancel_items_freelist_head.next->time = 0;
         ITEM_MANAGER_PTR->cancel_items_freelist_head.next
             ->__might_be_unused__force_autocollect__from_th16 = 0;
@@ -1510,7 +1510,7 @@ int applyDamage(ns::vec3 const &enemyPos, ns::vec2 *enemy_hb, float hb_size,
     }
   }
 
-  local_4c = math::min(local_4c, (float)PLAYER_PTR->sht_file->header.max_dmg);
+  local_4c = ns::min(local_4c, (float)PLAYER_PTR->sht_file->header.max_dmg);
   if (((param_6 == 0) && local_4c)) {
     GLOBALS.inner.CURRENT_SCORE += (local_4c / 10 + 10) / 10;
     if (999999999 < GLOBALS.inner.CURRENT_SCORE)

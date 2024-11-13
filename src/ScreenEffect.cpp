@@ -104,7 +104,7 @@ ScreenEffect::~ScreenEffect() {
 int ScreenEffect::f_on_tick_1() {
   // if (!DAT_004b780c) {
   if (field_0x18 != 0) {
-    alpha = math::max(0.f, 255.f - time.current_f * 255.f / field_0x18);
+    alpha = ns::max(0.f, 255.f - time.current_f * 255.f / field_0x18);
   }
   if (time < field_0x18) {
     time++;
@@ -153,7 +153,7 @@ int ScreenEffect::f_on_tick_3() {
   // if (!DAT_004b780c) {
   if (field_0x18 != 0) {
     if (time < field_0x18) {
-      alpha = math::max(0.f, time.current_f * 255.f / field_0x18);
+      alpha = ns::max(0.f, time.current_f * 255.f / field_0x18);
     } else {
       alpha = 255;
     }
@@ -173,7 +173,7 @@ int ScreenEffect::f_on_tick_4() {
   // if (DAT_004b780c) return 7;
   if (time < field_0x18) {
 #define A(col) (col >> 0x18)
-    alpha = math::max(
+    alpha = ns::max(
         A(field_0x20) - A(field_0x20) * time.current_f / field_0x18, 0.f);
 #undef A
   } else {

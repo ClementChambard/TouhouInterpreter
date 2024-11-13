@@ -139,7 +139,7 @@ int BulletManager::on_draw() {
       bullet->vm.entity_pos = bullet->pos;
       if (bullet->vm.bitflags.autoRotate) {
         float a = bullet->angle + 1.570796;
-        math::angle_normalize(a);
+        ns::angle_normalize(a);
         bullet->vm.rotation.z = a;
         bullet->vm.bitflags.rotated = true;
       }
@@ -176,7 +176,7 @@ int BulletManager::on_draw() {
 void BulletManager::Shoot(EnemyBulletShooter_t *bh) {
   // use cnt & aim_mode to shoot single bullets (and play sound)
   ns::vec2 pos = ns::vec2(bh->__vec3_8);
-  float AngToPlayer = math::point_direction(
+  float AngToPlayer = ns::point_direction(
       pos.x, pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
   float aRing = ns::PI_2<f32> / static_cast<float>(bh->cnt_count);
   // fire bullet :
@@ -195,7 +195,7 @@ void BulletManager::Shoot(EnemyBulletShooter_t *bh) {
           break;
         case AIM_RAND:
         case AIM_MEEK:
-          a = Random::Floatm11() * bh->ang_bullet_dist + bh->ang_aim;
+          a = ns::frandm11() * bh->ang_bullet_dist + bh->ang_aim;
           break;
         case AIM_ST_RING2:
           a -= AngToPlayer;
@@ -214,7 +214,7 @@ void BulletManager::Shoot(EnemyBulletShooter_t *bh) {
         float s = bh->spd1 + (bh->spd2 - bh->spd1) * static_cast<float>(i) /
                                  static_cast<float>(bh->cnt_layers);
         if (bh->aim_type == AIM_RAND_RING || bh->aim_type == AIM_MEEK)
-          s = bh->spd1 + (bh->spd2 - bh->spd1) * Random::Float01();
+          s = bh->spd1 + (bh->spd2 - bh->spd1) * ns::frand();
         ShootSingle(bh, a, s, pos);
       }
     }
@@ -405,7 +405,7 @@ void BulletManager::cancel_radius(ns::vec3 const &pos, int item, float r) {
   iter_next = next_node;
   while (bullet) {
     if ((bullet->state == 2 || bullet->state == 1) &&
-        math::point_distance_sq(bullet->pos, pos) <=
+        ns::point_distance_sq(bullet->pos, pos) <=
             (bullet->hitbox_diameter / 2.f + r) *
                 (bullet->hitbox_diameter / 2.f + r)) {
       bullet->cancel(item);
@@ -436,7 +436,7 @@ void BulletManager::cancel_radius_as_bomb(ns::vec3 const &pos, int item,
   while (bullet) {
     if ((bullet->state == 2 || bullet->state == 1) &&
         bullet->ex_invuln__remaining_frames == 0 &&
-        math::point_distance_sq(bullet->pos, pos) <=
+        ns::point_distance_sq(bullet->pos, pos) <=
             (bullet->hitbox_diameter / 2.f + r) *
                 (bullet->hitbox_diameter / 2.f + r)) {
       bullet->cancel(item);

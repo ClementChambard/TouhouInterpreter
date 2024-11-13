@@ -19,6 +19,7 @@
 #include "./UpdateFuncRegistry.h"
 #include "./Supervisor.h"
 #include "Laser/LaserManager.h"
+#include <memory.h>
 #include <string>
 
 void App::on_create() {

@@ -323,16 +323,16 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
         = ra * ns::cos(an);
     vy = ra * ns::sin(an);
     _ins(82, validRad) _rf(var) _args
-        math::angle_normalize(var);
+        ns::angle_normalize(var);
     _ins(85, sqSum) _rf(v) _f(x) _f(y) _args
         v
-        = math::point_distance_sq(0, 0, x, y);
+        = ns::point_distance_sq(0, 0, x, y);
     _ins(86, sqSumRt) _rf(v) _f(x) _f(y) _args
         v
-        = math::point_distance(0, 0, x, y);
+        = ns::point_distance(0, 0, x, y);
     _ins(87, getAng) _rf(v) _f(x1) _f(y1) _f(x2) _f(y2) _args
         v
-        = math::point_direction(x1, y1, x2, y2);
+        = ns::point_direction(x1, y1, x2, y2);
     _ins(89, linFunc) _rf(v) _f(a) _f(x) _args
     if (x - a <= ns::PI<f32>) {
         if (ns::PI<f32> < a - x)
@@ -355,8 +355,8 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     cont->float_i[slot].start_ex(i, f, a, b, t, m);
     var = i;
     _ins(93, RandRadius) _rf(vx) _rf(vy) _f(r1) _f(r2) _args
-    r1 += Random::Float01() * (r2 - r1);
-    float a = Random::Angle();
+    r1 += ns::frand() * (r2 - r1);
+    float a = ns::frandangle();
     vx = r1 * ns::cos(a);
     vy = r1 * ns::sin(a);
 

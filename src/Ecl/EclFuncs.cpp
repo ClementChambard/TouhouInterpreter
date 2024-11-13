@@ -18,13 +18,13 @@ int (*ECL_SET_FUNC[20])(EnemyData*) = {
                 BULLET_MANAGER_PTR->iter_current->next;
             b = BULLET_MANAGER_PTR->iter_current->value;
         }
-        float ang = Random::Angle();
+        float ang = ns::frandangle();
         while (b != NULL) {
             if ((enm->ecl_int_vars[1] * 100 <= b->__ex_react_a) &&
                 (b->__ex_react_a < enm->ecl_int_vars[1] * 100 + 100)) {
                 b->ex_index = 8;
                 ns::vec2 dir =
-                    math::lengthdir_vec(enm->ecl_float_vars[0], ang);
+                    ns::lengthdir_vec(enm->ecl_float_vars[0], ang);
                 b->et_ex[8].slot = 0;
                 b->et_ex[8].a = enm->ecl_int_vars[0];
                 b->et_ex[8].b = 9;
@@ -32,7 +32,7 @@ int (*ECL_SET_FUNC[20])(EnemyData*) = {
                 b->et_ex[8].s = enm->ecl_float_vars[2] + dir.y;
                 b->et_ex[8].type = 0x20000;
                 ang += enm->ecl_float_vars[3];
-                math::angle_normalize(ang);
+                ns::angle_normalize(ang);
             }
             BULLET_MANAGER_PTR->iter_current =
                 BULLET_MANAGER_PTR->iter_next;

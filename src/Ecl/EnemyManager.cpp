@@ -114,7 +114,7 @@ int EnemyManager::closest_enemy_id(ns::vec2 pos) {
     float dist = 999999999.f;
     for (EnemyList_t* node = active_enemy_list_head->next;
          node != active_enemy_list_tail; node = node->next) {
-        float d = math::point_distance_sq(node->value->enemy.final_pos.pos.x,
+        float d = ns::point_distance_sq(node->value->enemy.final_pos.pos.x,
             node->value->enemy.final_pos.pos.y, pos.x, pos.y);
         if (d < dist) {
             dist = d;

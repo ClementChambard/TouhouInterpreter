@@ -47,15 +47,15 @@ void Enemy::Init(cstr sub) {
 void EnemyDrop_t::eject_all_drops(ns::vec3 const& pos) {
     if (main_type != 0)
         ITEM_MANAGER_PTR->spawn_item(main_type, pos, -1.570796, 2.2, 0, -1);
-    float a = Random::Floatm11() * 3.141593;
+    float a = ns::frandm11() * 3.141593;
     for (int i = 0; i < 32; i++) {
         for (int j = 0; j < extra_counts[i]; j++) {
             ITEM_MANAGER_PTR->spawn_item(i + 1,
-                (Random::Float01() * 0.5f + 0.5f) * ns::vec3 {
+                (ns::frand() * 0.5f + 0.5f) * ns::vec3 {
                     (ns::cos(a) * area.x), ns::sin(a) * area.y, 0
                 } + pos, -1.570796, 2.2, 0, -1);
-            a += 1.570796 + Random::Floatm11() * 3.141593 * 0.25;
-            math::angle_normalize(a);
+            a += 1.570796 + ns::frandm11() * 3.141593 * 0.25;
+            ns::angle_normalize(a);
         }
         extra_counts[i] = 0;
     }
@@ -89,7 +89,7 @@ int EnemyData::step_interpolators() {
     if (abs_angle_i.end_time != 0 &&
         (abs_pos.flags & 0xf) != 2 && (abs_pos.flags & 0xf) != 3) {
         abs_pos.angle = abs_angle_i.step();
-        math::angle_normalize(abs_pos.angle);
+        ns::angle_normalize(abs_pos.angle);
     }
     if (abs_speed_i.end_time != 0) {
         abs_pos.speed = abs_speed_i.step();
@@ -97,7 +97,7 @@ int EnemyData::step_interpolators() {
     if (rel_angle_i.end_time != 0 &&
         (rel_pos.flags & 0xf) != 2 && (rel_pos.flags & 0xf) != 3) {
         rel_pos.angle = rel_angle_i.step();
-        math::angle_normalize(rel_pos.angle);
+        ns::angle_normalize(rel_pos.angle);
     }
     if (rel_speed_i.end_time != 0) {
         rel_pos.speed = rel_speed_i.step();
@@ -196,7 +196,7 @@ int Enemy::die() {
     // if (enemy.deathSnd >= 0)
     //     SoundManager::play_sound_at_position(enemy.deathSnd);
 
-    float rot_z = -math::point_direction(enemy.final_pos.pos.x,
+    float rot_z = -ns::point_direction(enemy.final_pos.pos.x,
                                         enemy.final_pos.pos.y,
                                         enemy.lastDmgPos.x,
                                         enemy.lastDmgPos.y);
@@ -619,7 +619,7 @@ int EnemyData::update() {
                     }
                     vm->entity_pos = p;
                     if (vm->bitflags.autoRotate) {
-                        vm->rotation.z = rotation = math::point_direction(
+                        vm->rotation.z = rotation = ns::point_direction(
                             0, 0, final_pos.velocity.x, final_pos.velocity.y);
                         vm->bitflags.rotated = true;
                     }

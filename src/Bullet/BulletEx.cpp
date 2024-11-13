@@ -10,7 +10,7 @@
 extern int BULLET_ADDITIONAL_CANCEL_SCR[18];
 
 inline float get_angle_to_player(ns::vec3 from) {
-    return math::point_direction(from.x, from.y,
+    return ns::point_direction(from.x, from.y,
             PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
 }
 
@@ -81,11 +81,11 @@ int Bullet::on_tick() {
                     velocity += ex_accel.vec3_a14 * game_speed;
                     if (ns::abs(velocity.x) > 0.0001 ||
                         ns::abs(velocity.y) > 0.0001) {
-                        speed = math::point_distance(0, 0,
+                        speed = ns::point_distance(0, 0,
                                     velocity.x, velocity.y);
-                        angle = math::point_direction(0, 0,
+                        angle = ns::point_direction(0, 0,
                                     velocity.x, velocity.y);
-                        math::angle_normalize(angle);
+                        ns::angle_normalize(angle);
                     }
                     ex_accel.timer++;
                 }
@@ -97,7 +97,7 @@ int Bullet::on_tick() {
                 } else {
                     speed += ex_angleaccel.tangential_accel * game_speed;
                     angle += ex_angleaccel.angular_velocity * game_speed;
-                    math::angle_normalize(angle);
+                    ns::angle_normalize(angle);
                     velocity = cartesian3_from_polar(angle, speed);
                     ex_angleaccel.timer++;
                 }
@@ -125,7 +125,7 @@ int Bullet::on_tick() {
                     case 4:
                         angle = (ex_angle).angle;
                     }
-                    math::angle_normalize(angle);
+                    ns::angle_normalize(angle);
                     speed = ex_angle.speed;
                     ex_angle.timer = 0;
                     if (ex_angle.turns_so_far >= ex_angle.max_turns) {
@@ -157,7 +157,7 @@ int Bullet::on_tick() {
                         if (pos.y <= 224.0 - rect_h / 2.0 &&
                             !(ex_bounce.wall_flags & 0x10)) {
                             angle = -angle;
-                            math::angle_normalize(angle);
+                            ns::angle_normalize(angle);
                             pos.y = (448.0 - rect_h) - pos.y;
                             bounced = true;
                         }
@@ -166,7 +166,7 @@ int Bullet::on_tick() {
                         if (pos.y >= 224.0 + rect_h / 2.0 &&
                             !(ex_bounce.wall_flags & 0x10)) {
                             angle = -angle;
-                            math::angle_normalize(angle);
+                            ns::angle_normalize(angle);
                             pos.y = (448.0 + rect_h) - pos.y;
                             bounced = true;
                         }
@@ -175,7 +175,7 @@ int Bullet::on_tick() {
                         if (pos.x <= -rect_w / 2.0 &&
                             !(ex_bounce.wall_flags & 0x10)) {
                             angle = -angle - ns::PI<f32>;
-                            math::angle_normalize(angle);
+                            ns::angle_normalize(angle);
                             pos.x = -rect_w - pos.x;
                             bounced = true;
                         }
@@ -184,7 +184,7 @@ int Bullet::on_tick() {
                         if (pos.x >= rect_w / 2.0 &&
                             !(ex_bounce.wall_flags & 0x10)) {
                             angle = -angle - ns::PI<f32>;
-                            math::angle_normalize(angle);
+                            ns::angle_normalize(angle);
                             pos.x = rect_w - pos.x;
                             bounced = true;
                         }
@@ -225,11 +225,11 @@ int Bullet::on_tick() {
                     velocity.z = 0.0;
                     if (ns::abs(velocity.x) > 0.0001 ||
                         ns::abs(velocity.y) > 0.0001) {
-                        speed = math::point_distance(0, 0,
+                        speed = ns::point_distance(0, 0,
                                                      velocity.x, velocity.y);
-                        angle = math::point_direction(0, 0,
+                        angle = ns::point_direction(0, 0,
                                                       velocity.x, velocity.y);
-                        math::angle_normalize(angle);
+                        ns::angle_normalize(angle);
                     }
                     ex_move.timer++;
                 }
@@ -252,9 +252,9 @@ int Bullet::on_tick() {
                     velocity += ex_veltime.acceleration_vector * game_speed;
                     if (ns::abs(velocity.x) > 0.0001 ||
                         ns::abs(velocity.y) > 0.0001) {
-                        angle = math::point_direction(0, 0,
+                        angle = ns::point_direction(0, 0,
                                                       velocity.x, velocity.y);
-                        math::angle_normalize(angle);
+                        ns::angle_normalize(angle);
                     }
                     ex_veltime.timer++;
                 }
@@ -275,15 +275,15 @@ int Bullet::on_tick() {
                     ended_ex++;
                 } else {
                     float ang = ex_homing.angule + get_angle_to_player(pos);
-                    math::angle_normalize(ang);
+                    ns::angle_normalize(ang);
                     ns::vec3 velAdd = cartesian3_from_polar(ang,
                                                              ex_homing.norm);
                     velocity.x += (velAdd.x - velocity.x) * ex_homing.__m;
                     velocity.y += (velAdd.y - velocity.y) * ex_homing.__m;
                     velocity.z = 0.0;
-                    speed = math::point_distance(0, 0, velocity.x, velocity.y);
-                    angle = math::point_direction(0, 0, velocity.x, velocity.y);
-                    math::angle_normalize(angle);
+                    speed = ns::point_distance(0, 0, velocity.x, velocity.y);
+                    angle = ns::point_direction(0, 0, velocity.x, velocity.y);
+                    ns::angle_normalize(angle);
                     ex_homing.timer++;
                 }
             }
@@ -434,10 +434,10 @@ int Bullet::run_et_ex() {
                 ex_accel.angle = angle;
             } else if (cur_et_ex->s >= 999990.0) {
                 ex_accel.angle = cur_et_ex->m + get_angle_to_player(pos);
-                math::angle_normalize(ex_accel.angle);
+                ns::angle_normalize(ex_accel.angle);
             } else {
                 ex_accel.angle = cur_et_ex->s;
-                math::angle_normalize(ex_accel.angle);
+                ns::angle_normalize(ex_accel.angle);
             }
             ex_accel.vec3_a14 =
                 cartesian3_from_polar(ex_accel.angle, ex_accel.acceleration);
@@ -463,16 +463,16 @@ int Bullet::run_et_ex() {
                 ang = angle;
             } else if (cur_et_ex->r >= 999990.0) {
                 ang = cur_et_ex->m + get_angle_to_player(pos);
-                math::angle_normalize(ang);
+                ns::angle_normalize(ang);
             } else {
                 ang = cur_et_ex->r;
-                math::angle_normalize(ang);
+                ns::angle_normalize(ang);
             }
 
             switch (cur_et_ex->c) {
             case 2:
                 ang += get_angle_to_player(pos);
-                math::angle_normalize(ang);
+                ns::angle_normalize(ang);
                 [[fallthrough]];
             case 0:
             case 1:
@@ -481,25 +481,25 @@ int Bullet::run_et_ex() {
                 break;
             case 3:
                 ang += ex_save.saved_angle;
-                math::angle_normalize(ang);
+                ns::angle_normalize(ang);
                 ex_angle.angle = ang;
                 break;
             case 5:
             case 6:
-                ex_angle.angle = Random::Floatm11() * cur_et_ex->r;
+                ex_angle.angle = ns::frandm11() * cur_et_ex->r;
                 break;
             case 7:
                 if (cur_et_ex->r <= -999990.0) {
                     ang = angle;
                 } else if (cur_et_ex->r >= 990.0) {
                     ang = get_angle_to_player(pos);
-                    math::angle_normalize(ang);
+                    ns::angle_normalize(ang);
                 } else {
                     ang = cur_et_ex->r;
-                    math::angle_normalize(ang);
+                    ns::angle_normalize(ang);
                 }
                 ex_angle.angle = ang;
-                ex_angle.speed += Random::Floatm11() * cur_et_ex->s;
+                ex_angle.speed += ns::frandm11() * cur_et_ex->s;
             }
             ex_angle.timer = 0;
             ex_angle.duration = cur_et_ex->a;
@@ -635,7 +635,7 @@ int Bullet::run_et_ex() {
                 ? cur_et_ex->m
                 : speed;
             bullet_shooter.spd2 = cur_et_ex->n;
-            math::angle_normalize(bullet_shooter.ang_aim);
+            ns::angle_normalize(bullet_shooter.ang_aim);
 
             // next et ex should be 0x4000
             ex_index = cur_ex_id + 1;
@@ -702,7 +702,7 @@ int Bullet::run_et_ex() {
                 angle = (cur_et_ex->r - 999.0) + get_angle_to_player(pos);
             else if (cur_et_ex->r > -990.f)
                 angle = cur_et_ex->r;
-            math::angle_normalize(angle);
+            ns::angle_normalize(angle);
             if (cur_et_ex->s >= -990.0)
                 speed = cur_et_ex->s;
             velocity = cartesian3_from_polar(angle, speed);
@@ -740,7 +740,7 @@ int Bullet::run_et_ex() {
                     get_angle_to_player(pos);
             else if (cur_et_ex->s <= -999990.f)
                 ex_veltime.field2_0x18 = angle;
-            math::angle_normalize(ex_veltime.field2_0x18);
+            ns::angle_normalize(ex_veltime.field2_0x18);
             ex_veltime.timer = 0;
             ex_veltime.duration = cur_et_ex->a;
             ex_veltime.acceleration_vector =

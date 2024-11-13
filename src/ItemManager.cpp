@@ -139,7 +139,7 @@ void collect_point_item(Item *item) {
     GLOBALS.inner.CURRENT_SCORE += val / 10;
   }
   GLOBALS.inner.CURRENT_SCORE =
-      math::min(GLOBALS.inner.CURRENT_SCORE, 999999999);
+      ns::min(GLOBALS.inner.CURRENT_SCORE, 999999999);
   GLOBALS.inner.NUM_POINT_ITEMS_COLLECTED++;
   return;
 }
@@ -196,7 +196,7 @@ void collect_p_item(Item *item) {
     }
   }
   GLOBALS.inner.CURRENT_SCORE =
-      math::min(GLOBALS.inner.CURRENT_SCORE, 999999999);
+      ns::min(GLOBALS.inner.CURRENT_SCORE, 999999999);
   return;
 }
 
@@ -235,9 +235,9 @@ int ItemManager::_on_tick() {
               PLAYER_PTR->sht_file->header.grazebox_u;
           item->state = 3;
           item->velocity = {
-              math::lengthdir_vec(
+              ns::lengthdir_vec(
                   item->velocity_magnitude_towards_player,
-                  math::point_direction(item->position.x, item->position.y,
+                  ns::point_direction(item->position.x, item->position.y,
                                         PLAYER_PTR->inner.pos.x,
                                         PLAYER_PTR->inner.pos.y)),
               0};
@@ -267,7 +267,7 @@ int ItemManager::_on_tick() {
               item->anm_vm_1.color_1.r = 0xff;
               item->anm_vm_1.color_1.g = 0xff;
             } else {
-              item->anm_vm_1.pos = {Random::Floatm11(), Random::Floatm11(), 0};
+              item->anm_vm_1.pos = {ns::frandm11(), ns::frandm11(), 0};
               item->anm_vm_1.color_1.r = 0xff;
               item->anm_vm_1.color_1.g = 0xa0;
             }
@@ -326,8 +326,8 @@ int ItemManager::_on_tick() {
           PLAYER_PTR->sht_file->header.grazebox_u;
       item->state = 3;
       item->velocity = {
-          math::lengthdir_vec(item->velocity_magnitude_towards_player,
-                              math::point_direction(item->position.x,
+          ns::lengthdir_vec(item->velocity_magnitude_towards_player,
+                              ns::point_direction(item->position.x,
                                                     item->position.y,
                                                     PLAYER_PTR->inner.pos.x,
                                                     PLAYER_PTR->inner.pos.y)),
@@ -345,8 +345,8 @@ int ItemManager::_on_tick() {
 
     } else if (item->state == 3) {
       item->velocity = {
-          math::lengthdir_vec(item->velocity_magnitude_towards_player,
-                              math::point_direction(item->position.x,
+          ns::lengthdir_vec(item->velocity_magnitude_towards_player,
+                              ns::point_direction(item->position.x,
                                                     item->position.y,
                                                     PLAYER_PTR->inner.pos.x,
                                                     PLAYER_PTR->inner.pos.y)),
@@ -376,8 +376,8 @@ int ItemManager::_on_tick() {
       //    (GUI_PTR->msg != NULL))
 
       item->velocity = {
-          math::lengthdir_vec(item->velocity_magnitude_towards_player,
-                              math::point_direction(item->position.x,
+          ns::lengthdir_vec(item->velocity_magnitude_towards_player,
+                              ns::point_direction(item->position.x,
                                                     item->position.y,
                                                     PLAYER_PTR->inner.pos.x,
                                                     PLAYER_PTR->inner.pos.y)),
@@ -410,7 +410,7 @@ int ItemManager::_on_tick() {
           if (GLOBALS.inner.CURRENT_POWER < GLOBALS.inner.MAXIMUM_POWER) {
             GLOBALS.inner.CURRENT_POWER += GLOBALS.inner.POWER_PER_LEVEL;
             GLOBALS.inner.CURRENT_SCORE =
-                math::min(999999999, GLOBALS.inner.CURRENT_SCORE + 10);
+                ns::min(999999999, GLOBALS.inner.CURRENT_SCORE + 10);
             if (GLOBALS.inner.MAXIMUM_POWER < GLOBALS.inner.CURRENT_POWER) {
               GLOBALS.inner.CURRENT_POWER = GLOBALS.inner.MAXIMUM_POWER;
               GUI_PTR->midScreenInfo(0, 2);
@@ -425,7 +425,7 @@ int ItemManager::_on_tick() {
             }
           } else {
             GLOBALS.inner.CURRENT_SCORE =
-                math::min(999999999, GLOBALS.inner.CURRENT_SCORE + 4000);
+                ns::min(999999999, GLOBALS.inner.CURRENT_SCORE + 4000);
             POPUP_MANAGER_PTR->generate_small_score_popup(item->position, 20000,
                                                           {128, 128, 128, 255});
             // SoundManager::play_sound_at_position(0xd);
@@ -463,7 +463,7 @@ int ItemManager::_on_tick() {
         case 5:
           if (GLOBALS.inner.CURRENT_LIVES < 8) {
             GLOBALS.inner.CURRENT_LIVES =
-                math::min(8, GLOBALS.inner.CURRENT_LIVES + 1);
+                ns::min(8, GLOBALS.inner.CURRENT_LIVES + 1);
             GUI_PTR->set_life_meter(GLOBALS.inner.CURRENT_LIVES,
                                     GLOBALS.inner.CURRENT_LIFE_PIECES);
             // SoundManager::play_sound_centered(0x11);
@@ -485,7 +485,7 @@ int ItemManager::_on_tick() {
           break;
         case 8:
           if (GLOBALS.inner.MAXIMUM_POWER <= GLOBALS.inner.CURRENT_POWER) {
-            GLOBALS.inner.CURRENT_PIV = math::min(
+            GLOBALS.inner.CURRENT_PIV = ns::min(
                 GLOBALS.inner.MAXIMUM_PIV, GLOBALS.inner.CURRENT_PIV + 10000);
             POPUP_MANAGER_PTR->generate_small_score_popup(item->position, 100,
                                                           {64, 255, 64, 255});
@@ -653,7 +653,7 @@ Item *ItemManager::spawn_item(int type, ns::vec3 const &pos, float angle,
       else
         item->intangibility_frames = abs(total_items_created) % 4;
       item->position = pos;
-      item->velocity = {math::lengthdir_vec(speed, angle), 0};
+      item->velocity = {ns::lengthdir_vec(speed, angle), 0};
       item->time = 0;
       item->velocity_angle = angle;
       item->velocity_magnitude = speed;
@@ -680,7 +680,7 @@ Item *ItemManager::spawn_item(int type, ns::vec3 const &pos, float angle,
       if (item->position.x >= 192.f)
         item->position.x = 192.0;
       // if (type == 15) type = 6; // always false ?
-      item->velocity = {math::lengthdir_vec(speed, angle), 0};
+      item->velocity = {ns::lengthdir_vec(speed, angle), 0};
       item->time = 0;
       item->velocity_magnitude = 0.0;
       item->velocity_magnitude_towards_player = 0.0;
@@ -714,18 +714,18 @@ Item *ItemManager::spawn_item(int type, ns::vec3 const &pos, float angle,
     return item;
   }
 
-  float fVar8 = math::point_direction(PLAYER_PTR->inner.pos.x,
+  float fVar8 = ns::point_direction(PLAYER_PTR->inner.pos.x,
                                       PLAYER_PTR->inner.pos.y, pos.x, pos.y);
 
-  float fVar9 = Random::Floatm11() * 1.047198 + fVar8;
+  float fVar9 = ns::frandm11() * 1.047198 + fVar8;
   int i = 0;
   while (((((fVar9 < -0.3490658) || (0.3490658 < fVar9)) &&
            ((-2.792527 < fVar9 && (fVar9 < 2.792527)))) &&
           (((fVar9 < -1.919862 || (-1.22173 < fVar9)) &&
             ((fVar9 < 1.22173 || (1.919862 < fVar9)))))) ||
          (99 < i)) {
-    fVar9 = Random::Floatm11() * 1.047198 + fVar8;
-    math::angle_normalize(fVar9);
+    fVar9 = ns::frandm11() * 1.047198 + fVar8;
+    ns::angle_normalize(fVar9);
     i++;
   }
 
@@ -739,6 +739,6 @@ void gen_items_from_et_cancel(ns::vec3 const &pos, int do_create_item) {
       0.0 < pos.y + 32.0 && pos.y - 32.0 < 448.0) {
     // BULLET_MANAGER_PTR->__related_to_cancels++;
     ITEM_MANAGER_PTR->spawn_item(
-        9, pos, Random::Floatm11() * 0.1745329 - 1.570796, 2.2, 0, -1);
+        9, pos, ns::frandm11() * 0.1745329 - 1.570796, 2.2, 0, -1);
   }
 }

@@ -46,7 +46,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     if (-999999.0 < r) {
         if (enemy.flags & 0x80000) {
             r = ns::PI<f32> - r;
-            math::angle_normalize(r);
+            ns::angle_normalize(r);
         }
         enemy.abs_pos.angle = r;
     }
@@ -77,7 +77,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     if (-999999.0 < r) {
         if (enemy.flags & 0x80000) {
             r = ns::PI<f32> - r;
-            math::angle_normalize(r);
+            ns::angle_normalize(r);
         }
         enemy.rel_pos.angle = r;
     }
@@ -161,16 +161,16 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     float a;
     if (enemy.final_pos.pos.x < enemy.moveLimitPos.x -
         enemy.moveLimitSize.x / 4.0) {
-        a = Random::Angle() / 3.f;
+        a = ns::frandangle() / 3.f;
     } else if (enemy.final_pos.pos.x > enemy.moveLimitPos.x +
                enemy.moveLimitSize.x / 4.0) {
-        a = Random::Angle() / 3.f + ns::PI<f32>;
-        math::angle_normalize(a);
+        a = ns::frandangle() / 3.f + ns::PI<f32>;
+        ns::angle_normalize(a);
     } else if (PLAYER_PTR->inner.pos.x <= enemy.final_pos.pos.x) {
-        a = Random::Angle() * 0.25f;
+        a = ns::frandangle() * 0.25f;
         if (rand() % 3 != 0) a += ns::PI<f32>;
     } else {
-        a = Random::Angle() * 0.25f;
+        a = ns::frandangle() * 0.25f;
         if (rand() % 3 == 0) a += ns::PI<f32>;
     }
     if (enemy.final_pos.pos.y < enemy.moveLimitPos.y -
@@ -189,16 +189,16 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     float a;
     if (enemy.final_pos.pos.x < enemy.moveLimitPos.x -
         enemy.moveLimitSize.x / 4.0) {
-        a = Random::Angle() / 3.0;
+        a = ns::frandangle() / 3.0;
     } else if (enemy.final_pos.pos.x > enemy.moveLimitPos.x +
                enemy.moveLimitSize.x / 4.0) {
-        a = Random::Angle() / 3.0 + ns::PI<f32>;
-        math::angle_normalize(a);
+        a = ns::frandangle() / 3.0 + ns::PI<f32>;
+        ns::angle_normalize(a);
     } else if (PLAYER_PTR->inner.pos.x <= enemy.final_pos.pos.x) {
-        a = Random::Angle() * 0.25;
+        a = ns::frandangle() * 0.25;
         if (rand() % 3 != 0) a += ns::PI<f32>;
     } else {
-        a = Random::Angle() * 0.25;
+        a = ns::frandangle() * 0.25;
         if (rand() % 3 == 0) a += ns::PI<f32>;
     }
     if (enemy.final_pos.pos.y < enemy.moveLimitPos.y -
@@ -491,7 +491,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(440, moveAngle) _f(a) _args
     if (enemy.flags & 0x80000) {
         a = ns::PI<f32> - a;
-        math::angle_normalize(a);
+        ns::angle_normalize(a);
     }
     enemy.abs_pos.angle = a;
     enemy.abs_pos.flags &= 0xfffffff0;
@@ -515,7 +515,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     _ins(442, moveAngleRel) _f(a) _args
     if (enemy.flags & 0x80000) {
         a = ns::PI<f32> - a;
-        math::angle_normalize(a);
+        ns::angle_normalize(a);
     }
     enemy.rel_pos.angle = a;
     enemy.rel_pos.flags &= 0xfffffff0;

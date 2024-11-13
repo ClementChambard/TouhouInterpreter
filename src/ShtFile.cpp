@@ -41,7 +41,7 @@ ShtFile_t* open_sht(cstr filename) {
         rest = (uint8_t*)&raw->header.SA_power_divisor;
     }
 
-    int option_cnt = math::max(HARDCODED_DATA["option_count"].asInt(), (i32)sht->header.pwr_lvl_cnt);
+    int option_cnt = ns::max(HARDCODED_DATA["option_count"].asInt(), (i32)sht->header.pwr_lvl_cnt);
     for (int i = 0; i < option_cnt; i++)
         for (int j = 0; j <= i; j++) {
             sht->option_pos.push_back({ *reinterpret_cast<float*>(rest + 0), *reinterpret_cast<float*>(rest + 4) });
@@ -190,9 +190,9 @@ int sht_on_tick_1(PlayerBullet_t* bullet)
                     bullet->pos.speed += 0.2;
                     return 0;
                 }
-                float ang_inc = math::point_direction(bullet->pos.pos.x, bullet->pos.pos.y, e->getData()->final_pos.pos.x, e->getData()->final_pos.pos.y) - bullet->pos.angle;
+                float ang_inc = ns::point_direction(bullet->pos.pos.x, bullet->pos.pos.y, e->getData()->final_pos.pos.x, e->getData()->final_pos.pos.y) - bullet->pos.angle;
                 float speed = bullet->pos.speed;
-                math::angle_normalize(ang_inc);
+                ns::angle_normalize(ang_inc);
                 if (ns::abs(ang_inc) < 0.7853982) {
                     if (ns::abs(ang_inc) < 0.2617994) {
                         speed = 16.0;
@@ -207,7 +207,7 @@ int sht_on_tick_1(PlayerBullet_t* bullet)
                     }
                 }
                 bullet->pos.angle = bullet->pos.angle + ang_inc * 0.08;
-                math::angle_normalize(bullet->pos.angle);
+                ns::angle_normalize(bullet->pos.angle);
                 bullet->pos.speed = speed;
                 return 0;
             }
@@ -233,17 +233,17 @@ int sht_on_tick_2(PlayerBullet_t* bullet) {
     // float ang1, ang2;
     // if (!PLAYER_PTR->inner.focusing) {
     //     ang1 = shooter.angle;
-    //     math::angle_normalize(ang1);
+    //     ns::angle_normalize(ang1);
     // } else {
     //     ang1 = -ns::PI_1_2<f32>;
     // }
     //
     // ang2 = bullet->pos.angle - ang1;
-    // math::angle_normalize(ang2);
+    // ns::angle_normalize(ang2);
     //
     // if (ns::abs(ang2) < 0.001) {
     //     ang1 -= bullet->pos.angle;
-    //     math::angle_normalize(ang1);
+    //     ns::angle_normalize(ang1);
     // }
     //
     // bullet->pos.angle = ang1;
@@ -270,7 +270,7 @@ int sht_on_tick_2(PlayerBullet_t* bullet) {
     }
 
     if (bullet->damageSourceId != 0)
-        PLAYER_PTR->inner.damage_sources[bullet->damageSourceId - 1].pos.pos = bullet->pos.pos + ns::vec3(math::lengthdir_vec(bullet->hitbox.x / 2.f, bullet->pos.angle), 0);
+        PLAYER_PTR->inner.damage_sources[bullet->damageSourceId - 1].pos.pos = bullet->pos.pos + ns::vec3(ns::lengthdir_vec(bullet->hitbox.x / 2.f, bullet->pos.angle), 0);
 
     if (bullet->hitting == 0) {
         if (bullet->active != 1) {
@@ -416,8 +416,8 @@ int FUN_00449c80(ns::vec3 const& pos, int param_3, uint32_t param_4, float param
 int (*SHT_ON_HIT[])(PlayerBullet_t*, ns::vec3 const&, float, float, float) = {
     nullptr,
     [](PlayerBullet_t* param_1, ns::vec3 const&, float, float, float) {
-        float ang = (param_1->pos).angle + Random::Floatm11() * 0.3490658;
-        math::angle_normalize(ang);
+        float ang = (param_1->pos).angle + ns::frandm11() * 0.3490658;
+        ns::angle_normalize(ang);
         anm::VM* vm;
         anm::getLoaded(8)->createEffectPos(0x95, ang, param_1->pos.pos, -1, &vm);
         vm->color_1.r = (rand() & 0x7f) + 0x7f;
@@ -455,14 +455,14 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, ns::vec3 const&, float, float, float) = {
             // pfVar4 = PLAYER_PTR->inner.damage_sources[param_1->damageSourceId - 1].hitbox.y;
             // iVar6 = FUN_00403f60((float *)&local_48,&local_18.x,(float *)&param_1->pos,param_2->x, param_2->y,*pfVar4 + *param_3,param_3[1] + *pfVar4,param_4);
             // if (iVar6 != 0) {
-            //     float a = math::point_direction(param_1->pos.pos, local_48);
+            //     float a = ns::point_direction(param_1->pos.pos, local_48);
             //     if (a - param_1->pos.angle > 3.141593) a -= param_1->pos.angle + 6.283185;
             //     else if (3.141593 < param_1->pos.angle - a) a -= param_1->pos.angle - 6.283185;
             //     else a -= param_1->pos.angle;
             //     if (1.570796 <= abs(a)) xx = 8.0;
-            //     else xx = math::point_distance(param_1->pos.pos, local_48) + 8.0;
+            //     else xx = ns::point_distance(param_1->pos.pos, local_48) + 8.0;
             // }
-            /*else*/ xx = math::point_distance(param_1->pos.pos, param_2) - 24.f;
+            /*else*/ xx = ns::point_distance(param_1->pos.pos, param_2) - 24.f;
             if (xx < 0.0)
                 xx = 0.0;
             param_1->hitbox.x = xx;
@@ -470,9 +470,9 @@ int (*SHT_ON_HIT[])(PlayerBullet_t*, ns::vec3 const&, float, float, float) = {
         }
         if (!(param_1->__field_c.current & 1)) {
             anm::VM* vm;
-            PLAYER_PTR->playerAnm->createEffectPos(8, 0, ns::vec3 { math::lengthdir_vec(param_1->hitbox.x, param_1->pos.angle), 0.f } + param_1->pos.pos, -1, &vm);
+            PLAYER_PTR->playerAnm->createEffectPos(8, 0, ns::vec3 { ns::lengthdir_vec(param_1->hitbox.x, param_1->pos.angle), 0.f } + param_1->pos.pos, -1, &vm);
             vm->rotation.z = param_1->pos.angle;
-            vm->pos_i.start({ 0, 0, 0 }, { math::lengthdir_vec(64.f, param_1->pos.angle), 0.f }, 20, 4);
+            vm->pos_i.start({ 0, 0, 0 }, { ns::lengthdir_vec(64.f, param_1->pos.angle), 0.f }, 20, 4);
             // put in effectmanager
         }
         if (abs(param_1->__field_c.current) % 4 == 0) {

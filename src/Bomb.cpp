@@ -216,14 +216,14 @@ void BombReimu::Buffer_t::Orb_t::update() {
             pos.angle += field36;
         } else if (time_alive.had_value(((id + 9) * 10))) {
             pos.flags &= 0xfffffff0;
-            pos.angle = math::point_direction(ns::vec2(), ns::vec2(velocity));
-            pos.speed = math::point_distance(0, 0, velocity.x, velocity.y);
+            pos.angle = ns::point_direction(ns::vec2(), ns::vec2(velocity));
+            pos.speed = ns::point_distance(0, 0, velocity.x, velocity.y);
         } else {
             closest_enemy_id = ENEMY_MANAGER_PTR->closest_enemy_id(ns::vec2(pos.pos));
             if (closest_enemy_id) {
                 enm = ENEMY_MANAGER_PTR->EnmFind(closest_enemy_id);
                 if (!(enm->enemy.flags & 0xc000021)) {
-                    float dir = math::point_direction(ns::vec2(pos.pos), ns::vec2(enm->enemy.final_pos.pos));
+                    float dir = ns::point_direction(ns::vec2(pos.pos), ns::vec2(enm->enemy.final_pos.pos));
                     float angle_diff = dir - pos.angle;
                     if (angle_diff > ns::PI<f32>) {
                         angle_diff -= ns::PI_2<f32>;
@@ -244,7 +244,7 @@ void BombReimu::Buffer_t::Orb_t::update() {
                         }
                     }
                     pos.angle += angle_diff * 0.1;
-                    math::angle_normalize(pos.angle);
+                    ns::angle_normalize(pos.angle);
                     if ((-160.0 > pos.pos.x) || (pos.pos.x > 160.0) ||
                         (32.0 > pos.pos.y) || (pos.pos.y > 416.0))
                         pos.speed *= 0.9;
@@ -422,13 +422,13 @@ int BombMarisa::f_on_tick_() {
     PLAYER_PTR->speed_multiplier = 0.5;
     field_0x14 = PLAYER_PTR->inner.pos;
     if (timer_0x34.was_modulo(3)) {
-        ns::vec3 pos = math::lengthdir_vec3(208, field_0x2c) + field_0x14;
+        ns::vec3 pos = ns::lengthdir_vec3(208, field_0x2c) + field_0x14;
         int ds = create_damage_source(pos, field_0x2c, 0, 50, 512.0, 32.0);
         PLAYER_PTR->inner.damage_sources[ds - 1].flags |= 4;
-        pos = math::lengthdir_vec3(240, field_0x2c) + field_0x14;
+        pos = ns::lengthdir_vec3(240, field_0x2c) + field_0x14;
         ds = create_damage_source(pos, field_0x2c, 0, 15, 512.0, 128.0);
         PLAYER_PTR->inner.damage_sources[ds - 1].flags |= 4;
-        pos = math::lengthdir_vec3(304, field_0x2c) + field_0x14;
+        pos = ns::lengthdir_vec3(304, field_0x2c) + field_0x14;
         int damage = 15 + (GLOBALS.inner.SHOTTYPE == 1) * 25;
         ds = create_damage_source(pos, field_0x2c, 0, damage, 512.0, 256.0);
         PLAYER_PTR->inner.damage_sources[ds - 1].flags |= 4;
@@ -487,7 +487,7 @@ int BombYoumu::f_on_tick_() {
     if ((timer_0x34.current != timer_0x34.previous) &&
        timer2088.current < 1) {
         ns::vec3 pos = {};
-        pos.y = FLOATS_004a0434[field2080 % 0xb] + Random::Floatm11() * 48.0;
+        pos.y = FLOATS_004a0434[field2080 % 0xb] + ns::frandm11() * 48.0;
         floats2[field2080] = pos.y;
         int scr;
         if (field2080 % 2 == 0) {
@@ -516,7 +516,7 @@ int BombYoumu::f_on_tick_() {
         } else {
             ns::vec3 pos = {0, floats2[i], 0};
             ns::vec3 addpos =
-                math::lengthdir_vec3(256, vm->rotation.z + ns::PI_1_2<f32>);
+                ns::lengthdir_vec3(256, vm->rotation.z + ns::PI_1_2<f32>);
             if (floats[i] < 0) {
                 pos -= addpos;
             } else {

@@ -118,14 +118,14 @@ int VM::update() {
   if (bitflags.ins419) {
     ns::vec4 temp_quad[4];
     write_sprite_corners_2d(temp_quad);
-    uv_quad_of_sprite[0].x = math::max(0.f, temp_quad[0].x / 640.f);
-    uv_quad_of_sprite[0].y = math::max(0.f, temp_quad[0].y / 480.f);
-    uv_quad_of_sprite[1].x = math::max(0.f, temp_quad[1].x / 640.f);
-    uv_quad_of_sprite[1].y = math::max(0.f, temp_quad[1].y / 480.f);
-    uv_quad_of_sprite[2].x = math::max(0.f, temp_quad[2].x / 640.f);
-    uv_quad_of_sprite[2].y = math::max(0.f, temp_quad[2].y / 480.f);
-    uv_quad_of_sprite[3].x = math::max(0.f, temp_quad[3].x / 640.f);
-    uv_quad_of_sprite[3].y = math::max(0.f, temp_quad[3].y / 480.f);
+    uv_quad_of_sprite[0].x = ns::max(0.f, temp_quad[0].x / 640.f);
+    uv_quad_of_sprite[0].y = ns::max(0.f, temp_quad[0].y / 480.f);
+    uv_quad_of_sprite[1].x = ns::max(0.f, temp_quad[1].x / 640.f);
+    uv_quad_of_sprite[1].y = ns::max(0.f, temp_quad[1].y / 480.f);
+    uv_quad_of_sprite[2].x = ns::max(0.f, temp_quad[2].x / 640.f);
+    uv_quad_of_sprite[2].y = ns::max(0.f, temp_quad[2].y / 480.f);
+    uv_quad_of_sprite[3].x = ns::max(0.f, temp_quad[3].x / 640.f);
+    uv_quad_of_sprite[3].y = ns::max(0.f, temp_quad[3].y / 480.f);
   }
   step_interpolators();
   write_texture_circle_vertices();
@@ -224,7 +224,7 @@ void VM::getSpriteCorners2D(ns::vec2 *corners) {
   pos4 = ns::vec4(pos4.x + entity_pos.x, -pos4.y + entity_pos.y,
                   pos4.z + entity_pos.z, 0);
   pos4.z = 0;
-  rotate = ns::mat4::mk_rotate_z(-rotation.z);
+  rotate = ns::mat::mk4_rotate_z(-rotation.z);
   corners[0] = {pos4 + rotate * ns::vec4(l * s.w * XS + anchor_offset.x,
                                          t * s.h * YS + anchor_offset.y, 0, 0)};
   corners[1] = {pos4 + rotate * ns::vec4(r * s.w * XS + anchor_offset.x,
@@ -331,9 +331,9 @@ ns::vec3 VM::getRotation() {
   if (__root_vm__or_maybe_not && !bitflags.noParent) {
     ns::vec3 parentRot = __root_vm__or_maybe_not->getRotation();
     __rotation_related += parentRot;
-    // math::angle_normalize(rotation.x);
-    // math::angle_normalize(rotation.y);
-    // math::angle_normalize(rotation.z);
+    // ns::angle_normalize(rotation.x);
+    // ns::angle_normalize(rotation.y);
+    // ns::angle_normalize(rotation.z);
   }
   return __rotation_related;
 }
@@ -417,7 +417,7 @@ int VM::write_sprite_corners__mode_4() {
   // Good enough for now
   auto &vwmx = anm::get_camera()->view_matrix;
   ns::vec3 ViewZ = ns::vec3(vwmx[0][2], vwmx[1][2], vwmx[2][2]);
-  ns::mat4 rot = ns::mat4::mk_rotate(rotation.z, ViewZ);
+  ns::mat4 rot = ns::mat::mk4_rotate(rotation.z, ViewZ);
   ns::vec3 ViewX =
       (ns::vec3)(rot * ns::vec4(vwmx[0][0], vwmx[1][0], vwmx[2][0], 1.f));
   ns::vec3 ViewY =
@@ -482,7 +482,7 @@ int VM::write_sprite_corners__mode_4() {
   //     SUPERVISOR.current_camera->right,
   //               1.f);
   // float half_sprite_size =
-  //     math::point_distance(ns::vec3(sprite_right), ns::vec3(pp)) * 0.5;
+  //     ns::point_distance(ns::vec3(sprite_right), ns::vec3(pp)) * 0.5;
   // float right = 0.f, left = 0.f, top = 0.f, bottom = 0.f;
   // if (bitflags.anchorX == 0) {
   //   right = sprite_size.x * half_sprite_size * scale.x * scale_2.x * 0.5;
@@ -764,17 +764,17 @@ void VM::step_interpolators() {
 void VM::update_variables_growth() {
   if (angular_velocity.x != 0.0) {
     rotation.x += angular_velocity.x * GAME_SPEED;
-    math::angle_normalize(rotation.x);
+    ns::angle_normalize(rotation.x);
     bitflags.rotated = true;
   }
   if (angular_velocity.y != 0.0) {
     rotation.y += angular_velocity.y * GAME_SPEED;
-    math::angle_normalize(rotation.y);
+    ns::angle_normalize(rotation.y);
     bitflags.rotated = true;
   }
   if (angular_velocity.z != 0.0) {
     rotation.z += angular_velocity.z * GAME_SPEED;
-    math::angle_normalize(rotation.z);
+    ns::angle_normalize(rotation.z);
     bitflags.rotated = true;
   }
   if (scale_growth.x != 0.0) {
@@ -957,7 +957,7 @@ void VM::write_texture_circle_vertices() {
         reinterpret_cast<RenderVertex_t *>(special_vertex_buffer_data);
     // actually it uses vertices without w component (since it's untransformed)
     for (int i = 0; i < ptnb; i++) {
-      ns::vec2 rotpos = math::lengthdir_vec(scale1, ang_start + i * ang_inc);
+      ns::vec2 rotpos = ns::lengthdir_vec(scale1, ang_start + i * ang_inc);
       cursor[i * 2 + 0].transformed_pos.x = rotpos.x;
       cursor[i * 2 + 0].transformed_pos.y = depth;
       cursor[i * 2 + 0].transformed_pos.z = rotpos.y;
@@ -965,7 +965,7 @@ void VM::write_texture_circle_vertices() {
       cursor[i * 2 + 0].diffuse_color = col;
       cursor[i * 2 + 0].texture_uv.x = uv_quad_of_sprite[0].x + uv_scroll_pos.x;
       cursor[i * 2 + 0].texture_uv.y = i * v_inc + uv_scroll_pos.y;
-      rotpos = math::lengthdir_vec(scale2, ang_start + i * ang_inc);
+      rotpos = ns::lengthdir_vec(scale2, ang_start + i * ang_inc);
       cursor[i * 2 + 1].transformed_pos.x = rotpos.x;
       cursor[i * 2 + 1].transformed_pos.y = -depth;
       cursor[i * 2 + 1].transformed_pos.z = rotpos.y;
@@ -991,14 +991,14 @@ int VM::wait(float old_game_speed) {
   if (bitflags.ins419) {
     ns::vec4 temp_quad[4];
     write_sprite_corners_2d(temp_quad);
-    uv_quad_of_sprite[0].x = math::max(0.f, temp_quad[0].x / 640.f);
-    uv_quad_of_sprite[0].y = math::max(0.f, temp_quad[0].y / 480.f);
-    uv_quad_of_sprite[1].x = math::max(0.f, temp_quad[1].x / 640.f);
-    uv_quad_of_sprite[1].y = math::max(0.f, temp_quad[1].y / 480.f);
-    uv_quad_of_sprite[2].x = math::max(0.f, temp_quad[2].x / 640.f);
-    uv_quad_of_sprite[2].y = math::max(0.f, temp_quad[2].y / 480.f);
-    uv_quad_of_sprite[3].x = math::max(0.f, temp_quad[3].x / 640.f);
-    uv_quad_of_sprite[3].y = math::max(0.f, temp_quad[3].y / 480.f);
+    uv_quad_of_sprite[0].x = ns::max(0.f, temp_quad[0].x / 640.f);
+    uv_quad_of_sprite[0].y = ns::max(0.f, temp_quad[0].y / 480.f);
+    uv_quad_of_sprite[1].x = ns::max(0.f, temp_quad[1].x / 640.f);
+    uv_quad_of_sprite[1].y = ns::max(0.f, temp_quad[1].y / 480.f);
+    uv_quad_of_sprite[2].x = ns::max(0.f, temp_quad[2].x / 640.f);
+    uv_quad_of_sprite[2].y = ns::max(0.f, temp_quad[2].y / 480.f);
+    uv_quad_of_sprite[3].x = ns::max(0.f, temp_quad[3].x / 640.f);
+    uv_quad_of_sprite[3].y = ns::max(0.f, temp_quad[3].y / 480.f);
   }
   step_interpolators();
   write_texture_circle_vertices();

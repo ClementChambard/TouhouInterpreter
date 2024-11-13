@@ -190,7 +190,7 @@ void TextureViewerWindow(bool *open) {
   int h = sp.texture->get_height();
   static ImVec2 pos = {0.5, 0.5};
   static float zoom = 1;
-  ImageViewerSprite(reinterpret_cast<ImTextureID>(sp.texture->get_opengl_id()),
+  ImageViewerSprite(static_cast<ImTextureID>(sp.texture->get_opengl_id()),
                     ImVec2(w, h), &pos, &zoom, true, {sp.u1, sp.v1},
                     {sp.u2, sp.v2}, 0xFF0000FF);
   ImGui::PopID();
@@ -528,7 +528,7 @@ void anm_view_window(AnmView *v) {
                &v->spriteShowOpen);
   ImGui::PushID(("spriteWin" + std::to_string(v->anmId)).c_str());
   auto sp = vm->getSprite();
-  ImTextureID tex = reinterpret_cast<ImTextureID>(sp.texture->get_opengl_id());
+  ImTextureID tex = static_cast<ImTextureID>(sp.texture->get_opengl_id());
   ImGui::Image(tex, {sp.w, sp.h}, {sp.u1, sp.v1}, {sp.u2, sp.v2});
   ImGui::PopID();
   ImGui::End();

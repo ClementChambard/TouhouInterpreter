@@ -10,7 +10,7 @@ AsciiManager *ASCII_MANAGER_PTR = nullptr;
 
 AsciiManager::AsciiManager() {
   // Should refer to a variable inside SUPERVISOR
-  int resolution = math::clamp(static_cast<int>(anm::RESOLUTION_MULT * 2 - 2), 0, 2);
+  int resolution = ns::clamp(static_cast<int>(anm::RESOLUTION_MULT * 2 - 2), 0, 2);
   ASCII_MANAGER_PTR = this;
   const char *anms[] = {"ascii.anm", "ascii_960.anm", "ascii_1280.anm"};
   if (TOUHOU_VERSION < 14) anms[1] = anms[2] = anms[0];

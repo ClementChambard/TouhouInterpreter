@@ -15,9 +15,9 @@ int32_t Enemy::checkVarI(int32_t id) {
     if (id == -10000)
         return random();
     if (id == -9999)
-        return Random::Float01();
+        return ns::frand();
     if (id == -9998)
-        return Random::Angle();
+        return ns::frandangle();
     if (id == -9997)
         return enemy.final_pos.pos.x;
     if (id == -9996)
@@ -35,14 +35,14 @@ int32_t Enemy::checkVarI(int32_t id) {
     if (id == -9990)
         return PLAYER_PTR->inner.pos.y;
     if (id == -9989)
-        return math::point_direction(enemy.final_pos.pos.x,
+        return ns::point_direction(enemy.final_pos.pos.x,
                                      enemy.final_pos.pos.y,
                                      PLAYER_PTR->inner.pos.x,
                                      PLAYER_PTR->inner.pos.y);
     if (id == -9988)
         return context.currentContext->time;
     if (id == -9987)
-        return Random::Floatm11();
+        return ns::frandm11();
     if (id == -9986)
         return GLOBALS.timeout;
     if (id == -9985)
@@ -108,12 +108,12 @@ int32_t Enemy::checkVarI(int32_t id) {
     if (id == -9957)
         return true;
     if (id == -9956)
-        return math::point_direction(enemy.abs_pos.pos.x,
+        return ns::point_direction(enemy.abs_pos.pos.x,
                                      enemy.abs_pos.pos.y,
                                      PLAYER_PTR->inner.pos.x,
                                      PLAYER_PTR->inner.pos.y);
     if (id == -9955)
-        return math::point_direction(enemy.rel_pos.pos.x,
+        return ns::point_direction(enemy.rel_pos.pos.x,
                                      enemy.rel_pos.pos.y,
                                      PLAYER_PTR->inner.pos.x,
                                      PLAYER_PTR->inner.pos.y);
@@ -138,7 +138,7 @@ int32_t Enemy::checkVarI(int32_t id) {
     if (id == -9945)
         return GLOBALS.inner.SHOTTYPE;
     if (id == -9944)
-        return math::point_distance(enemy.final_pos.pos.x,
+        return ns::point_distance(enemy.final_pos.pos.x,
                                     enemy.final_pos.pos.y,
                                     PLAYER_PTR->inner.pos.x,
                                     PLAYER_PTR->inner.pos.y);
@@ -263,9 +263,9 @@ float Enemy::checkVarF(float id) {
     if (id == -10000.f)
         return random();
     if (id == -9999.f)
-        return Random::Float01();
+        return ns::frand();
     if (id == -9998.f)
-        return Random::Angle();
+        return ns::frandangle();
     if (id == -9997.f)
         return enemy.final_pos.pos.x;
     if (id == -9996.f)
@@ -283,14 +283,14 @@ float Enemy::checkVarF(float id) {
     if (id == -9990.f)
         return PLAYER_PTR->inner.pos.y;
     if (id == -9989.f)
-        return math::point_direction(enemy.final_pos.pos.x,
+        return ns::point_direction(enemy.final_pos.pos.x,
                                      enemy.final_pos.pos.y,
                                      PLAYER_PTR->inner.pos.x,
                                      PLAYER_PTR->inner.pos.y);
     if (id == -9988.f)
         return context.currentContext->time;
     if (id == -9987.f)
-        return Random::Floatm11();
+        return ns::frandm11();
     if (id == -9986.f)
         return GLOBALS.timeout;
     if (id == -9985.f)
@@ -356,12 +356,12 @@ float Enemy::checkVarF(float id) {
     if (id == -9957.f)
         return true;
     if (id == -9956.f)
-        return math::point_direction(enemy.abs_pos.pos.x,
+        return ns::point_direction(enemy.abs_pos.pos.x,
                                      enemy.abs_pos.pos.y,
                                      PLAYER_PTR->inner.pos.x,
                                      PLAYER_PTR->inner.pos.y);
     if (id == -9955.f)
-        return math::point_direction(enemy.rel_pos.pos.x,
+        return ns::point_direction(enemy.rel_pos.pos.x,
                                      enemy.rel_pos.pos.y,
                                      PLAYER_PTR->inner.pos.x,
                                      PLAYER_PTR->inner.pos.y);
@@ -386,7 +386,7 @@ float Enemy::checkVarF(float id) {
     if (id == -9945.f)
         return GLOBALS.inner.SHOTTYPE;
     if (id == -9944.f)
-        return math::point_distance(enemy.final_pos.pos.x,
+        return ns::point_distance(enemy.final_pos.pos.x,
                                     enemy.final_pos.pos.y,
                                     PLAYER_PTR->inner.pos.x,
                                     PLAYER_PTR->inner.pos.y);

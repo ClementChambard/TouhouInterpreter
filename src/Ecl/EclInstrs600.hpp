@@ -179,7 +179,7 @@ inline int Enemy::execInstr(EclRunContext_t* cont, const EclRawInstr_t* instr) {
     enemy.BSs[id].cnt_layers = Rank2(a2, b2);
 
     _ins(623, angleToPlayer) _rf(va) _f(x) _f(y) _args
-    va = math::point_direction(x, y,
+    va = ns::point_direction(x, y,
             PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
 
     _ins(624, etSpeedD) _S(id) _f(a1) _f(b1) _f(c1) _f(d1) _f(a2)

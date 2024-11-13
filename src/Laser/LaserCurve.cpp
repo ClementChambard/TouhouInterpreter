@@ -47,21 +47,21 @@ void LaserCurveTransform_t::posvel_from_prev(ns::vec3 *out_pos,
       *out_angle = angle_next;
       return;
     }
-    ns::vec3 v = {math::lengthdir_vec(-speed_next, angle_next) +
-                      math::lengthdir_vec(-accel, angle_accel),
+    ns::vec3 v = {ns::lengthdir_vec(-speed_next, angle_next) +
+                      ns::lengthdir_vec(-accel, angle_accel),
                   0.f};
     *out_pos = pos_next + v;
-    *out_speed = math::point_distance(0, 0, v.x, v.y);
-    *out_angle = math::point_direction(0, 0, v.x, v.y);
+    *out_speed = ns::point_distance(0, 0, v.x, v.y);
+    *out_angle = ns::point_direction(0, 0, v.x, v.y);
   }
   if (move_type == 2) {
     float f = 1.f; // time - 0.f; // FUN_00497db0(time);
     *out_pos = pos_next -
-               ns::vec3(math::lengthdir_vec(speed_next, angle_next), 0.f) * f;
+               ns::vec3(ns::lengthdir_vec(speed_next, angle_next), 0.f) * f;
     *out_speed = speed_next - accel;
     *out_angle = angle_next - angle_accel;
-    // math::angle_normalize(*out_angle);
-    //*out_pos -= ns::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f) *
+    // ns::angle_normalize(*out_angle);
+    //*out_pos -= ns::vec3(ns::lengthdir_vec(*out_speed, *out_angle), 0.f) *
     //(1.f - f);
   }
 }
@@ -82,12 +82,12 @@ void LaserCurveTransform_t::posvel(ns::vec3 *out_pos, float *out_speed,
       *out_angle = angle;
       return;
     }
-    ns::vec3 v = {math::lengthdir_vec(speed, angle) +
-                      math::lengthdir_vec(accel, angle_accel),
+    ns::vec3 v = {ns::lengthdir_vec(speed, angle) +
+                      ns::lengthdir_vec(accel, angle_accel),
                   0.f};
     *out_pos = v * time_in_trans + pos; // this might be wrong : TODO: check
-    *out_speed = math::point_distance(0, 0, v.x, v.y);
-    *out_angle = math::point_direction(0, 0, v.x, v.y);
+    *out_speed = ns::point_distance(0, 0, v.x, v.y);
+    *out_angle = ns::point_direction(0, 0, v.x, v.y);
   }
   if (move_type == 2) {
     *out_angle = angle;
@@ -96,11 +96,11 @@ void LaserCurveTransform_t::posvel(ns::vec3 *out_pos, float *out_speed,
     for (int i = time_in_trans; i > 0; i--) {
       *out_angle += angle_accel;
       *out_speed += accel;
-      // math::angle_normalize(*out_angle);
-      *out_pos += ns::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f);
+      // ns::angle_normalize(*out_angle);
+      *out_pos += ns::vec3(ns::lengthdir_vec(*out_speed, *out_angle), 0.f);
     }
     //*out_pos += (time_in_trans /* - FUN_00497db0(time_in_trans) */) *
-    //ns::vec3(math::lengthdir_vec(*out_speed, *out_angle), 0.f);
+    //ns::vec3(ns::lengthdir_vec(*out_speed, *out_angle), 0.f);
   }
 }
 
@@ -145,7 +145,7 @@ int LaserCurve::initialize(void *arg) {
   laser_offset = inner.start_pos;
   if (inner.distance != 0.0) {
     laser_offset +=
-        ns::vec3(math::lengthdir_vec(inner.distance, inner.ang_aim), 0.f);
+        ns::vec3(ns::lengthdir_vec(inner.distance, inner.ang_aim), 0.f);
     inner.distance = 0.0;
     inner.start_pos = laser_offset;
   }
@@ -153,7 +153,7 @@ int LaserCurve::initialize(void *arg) {
   laser_st_width = inner.laser_new_arg4;
   angle = inner.ang_aim;
   speed = inner.spd_1;
-  laser_speed = {math::lengthdir_vec(inner.spd_1, inner.ang_aim), 0.f};
+  laser_speed = {ns::lengthdir_vec(inner.spd_1, inner.ang_aim), 0.f};
 
   __timer_2c = 0;
   time_alive = inner.timer40_start;
@@ -181,7 +181,7 @@ int LaserCurve::initialize(void *arg) {
     transforms.angle = angle;
     transforms.speed = speed;
 
-    math::angle_normalize(transforms.angle);
+    ns::angle_normalize(transforms.angle);
     et_ex_index = inner.ex_index;
   } else {
     transforms = *inner.transforms;
@@ -237,7 +237,7 @@ int LaserCurve::on_tick() {
       if (ex_accel.timer < ex_accel.duration) {
         speed = ex_accel.acceleration * GAME_SPEED + speed;
         laser_speed += ex_accel.vec3_a14 * GAME_SPEED;
-        angle = math::point_direction(0, 0, laser_speed.x, laser_speed.y);
+        angle = ns::point_direction(0, 0, laser_speed.x, laser_speed.y);
         ex_accel.timer++;
       } else {
         et_ex_done++;
@@ -247,9 +247,9 @@ int LaserCurve::on_tick() {
     if (flags & 8) {
       if (ex_angleAccel.timer < ex_angleAccel.duration) {
         angle += ex_angleAccel.angular_velocity * GAME_SPEED;
-        math::angle_normalize(angle);
+        ns::angle_normalize(angle);
         speed += ex_angleAccel.tangential_accel * GAME_SPEED;
-        laser_speed = {math::lengthdir_vec(speed, angle), 0.f};
+        laser_speed = {ns::lengthdir_vec(speed, angle), 0.f};
         ex_angleAccel.timer++;
       } else {
         et_ex_done++;
@@ -260,7 +260,7 @@ int LaserCurve::on_tick() {
       if (ex_angle.aim_type == 0) {
         if (ex_angle.timer < ex_angle.duration)
           laser_speed = {
-              math::lengthdir_vec(speed - (ex_angle.timer.current_f * speed) /
+              ns::lengthdir_vec(speed - (ex_angle.timer.current_f * speed) /
                                               (float)ex_angle.duration,
                                   angle),
               0.f};
@@ -271,7 +271,7 @@ int LaserCurve::on_tick() {
           angle += ex_angle.angle;
           speed = ex_angle.speed;
           ex_angle.timer = 0;
-          laser_speed = {math::lengthdir_vec(speed, angle), 0.f};
+          laser_speed = {ns::lengthdir_vec(speed, angle), 0.f};
           if (ex_angle.turns_so_far >= ex_angle.max_turns) {
             flags &= 0xffffffef;
             et_ex_done++;
@@ -338,7 +338,7 @@ int LaserCurve::on_tick() {
   for (int i = 0; i < inner.laser_time_start; i++) {
 
     // uStack_18 = laser_offset +
-    // ns::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
+    // ns::vec3(ns::lengthdir_vec(laser_inf_current_length, angle), 0.f);
     if ((((-192.0 < laser_st_width + nodes[i].pos.x) &&
           (nodes[i].pos.x - laser_st_width < 192.0)) &&
          (0.0 < laser_st_width + nodes[i].pos.y)) &&
@@ -360,8 +360,8 @@ i32 LaserCurve::on_draw() {
     if (i > 0) {
       ang += (nodes[i - 1].angle + ns::PI_1_2<f32> - ang) * 0.5;
     }
-    math::angle_normalize(ang);
-    ns::vec2 offset = math::lengthdir_vec(inner.laser_new_arg4 * 0.5, ang);
+    ns::angle_normalize(ang);
+    ns::vec2 offset = ns::lengthdir_vec(inner.laser_new_arg4 * 0.5, ang);
     anm::RenderVertex_t &v1 = vertices[2 * i];
     anm::RenderVertex_t &v2 = vertices[2 * i + 1];
 
@@ -577,7 +577,7 @@ void LaserCurve::run_ex() {
       bs.__shot_transform_sfx = -1;
       bs.__vec3_8 =
           laser_offset +
-          ns::vec3(math::lengthdir_vec(laser_inf_current_length, angle), 0.f);
+          ns::vec3(ns::lengthdir_vec(laser_inf_current_length, angle), 0.f);
       bs.aim_type = inner.ex[et_ex_index].a;
       bs.__start_transform = inner.ex[et_ex_index].b;
       bs.cnt_count = inner.ex[et_ex_index].c;
@@ -589,7 +589,7 @@ void LaserCurve::run_ex() {
       if (-999990.0 >= bs.ang_aim)
         bs.ang_aim = angle;
       if (999990.0 <= bs.ang_aim)
-        bs.ang_aim = math::point_direction(laser_offset.x, laser_offset.y,
+        bs.ang_aim = ns::point_direction(laser_offset.x, laser_offset.y,
                                            PLAYER_PTR->inner.pos.x,
                                            PLAYER_PTR->inner.pos.y);
       if (bs.spd1 <= -999990.0)

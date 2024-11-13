@@ -1,7 +1,6 @@
 #include "./Camera.hpp"
 
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <math/math.hpp>
 
 namespace anm {
 
@@ -24,8 +23,8 @@ Camera_t* Camera_t::as_2d_matrix() {
                           viewport.Height * 0.5 + viewport.Y);
   float z = (viewport.Height / 2.f) / ns::tan(fov_y / 2);
 
-  view_matrix = ns::mat4::lookat_lh({pos, z}, {pos, 0.f}, ns::vec3::down());
-  projection_matrix = ns::mat4::perspective_lh(
+  view_matrix = ns::mat::lookat_lh({pos, z}, {pos, 0.f}, ns::vec::down3());
+  projection_matrix = ns::mat::perspective_lh(
       fov_y, static_cast<float>(viewport.Width) / viewport.Height, 1.f,
       10000.f);
 
@@ -36,16 +35,16 @@ Camera_t* Camera_t::as_3d_matrix() {
   ns::vec3 pos = position + __rocking_vector_1;
   ns::vec3 look_at = pos + facing_normalized;
 
-  view_matrix = ns::mat4::lookat_lh(pos, look_at, up);
+  view_matrix = ns::mat::lookat_lh(pos, look_at, up);
 
-  projection_matrix = ns::mat4::perspective_lh(
+  projection_matrix = ns::mat::perspective_lh(
       fov_y, static_cast<float>(viewport.Width) / viewport.Height, 30.f,
       8000.f);
   
   right.x = up.z * facing_normalized.y - up.y * facing_normalized.z;
   right.y = up.x * facing_normalized.z - up.z * facing_normalized.x;
   right.z = up.y * facing_normalized.x - up.x * facing_normalized.y;
-  right.normalize();
+  right = ns::normalize(right);
   return this;
 }
 

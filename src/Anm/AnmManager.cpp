@@ -813,14 +813,14 @@ f32 DAT_00524714 = 448.f;
 
 void calc_mat_world(VM *vm) {
   if (!vm->bitflags.f530_16) {
-    vm->__matrix_2 = ns::mat4::mk_scale({vm->scale_2 * vm->scale, 1});
+    vm->__matrix_2 = ns::mat::mk4_scale({vm->scale_2 * vm->scale, 1});
     vm->bitflags.scaled = false;
     if (vm->rotation.x)
-      vm->__matrix_2 = ns::mat4::mk_rotate_x(vm->rotation.x);
+      vm->__matrix_2 = ns::mat::mk4_rotate_x(vm->rotation.x);
     if (vm->rotation.y)
-      vm->__matrix_2 = ns::mat4::mk_rotate_y(vm->rotation.y);
+      vm->__matrix_2 = ns::mat::mk4_rotate_y(vm->rotation.y);
     if (vm->rotation.z)
-      vm->__matrix_2 = ns::mat4::mk_rotate_z(vm->rotation.z);
+      vm->__matrix_2 = ns::mat::mk4_rotate_z(vm->rotation.z);
     vm->bitflags.rotated = false;
   }
   ns::vec3 p = vm->entity_pos + vm->pos + vm->__pos_2;
@@ -831,7 +831,7 @@ void calc_mat_world(VM *vm) {
   if (vm->parent_vm && !vm->bitflags.noParent)
     p +=
         vm->parent_vm->entity_pos + vm->parent_vm->pos + vm->parent_vm->__pos_2;
-  AM->__matrix_186017c = vm->__matrix_2.translate(p);
+  AM->__matrix_186017c = ns::mat::translate(vm->__matrix_2, p);
 }
 
 void draw_vm(VM *vm) {
@@ -845,7 +845,7 @@ void draw_vm(VM *vm) {
   // auto saved_a1 = vm->color_1.a;
   // auto saved_a2 = vm->color_2.a;
   // if (vm->bitflags.fadeNearCamera) {
-  //   f32 d = math::point_distance(
+  //   f32 d = ns::point_distance(
   //     {vm->pos + vm->__pos_2 + vm->entity_pos},
   //     SUPERVISOR.current_camera->position);
   //   f32 factor = (d - vm->cam_fade_begin) /
@@ -923,12 +923,12 @@ void draw_vm(VM *vm) {
           ns::vec3(AM->__matrix_186017c * ns::vec4(AM->some_positions[2],
                                                    AM->some_positions[3],
                                                    AM->some_positions[4], 1));
-      if (math::point_distance(v, AM->current_camera->position) <=
+      if (ns::point_distance(v, AM->current_camera->position) <=
           AM->current_camera->sky.begin_distance) {
         SPRITE_TEMP_BUFFER[i].diffuse_color = col;
       } else {
         f32 coeff = (AM->current_camera->sky.begin_distance -
-                     math::point_distance(v, AM->current_camera->position)) /
+                     ns::point_distance(v, AM->current_camera->position)) /
                     (AM->current_camera->sky.begin_distance -
                      AM->current_camera->sky.end_distance);
         if (coeff < 1.0) {
@@ -1240,7 +1240,7 @@ i32 draw_vm__mode_6(VM *vm) {
     pos_from_cam += ns::vec3(BACK_BUFFER_SIZE.x * 0.5,
                              (BACK_BUFFER_SIZE.y - 448.0) * 0.5, 0);
   }
-  f32 dist_to_cam = math::point_distance({0, 0, 0}, pos_from_cam);
+  f32 dist_to_cam = ns::point_distance({0, 0, 0}, pos_from_cam);
   f32 fog_factor;
   ns::Color col;
   ns::Color col2;
@@ -1356,7 +1356,7 @@ void draw_vm__mode_8_15(VM *vm) {
   }
   if (vm->bitflags.f530_16)
     goto LAB_0046ecb8;
-  vm->__matrix_2 = vm->__matrix_1.pre_scale(ns::vec3(vm->scale * vm->scale_2, 1));
+  vm->__matrix_2 = ns::mat::scale(vm->__matrix_1, ns::vec3(vm->scale * vm->scale_2, 1));
   vm->bitflags.scaled = false;
   if (vm->bitflags.resolutionMode == 1) {
     vm->__matrix_2[0][0] *= RESOLUTION_MULT;
@@ -1368,65 +1368,65 @@ void draw_vm__mode_8_15(VM *vm) {
   switch (vm->bitflags.rotationMode) {
   case 0:
     if (vm->rotation.x != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_x(vm->rotation.x) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_x(vm->rotation.x) * vm->__matrix_2;
     if (vm->rotation.y != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_y(vm->rotation.y) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_y(vm->rotation.y) * vm->__matrix_2;
     if (vm->rotation.z != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_z(vm->rotation.z) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_z(vm->rotation.z) * vm->__matrix_2;
     break;
   case 1:
     if (vm->rotation.x != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_x(vm->rotation.x) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_x(vm->rotation.x) * vm->__matrix_2;
     if (vm->rotation.z != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_z(vm->rotation.z) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_z(vm->rotation.z) * vm->__matrix_2;
     if (vm->rotation.y != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_y(vm->rotation.y) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_y(vm->rotation.y) * vm->__matrix_2;
     break;
   case 2:
     if (vm->rotation.y != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_y(vm->rotation.y) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_y(vm->rotation.y) * vm->__matrix_2;
     if (vm->rotation.x != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_x(vm->rotation.x) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_x(vm->rotation.x) * vm->__matrix_2;
     if (vm->rotation.z != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_z(vm->rotation.z) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_z(vm->rotation.z) * vm->__matrix_2;
     break;
   case 3:
     if (vm->rotation.y != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_y(vm->rotation.y) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_y(vm->rotation.y) * vm->__matrix_2;
     if (vm->rotation.z != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_z(vm->rotation.z) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_z(vm->rotation.z) * vm->__matrix_2;
     if (vm->rotation.x != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_x(vm->rotation.x) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_x(vm->rotation.x) * vm->__matrix_2;
     break;
   case 4:
     if (vm->rotation.z != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_z(vm->rotation.z) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_z(vm->rotation.z) * vm->__matrix_2;
     if (vm->rotation.x != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_x(vm->rotation.x) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_x(vm->rotation.x) * vm->__matrix_2;
     if (vm->rotation.y != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_y(vm->rotation.y) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_y(vm->rotation.y) * vm->__matrix_2;
     break;
   case 5:
     if (vm->rotation.z != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_z(vm->rotation.z) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_z(vm->rotation.z) * vm->__matrix_2;
     if (vm->rotation.y != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_y(vm->rotation.y) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_y(vm->rotation.y) * vm->__matrix_2;
     if (vm->rotation.x != 0.0)
-      vm->__matrix_2 = ns::mat4::mk_rotate_x(vm->rotation.x) * vm->__matrix_2;
+      vm->__matrix_2 = ns::mat::mk4_rotate_x(vm->rotation.x) * vm->__matrix_2;
     break;
   }
   vm->bitflags.rotated = false;
 LAB_0046ecb8:
   ns::mat4 local_90 = vm->__matrix_2;
-  local_90[0][3] = vm->entity_pos.x + vm->pos.x + vm->__pos_2.x -
+  local_90[3][0] = vm->entity_pos.x + vm->pos.x + vm->__pos_2.x -
                    vm->anchor_offset.x * vm->scale.x * vm->scale_2.x;
-  local_90[1][3] = vm->entity_pos.y + vm->pos.y + vm->__pos_2.y -
+  local_90[3][1] = vm->entity_pos.y + vm->pos.y + vm->__pos_2.y -
                    vm->anchor_offset.y * vm->scale.y * vm->scale_2.y;
-  ns::vec3 pp = {local_90[0][3], local_90[1][3], local_90[2][3]};
+  ns::vec3 pp = {local_90[3][0], local_90[3][1], local_90[3][2]};
   vm->transform_coordinate(pp);
-  local_90[0][3] = pp.x;
-  local_90[1][3] = pp.y;
-  local_90[2][3] = pp.z;
+  local_90[3][0] = pp.x;
+  local_90[3][1] = pp.y;
+  local_90[3][2] = pp.z;
   ns::Color col = vm->color_1;
   if (vm->bitflags.colmode != 0) {
     col = vm->color_2;
@@ -1439,7 +1439,7 @@ LAB_0046ecb8:
   //   field_0x18607c0 = col;
   //   SUPERVISOR.d3d_device->SetRenderState(D3DRS_TEXTUREFACTOR, col);
   // }
-  local_90[2][3] = vm->entity_pos.z + vm->pos.z + vm->__pos_2.z;
+  local_90[3][2] = vm->entity_pos.z + vm->pos.z + vm->__pos_2.z;
   // SUPERVISOR.d3d_device->SetTransform(0x100, (D3DMATRIX *)local_90);
   anm_use_texture(vm);
   setup_render_state_for_vm(vm);
@@ -1458,14 +1458,10 @@ LAB_0046ecb8:
   f32 v1 = (vm->getSprite().v1 + vm->uv_scroll_pos.y) * vm->uv_scale.y;
   f32 v2 = (vm->getSprite().v2 + vm->uv_scroll_pos.y) * vm->uv_scale.y;
 
-  ns::Vertex tl = {
-      ns::vec3(local_90 * ns::vec4(left, top, 0, 1)), col, {u1, v1}};
-  ns::Vertex tr = {
-      ns::vec3(local_90 * ns::vec4(right, top, 0, 1)), col, {u2, v1}};
-  ns::Vertex br = {
-      ns::vec3(local_90 * ns::vec4(right, bottom, 0, 1)), col, {u2, v2}};
-  ns::Vertex bl = {
-      ns::vec3(local_90 * ns::vec4(left, bottom, 0, 1)), col, {u1, v2}};
+  ns::Vertex tl = {ns::vec3(local_90 * ns::vec4(left, top, 0, 1)), col, {u1, v2}};
+  ns::Vertex tr = {ns::vec3(local_90 * ns::vec4(right, top, 0, 1)), col, {u2, v2}};
+  ns::Vertex br = {ns::vec3(local_90 * ns::vec4(right, bottom, 0, 1)), col, {u2, v1}};
+  ns::Vertex bl = {ns::vec3(local_90 * ns::vec4(left, bottom, 0, 1)), col, {u1, v1}};
 
   AM->batch->draw_quad(tl, tr, br, bl);
   // TODO: real ?
@@ -1642,8 +1638,8 @@ i32 draw_vm__ins_613(f32 x, f32 y, f32 width, f32 rot_z, ns::Color col1,
   disable_zwrite();
   anm_use_default_texture();
 
-  f32 angle = math::point_direction(pos0, pos1);
-  ns::vec2 dir = math::lengthdir_vec(1.f / 2.f, angle + 90);
+  f32 angle = ns::point_direction(pos0, pos1);
+  ns::vec2 dir = ns::lengthdir_vec(1.f / 2.f, angle + 90);
 
   AM->batch->draw_quad(
       {{pos0 - dir, 0.f}, col1, {}}, {{pos0 + dir, 0.f}, col1, {}},
@@ -1667,8 +1663,8 @@ i32 draw_vm__ins_612(f32 x, f32 y, f32 width, f32 height, f32 rotz,
   ns::vec2 pos1 = {x2 * cz - y1 * sz + x, x2 * sz + y1 * cz + y};
   ns::vec2 pos2 = {x2 * cz - y2 * sz + x, x2 * sz + y2 * cz + y};
   ns::vec2 pos3 = {x1 * cz - y2 * sz + x, x1 * sz + y2 * cz + y};
-  f32 angle = math::point_direction(pos0, pos1);
-  ns::vec2 diag2 = math::lengthdir_vec(1.f / 2.f, angle + 90);
+  f32 angle = ns::point_direction(pos0, pos1);
+  ns::vec2 diag2 = ns::lengthdir_vec(1.f / 2.f, angle + 90);
   ns::vec2 diag1 = ns::vec2(-diag2.x, diag2.y);
 
   disable_zwrite();
@@ -1705,13 +1701,13 @@ i32 draw_vm__mode_17__drawCircle(f32 x, f32 y, f32 angle_0, f32 radius,
   u32 center = AM->batch->add_vertex({{x, y, 0.0f}, color_1, {}});
   f32 angle_inc = ns::PI_2<f32> / vertex_count;
   for (i32 i = 0; i < vertex_count - 1; i++) {
-    ns::vec2 pos = math::lengthdir_vec(radius, angle_0) + ns::vec2(x, y);
+    ns::vec2 pos = ns::lengthdir_vec(radius, angle_0) + ns::vec2(x, y);
     u32 pt = AM->batch->add_vertex({{pos, 0.0}, color_2, {}});
     AM->batch->draw_tri(center, pt, pt + 1);
     angle_0 += angle_inc;
-    math::angle_normalize(angle_0);
+    ns::angle_normalize(angle_0);
   }
-  ns::vec2 pos = math::lengthdir_vec(radius, angle_0) + ns::vec2(x, y);
+  ns::vec2 pos = ns::lengthdir_vec(radius, angle_0) + ns::vec2(x, y);
   u32 pt = AM->batch->add_vertex({{pos, 0.0}, color_2, {}});
   AM->batch->draw_tri(center, pt, center + 1);
   some_d3d_stuff();
@@ -1729,19 +1725,19 @@ i32 draw_vm__mode_18__drawCircleBorder(f32 x, f32 y, f32 angle_0, f32 radius,
   f32 angle_inc = ns::PI_2<f32> / nb_vertex;
 
   for (i32 i = 0; i < nb_vertex - 1; i++) {
-    ns::vec2 pos = math::lengthdir_vec(radius + 0.5, angle_0) + ns::vec2(x, y);
+    ns::vec2 pos = ns::lengthdir_vec(radius + 0.5, angle_0) + ns::vec2(x, y);
     u32 v1 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
-    pos = math::lengthdir_vec(radius - 0.5, angle_0) + ns::vec2(x, y);
+    pos = ns::lengthdir_vec(radius - 0.5, angle_0) + ns::vec2(x, y);
     u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
     AM->batch->draw_quad(v1, v2, v2 + 2, v1 + 2);
 
     angle_0 += angle_inc;
-    math::angle_normalize(angle_0);
+    ns::angle_normalize(angle_0);
   }
 
-  ns::vec2 pos = math::lengthdir_vec(radius + 0.5, angle_0) + ns::vec2(x, y);
+  ns::vec2 pos = ns::lengthdir_vec(radius + 0.5, angle_0) + ns::vec2(x, y);
   u32 v1 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
-  pos = math::lengthdir_vec(radius - 0.5, angle_0) + ns::vec2(x, y);
+  pos = ns::lengthdir_vec(radius - 0.5, angle_0) + ns::vec2(x, y);
   u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
   AM->batch->draw_quad(v1, v2, first + 1, first);
   some_d3d_stuff();
@@ -1759,19 +1755,19 @@ i32 draw_vm__mode_19__drawRing(f32 x, f32 y, f32 angle_0, f32 radius,
   u32 first = AM->batch->get_next_vid();
 
   for (i32 i = 0; i < vertex_count - 1; i++) {
-    ns::vec2 pos = math::lengthdir_vec(radius_2, angle_0) + ns::vec2(x, y);
+    ns::vec2 pos = ns::lengthdir_vec(radius_2, angle_0) + ns::vec2(x, y);
     u32 v1 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
-    pos = math::lengthdir_vec(radius_1, angle_0) + ns::vec2(x, y);
+    pos = ns::lengthdir_vec(radius_1, angle_0) + ns::vec2(x, y);
     u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
     AM->batch->draw_quad(v1, v2, v2 + 2, v1 + 2);
 
     angle_0 += angle_inc;
-    math::angle_normalize(angle_0);
+    ns::angle_normalize(angle_0);
   }
 
-  ns::vec2 pos = math::lengthdir_vec(radius_2, angle_0) + ns::vec2(x, y);
+  ns::vec2 pos = ns::lengthdir_vec(radius_2, angle_0) + ns::vec2(x, y);
   u32 v1 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
-  pos = math::lengthdir_vec(radius_1, angle_0) + ns::vec2(x, y);
+  pos = ns::lengthdir_vec(radius_1, angle_0) + ns::vec2(x, y);
   u32 v2 = AM->batch->add_vertex({{pos, 0.0}, col, {}});
   AM->batch->draw_quad(v1, v2, first + 1, first);
   some_d3d_stuff();
@@ -1791,21 +1787,21 @@ void draw_vm_mode_24_25(VM *vm, void *buff, i32 cnt) {
   }
 
   vm->__matrix_1 = ns::mat4(1.f);
-  vm->__matrix_2 = vm->__matrix_1.pre_scale({vm->scale * vm->scale_2, 1});
+  vm->__matrix_2 = ns::mat::scale(vm->__matrix_1, {vm->scale * vm->scale_2, 1});
   vm->bitflags.scaled = false;
   if (vm->rotation.z != 0.0)
-    vm->__matrix_2 = vm->__matrix_2 * ns::mat4::mk_rotate_z(vm->rotation.z);
+    vm->__matrix_2 = vm->__matrix_2 * ns::mat::mk4_rotate_z(vm->rotation.z);
   if (vm->rotation.y != 0.0)
-    vm->__matrix_2 = vm->__matrix_2 * ns::mat4::mk_rotate_y(vm->rotation.y);
+    vm->__matrix_2 = vm->__matrix_2 * ns::mat::mk4_rotate_y(vm->rotation.y);
   if (vm->rotation.x != 0.0)
-    vm->__matrix_2 = vm->__matrix_2 * ns::mat4::mk_rotate_x(vm->rotation.x);
+    vm->__matrix_2 = vm->__matrix_2 * ns::mat::mk4_rotate_x(vm->rotation.x);
   vm->bitflags.rotated = false;
   ns::mat4 DStack_e0 = vm->__matrix_2;
-  DStack_e0[0][3] = vm->entity_pos.x + vm->pos.x + vm->__pos_2.x; // - vm->anchor_offset.x * vm->scale.x * vm->scale_2.x;
-  DStack_e0[1][3] = vm->entity_pos.y + vm->pos.y + vm->__pos_2.y; // - vm->anchor_offset.y * vm->scale.y * vm->scale_2.y;
-  DStack_e0[2][3] = vm->entity_pos.z + vm->pos.z + vm->__pos_2.z;
+  DStack_e0[3][0] = vm->entity_pos.x + vm->pos.x + vm->__pos_2.x; // - vm->anchor_offset.x * vm->scale.x * vm->scale_2.x;
+  DStack_e0[3][1] = vm->entity_pos.y + vm->pos.y + vm->__pos_2.y; // - vm->anchor_offset.y * vm->scale.y * vm->scale_2.y;
+  DStack_e0[3][2] = vm->entity_pos.z + vm->pos.z + vm->__pos_2.z;
   if (!vm->parent_vm) {
-    DStack_e0[0][3] += AM->origins[vm->bitflags.originMode].x;
+    DStack_e0[3][0] += AM->origins[vm->bitflags.originMode].x;
   }
   anm_use_texture(vm);
   setup_render_state_for_vm(vm);

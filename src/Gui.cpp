@@ -290,14 +290,14 @@ int Gui::f_on_tick() {
               bbvm->set_flag_1_rec();
               bbvm->bitflags.rotated = true;
               bbvm->rotation.z = -ns::PI<f32> - pc * ns::PI_2<f32>;
-              math::angle_normalize(bbvm->rotation.z);
+              ns::angle_normalize(bbvm->rotation.z);
               bbvm->entity_pos =
                   boss->getData()->final_pos.pos * 2.f +
-                  ns::vec3(math::lengthdir_vec(112.f, -ns::PI_1_2<f32> - pc * ns::PI_2<f32>), 0.f);
+                  ns::vec3(ns::lengthdir_vec(112.f, -ns::PI_1_2<f32> - pc * ns::PI_2<f32>), 0.f);
             }
           }
           if (!boss_bars[bbid].vms_hidden_by_player) {
-            if (math::point_distance_sq(PLAYER_PTR->inner.pos,
+            if (ns::point_distance_sq(PLAYER_PTR->inner.pos,
                                         boss->getData()->final_pos.pos) <
                 6400.0) {
               for (int i = 0; i < 7; i++) {
@@ -306,7 +306,7 @@ int Gui::f_on_tick() {
               boss_bars[bbid].vms_hidden_by_player = 1;
             }
           } else {
-            if (math::point_distance_sq(PLAYER_PTR->inner.pos,
+            if (ns::point_distance_sq(PLAYER_PTR->inner.pos,
                                         boss->getData()->final_pos.pos) >=
                 9216.0) {
               for (int i = 0; i < 7; i++) {
@@ -411,7 +411,7 @@ int Gui::f_on_tick() {
     vmBossMarker->entity_pos.x =
         2 * (boss0->getData()->final_pos.pos.x + 32.0 + 192.0);
     vmBossMarker->color_1.a =
-        math::min(ns::abs(boss0->getData()->final_pos.pos.x - PLAYER_PTR->inner.pos.x) *
+        ns::min(ns::abs(boss0->getData()->final_pos.pos.x - PLAYER_PTR->inner.pos.x) *
                      191.f / 64.f +
                  64.f,
              255.f);

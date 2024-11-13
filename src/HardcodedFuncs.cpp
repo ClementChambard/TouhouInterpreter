@@ -185,8 +185,7 @@ int on_tick_anm_1(anm::VM *vm) {
       reinterpret_cast<EFFECT_1_buffer_t *>(vm->special_vertex_buffer_data);
   int cnt_dead = 0;
   for (int i = 0; i < 4; i++) {
-    if (buff->vms[i].update())
-      cnt_dead++;
+    if (buff->vms[i].update()) cnt_dead++;
   }
   if (cnt_dead < 0x4) {
     buff->vms[4].update();
@@ -196,31 +195,21 @@ int on_tick_anm_1(anm::VM *vm) {
   return 1;
 }
 
-static inline ns::vec3 rand_vec_3(float d, float a) {
-  return math::lengthdir_vec3(Random::Float01() * d, Random::Floatm11() * a);
-}
+static inline ns::vec3 rand_vec_3(float d, float a) { return ns::lengthdir_vec3(ns::frand() * d, ns::frandm11() * a); }
 
 int on_tick_anm_2(anm::VM *vm) {
-  using math::lengthdir_vec3;
-  auto buff =
-      reinterpret_cast<EFFECT_2_buffer_t *>(vm->special_vertex_buffer_data);
+  using ns::lengthdir_vec3;
+  auto buff = reinterpret_cast<EFFECT_2_buffer_t *>(vm->special_vertex_buffer_data);
   buff->endpoint = vm->entity_pos;
   buff->startpoint = vm->entity_pos + lengthdir_vec3(300.0, vm->rotation.z);
-  buff->midpoint =
-      vm->entity_pos +
-      lengthdir_vec3(150.0, vm->rotation.z + vm->__script_vars_33_34_35.z);
+  buff->midpoint = vm->entity_pos + lengthdir_vec3(150.0, vm->rotation.z + vm->__script_vars_33_34_35.z);
 
-  if (buff->timer.current != buff->timer.previous &&
-      buff->timer.current < 0x32) {
+  if (buff->timer.current != buff->timer.previous && buff->timer.current < 0x32) {
     int i = buff->timer.current * 4;
-    buff->ids[i + 0] =
-        anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt());
-    buff->ids[i + 1] =
-        anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt());
-    buff->ids[i + 2] =
-        anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt());
-    buff->ids[i + 3] =
-        anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt() + 1);
+    buff->ids[i + 0] = anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt());
+    buff->ids[i + 1] = anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt());
+    buff->ids[i + 2] = anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt());
+    buff->ids[i + 3] = anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt() + 1);
     auto vvm = anm::get_vm(buff->ids[i + 0]);
     vvm->color_1 = vm->color_1;
     vvm->int_script_vars[0] = vm->int_script_vars[0];
@@ -249,19 +238,16 @@ int on_tick_anm_2(anm::VM *vm) {
     if (buff->phase[i] == 0) {
       ns::vec3 rand_start = buff->startpoint + rand_vec_3(150.0, ns::PI<f32>);
       ns::vec3 rand_end = buff->midpoint + rand_vec_3(50.0, ns::PI<f32>);
-      ns::vec3 path_dir = (rand_end - rand_start).normalized();
-      ns::vec3 path2_dir = (buff->endpoint - rand_end).normalized();
-      ns::vec3 bez_end = (path_dir + path2_dir).normalized() *
-                         (Random::Float01() * 200.f + 200.f);
-      ns::vec3 bez_start = path_dir * (Random::Float01() * 100.f + 100.f);
-      vvm->pos_i.start_bezier(rand_start, rand_end, bez_start, bez_end,
-                              vm->int_script_vars[0]);
+      ns::vec3 path_dir = ns::normalize(rand_end - rand_start);
+      ns::vec3 path2_dir = ns::normalize(buff->endpoint - rand_end);
+      ns::vec3 bez_end = ns::normalize(path_dir + path2_dir) * (ns::frand() * 200.f + 200.f);
+      ns::vec3 bez_start = path_dir * (ns::frand() * 100.f + 100.f);
+      vvm->pos_i.start_bezier(rand_start, rand_end, bez_start, bez_end, vm->int_script_vars[0]);
 
       buff->endpos[i] = rand_end;
       buff->endbez[i] = bez_end;
       buff->phase[i] = 1;
-    } else if (vvm->__timer_1c > vm->int_script_vars[0] &&
-               buff->phase[i] == 1) {
+    } else if (vvm->__timer_1c > vm->int_script_vars[0] && buff->phase[i] == 1) {
       vvm->pos_i.start_bezier(buff->endpos[i],
                               vm->entity_pos + rand_vec_3(20.0, ns::PI<f32>),
                               buff->endbez[i], rand_vec_3(20.0, ns::PI<f32>),
@@ -270,8 +256,7 @@ int on_tick_anm_2(anm::VM *vm) {
     }
     nb_alive++;
   }
-  if (nb_alive == 0)
-    return -1;
+  if (nb_alive == 0) return -1;
   buff->timer++;
   return 0;
 }

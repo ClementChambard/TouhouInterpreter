@@ -45,18 +45,18 @@ PosVel operator+(PosVel const& a, PosVel const& b) {
 void PosVel::update_velocities() {
     switch (flags & 0xf) {
         case 0:
-            velocity = {math::lengthdir_vec(speed * GAME_SPEED, angle), 0.f};
+            velocity = {ns::lengthdir_vec(speed * GAME_SPEED, angle), 0.f};
             return;
         case 2:
         case 3:
             circle_radius += circle_radial_speed * GAME_SPEED;
             angle += speed * GAME_SPEED;
-            math::angle_normalize(angle);
+            ns::angle_normalize(angle);
           return;
         case 4:
             some_angle2 += circle_radial_speed * GAME_SPEED;
-            math::angle_normalize(some_angle2);
-            velocity = {math::lengthdir_vec(speed * GAME_SPEED, some_angle1), 0.f};
+            ns::angle_normalize(some_angle2);
+            velocity = {ns::lengthdir_vec(speed * GAME_SPEED, some_angle1), 0.f};
     }
     return;
 }
@@ -71,10 +71,10 @@ void PosVel::update_position() {
     pos+= velocity;
     break;
   case 2:
-    pos = velocity + ns::vec3(math::lengthdir_vec(circle_radius, angle), 0.f);
+    pos = velocity + ns::vec3(ns::lengthdir_vec(circle_radius, angle), 0.f);
     break;
   case 3:
-    saved_pos = math::lengthdir_vec(circle_radius, angle-some_angle1);
+    saved_pos = ns::lengthdir_vec(circle_radius, angle-some_angle1);
     Sin_a1 = ns::sin(some_angle1);
     Cos_a1 = ns::cos(some_angle1);
     pos.x = velocity.x + some_value * saved_pos.x * Cos_a1 -
@@ -86,10 +86,10 @@ void PosVel::update_position() {
   case 4:
     saved_pos = pos;
     __another_pos += velocity;
-    pos = __another_pos + ns::vec3(math::lengthdir_vec(ns::sin(some_angle2) *
+    pos = __another_pos + ns::vec3(ns::lengthdir_vec(ns::sin(some_angle2) *
                                 circle_radius * GAME_SPEED, some_angle1 + ns::PI_1_2<f32>), 0.f);
-    angle += math::point_direction(saved_pos.x, saved_pos.y, pos.x, pos.y);
-    math::angle_normalize(angle);
+    angle += ns::point_direction(saved_pos.x, saved_pos.y, pos.x, pos.y);
+    ns::angle_normalize(angle);
   }
   // ?????????????
   // pos.x = trig_func_?_4049d0(pos.x * 100.f) / 100.f;

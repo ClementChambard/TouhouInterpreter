@@ -149,7 +149,7 @@ void EnemyData::update_distorsion() {
              p.x - anm::origin(1).x - final_pos.pos.x,
              p.y - anm::origin(1).y - final_pos.pos.y,
           };
-          float dst_in_circle = fog.r * fog.r - local_18.length_sq();
+          float dst_in_circle = fog.r * fog.r - ns::length_sq(local_18);
           if (dst_in_circle < 0.0) {
             v.diffuse_color.a = 0;
           } else {
@@ -159,7 +159,7 @@ void EnemyData::update_distorsion() {
             v.diffuse_color.r = 255 - (255 - fog.fog_color.r) * mul;
             v.diffuse_color.g = 255 - (255 - fog.fog_color.g) * mul;
             v.diffuse_color.b = 255 - (255 - fog.fog_color.b) * mul;
-            local_18 = local_18.normalized() * mul * 32.f;
+            local_18 = ns::normalize(local_18) * mul * 32.f;
             local_18.x += ns::sin(osc_x) * mul * 8.0;
             local_18.y += ns::sin(osc_y) * mul * 8.0;
             v.transformed_pos.x += local_18.x;
@@ -167,9 +167,9 @@ void EnemyData::update_distorsion() {
           }
 
           osc_x += 0.09817477;
-          math::angle_normalize(osc_x);
+          ns::angle_normalize(osc_x);
           osc_y -= 0.04908739;
-          math::angle_normalize(osc_y);
+          ns::angle_normalize(osc_y);
           const float GAME_REGION_X = anm::origin(1).x - 384.0 / 2.f;
           if (p.x <= GAME_REGION_X) {
             v.transformed_pos.x = GAME_REGION_X + 1.0;
@@ -192,7 +192,7 @@ void EnemyData::update_distorsion() {
       }
   }
   fog.oscillate_x += GAME_SPEED * 0.1963495;
-  math::angle_normalize(fog.oscillate_x);
+  ns::angle_normalize(fog.oscillate_x);
   fog.oscillate_y += GAME_SPEED * 0.09817477;
-  math::angle_normalize(fog.oscillate_y);
+  ns::angle_normalize(fog.oscillate_y);
 }

@@ -162,7 +162,7 @@ void Spellcard::Stop() {
     return;
   }
   GLOBALS.inner.CURRENT_SCORE += bonus / 10;
-  GLOBALS.inner.CURRENT_SCORE = math::min(GLOBALS.inner.CURRENT_SCORE, 999999999);
+  GLOBALS.inner.CURRENT_SCORE = ns::min(GLOBALS.inner.CURRENT_SCORE, 999999999);
   GUI_PTR->midScreenInfo(bonus, 0);
   // if (REPLAY_MANAGER_PTR->field3_0xc != 1) {
   //   piVar1 =
@@ -287,7 +287,7 @@ void Spellcard::Init(int id, int time, int mode, std::string name) {
   duration = time;
   int bonuses[] = {500000, 1000000, 1500000, 2000000, 1000000};
   bonus = bonuses[GLOBALS.inner.DIFFICULTY] * GLOBALS.inner.STAGE_NUM;
-  bonus_max = math::min(this->bonus, 999999999);
+  bonus_max = ns::min(this->bonus, 999999999);
   anm::getLoaded(8)->createEffect(20);
   if (mode < 0 || mode > 3)
     return;
