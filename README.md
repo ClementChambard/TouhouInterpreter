@@ -1,12 +1,13 @@
 # Touhou file interpreter
 
-This is an interpreter for most touhou games' files.
-Starting from touhou 13, it can open
+This is an interpreter for most touhou games' files (th14 - th17).
+It can open
 - Ecl files (enemy movement and attack patterns)
 - Std files (background scripts)
 - Anm files (animation scripts)
+- Sht files (player shot type)
 
-for a good documentation on these file formats, you can look at <a href="https://exphp.github.io/thpages/"> ExpHP </a> and <a href="https://priw8.github.io/"> primw8 </a>'s website.
+for a good documentation on these file formats, you can look at <a href="https://exphp.github.io/thpages/"> ExpHP </a> and <a href="https://priw8.github.io/"> priw8 </a>'s website.
 
 I will not supply any game file, please buy the games to support the original creator.
 
@@ -14,7 +15,7 @@ To obtain these files from the games, I recommend <a href="https://github.com/th
 
 <img src="./screenshot.png">
 
-I created a json file of hardcoded value for TH17. These values can change depending on the game. You can create your own version if you want to add bullet types for example.
+I included a json file of hardcoded value for th17. These values can change depending on the game. You can create your own version if you want to add bullet types for example.
 You can find more of these in <a href='https://github.com/ClementChambard/TouhouHardcodedData'>this repo</a>.
 
 ## Compile
@@ -32,7 +33,6 @@ I use simlinks with relative paths to link to the engine's folder with this fold
 * Make sure you have the required libraries :
   - OpenGL and glew
   - glm
-  - SDL2
 
 * Clone the repo
  `git clone https://github.com/ClementChambard/TouhouInterpreter.git`
@@ -49,10 +49,11 @@ I use simlinks with relative paths to link to the engine's folder with this fold
 * Copy or link the assets directory in the build directory
  `ln -s ../assets`
 
-*I need to learn more about cmake and find a way to remove these parts*
-
 * The 'hardcoded.json' file should be in the execution path
  `cp ../hardcoded.json .`
+
+* Extract the game files in the execution path (example for th17 using thtk)
+ `thdat -x17 path/to/th17/th17.dat`
 
 * Run the executable
  `./ecl <name of ecl file> [name of entry point]`
@@ -60,4 +61,4 @@ I use simlinks with relative paths to link to the engine's folder with this fold
 
 ## Contact
 
-for further questions, contact me at clement.chambard@universite-paris-saclay.fr
+for further questions, contact me at clement.chambard@gmail.com
