@@ -1,6 +1,5 @@
 #include "./Text.hpp"
 #include "AnmManager.h"
-#include <GL/glew.h>
 #include <SDL2/SDL_pixels.h>
 #include <SDL2/SDL_surface.h>
 #include <codecvt>
@@ -40,12 +39,7 @@ void surf_to_texture(SDL_Surface* surf,
   SDL_Rect dst {0, 0, w, h};
   SDL_BlitSurface(surf, &src, rgba, &dst);
 
-  anm::flush_vbos();
-  anm::reset_texture();
-  tex->use();
-  glTexSubImage2D(GL_TEXTURE_2D, 0, tex_x, tex_y, tex_w, tex_h,
-                  GL_RGBA, GL_UNSIGNED_BYTE, rgba->pixels);
-  tex->unuse();
+  tex->set_data(tex_x, tex_y, tex_w, tex_h, static_cast<bytes>(rgba->pixels));
 
   SDL_FreeSurface(rgba);
 }

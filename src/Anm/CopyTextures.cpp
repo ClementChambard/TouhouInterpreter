@@ -8,65 +8,60 @@
 namespace anm::cptex {
 
 namespace {
-  struct CopyTexturesVbo {
-      CopyTexturesVbo();
-      ~CopyTexturesVbo();
-      CopyTexturesVbo(CopyTexturesVbo&) = delete;
-      CopyTexturesVbo(CopyTexturesVbo&&) = delete;
-      CopyTexturesVbo& operator=(CopyTexturesVbo&) = delete;
-      CopyTexturesVbo& operator=(CopyTexturesVbo&&) = delete;
-      struct Vertex {
-          ns::vec2 dstUV{};
-          ns::vec2 srcUV{};
-      };
-      void setData(Vertex quad[4]);
-      void bind();
-      void unbind();
-      void draw();
-  
-   private:
-      GLuint vboId;
-      GLuint vaoId;
-  };
+    struct CopyTexturesVbo {
+        CopyTexturesVbo();
+        ~CopyTexturesVbo();
+        CopyTexturesVbo(CopyTexturesVbo&) = delete;
+        CopyTexturesVbo(CopyTexturesVbo&&) = delete;
+        CopyTexturesVbo& operator=(CopyTexturesVbo&) = delete;
+        CopyTexturesVbo& operator=(CopyTexturesVbo&&) = delete;
+        struct Vertex {
+            ns::vec2 dstUV{};
+            ns::vec2 srcUV{};
+        };
+        void setData(Vertex quad[4]);
+        void draw();
 
-  CopyTexturesVbo::CopyTexturesVbo() {
-      glGenVertexArrays(1, &vaoId);
-      glBindVertexArray(vaoId);
-      glGenBuffers(1, &vboId);
-      glBindBuffer(GL_ARRAY_BUFFER, vboId);
+     private:
+        GLuint vboId;
+        GLuint vaoId;
+    };
 
-      glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW);
+    CopyTexturesVbo::CopyTexturesVbo() {
+        glCreateVertexArrays(1, &vaoId);
+        glCreateBuffers(1, &vboId);
 
-      glEnableVertexAttribArray(0);
-      glEnableVertexAttribArray(1);
+        glNamedBufferData(vboId, 4 * sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW);
 
-      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                            reinterpret_cast<void*>(offsetof(Vertex, dstUV)));
-      glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                            reinterpret_cast<void*>(offsetof(Vertex, srcUV)));
-  }
+        glEnableVertexArrayAttrib(vaoId, 0);
+        glEnableVertexArrayAttrib(vaoId, 1);
 
-  CopyTexturesVbo::~CopyTexturesVbo() {
-      glBindVertexArray(0);
-      glDeleteBuffers(1, &vboId);
-      glDeleteVertexArrays(1, &vaoId);
-  }
+        glVertexArrayVertexBuffer(vaoId, 0, vboId, 0, sizeof(Vertex));
 
-  void CopyTexturesVbo::setData(Vertex quad[4]) {
-      glBindBuffer(GL_ARRAY_BUFFER, vboId);
-      glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(Vertex), quad);
-  }
+        glVertexArrayAttribBinding(vaoId, 0, 0);
+        glVertexArrayAttribBinding(vaoId, 1, 0);
 
-  void CopyTexturesVbo::draw() {
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  }
+        glVertexArrayAttribFormat(vaoId, 0, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, dstUV));
+        glVertexArrayAttribFormat(vaoId, 1, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, srcUV));
+    }
 
-  void CopyTexturesVbo::bind() {
-      glBindVertexArray(vaoId);
-  }
+    CopyTexturesVbo::~CopyTexturesVbo() {
+        glBindVertexArray(0);
+        glDeleteBuffers(1, &vboId);
+        glDeleteVertexArrays(1, &vaoId);
+    }
 
-  CopyShader* copyTexturesShader;
-  CopyTexturesVbo* copyTexturesVbo;
+    void CopyTexturesVbo::setData(Vertex quad[4]) {
+        glNamedBufferSubData(vboId, 0, 4 * sizeof(Vertex), quad);
+    }
+
+    void CopyTexturesVbo::draw() {
+        glBindVertexArray(vaoId);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
+
+    CopyShader* copyTexturesShader;
+    CopyTexturesVbo* copyTexturesVbo;
 }
 
 void init() {
@@ -79,13 +74,11 @@ void cleanup() {
     delete copyTexturesVbo;
 }
 
-void doCopy(ns::Texture* src, ns::Texture* dst, ns::vec4 const &src_uvs,
-                          ns::vec4 const &dst_uvs) {
+void doCopy(ns::Texture* src, ns::Texture* dst, ns::vec4 const &src_uvs, ns::vec4 const &dst_uvs) {
     auto last_fb = ns::FrameBuffer::BOUND_FRAMEBUFFER;
     auto fb = dst->get_framebuffer();
     if (!fb) return;
     fb->bind();
-    copyTexturesVbo->bind();
     CopyTexturesVbo::Vertex vertices[4] = {
         {{dst_uvs.z, dst_uvs.y}, {src_uvs.z, src_uvs.w}},
         {{dst_uvs.z, dst_uvs.w}, {src_uvs.z, src_uvs.y}},
@@ -94,8 +87,7 @@ void doCopy(ns::Texture* src, ns::Texture* dst, ns::vec4 const &src_uvs,
     };
     copyTexturesVbo->setData(vertices);
     copyTexturesShader->use();
-    anm::reset_texture();
-    glBindTexture(GL_TEXTURE_2D, src->get_opengl_id());
+    anm::use_texture(src);
     copyTexturesVbo->draw();
     ns::FrameBuffer::bind_framebuffer(last_fb);
 }
