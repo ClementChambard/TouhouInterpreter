@@ -5,8 +5,8 @@
 #include <codecvt>
 #include <cstdio>
 #include <locale>
-#include <string>
 #include <logger.h>
+#include <string>
 
 #include <cstdarg>
 #include <cwchar>
@@ -15,28 +15,21 @@
 
 namespace anm::text {
 
-static TTF_Font* fonts[] = {
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
+static TTF_Font *fonts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-static SDL_Surface* fontRenderSurf = nullptr;
+static SDL_Surface *fontRenderSurf = nullptr;
 
-void surf_to_texture(SDL_Surface* surf,
-                     ns::Texture* tex,
-                     int tex_x,
-                     int tex_y,
-                     int tex_w,
-                     int tex_h,
-                     int ox = 0,
-                     int oy = 0) {
-  auto rgba = SDL_CreateRGBSurface(0, tex_w, tex_h, 32,
-                  0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-  if (!surf || !tex || !rgba) return;
+void surf_to_texture(SDL_Surface *surf, ns::Texture *tex, int tex_x, int tex_y,
+                     int tex_w, int tex_h, int ox = 0, int oy = 0) {
+  auto rgba = SDL_CreateRGBSurface(0, tex_w, tex_h, 32, 0x00FF0000, 0x0000FF00,
+                                   0x000000FF, 0xFF000000);
+  if (!surf || !tex || !rgba)
+    return;
 
   int w = fmin(tex_w, surf->w);
   int h = fmin(tex_h, surf->h);
-  SDL_Rect src {ox, oy, w, h};
-  SDL_Rect dst {0, 0, w, h};
+  SDL_Rect src{ox, oy, w, h};
+  SDL_Rect dst{0, 0, w, h};
   SDL_BlitSurface(surf, &src, rgba, &dst);
 
   tex->set_data(tex_x, tex_y, tex_w, tex_h, static_cast<bytes>(rgba->pixels));
@@ -44,13 +37,14 @@ void surf_to_texture(SDL_Surface* surf,
   SDL_FreeSurface(rgba);
 }
 
-void render_text(int font_id, int x, int y,
-                 std::string text, ns::Color col) {
-  if (!fontRenderSurf) return;
-  if (font_id < 0 || font_id > 9 || fonts[font_id] == 0) return;
+void render_text(int font_id, int x, int y, std::string text, ns::Color col) {
+  if (!fontRenderSurf)
+    return;
+  if (font_id < 0 || font_id > 9 || fonts[font_id] == 0)
+    return;
 
   auto surf = TTF_RenderUTF8_Blended(fonts[font_id], text.c_str(),
-                {col.r, col.g, col.b, col.a});
+                                     {col.r, col.g, col.b, col.a});
   if (!surf) {
     NS_ERROR("failed to render text %s with font %d", text.c_str(), font_id);
     return;
@@ -63,73 +57,66 @@ void render_text(int font_id, int x, int y,
 }
 
 // Function to check if a byte is the start of a UTF-8 character
-bool isUTF8StartByte(unsigned char byte) {
-    return (byte & 0xC0) != 0x80;
-}
+bool isUTF8StartByte(unsigned char byte) { return (byte & 0xC0) != 0x80; }
 
 // Function to decode a UTF-8 character
-int decodeUTF8Character(const std::string& str, size_t& index) {
-    int codePoint = 0;
-    unsigned char firstByte = str[index];
-    
-    if ((firstByte & 0x80) == 0) {
-        // Single-byte character (ASCII)
-        codePoint = firstByte;
-        index += 1;
-    } else if ((firstByte & 0xE0) == 0xC0) {
-        // Two-byte character
-        codePoint = firstByte & 0x1F;
-        index += 1;
-        if (index < str.length() && isUTF8StartByte(str[index])) {
-            codePoint = (codePoint << 6) | (str[index] & 0x3F);
-            index += 1;
-        }
-    } else if ((firstByte & 0xF0) == 0xE0) {
-        // Three-byte character
-        codePoint = firstByte & 0x0F;
-        index += 1;
-        if (index < str.length() && isUTF8StartByte(str[index])) {
-            codePoint = (codePoint << 6) | (str[index] & 0x3F);
-            index += 1;
-        }
-        if (index < str.length() && isUTF8StartByte(str[index])) {
-            codePoint = (codePoint << 6) | (str[index] & 0x3F);
-            index += 1;
-        }
-    } else if ((firstByte & 0xF8) == 0xF0) {
-        // Four-byte character
-        codePoint = firstByte & 0x07;
-        index += 1;
-        if (index < str.length() && isUTF8StartByte(str[index])) {
-            codePoint = (codePoint << 6) | (str[index] & 0x3F);
-            index += 1;
-        }
-        if (index < str.length() && isUTF8StartByte(str[index])) {
-            codePoint = (codePoint << 6) | (str[index] & 0x3F);
-            index += 1;
-        }
-        if (index < str.length() && isUTF8StartByte(str[index])) {
-            codePoint = (codePoint << 6) | (str[index] & 0x3F);
-            index += 1;
-        }
-    } else {
-        // Invalid UTF-8 character
-        index += 1;
-    }
+int decodeUTF8Character(const std::string &str, size_t &index) {
+  int codePoint = 0;
+  unsigned char firstByte = str[index];
 
-    return codePoint;
+  if ((firstByte & 0x80) == 0) {
+    // Single-byte character (ASCII)
+    codePoint = firstByte;
+    index += 1;
+  } else if ((firstByte & 0xE0) == 0xC0) {
+    // Two-byte character
+    codePoint = firstByte & 0x1F;
+    index += 1;
+    if (index < str.length() && isUTF8StartByte(str[index])) {
+      codePoint = (codePoint << 6) | (str[index] & 0x3F);
+      index += 1;
+    }
+  } else if ((firstByte & 0xF0) == 0xE0) {
+    // Three-byte character
+    codePoint = firstByte & 0x0F;
+    index += 1;
+    if (index < str.length() && isUTF8StartByte(str[index])) {
+      codePoint = (codePoint << 6) | (str[index] & 0x3F);
+      index += 1;
+    }
+    if (index < str.length() && isUTF8StartByte(str[index])) {
+      codePoint = (codePoint << 6) | (str[index] & 0x3F);
+      index += 1;
+    }
+  } else if ((firstByte & 0xF8) == 0xF0) {
+    // Four-byte character
+    codePoint = firstByte & 0x07;
+    index += 1;
+    if (index < str.length() && isUTF8StartByte(str[index])) {
+      codePoint = (codePoint << 6) | (str[index] & 0x3F);
+      index += 1;
+    }
+    if (index < str.length() && isUTF8StartByte(str[index])) {
+      codePoint = (codePoint << 6) | (str[index] & 0x3F);
+      index += 1;
+    }
+    if (index < str.length() && isUTF8StartByte(str[index])) {
+      codePoint = (codePoint << 6) | (str[index] & 0x3F);
+      index += 1;
+    }
+  } else {
+    // Invalid UTF-8 character
+    index += 1;
+  }
+
+  return codePoint;
 }
 
-void write_text_on_framebuffer(ns::vec4 const& dest_rect,
-                               int32_t xoffset,
+void write_text_on_framebuffer(ns::vec4 const &dest_rect, int32_t xoffset,
                                [[maybe_unused]] int param_3,
-                               ns::Color text_color,
-                               ns::Color shadow_color,
-                               std::string str,
-                               ns::Texture* texture,
-                               int font_id,
-                               int chr_spacing,
-                               int shadow) {
+                               ns::Color text_color, ns::Color shadow_color,
+                               std::string str, ns::Texture *texture,
+                               int font_id, int chr_spacing, int shadow) {
   Uint32 clearColor = SDL_MapRGBA(fontRenderSurf->format, 0, 0, 0, 0);
   SDL_FillRect(fontRenderSurf, NULL, clearColor);
   if (chr_spacing == 0) {
@@ -145,23 +132,24 @@ void write_text_on_framebuffer(ns::vec4 const& dest_rect,
     }
     render_text(font_id, xoffset + 1, 2, str, text_color);
   } else {
-    int x = xoffset - 1;
-    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
-    // Convert the UTF-8 string to a wide string containing Unicode code points
-    std::u32string utf32Str = converter.from_bytes(str);
-    // Loop through each code point and convert it to a one-character UTF-8 string
-    for (char32_t codePoint : utf32Str) {
-        std::u32string codePointStr = {codePoint};
-        std::string utf8CharStr = converter.to_bytes(codePointStr);
-        if (shadow) {
-          render_text(font_id, x + 2, 4, utf8CharStr, shadow_color);
-          render_text(font_id, x + 0, 4, utf8CharStr, shadow_color);
-          render_text(font_id, x + 2, 0, utf8CharStr, shadow_color);
-          render_text(font_id, x + 0, 0, utf8CharStr, shadow_color);
-        }
-        render_text(font_id, x + 1, 2, utf8CharStr, text_color);
-        x += chr_spacing;
-    }
+    NS_DEBUG("Use of deprecated feature (std::wstring_convert)");
+    // int x = xoffset - 1;
+    // std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
+    // // Convert the UTF-8 string to a wide string containing Unicode code
+    // points std::u32string utf32Str = converter.from_bytes(str);
+    // // Loop through each code point and convert it to a one-character UTF-8
+    // string for (char32_t codePoint : utf32Str) {
+    //     std::u32string codePointStr = {codePoint};
+    //     std::string utf8CharStr = converter.to_bytes(codePointStr);
+    //     if (shadow) {
+    //       render_text(font_id, x + 2, 4, utf8CharStr, shadow_color);
+    //       render_text(font_id, x + 0, 4, utf8CharStr, shadow_color);
+    //       render_text(font_id, x + 2, 0, utf8CharStr, shadow_color);
+    //       render_text(font_id, x + 0, 0, utf8CharStr, shadow_color);
+    //     }
+    //     render_text(font_id, x + 1, 2, utf8CharStr, text_color);
+    //     x += chr_spacing;
+    // }
   }
   int oy = 0;
   if (font_id != 6 && font_id != 2) {
@@ -190,7 +178,7 @@ void write_text_on_framebuffer(ns::vec4 const& dest_rect,
   undefined4 local_28;
   RECT src_rect;
   uint local_14;
-  
+
   h = fonts[font_id];
   local_34 = xoffset;
   _memset(IMAGE_BUFFER_FOR_FONT_4b66b0,0,IMAGE_BUFFER_FOR_FONT_SIZE_4b669c);
@@ -227,10 +215,8 @@ void write_text_on_framebuffer(ns::vec4 const& dest_rect,
       local_2c = (ushort *)(str + 1);
       local_34 = ((uint)((int)puVar9 - 1U) >> 1) + 1;
       do {
-        local_28._0_2_ = CONCAT11(*(char *)local_2c,*(char *)((int)local_2c + -1));
-        local_30 = puVar9;
-        if (shadow) {
-          SetTextColor(hdc,shadow_color);
+        local_28._0_2_ = CONCAT11(*(char *)local_2c,*(char *)((int)local_2c +
+  -1)); local_30 = puVar9; if (shadow) { SetTextColor(hdc,shadow_color);
           TextOutA(hdc,(int)(puVar9 + 2),4,(LPCSTR)&local_28,2);
           TextOutA(hdc,(int)local_30,4,(LPCSTR)&local_28,2);
           TextOutA(hdc,(int)(puVar9 + 2),0,(LPCSTR)&local_28,2);
@@ -266,10 +252,11 @@ void write_text_on_framebuffer(ns::vec4 const& dest_rect,
       do {
         if ((*puVar10 < 0x1000) && (local_34 % DAT_004b6694 != 0)) {
           *puVar9 = (ushort)(((uint)(puVar10[iVar1] >> 0xc) +
-                              ((uint)(puVar10[-iVar3] >> 0xc) + (uint)(puVar10[iVar3] >> 0xc) +
-                               (uint)(puVar10[-1] >> 0xc) + (uint)(puVar10[1] >> 0xc)) * 2 +
-                              (uint)(puVar10[iVar7] >> 0xc) + (uint)(puVar10[iVar6] >> 0xc) +
-                             (uint)(puVar10[iVar5] >> 0xc)) / 0xe << 0xc) | *puVar9 & 0xfff;
+                              ((uint)(puVar10[-iVar3] >> 0xc) +
+  (uint)(puVar10[iVar3] >> 0xc) + (uint)(puVar10[-1] >> 0xc) + (uint)(puVar10[1]
+  >> 0xc)) * 2 + (uint)(puVar10[iVar7] >> 0xc) + (uint)(puVar10[iVar6] >> 0xc) +
+                             (uint)(puVar10[iVar5] >> 0xc)) / 0xe << 0xc) |
+  *puVar9 & 0xfff;
         }
         local_34 += 1;
         puVar10 = puVar10 + 1;
@@ -305,117 +292,107 @@ void write_text_on_framebuffer(ns::vec4 const& dest_rect,
   if (fb) fb.Release(); */
 }
 
-static const int DAT_004a11b8[] = {
-    0x11, 0x11, 0x11, 0x11, 0x15, 0x15, 0x15, 0x15, 0xE, 0xC, 0, 0, 0, 0
-};
+static const int DAT_004a11b8[] = {0x11, 0x11, 0x11, 0x11, 0x15, 0x15, 0x15,
+                                   0x15, 0xE,  0xC,  0,    0,    0,    0};
 
-void FUN_00475000(VM *vm,
-                  ns::Color text_color,
-                  ns::Color shadow_color,
-                  int font_id,
-                  int h_x_offset,
-                  int h_sep_w,
-                  std::string const& string) {
-    int iVar7 = DAT_004a11b8[font_id];
-    auto spr = vm->getSprite();
-    ns::vec4 rect = {spr.x, spr.y, spr.x + spr.w, spr.y + spr.h};
-    if (iVar7 < 1) {
-      iVar7 = 17;
-    } else if (iVar7 < 9) {
-      vm->bitflags.visible = true;
-      return;
-    }
-    if (vm->bitflags.f534_12) shadow_color = {0, 0, 0, 0};
-    write_text_on_framebuffer(
-        rect,
-        h_x_offset * 2,
-        iVar7,
-        text_color,
-        shadow_color,
-        string,
-        spr.texture,
-        font_id,
-        h_sep_w * 2,
-        !vm->bitflags.f534_12);
+void FUN_00475000(VM *vm, ns::Color text_color, ns::Color shadow_color,
+                  int font_id, int h_x_offset, int h_sep_w,
+                  std::string const &string) {
+  int iVar7 = DAT_004a11b8[font_id];
+  auto spr = vm->getSprite();
+  ns::vec4 rect = {spr.x, spr.y, spr.x + spr.w, spr.y + spr.h};
+  if (iVar7 < 1) {
+    iVar7 = 17;
+  } else if (iVar7 < 9) {
     vm->bitflags.visible = true;
+    return;
+  }
+  if (vm->bitflags.f534_12)
+    shadow_color = {0, 0, 0, 0};
+  write_text_on_framebuffer(rect, h_x_offset * 2, iVar7, text_color,
+                            shadow_color, string, spr.texture, font_id,
+                            h_sep_w * 2, !vm->bitflags.f534_12);
+  vm->bitflags.visible = true;
 }
 
-void FUN_00475120(VM *vm,
-                  ns::Color text_color,
-                  ns::Color shadow_color,
-                  int font_id,
-                  int h_chr_spacing,
-                  std::string const& string,
+void FUN_00475120(VM *vm, ns::Color text_color, ns::Color shadow_color,
+                  int font_id, int h_chr_spacing, std::string const &string,
                   size_t str_siz) {
-    int iVar7 = DAT_004a11b8[font_id];
-    auto spr = vm->getSprite();
-    int iVar5 = iVar7 * 2;
-    if (iVar7 < 1) {
-      iVar7 = 0x11;
-    } else if (iVar7 < 9) {
-      vm->bitflags.visible = true;
-      return;
-    }
-    if (vm->bitflags.f534_12) shadow_color = c_black;
-    int xoff = static_cast<int>(spr.w) - iVar5 * (((str_siz + 1) / 2) - 1);
-    write_text_on_framebuffer({spr.x, spr.y, spr.x + spr.w, spr.y + spr.h},
-                              xoff,
-                              iVar7,
-                              text_color,
-                              shadow_color,
-                              string,
-                              spr.texture,
-                              font_id,
-                              h_chr_spacing * 2,
-                              !vm->bitflags.f534_12);
+  int iVar7 = DAT_004a11b8[font_id];
+  auto spr = vm->getSprite();
+  int iVar5 = iVar7 * 2;
+  if (iVar7 < 1) {
+    iVar7 = 0x11;
+  } else if (iVar7 < 9) {
     vm->bitflags.visible = true;
+    return;
+  }
+  if (vm->bitflags.f534_12)
+    shadow_color = c_black;
+  int xoff = static_cast<int>(spr.w) - iVar5 * (((str_siz + 1) / 2) - 1);
+  write_text_on_framebuffer({spr.x, spr.y, spr.x + spr.w, spr.y + spr.h}, xoff,
+                            iVar7, text_color, shadow_color, string,
+                            spr.texture, font_id, h_chr_spacing * 2,
+                            !vm->bitflags.f534_12);
+  vm->bitflags.visible = true;
 }
 
 void init() {
-    if (TTF_Init() < 0) {
-        NS_ERROR("Couldn't initialize TTF: %s", SDL_GetError());
-        return;
-    }
-    std::string gothic = "assets/fonts/togoshi-gothic.ttf";
-    std::string mincho = "assets/fonts/togoshi-mincho.ttf";
-    fonts[0] = TTF_OpenFont(gothic.c_str(), 0x20);
-    TTF_SetFontStyle(fonts[0], TTF_STYLE_NORMAL);
-    fonts[1] = TTF_OpenFont(mincho.c_str(), 0x20);
-    TTF_SetFontStyle(fonts[1], TTF_STYLE_BOLD);
-    fonts[2] = TTF_OpenFont(gothic.c_str(), 0xf);
-    TTF_SetFontStyle(fonts[2], TTF_STYLE_BOLD);
-    fonts[3] = TTF_OpenFont(mincho.c_str(), 0xf);
-    TTF_SetFontStyle(fonts[3], TTF_STYLE_BOLD);
-    fonts[4] = TTF_OpenFont(gothic.c_str(), 0x28);
-    TTF_SetFontStyle(fonts[4], TTF_STYLE_NORMAL);
-    fonts[5] = TTF_OpenFont(mincho.c_str(), 0x28);
-    TTF_SetFontStyle(fonts[5], TTF_STYLE_BOLD);
-    fonts[6] = TTF_OpenFont(gothic.c_str(), 0xf);
-    TTF_SetFontStyle(fonts[6], TTF_STYLE_BOLD);
-    fonts[7] = TTF_OpenFont(mincho.c_str(), 0xf);
-    TTF_SetFontStyle(fonts[7], TTF_STYLE_BOLD);
-    fonts[8] = TTF_OpenFont(gothic.c_str(), 0x1c);
-    TTF_SetFontStyle(fonts[8], TTF_STYLE_NORMAL);
-    fonts[9] = TTF_OpenFont(gothic.c_str(), 0x18);
-    TTF_SetFontStyle(fonts[9], TTF_STYLE_NORMAL);
-    fontRenderSurf = SDL_CreateRGBSurface(0, 1024, 512, 32,
-                          0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+  if (TTF_Init() < 0) {
+    NS_ERROR("Couldn't initialize TTF: %s", SDL_GetError());
+    return;
+  }
+  std::string gothic = "assets/fonts/togoshi-gothic.ttf";
+  std::string mincho = "assets/fonts/togoshi-mincho.ttf";
+  fonts[0] = TTF_OpenFont(gothic.c_str(), 0x20);
+  TTF_SetFontStyle(fonts[0], TTF_STYLE_NORMAL);
+  fonts[1] = TTF_OpenFont(mincho.c_str(), 0x20);
+  TTF_SetFontStyle(fonts[1], TTF_STYLE_BOLD);
+  fonts[2] = TTF_OpenFont(gothic.c_str(), 0xf);
+  TTF_SetFontStyle(fonts[2], TTF_STYLE_BOLD);
+  fonts[3] = TTF_OpenFont(mincho.c_str(), 0xf);
+  TTF_SetFontStyle(fonts[3], TTF_STYLE_BOLD);
+  fonts[4] = TTF_OpenFont(gothic.c_str(), 0x28);
+  TTF_SetFontStyle(fonts[4], TTF_STYLE_NORMAL);
+  fonts[5] = TTF_OpenFont(mincho.c_str(), 0x28);
+  TTF_SetFontStyle(fonts[5], TTF_STYLE_BOLD);
+  fonts[6] = TTF_OpenFont(gothic.c_str(), 0xf);
+  TTF_SetFontStyle(fonts[6], TTF_STYLE_BOLD);
+  fonts[7] = TTF_OpenFont(mincho.c_str(), 0xf);
+  TTF_SetFontStyle(fonts[7], TTF_STYLE_BOLD);
+  fonts[8] = TTF_OpenFont(gothic.c_str(), 0x1c);
+  TTF_SetFontStyle(fonts[8], TTF_STYLE_NORMAL);
+  fonts[9] = TTF_OpenFont(gothic.c_str(), 0x18);
+  TTF_SetFontStyle(fonts[9], TTF_STYLE_NORMAL);
+  fontRenderSurf = SDL_CreateRGBSurface(0, 1024, 512, 32, 0x00FF0000,
+                                        0x0000FF00, 0x000000FF, 0xFF000000);
 }
 
 void cleanup() {
-    if (!TTF_WasInit()) return;
-    if (fonts[0]) TTF_CloseFont(fonts[0]);
-    if (fonts[1]) TTF_CloseFont(fonts[1]);
-    if (fonts[2]) TTF_CloseFont(fonts[2]);
-    if (fonts[3]) TTF_CloseFont(fonts[3]);
-    if (fonts[4]) TTF_CloseFont(fonts[4]);
-    if (fonts[5]) TTF_CloseFont(fonts[5]);
-    if (fonts[6]) TTF_CloseFont(fonts[6]);
-    if (fonts[7]) TTF_CloseFont(fonts[7]);
-    if (fonts[8]) TTF_CloseFont(fonts[8]);
-    if (fonts[9]) TTF_CloseFont(fonts[9]);
-    TTF_Quit();
-    SDL_FreeSurface(fontRenderSurf);
+  if (!TTF_WasInit())
+    return;
+  if (fonts[0])
+    TTF_CloseFont(fonts[0]);
+  if (fonts[1])
+    TTF_CloseFont(fonts[1]);
+  if (fonts[2])
+    TTF_CloseFont(fonts[2]);
+  if (fonts[3])
+    TTF_CloseFont(fonts[3]);
+  if (fonts[4])
+    TTF_CloseFont(fonts[4]);
+  if (fonts[5])
+    TTF_CloseFont(fonts[5]);
+  if (fonts[6])
+    TTF_CloseFont(fonts[6]);
+  if (fonts[7])
+    TTF_CloseFont(fonts[7]);
+  if (fonts[8])
+    TTF_CloseFont(fonts[8]);
+  if (fonts[9])
+    TTF_CloseFont(fonts[9]);
+  TTF_Quit();
+  SDL_FreeSurface(fontRenderSurf);
 }
 
 } // namespace anm::text

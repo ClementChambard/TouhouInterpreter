@@ -3,6 +3,7 @@
 
 #include "./BulletEx.h"
 #include "./BulletHandler.h"
+#include "../Hardcoded.h"
 #include "../Anm/AnmVM.h"
 #include <json/json.h>
 #include <Interp.hpp>
@@ -83,7 +84,7 @@ public:
     // undefined2 __unknown;
     ns::Timer_t __timer_e54 = 0;
     ns::Timer_t __timer_e68 = 0;
-    Json::Value sprite_data;
+    HC_BulletType *sprite_data;
     int16_t type = 0;
     int16_t color = 0;
     // undefined4 __unknown;

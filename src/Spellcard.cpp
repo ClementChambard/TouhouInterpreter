@@ -291,18 +291,18 @@ void Spellcard::Init(int id, int time, int mode, std::string name) {
   anm::getLoaded(8)->createEffect(20);
   if (mode < 0 || mode > 3)
     return;
-  auto bossdata = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][mode];
-  if (bossdata["spell_bg_anim_index"] >= 0 &&
-      bossdata["spell_bg_anm_script"] >= 0)
+  auto const &bossdata = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM].boss_data[mode];
+  if (bossdata.spell_bg_anim_index >= 0 &&
+      bossdata.spell_bg_anm_script >= 0)
     spell_bg_anm_id =
-        ENEMY_MANAGER_PTR->loadedAnms[bossdata["spell_bg_anim_index"].asInt()]
-            ->createEffect(bossdata["spell_bg_anm_script"].asInt());
-  if (bossdata["spell_portrait_anim_index"] >= 0 &&
-      bossdata["spell_portrait_anm_script"] >= 0)
-    ENEMY_MANAGER_PTR->loadedAnms[bossdata["spell_portrait_anim_index"].asInt()]
-        ->createEffect(bossdata["spell_portrait_anm_script"].asInt());
+        ENEMY_MANAGER_PTR->loadedAnms[bossdata.spell_bg_anim_index]
+            ->createEffect(bossdata.spell_bg_anm_script);
+  if (bossdata.spell_portrait_anim_index >= 0 &&
+      bossdata.spell_portrait_anm_script >= 0)
+    ENEMY_MANAGER_PTR->loadedAnms[bossdata.spell_portrait_anim_index]
+        ->createEffect(bossdata.spell_portrait_anm_script);
   flags = (flags ^
-           ((bossdata["stage_bg_visible_during_spell"].asInt() << 9) ^ flags)) &
+           ((bossdata.stage_bg_visible_during_spell << 9) ^ flags)) &
           0x200;
   GLOBALS.inner.HYPER_FLAGS &= 0xfffff7ff;
   NS_INFO("Spell card %s -> %d", sj2utf8(name).c_str(), time);

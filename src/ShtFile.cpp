@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "Anm/AnmManager.h"
 #include <math/math.hpp>
+#include "./GlobalData.h"
 
 #include <fstream>
 
@@ -41,7 +42,7 @@ ShtFile_t* open_sht(cstr filename) {
         rest = (uint8_t*)&raw->header.SA_power_divisor;
     }
 
-    int option_cnt = ns::max(HARDCODED_DATA["option_count"].asInt(), (i32)sht->header.pwr_lvl_cnt);
+    int option_cnt = ns::max(i32(PLAYER_DATA.option_count), (i32)sht->header.pwr_lvl_cnt);
     for (int i = 0; i < option_cnt; i++)
         for (int j = 0; j <= i; j++) {
             sht->option_pos.push_back({ *reinterpret_cast<float*>(rest + 0), *reinterpret_cast<float*>(rest + 4) });

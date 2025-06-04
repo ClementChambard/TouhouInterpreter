@@ -1,6 +1,7 @@
 #include "./Player.h"
 #include "./Anm/AnmManager.h"
 #include "./Ecl/EnemyManager.h"
+#include "./GlobalData.h"
 #include "./GoastManager.h"
 #include "./Gui.hpp"
 #include "./Hardcoded.h"
@@ -22,9 +23,9 @@ Player *PLAYER_PTR = nullptr;
 Player::Player() {
   PLAYER_PTR = this;
   // load player anm file
-  playerAnm = anm::loadFile(9, PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
-                                      [GLOBALS.inner.SHOTTYPE]["anm"]
-                                          .asCString());
+  playerAnm = anm::loadFile(9, PLAYER_DATA.players[GLOBALS.inner.CHARACTER]
+                                   .shot_types[GLOBALS.inner.SHOTTYPE]
+                                   .anm.c_str());
   // if (!playerAnm) ; // log info
 
   // load sht file
@@ -32,9 +33,9 @@ Player::Player() {
     sht_file = ALREADY_LOADED_SHTFILE;
     ALREADY_LOADED_SHTFILE = nullptr;
   } else {
-    sht_file = open_sht(PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
-                               [GLOBALS.inner.SHOTTYPE]["sht"]
-                                   .asCString());
+    sht_file = open_sht(PLAYER_DATA.players[GLOBALS.inner.CHARACTER]
+                            .shot_types[GLOBALS.inner.SHOTTYPE]
+                            .sht.c_str());
   }
 
   // update funcs
@@ -62,11 +63,11 @@ Player::Player() {
   GLOBALS.inner.POWER_PER_LEVEL = sht_file->header.SA_power_divisor;
 
   sht_file->header.hitbox_u =
-      PLAYERS[GLOBALS.inner.CHARACTER]["hitbox"].asFloat();
+      PLAYER_DATA.players[GLOBALS.inner.CHARACTER].hitbox;
   sht_file->header.itembox_u =
-      PLAYERS[GLOBALS.inner.CHARACTER]["itembox"].asFloat();
+      PLAYER_DATA.players[GLOBALS.inner.CHARACTER].itembox;
   sht_file->header.grazebox_u =
-      PLAYERS[GLOBALS.inner.CHARACTER]["grazebox"].asFloat();
+      PLAYER_DATA.players[GLOBALS.inner.CHARACTER].grazebox;
 
   hurtbox_halfsize = {sht_file->header.hitbox_u * 0.5f,
                       sht_file->header.hitbox_u * 0.5f, 5.f};
@@ -74,7 +75,7 @@ Player::Player() {
                                          sht_file->header.itembox_u * 0.5f,
                                          5.f};
   item_attract_box_focused_halfsize.x = item_attract_box_focused_halfsize.y =
-      PLAYERS[GLOBALS.inner.CHARACTER]["attractbox"].asFloat() * 0.5;
+      PLAYER_DATA.players[GLOBALS.inner.CHARACTER].attractbox * 0.5;
   item_attract_box_focused_halfsize.z = 5.0;
 
   hurtbox.min_pos = inner.pos - hurtbox_halfsize;
@@ -147,7 +148,7 @@ void FUN_00449630(PlayerInner_t *inner) {
           anm::delete_vm(vm);
         }
         inner->options[i].anmId2 = PLAYER_PTR->playerAnm->spawnVMExt(
-            PLAYERS[GLOBALS.inner.CHARACTER]["option_max"].asInt(), 0,
+            PLAYER_DATA.players[GLOBALS.inner.CHARACTER].option_max, 0,
             {0, -32, 0}, 2);
       }
     }
@@ -166,45 +167,43 @@ void FUN_00449630(PlayerInner_t *inner) {
       inner->options[i].scaled_prefered_pos_rel_to_player[0].x =
           static_cast<int>(
               PLAYER_PTR->sht_file
-                  ->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
-                                      [GLOBALS.inner.SHOTTYPE]
-                                      ["option_pos_lookup"][pow - 1]
-                                          .asInt() +
+                  ->option_pos[PLAYER_DATA.players[GLOBALS.inner.CHARACTER]
+                                   .shot_types[GLOBALS.inner.SHOTTYPE]
+                                   .option_pos_lookup[pow - 1] +
                                i]
                   .x *
               128.f);
       inner->options[i].scaled_prefered_pos_rel_to_player[0].y =
           static_cast<int>(
               PLAYER_PTR->sht_file
-                  ->option_pos[PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
-                                      [GLOBALS.inner.SHOTTYPE]
-                                      ["option_pos_lookup"][pow - 1]
-                                          .asInt() +
+                  ->option_pos[PLAYER_DATA.players[GLOBALS.inner.CHARACTER]
+                                   .shot_types[GLOBALS.inner.SHOTTYPE]
+                                   .option_pos_lookup[pow - 1] +
                                i]
                   .y *
               128.f);
-      inner->options[i].scaled_prefered_pos_rel_to_player[1].x =
-          static_cast<int>(
-              PLAYER_PTR->sht_file
-                  ->option_pos
-                      [PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
-                              [GLOBALS.inner.SHOTTYPE]["option_pos_lookup"]
-                              [pow - 1 + HARDCODED_DATA["option_count"].asInt()]
-                                  .asInt() +
-                       i]
-                  .x *
-              128.f);
-      inner->options[i].scaled_prefered_pos_rel_to_player[1].y =
-          static_cast<int>(
-              PLAYER_PTR->sht_file
-                  ->option_pos
-                      [PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"]
-                              [GLOBALS.inner.SHOTTYPE]["option_pos_lookup"]
-                              [pow - 1 + HARDCODED_DATA["option_count"].asInt()]
-                                  .asInt() +
-                       i]
-                  .y *
-              128.f);
+      inner->options[i]
+          .scaled_prefered_pos_rel_to_player[1]
+          .x = static_cast<int>(
+          PLAYER_PTR->sht_file
+              ->option_pos[PLAYER_DATA.players[GLOBALS.inner.CHARACTER]
+                               .shot_types[GLOBALS.inner.SHOTTYPE]
+                               .option_pos_lookup[pow - 1 +
+                                                  PLAYER_DATA.option_count] +
+                           i]
+              .x *
+          128.f);
+      inner->options[i]
+          .scaled_prefered_pos_rel_to_player[1]
+          .y = static_cast<int>(
+          PLAYER_PTR->sht_file
+              ->option_pos[PLAYER_DATA.players[GLOBALS.inner.CHARACTER]
+                               .shot_types[GLOBALS.inner.SHOTTYPE]
+                               .option_pos_lookup[pow - 1 +
+                                                  PLAYER_DATA.option_count] +
+                           i]
+              .y *
+          128.f);
       inner->options[i].scaled_cur_pos.x =
           inner->integer_pos.x +
           inner->options[i]
@@ -216,8 +215,8 @@ void FUN_00449630(PlayerInner_t *inner) {
               .scaled_prefered_pos_rel_to_player[inner->focusing]
               .y;
       inner->options[i].anmId1 = PLAYER_PTR->playerAnm->spawnVMExt(
-          PLAYERS[GLOBALS.inner.CHARACTER]["option"].asInt(), 0, {0, -32, 0}, 0,
-          14);
+          PLAYER_DATA.players[GLOBALS.inner.CHARACTER].option, 0, {0, -32, 0},
+          0, 14);
       inner->options[i].flags = 2;
 
       if (TOUHOU_VERSION == 17 && GLOBALS.inner.CHARACTER == 2) {
@@ -1469,7 +1468,7 @@ int applyDamage(ns::vec3 const &enemyPos, ns::vec2 *enemy_hb, float hb_size,
         // + ds.field_0x8c * 4 + -4);
         //*(undefined4 *)(local_34 + ds.field_0x8c * 4 + 0xc) = 1;
         //*(uint32_t *)(local_44 + ds.field_0x8c * 4 + 0xc) =
-        //PLAYER_PTR->inner.damage_sources[i].damage;
+        // PLAYER_PTR->inner.damage_sources[i].damage;
       }
 
       if (enemy_id != 0) {
@@ -1497,7 +1496,7 @@ int applyDamage(ns::vec3 const &enemyPos, ns::vec2 *enemy_hb, float hb_size,
 
       if (PLAYER_PTR->inner.damage_sources[i].field_0x8c - 1 < 4) {
         //*(uint32_t *)(local_44 +
-        //PLAYER_PTR->inner.damage_sources[i].field14_0x8c * 4 + -4) = uVar3;
+        // PLAYER_PTR->inner.damage_sources[i].field14_0x8c * 4 + -4) = uVar3;
       }
 
       local_4c += uVar3;

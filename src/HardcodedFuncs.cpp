@@ -206,10 +206,10 @@ int on_tick_anm_2(anm::VM *vm) {
 
   if (buff->timer.current != buff->timer.previous && buff->timer.current < 0x32) {
     int i = buff->timer.current * 4;
-    buff->ids[i + 0] = anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt());
-    buff->ids[i + 1] = anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt());
-    buff->ids[i + 2] = anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt());
-    buff->ids[i + 3] = anm::getLoaded(8)->createEffect(EFFECT["eff2_startanm"].asInt() + 1);
+    buff->ids[i + 0] = anm::getLoaded(8)->createEffect(EFFECT_DATA.eff2_startanm);
+    buff->ids[i + 1] = anm::getLoaded(8)->createEffect(EFFECT_DATA.eff2_startanm);
+    buff->ids[i + 2] = anm::getLoaded(8)->createEffect(EFFECT_DATA.eff2_startanm);
+    buff->ids[i + 3] = anm::getLoaded(8)->createEffect(EFFECT_DATA.eff2_startanm + 1);
     auto vvm = anm::get_vm(buff->ids[i + 0]);
     vvm->color_1 = vm->color_1;
     vvm->int_script_vars[0] = vm->int_script_vars[0];

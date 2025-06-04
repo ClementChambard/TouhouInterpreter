@@ -114,13 +114,11 @@ int LaserCurve::initialize(void *arg) {
 
   vm1.reset();
   if (bullet_type == 1) {
-    LASER_MANAGER_PTR->bullet_anm->load_external_vm(
-        &vm1, LASER_DATA["laser_curve"]["anm_type_0"].asInt());
+    LASER_MANAGER_PTR->bullet_anm->load_external_vm(&vm1, LASER_DATA.laser_curve.anm_type_0);
   } else {
     vm1.index_of_sprite_mapping_func = LASER_CURVE_ON_SPRITE_SET_FUNC;
     vm1.associated_game_entity = this;
-    LASER_MANAGER_PTR->bullet_anm->load_external_vm(
-        &vm1, bullet_type + LASER_DATA["laser_curve"]["anm_first"].asInt());
+    LASER_MANAGER_PTR->bullet_anm->load_external_vm(&vm1, bullet_type + LASER_DATA.laser_curve.anm_first);
   }
   vm1.interrupt(2);
   vm1.update();
@@ -130,8 +128,7 @@ int LaserCurve::initialize(void *arg) {
   vm1.bitflags.anchorX = 0b00;
   vm1.bitflags.originMode = 1;
 
-  LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(
-      &vm2, inner.color + LASER_DATA["spawn_anm_first"].asInt());
+  LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm2, inner.color + LASER_DATA.spawn_anm_first);
   vm2.parent_vm = nullptr;
   vm2.__root_vm__or_maybe_not = nullptr;
   vm2.update();
@@ -532,9 +529,7 @@ void LaserCurve::run_ex() {
     }
 
     if (inner.ex[et_ex_index].type == 0x200) {
-      LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(
-          &vm1, BULLET_TYPE_TABLE[inner.ex[et_ex_index].a]["script"].asInt() +
-                    inner.ex[et_ex_index].b);
+      LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm1, BULLET_TYPE_TABLE[inner.ex[et_ex_index].a].script + inner.ex[et_ex_index].b);
       vm1.parent_vm = nullptr;
       vm1.__root_vm__or_maybe_not = nullptr;
       vm1.update();

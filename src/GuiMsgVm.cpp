@@ -129,7 +129,7 @@ void GuiMsgVm_t::OpenSpeechBubble(int bubble,
                                   ns::vec3 const& pos, float length) {
     anm::delete_vm(anm_id_speechBubble);
     anm_id_speechBubble =
-        GUI_PTR->front_anm->createEffectPos(bubble + GUI_ANMS["speech_bubble"].asInt(), 0, pos);
+        GUI_PTR->front_anm->createEffectPos(bubble + GUI_ANMS.speech_bubble, 0, pos);
     setBubbleLength(length);
     speechBubbleType = bubble;
 }
@@ -158,7 +158,7 @@ int GuiMsgVm_t::tick() {
         if (arg0 == 0) {
           anm_id_player_face =
             PLAYER_PTR->playerAnm->createEffect(
-                PLAYERS[GLOBALS.inner.CHARACTER]["msg_face_anim_script"].asInt());
+                PLAYER_DATA.players[GLOBALS.inner.CHARACTER].msg_face_anim_script);
         } else {
           anm_id_player_face =
             ENEMY_MANAGER_PTR->loadedAnms[5]->createEffect(0xb);
@@ -167,8 +167,8 @@ int GuiMsgVm_t::tick() {
       case 2:
         arg0 = *reinterpret_cast<int32_t*>(current_instr->data);
         anm_id_enemy_face[arg0] =
-            ENEMY_MANAGER_PTR->loadedAnms[CURRENT_STAGE_DATA["boss_data"][arg0]["msg_face_anim_index"].asInt()]
-            ->createEffect(CURRENT_STAGE_DATA["boss_data"][arg0]["msg_face_anm_script"].asInt());
+            ENEMY_MANAGER_PTR->loadedAnms[CURRENT_STAGE_DATA.boss_data[arg0].msg_face_anim_index]
+            ->createEffect(CURRENT_STAGE_DATA.boss_data[arg0].msg_face_anm_script);
         field_0x1c0 = 0;
         break;
       case 4:
@@ -435,18 +435,18 @@ int GuiMsgVm_t::tick() {
       case 20:
         arg0 = *reinterpret_cast<int32_t*>(current_instr->data);
         anm_id_intro = ENEMY_MANAGER_PTR->loadedAnms
-            [CURRENT_STAGE_DATA["boss_data"][arg0]["msg_ename_anim_index"].asInt()]
-            ->createEffect(CURRENT_STAGE_DATA["boss_data"][arg0]["msg_ename_anm_script"].asInt());
+            [CURRENT_STAGE_DATA.boss_data[arg0].msg_ename_anim_index]
+            ->createEffect(CURRENT_STAGE_DATA.boss_data[arg0].msg_ename_anm_script);
         vm = anm::get_vm(GUI_PTR->boss_name_anmid);
         if (!vm) {
             int i = 0;
             if (GLOBALS.inner.CURRENT_CHAPTER < 41) {
-                i = CURRENT_STAGE_DATA["boss_data"][1]["front_ename_anm_script"].asInt();
+                i = CURRENT_STAGE_DATA.boss_data[1].front_ename_anm_script;
             } else {
-                i = CURRENT_STAGE_DATA["boss_data"][0]["front_ename_anm_script"].asInt();
+                i = CURRENT_STAGE_DATA.boss_data[0].front_ename_anm_script;
             }
             if ((-1 < i) && (-1 < i + 167)) {
-                GUI_PTR->boss_name_anmid = GUI_PTR->front_anm->createEffect(i + GUI_ANMS["boss_name_first"].asInt());
+                GUI_PTR->boss_name_anmid = GUI_PTR->front_anm->createEffect(i + GUI_ANMS.boss_name_first);
             }
         }
         break;
@@ -454,7 +454,7 @@ int GuiMsgVm_t::tick() {
         // GameThread::end_stage();
         // TODO: temp: put in function
         if ((GLOBALS.FLAGS & 0x30) != 0x20) {
-          GUI_PTR->stage_clear_anmid = GUI_PTR->front_anm->createEffect(GUI_ANMS["stage_clear"].asInt());
+          GUI_PTR->stage_clear_anmid = GUI_PTR->front_anm->createEffect(GUI_ANMS.stage_clear);
           GUI_PTR->stage_clear_bonus = GLOBALS.inner.STAGE_NUM * 1000000;
           GLOBALS.inner.CURRENT_SCORE += GLOBALS.inner.STAGE_NUM * 1000000 / 10;
           if (999999999 < GLOBALS.inner.CURRENT_SCORE) {
@@ -509,9 +509,9 @@ int GuiMsgVm_t::tick() {
         break;
       case 31:
         anm_id_enemy_face[1] = ENEMY_MANAGER_PTR->loadedAnms
-            [CURRENT_STAGE_DATA["boss_data"][1]["msg_face_anim_index"].asInt()]
+            [CURRENT_STAGE_DATA.boss_data[1].msg_face_anim_index]
             ->createEffect(
-                CURRENT_STAGE_DATA["boss_data"][1]["msg_face_anm_script"].asInt());
+                CURRENT_STAGE_DATA.boss_data[1].msg_face_anm_script);
         field_0x1c0 = 0;
         break;
       case 32:
@@ -560,7 +560,7 @@ int GuiMsgVm_t::tick() {
   LAB_0042ee3b:
   vm = anm::get_vm(anm_id_speechBubble);
   if (!vm) return 0;
-  vm = vm->search_children(speechBubbleType + GUI_ANMS["speech_bubble_child"].asInt(), 0);
+  vm = vm->search_children(speechBubbleType + GUI_ANMS.speech_bubble_child, 0);
   if (!vm) return 0;
   ns::vec3 p = vm->pos + vm->entity_pos + vm->__pos_2;
   vm->transform_coordinate(p);

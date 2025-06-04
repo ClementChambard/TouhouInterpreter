@@ -48,7 +48,7 @@ Stage::Stage() {
   //   }
   // }
   ns::fs::File f;
-  ns::fs::open(STAGE_DATA_TABLE[stage_num]["std_filename"].asCString(), ns::fs::Mode::READ, true, &f);
+  ns::fs::open(STAGE_DATA_TABLE[stage_num].std_filename.c_str(), ns::fs::Mode::READ, true, &f);
   usize size;
   ns::fs::fsize(&f, &size);
   std_file = ns::alloc_raw(size);

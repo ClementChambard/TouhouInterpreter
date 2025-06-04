@@ -29,13 +29,12 @@ Gui::Gui() {
   UPDATE_FUNC_REGISTRY.register_on_draw(on_draw_52, 52);
   front_anm = anm::loadFile(5, "front.anm");
   cstr stage_logo_filename =
-      STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["stage_logo_anm_filename"]
-          .asCString();
+      STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM].stage_logo_anm_filename.c_str();
   stage_logo_anmloaded = anm::loadFile(6, stage_logo_filename);
 
   if (DAT_0052a320 == NULL) {
-    auto fname = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["msg_filenames"]
-      [PLAYERS[GLOBALS.inner.CHARACTER]["shottypes"][GLOBALS.inner.SHOTTYPE]["msg"].asInt()].asString();
+    auto &fname = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM].msg_filenames
+      [PLAYER_DATA.players[GLOBALS.inner.CHARACTER].shot_types[GLOBALS.inner.SHOTTYPE].msg];
     ns::fs::File f;
     ns::fs::open(fname.c_str(), ns::fs::Mode::READ, true, &f);
     ns::fs::fsize(&f, &msg_file_data_size);
@@ -243,7 +242,7 @@ int Gui::f_on_tick() {
             boss_bars[bbid].visual_bar_pc = boss_bars[bbid].actual_bar_pc;
           }
           if (!boss_bars[bbid].vms_created) {
-            int bbf = GUI_ANMS["boss_bar_first"].asInt();
+            int bbf = GUI_ANMS.boss_bar_first;
             boss_bars[bbid].anm_ids[0] =
                 front_anm->createEffect(bbf);
             boss_bars[bbid].anm_ids[1] =
@@ -327,7 +326,7 @@ int Gui::f_on_tick() {
     }
   }
 
-  int starfirst = GUI_ANMS["stars_first"].asInt();
+  int starfirst = GUI_ANMS.stars_first;
   for (int i = 0; i < 10; i++) {
     if (i < stars_nb) {
       if (stars_anmids[i].val == 0) {
@@ -685,7 +684,7 @@ void Gui::midScreenInfo(int bonus, int type) {
   case 0: {
     anm::delete_vm(some_anmid_0xc8);
     some_anmid_0xc8 =
-        front_anm->createEffect(GUI_ANMS["get_spell_card_bonus"].asInt());
+        front_anm->createEffect(GUI_ANMS.get_spell_card_bonus);
     bool fstnumfound = false;
     int pow10 = 10000000;
     int curbonus = bonus;
@@ -726,31 +725,31 @@ void Gui::midScreenInfo(int bonus, int type) {
     }
     field_0x144_spellcard_related = 1;
     anmid_0x120_spellTimeShowEnd =
-        front_anm->createEffect(GUI_ANMS["spellcard_endtime"].asInt());
+        front_anm->createEffect(GUI_ANMS.spellcard_endtime);
   } break;
   case 1:
     anm::delete_vm(some_anmid_0xc8);
-    some_anmid_0xc8 = front_anm->createEffect(GUI_ANMS["bonus_failed"].asInt());
+    some_anmid_0xc8 = front_anm->createEffect(GUI_ANMS.bonus_failed);
     field_0x144_spellcard_related = 1;
     anmid_0x120_spellTimeShowEnd =
-        front_anm->createEffect(GUI_ANMS["spellcard_endtime"].asInt());
+        front_anm->createEffect(GUI_ANMS.spellcard_endtime);
     break;
   case 2:
     anm::delete_vm(some_anmid_0xcc);
-    some_anmid_0xcc = front_anm->createEffect(GUI_ANMS["full_power"].asInt());
+    some_anmid_0xcc = front_anm->createEffect(GUI_ANMS.full_power);
     break;
   case 3:
     anm::delete_vm(some_anmid_0xcc);
-    some_anmid_0xcc = front_anm->createEffect(GUI_ANMS["high_score"].asInt());
+    some_anmid_0xcc = front_anm->createEffect(GUI_ANMS.high_score);
     break;
   case 4:
     anm::delete_vm(some_anmid_0xcc);
-    some_anmid_0xcc = front_anm->createEffect(GUI_ANMS["extend"].asInt());
+    some_anmid_0xcc = front_anm->createEffect(GUI_ANMS.extend);
     break;
   case 6:
     anm::delete_vm(some_anmid_0xc8);
     some_anmid_0xc8 =
-        front_anm->createEffect(GUI_ANMS["challenge_next_stage"].asInt());
+        front_anm->createEffect(GUI_ANMS.challenge_next_stage);
     break;
   }
 }
@@ -796,12 +795,12 @@ void Gui::FUN_0042a400() {
 
   if (GLOBALS.FLAGS & 0x40) {
     // Demo play
-    front_anm->createEffect(GUI_ANMS["demo_play"].asInt());
+    front_anm->createEffect(GUI_ANMS.demo_play);
   }
 
   if (boss_marker_anmid.val == 0) {
     boss_marker_anmid =
-        front_anm->createEffect(GUI_ANMS["boss_indicator"].asInt());
+        front_anm->createEffect(GUI_ANMS.boss_indicator);
   }
 
   // Item get border line
@@ -809,7 +808,7 @@ void Gui::FUN_0042a400() {
       /* GAME_THREAD_PTR->field18_0xa8 == 0 && */
       GLOBALS.inner.CONTINUES_USED == 0) {
     anm::VM *vm;
-    front_anm->createEffect(GUI_ANMS["item_get_border_line"].asInt(), -1, &vm);
+    front_anm->createEffect(GUI_ANMS.item_get_border_line, -1, &vm);
     if (vm)
       vm->entity_pos.y = (GLOBALS.inner.CHARACTER == 1) ? 0x94 : 0x80;
     // /\ not Hardcoded
@@ -817,13 +816,13 @@ void Gui::FUN_0042a400() {
 
   // if (SUPERVISOR.field61_0x700) {
   difficuty_screen_anmid = front_anm->createEffect(
-      GLOBALS.inner.DIFFICULTY + GUI_ANMS["difficulty_top_first"].asInt());
+      GLOBALS.inner.DIFFICULTY + GUI_ANMS.difficulty_top_first);
   anm::interrupt_tree(difficuty_screen_anmid, 3);
   // }
 
   difficuty_side_anmid = front_anm->createEffect(
-      GLOBALS.inner.DIFFICULTY + GUI_ANMS["difficulty_side_first"].asInt());
-  int shottype_side_fst = GUI_ANMS["shottype_side_first"].asInt();
+      GLOBALS.inner.DIFFICULTY + GUI_ANMS.difficulty_side_first);
+  int shottype_side_fst = GUI_ANMS.shottype_side_first;
   if (shottype_side_fst > 0)
     player_shottype_anmid = front_anm->createEffect(
         GLOBALS.inner.SHOTTYPE + GLOBALS.inner.CHARACTER * 3 +
@@ -891,11 +890,11 @@ void Gui::create_boss_name() {
     boss_name_anmid = 0;
     int id;
     if (GLOBALS.inner.CURRENT_CHAPTER < 41) {
-      id = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][1]
-        ["front_ename_anm_script"].asInt();
+      id = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM].boss_data[1]
+        .front_ename_anm_script;
     } else {
-      id = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]["boss_data"][0]
-        ["front_ename_anm_script"].asInt();
+      id = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM].boss_data[0]
+        .front_ename_anm_script;
     }
     if (id >= 0 && (-1 < id + 167)) {
       boss_name_anmid = front_anm->createEffect(id + 167);

@@ -95,7 +95,7 @@ int AsciiPopupManager::f_on_draw() {
       vm.color_1.a = 0x80 * ((dist_player_sq - 0x1000) / 0x3000) + 0x80;
     }
 
-    int fst = HARDCODED_DATA["popup_text_sprite"].asInt();
+    int fst = EFFECT_DATA.popup_text_sprite;
     for (int num = popups[i].nb_nums - 1; num >= 0; num--) {
       // cur_char 10 is FullPower popup
       if (popups[i].time < 48 || popups[i].nums[num] == 10) {

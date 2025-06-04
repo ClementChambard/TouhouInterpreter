@@ -1,11 +1,11 @@
 #include "./App.hpp"
-#include "./Bullet/BulletManager.h"
-#include "./Ecl/EnemyManager.h"
-#include "./AnmViewer.hpp"
 #include "./Anm/AnmManager.h"
+#include "./AnmViewer.hpp"
 #include "./AsciiManager.hpp"
 #include "./AsciiPopupManager.hpp"
 #include "./Bomb.hpp"
+#include "./Bullet/BulletManager.h"
+#include "./Ecl/EnemyManager.h"
 #include "./GlobalData.h"
 #include "./GoastManager.h"
 #include "./Gui.hpp"
@@ -16,8 +16,8 @@
 #include "./Player.h"
 #include "./Spellcard.h"
 #include "./Std/Stage.hpp"
-#include "./UpdateFuncRegistry.h"
 #include "./Supervisor.h"
+#include "./UpdateFuncRegistry.h"
 #include "Laser/LaserManager.h"
 #include <memory.h>
 #include <string>
@@ -54,8 +54,8 @@ void App::on_create() {
   if (strlen(m_argv[1]) > 3 && m_argv[1][3] >= '0' && m_argv[1][3] < '8')
     GLOBALS.inner.STAGE_NUM = m_argv[1][3] - '0';
 
-
-  // Not new Bomb since the BOMB_PTR is a different type depending on the character
+  // Not new Bomb since the BOMB_PTR is a different type depending on the
+  // character
   Bomb::initialize();
 
   BulletManager::GetInstance();
@@ -69,7 +69,8 @@ void App::on_create() {
   new Spellcard;
   new Stage;
   new PauseMenu;
-  if (TOUHOU_VERSION == 17) new GoastManager;
+  if (TOUHOU_VERSION == 17)
+    new GoastManager;
 
   new AnmViewer;
 
@@ -91,8 +92,8 @@ void App::on_create() {
 
 #include <input.hpp>
 
-void App::on_update() { 
-  UPDATE_FUNC_REGISTRY.run_all_on_tick(); 
+void App::on_update() {
+  UPDATE_FUNC_REGISTRY.run_all_on_tick();
   if (ns::keyboard::pressed(ns::Key::M)) {
     auto str = ns::get_memory_usage_str();
     NS_DEBUG("Memory usage: \n%s", str);
@@ -118,4 +119,5 @@ void App::on_destroy() {
   delete BulletManager::GetInstance();
   // SUPERVISOR.cleanup();
   anm::cleanup();
+  Hardcoded_Unload();
 }

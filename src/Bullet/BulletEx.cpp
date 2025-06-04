@@ -537,25 +537,24 @@ int Bullet::run_et_ex() {
         if (ex_type == 0x200) {
             type = cur_et_ex->a;
             color = cur_et_ex->b & 0x7fff;
-            sprite_data = BULLET_TYPE_TABLE[cur_et_ex->a];
-            __hitbox_diameter_copy = sprite_data["default_radius"].asFloat();
+            sprite_data = &BULLET_TYPE_TABLE[cur_et_ex->a];
+            __hitbox_diameter_copy = sprite_data->default_radius;
             hitbox_diameter = __hitbox_diameter_copy;
-            layer = sprite_data["default_layer"].asInt();
+            layer = sprite_data->default_layer;
             flags = flags | 0x10;
             vm.reset();
 
             vm.index_of_sprite_mapping_func = 1;
             vm.associated_game_entity = this;
             BULLET_MANAGER_PTR->bullet_anm->load_external_vm(
-                &vm, sprite_data["script"].asInt());
+                &vm, sprite_data->script);
             vm.bitflags.originMode = 1;
             anm::delete_vm(anm_extra_id);
             anm_extra_id = 0;
-            if (sprite_data["__field_114"].asInt() != 0) {
-                anm_extra_id = BULLET_MANAGER_PTR->bullet_anm->createEffectPos(
-                    sprite_data["__field_114"].asInt(), 0, pos);
+            if (sprite_data->__field_114 != 0) {
+                anm_extra_id = BULLET_MANAGER_PTR->bullet_anm->createEffectPos(sprite_data->__field_114, 0, pos);
             }
-            switch (sprite_data["__field_10c"].asInt()) {
+            switch (sprite_data->__field_10c) {
             case 0:
                 cancel_sprite_id = color * 2 + 4;
                 break;
@@ -575,8 +574,7 @@ int Bullet::run_et_ex() {
                 cancel_sprite_id = 12;
                 break;
             case 6:
-                cancel_sprite_id = sprite_data["colors"]
-                        [color]["cancel_script"].asInt();
+                cancel_sprite_id = sprite_data->colors[color].cancel_script;
                 break;
             case 7:
                 cancel_sprite_id = 0x104;
@@ -867,7 +865,7 @@ int Bullet::run_et_ex() {
         /* Set hitbox size */
         if (ex_type == 0x20000000) {
             __hitbox_diameter_copy = cur_et_ex->r < 0.f
-                ? sprite_data["default_radius"].asFloat()
+                ? sprite_data->default_radius
                 : cur_et_ex->r;
             hitbox_diameter = __hitbox_diameter_copy;
         }

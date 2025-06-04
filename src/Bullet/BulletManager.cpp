@@ -13,14 +13,14 @@ BulletManager *BULLET_MANAGER_PTR = nullptr;
 
 static int32_t on_sprite_set_bullet(anm::VM *vm, int32_t v) {
   auto b = reinterpret_cast<Bullet *>(vm->associated_game_entity);
-  if (b->sprite_data["colors"][0]["main_sprite_id"].asInt() < 0)
+  if (b->sprite_data->colors[0].main_sprite_id < 0)
     return v;
   if (v == 0)
-    return b->sprite_data["colors"][b->color]["main_sprite_id"].asInt();
+    return b->sprite_data->colors[b->color].main_sprite_id;
   if (v == 1)
-    return b->sprite_data["colors"][b->color]["spawn_sprite_id"].asInt();
+    return b->sprite_data->colors[b->color].spawn_sprite_id;
   if (v == 2)
-    return b->sprite_data["colors"][b->color]["cancel_sprite_id"].asInt();
+    return b->sprite_data->colors[b->color].cancel_sprite_id;
   return v;
 }
 
@@ -176,8 +176,8 @@ int BulletManager::on_draw() {
 void BulletManager::Shoot(EnemyBulletShooter_t *bh) {
   // use cnt & aim_mode to shoot single bullets (and play sound)
   ns::vec2 pos = ns::vec2(bh->__vec3_8);
-  float AngToPlayer = ns::point_direction(
-      pos.x, pos.y, PLAYER_PTR->inner.pos.x, PLAYER_PTR->inner.pos.y);
+  float AngToPlayer = ns::point_direction(pos.x, pos.y, PLAYER_PTR->inner.pos.x,
+                                          PLAYER_PTR->inner.pos.y);
   float aRing = ns::PI_2<f32> / static_cast<float>(bh->cnt_count);
   // fire bullet :
   if (bh->aim_type < 9) {
@@ -276,9 +276,9 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s,
   b->__field_678_had_35 = bh->sfx_flag;
   b->active_ex_flags = 0;
   b->__ex_goto_b_loop_count = 0;
-  b->sprite_data = BULLET_TYPE_TABLE[bh->type];
-  b->__hitbox_diameter_copy = b->sprite_data["default_radius"].asFloat();
-  b->layer = b->sprite_data["default_layer"].asInt();
+  b->sprite_data = &BULLET_TYPE_TABLE[bh->type];
+  b->__hitbox_diameter_copy = b->sprite_data->default_radius;
+  b->layer = b->sprite_data->default_layer;
   b->hitbox_diameter = b->__hitbox_diameter_copy;
   b->ex_index = bh->__start_transform;
 
@@ -290,19 +290,19 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s,
   b->vm.reset();
   b->vm.index_of_sprite_mapping_func = 1;
   b->vm.associated_game_entity = b;
-  bullet_anm->load_external_vm(&b->vm, b->sprite_data["script"].asInt());
+  bullet_anm->load_external_vm(&b->vm, b->sprite_data->script);
   // TODO: no
   b->vm.setLayer(15);
   b->vm.bitflags.originMode = 0b01;
 
   // Spawn anim wierd and cancel id
-  if (b->sprite_data["__field_114"].asInt() != 0) {
+  if (b->sprite_data->__field_114 != 0) {
     b->anm_extra_id = BULLET_MANAGER_PTR->bullet_anm->createEffectPos(
-        b->sprite_data["__field_114"].asInt(), 0, b->pos);
+        b->sprite_data->__field_114, 0, b->pos);
   }
 
   // Set cancel_sprite_id ... TODO investigate
-  switch (b->sprite_data["__field_10c"].asInt()) {
+  switch (b->sprite_data->__field_10c) {
   case 0:
     b->cancel_sprite_id = bh->__color * 2 + 4;
     break;
@@ -320,8 +320,7 @@ void BulletManager::ShootSingle(EnemyBulletShooter_t *bh, float a, float s,
   default:
     break;
   case 6:
-    b->cancel_sprite_id =
-        b->sprite_data["colors"][bh->__color]["cancel_script"].asInt();
+    b->cancel_sprite_id = b->sprite_data->colors[bh->__color].cancel_script;
     break;
   case 7:
     b->cancel_sprite_id = 0x104;

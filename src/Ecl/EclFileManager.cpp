@@ -4,6 +4,7 @@
 #include "../Bullet/BulletManager.h"
 #include "./EclRaw.h"
 #include "../Hardcoded.h"
+#include "../GlobalData.h"
 #include <sys/stat.h>
 #include <string>
 #include <logger.h>
@@ -21,8 +22,7 @@ inline bool file_exists(cstr name) {
 void EclFileManager::LoadEcl(cstr file) {
     std::string f = file;
     if (!file_exists(file))
-        f = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM]
-            ["ecl_filename"].asString();
+        f = STAGE_DATA_TABLE[GLOBALS.inner.STAGE_NUM].ecl_filename;
 
     NS_INFO("LOADING %s", f.c_str());
     CloseEcl();

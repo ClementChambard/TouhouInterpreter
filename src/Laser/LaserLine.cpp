@@ -31,8 +31,7 @@ int LaserLine::initialize(void *arg) {
   vm1.reset();
   vm1.index_of_sprite_mapping_func = LASER_ON_SPRITE_SET_FUNC;
   vm1.associated_game_entity = this;
-  LASER_MANAGER_PTR->bullet_anm->load_external_vm(
-      &vm1, BULLET_TYPE_TABLE[bullet_type]["script"].asInt());
+  LASER_MANAGER_PTR->bullet_anm->load_external_vm(&vm1, BULLET_TYPE_TABLE[bullet_type].script);
   vm1.interrupt(2);
   vm1.update();
   vm1.bitflags.originMode = 1;
@@ -41,7 +40,7 @@ int LaserLine::initialize(void *arg) {
   vm1.bitflags.anchorY = 2;
 
   LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(
-      &vm2, inner.bullet_color + LASER_DATA["spawn_anm_first"].asInt());
+      &vm2, inner.bullet_color + LASER_DATA.spawn_anm_first);
   vm2.parent_vm = nullptr;
   vm2.__root_vm__or_maybe_not = nullptr;
   vm2.update();
@@ -317,10 +316,7 @@ void LaserLine::run_ex() {
     }
 
     if (inner.et_ex[et_ex_index].type == 0x200) {
-      LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(
-          &vm1,
-          BULLET_TYPE_TABLE[inner.et_ex[et_ex_index].a]["script"].asInt() +
-              inner.et_ex[et_ex_index].b);
+      LASER_MANAGER_PTR->bullet_anm->copyFromLoaded(&vm1, BULLET_TYPE_TABLE[inner.et_ex[et_ex_index].a].script + inner.et_ex[et_ex_index].b);
       vm1.parent_vm = nullptr;
       vm1.__root_vm__or_maybe_not = nullptr;
       vm1.update();
